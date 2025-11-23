@@ -1410,6 +1410,27 @@ export const PracticeAnalysis: React.FC = () => {
                     </ResponsiveContainer>
                   </div>
                 </div>
+
+                {/* Placeholder for second chart - Coming Soon */}
+                <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[20px] flex flex-col shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300 flex-1"
+                  style={{
+                    boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)'
+                  }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+
+                  <div className="relative px-5 pt-5 pb-2">
+                    <div className="text-gray-500 text-[10px] font-semibold uppercase tracking-widest mb-2">ANALYTICS</div>
+                    <h3 className="text-gray-900 text-lg font-semibold mb-2">Additional Metric</h3>
+                    <div className="text-sm text-gray-600 mt-4">
+                      Coming soon...
+                    </div>
+                  </div>
+
+                  <div className="relative z-10 px-3 pb-2" style={{ height: '110px' }}>
+                    {/* Placeholder space for future chart */}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
