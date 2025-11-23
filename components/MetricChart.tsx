@@ -1,16 +1,17 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, LabelList, Cell } from 'recharts';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, LabelList, Cell, ReferenceLine } from 'recharts';
 import { ChevronDown, ArrowRight } from 'lucide-react';
 
 interface MetricChartProps {
   title: string;
   data: Array<{ month: string; value: number }>;
   valueFormatter?: (value: number) => string;
+  goal?: number;
 }
 
 const TIME_PERIODS = ['Last 4 months', 'Last 6 months', 'Last 12 months', 'Year to date'];
 
-export const MetricChart: React.FC<MetricChartProps> = ({ title, data, valueFormatter }) => {
+export const MetricChart: React.FC<MetricChartProps> = ({ title, data, valueFormatter, goal }) => {
   const formatValue = valueFormatter || ((value: number) => value.toString());
   const [selectedPeriod, setSelectedPeriod] = useState('Last 4 months');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -36,13 +37,50 @@ export const MetricChart: React.FC<MetricChartProps> = ({ title, data, valueForm
         fill="#1f2937"
         textAnchor="middle"
         dominantBaseline="middle"
-        fontSize={14}
-        fontWeight={600}
+        fontSize={15}
+        fontWeight={700}
       >
         {formatValue(value)}
       </text>
     );
   }, [formatValue]);
+
+  const renderGoalLabel = useMemo(() => (props: any) => {
+    const { viewBox } = props;
+    const formattedGoal = goal ? formatValue(goal) : '';
+
+    // Position at extreme left
+    const x = viewBox.x + 5;
+    const y = viewBox.y;
+
+    return (
+      <g>
+        {/* "Target" label */}
+        <text
+          x={x}
+          y={y - 8}
+          fill="#94a3b8"
+          textAnchor="start"
+          fontSize={10}
+          fontWeight={600}
+          letterSpacing={1}
+        >
+          TARGET
+        </text>
+        {/* Value */}
+        <text
+          x={x + 55}
+          y={y - 8}
+          fill="#475569"
+          textAnchor="start"
+          fontSize={14}
+          fontWeight={700}
+        >
+          {formattedGoal}
+        </text>
+      </g>
+    );
+  }, [goal, formatValue]);
 
   const chartElement = useMemo(() => (
     <div className="flex-1 w-full min-h-0 relative z-0 overflow-hidden rounded-2xl">
@@ -56,6 +94,15 @@ export const MetricChart: React.FC<MetricChartProps> = ({ title, data, valueForm
             dy={10}
           />
           <YAxis hide />
+          {goal && (
+            <ReferenceLine
+              y={goal}
+              stroke="#cbd5e1"
+              strokeDasharray="6 6"
+              strokeWidth={2}
+              label={renderGoalLabel}
+            />
+          )}
           <Bar
             dataKey="value"
             fill="#2d6e7e"
@@ -67,7 +114,7 @@ export const MetricChart: React.FC<MetricChartProps> = ({ title, data, valueForm
         </BarChart>
       </ResponsiveContainer>
     </div>
-  ), [data, renderCustomLabel]);
+  ), [data, renderCustomLabel, renderGoalLabel, goal]);
 
   return (
     <div className="relative w-full h-full rounded-[32px] p-8 shadow-2xl bg-white border-2 border-[#2d6e7e] flex flex-col" style={{ overflow: 'visible' }}>
