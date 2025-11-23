@@ -189,21 +189,23 @@ export const PracticeAnalysis: React.FC = () => {
 
       {/* Tab Content */}
       {activeTab === 'financial' && (
-        <div className="flex gap-6 h-[calc(100%-240px)]">
-          <div className="w-[55%] h-full">
-            <MetricChart
-              title="Gross Revenue"
-              data={REVENUE_DATA}
-              valueFormatter={formatCurrency}
-              goal={150000}
-              clinicianData={CLINICIAN_REVENUE_DATA}
-              breakdownData={REVENUE_BREAKDOWN_DATA}
-              timePeriod={timePeriod}
-            />
-          </div>
+        <div className="flex flex-col gap-6 overflow-y-auto">
+          {/* Top Row - Charts - Full viewport height */}
+          <div className="flex gap-6 flex-shrink-0" style={{ height: 'calc(100vh - 400px)' }}>
+            <div className="w-[55%]" style={{ height: '100%' }}>
+              <MetricChart
+                title="Gross Revenue"
+                data={REVENUE_DATA}
+                valueFormatter={formatCurrency}
+                goal={150000}
+                clinicianData={CLINICIAN_REVENUE_DATA}
+                breakdownData={REVENUE_BREAKDOWN_DATA}
+                timePeriod={timePeriod}
+              />
+            </div>
 
-          {/* Right Side Metrics */}
-          <div className="flex flex-col gap-6 w-[45%] h-full">
+            {/* Right Side Metrics */}
+            <div className="flex flex-col gap-6 w-[45%]" style={{ height: '100%' }}>
             <div className="flex gap-4 flex-shrink-0">
               {/* Average Session Value - Compact */}
               <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[20px] flex flex-col shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300 flex-1"
@@ -492,6 +494,69 @@ export const PracticeAnalysis: React.FC = () => {
                 </ResponsiveContainer>
               </div>
             </div>
+            </div>
+          </div>
+
+          {/* Revenue Breakdown Table - Below the fold */}
+          <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[24px] shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300"
+            style={{
+              boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)'
+            }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+
+            <div className="relative z-10 px-6 pt-6 pb-6">
+              <div className="text-gray-500 text-xs font-semibold uppercase tracking-widest mb-2">FINANCIAL BREAKDOWN</div>
+              <h3 className="text-gray-900 text-2xl font-semibold mb-4">Revenue Allocation</h3>
+
+              {/* Table */}
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b-2 border-gray-200">
+                      <th className="text-left py-3 px-2 text-xs font-bold text-gray-500 uppercase tracking-wider">Month</th>
+                      <th className="text-right py-3 px-2 text-xs font-bold text-gray-500 uppercase tracking-wider">Gross Revenue</th>
+                      <th className="text-right py-3 px-2 text-xs font-bold text-gray-500 uppercase tracking-wider">Clinician Cost</th>
+                      <th className="text-right py-3 px-2 text-xs font-bold text-gray-500 uppercase tracking-wider">Supervisor Cost</th>
+                      <th className="text-right py-3 px-2 text-xs font-bold text-gray-500 uppercase tracking-wider">Credit Card Fees</th>
+                      <th className="text-right py-3 px-2 text-xs font-bold text-green-700 uppercase tracking-wider">Net Revenue</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {REVENUE_BREAKDOWN_DATA.map((item, idx) => (
+                      <tr key={item.month} className={`border-b border-gray-100 hover:bg-gray-50/50 transition-colors ${idx === REVENUE_BREAKDOWN_DATA.length - 1 ? 'border-b-0' : ''}`}>
+                        <td className="py-3 px-2 text-sm font-semibold text-gray-900">{item.month}</td>
+                        <td className="py-3 px-2 text-sm font-semibold text-gray-900 text-right">${(item.grossRevenue / 1000).toFixed(1)}k</td>
+                        <td className="py-3 px-2 text-sm text-blue-600 text-right">${(item.clinicianCosts / 1000).toFixed(1)}k</td>
+                        <td className="py-3 px-2 text-sm text-amber-600 text-right">${(item.supervisorCosts / 1000).toFixed(1)}k</td>
+                        <td className="py-3 px-2 text-sm text-red-600 text-right">${(item.creditCardFees / 1000).toFixed(1)}k</td>
+                        <td className="py-3 px-2 text-sm font-bold text-green-700 text-right">${(item.netRevenue / 1000).toFixed(1)}k</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr className="border-t-2 border-gray-200 bg-gray-50/30">
+                      <td className="py-3 px-2 text-sm font-bold text-gray-900">Total</td>
+                      <td className="py-3 px-2 text-sm font-bold text-gray-900 text-right">
+                        ${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.grossRevenue, 0) / 1000).toFixed(1)}k
+                      </td>
+                      <td className="py-3 px-2 text-sm font-bold text-blue-600 text-right">
+                        ${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.clinicianCosts, 0) / 1000).toFixed(1)}k
+                      </td>
+                      <td className="py-3 px-2 text-sm font-bold text-amber-600 text-right">
+                        ${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.supervisorCosts, 0) / 1000).toFixed(1)}k
+                      </td>
+                      <td className="py-3 px-2 text-sm font-bold text-red-600 text-right">
+                        ${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.creditCardFees, 0) / 1000).toFixed(1)}k
+                      </td>
+                      <td className="py-3 px-2 text-sm font-bold text-green-700 text-right">
+                        ${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.netRevenue, 0) / 1000).toFixed(1)}k
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -511,27 +576,26 @@ export const PracticeAnalysis: React.FC = () => {
 
       {activeTab !== 'financial' && activeTab !== 'sessions' && (
         <div className="bg-white rounded-3xl p-8 shadow-sm min-h-[500px]">
+          {activeTab === 'client-growth' && (
+            <div>
+              <h3 className="text-2xl font-semibold text-gray-900 mb-4">Client Growth</h3>
+              <p className="text-gray-600">Client growth analysis content goes here...</p>
+            </div>
+          )}
 
-        {activeTab === 'client-growth' && (
-          <div>
-            <h3 className="text-2xl font-semibold text-gray-900 mb-4">Client Growth</h3>
-            <p className="text-gray-600">Client growth analysis content goes here...</p>
-          </div>
-        )}
+          {activeTab === 'retention' && (
+            <div>
+              <h3 className="text-2xl font-semibold text-gray-900 mb-4">Retention</h3>
+              <p className="text-gray-600">Retention analysis content goes here...</p>
+            </div>
+          )}
 
-        {activeTab === 'retention' && (
-          <div>
-            <h3 className="text-2xl font-semibold text-gray-900 mb-4">Retention</h3>
-            <p className="text-gray-600">Retention analysis content goes here...</p>
-          </div>
-        )}
-
-        {activeTab === 'admin' && (
-          <div>
-            <h3 className="text-2xl font-semibold text-gray-900 mb-4">Admin</h3>
-            <p className="text-gray-600">Admin analysis content goes here...</p>
-          </div>
-        )}
+          {activeTab === 'admin' && (
+            <div>
+              <h3 className="text-2xl font-semibold text-gray-900 mb-4">Admin</h3>
+              <p className="text-gray-600">Admin analysis content goes here...</p>
+            </div>
+          )}
         </div>
       )}
     </div>
