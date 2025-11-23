@@ -100,6 +100,7 @@ export const PracticeAnalysis: React.FC = () => {
   const [hoveredYTDValue, setHoveredYTDValue] = useState<number | null>(null);
   const [hoveredWeeklySessions, setHoveredWeeklySessions] = useState<number | null>(null);
   const [hoveredAvgSessionsPerClient, setHoveredAvgSessionsPerClient] = useState<number | null>(null);
+  const [hoveredUtilization, setHoveredUtilization] = useState<number | null>(null);
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('last-4-months');
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [customStartDate, setCustomStartDate] = useState<Date | null>(new Date(2025, 0, 1)); // Jan 1, 2025
@@ -194,6 +195,15 @@ export const PracticeAnalysis: React.FC = () => {
     SESSIONS_DATA.map((item) => ({
       month: item.month,
       value: parseFloat((item.completed / item.clients).toFixed(2))
+    })),
+    [SESSIONS_DATA]
+  );
+
+  // Calculate practice utilization percentage (completed / booked * 100)
+  const UTILIZATION_DATA = useMemo(() =>
+    SESSIONS_DATA.map((item) => ({
+      month: item.month,
+      value: parseFloat(((item.completed / item.booked) * 100).toFixed(1))
     })),
     [SESSIONS_DATA]
   );
@@ -1307,17 +1317,98 @@ export const PracticeAnalysis: React.FC = () => {
               />
             </div>
 
-            {/* Right Side Metrics - Placeholder for now */}
+            {/* Right Side Metrics */}
             <div className="flex flex-col gap-6 w-[45%]" style={{ height: '100%' }}>
-              <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[24px] flex flex-col flex-1 shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden"
-                style={{
-                  boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)'
-                }}
-              >
-                <div className="relative px-6 pt-6 pb-4">
-                  <div className="text-gray-500 text-xs font-semibold uppercase tracking-widest mb-2">ANALYTICS</div>
-                  <h3 className="text-gray-900 text-2xl font-semibold mb-4">Client Growth Metrics</h3>
-                  <p className="text-gray-600">Additional metrics coming soon...</p>
+              <div className="flex gap-4 flex-shrink-0">
+                {/* Practice Utilization - Compact */}
+                <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[20px] flex flex-col shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300 flex-1"
+                  style={{
+                    boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)'
+                  }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+
+                  <div className="relative px-5 pt-5 pb-2">
+                    <div className="text-gray-500 text-[10px] font-semibold uppercase tracking-widest mb-2">ANALYTICS</div>
+                    <h3 className="text-gray-900 text-lg font-semibold mb-2 flex items-center gap-2">
+                      Practice Utilization
+                      <div className="group/info relative z-[100000]">
+                        <Info size={14} className="text-[#2d6e7e] cursor-help" />
+                        <div className="absolute left-0 top-6 invisible group-hover/info:visible opacity-0 group-hover/info:opacity-100 transition-all duration-200 w-64 z-[100000]">
+                          <div className="bg-gray-900 text-white text-xs rounded-lg p-3 shadow-xl">
+                            <p className="font-medium mb-1">Practice Utilization</p>
+                            <p className="text-gray-300">Shows the percentage of booked sessions that were completed. Higher utilization indicates fewer cancellations and no-shows, reflecting better attendance and schedule efficiency.</p>
+                            <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </h3>
+                    <div className="text-2xl font-bold text-gray-900 tracking-tight transition-all duration-200">
+                      {hoveredUtilization !== null
+                        ? `${hoveredUtilization.toFixed(1)}%`
+                        : `${(UTILIZATION_DATA.reduce((sum, item) => sum + item.value, 0) / UTILIZATION_DATA.length).toFixed(1)}%`
+                      }
+                    </div>
+                  </div>
+
+                  <div className="relative z-10 px-3 pb-2" style={{ height: '110px' }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart
+                        data={UTILIZATION_DATA}
+                        margin={{ top: 20, right: 10, bottom: 5, left: 5 }}
+                        onMouseMove={(e: any) => {
+                          if (e.activePayload && e.activePayload[0]) {
+                            setHoveredUtilization(e.activePayload[0].value);
+                          }
+                        }}
+                        onMouseLeave={() => setHoveredUtilization(null)}
+                      >
+                        <defs>
+                          <linearGradient id="utilizationGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#2d6e7e" stopOpacity={0.2}/>
+                            <stop offset="100%" stopColor="#2d6e7e" stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                        <XAxis
+                          dataKey="month"
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fill: '#6b7280', fontSize: 11, fontWeight: 600 }}
+                          dy={3}
+                        />
+                        <YAxis hide domain={['dataMin - 2', 'dataMax + 2']} />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: '#1f2937',
+                            border: 'none',
+                            borderRadius: '10px',
+                            padding: '10px 14px',
+                            boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.3)'
+                          }}
+                          labelStyle={{ color: '#9ca3af', fontSize: '11px', fontWeight: 600, marginBottom: '3px' }}
+                          itemStyle={{ color: '#fff', fontSize: '14px', fontWeight: 700 }}
+                          formatter={(value: number) => [`${value.toFixed(1)}%`, 'Utilization']}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="value"
+                          stroke="#2d6e7e"
+                          strokeWidth={2.5}
+                          dot={{ fill: '#2d6e7e', strokeWidth: 2, stroke: '#fff', r: 3 }}
+                          activeDot={{ r: 5, strokeWidth: 2, stroke: '#fff' }}
+                          fill="url(#utilizationGradient)"
+                        >
+                          <LabelList
+                            dataKey="value"
+                            position="top"
+                            style={{ fill: '#1f2937', fontSize: '10px', fontWeight: 700 }}
+                            offset={8}
+                            formatter={(value: number) => `${value.toFixed(1)}%`}
+                          />
+                        </Line>
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
                 </div>
               </div>
             </div>
