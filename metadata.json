@@ -1,0 +1,5 @@
+{
+  "name": "MindPulse AI Dashboard",
+  "description": "A comprehensive mental health monitoring dashboard featuring real-time metrics, AI-driven session analysis using Gemini, and mood tracking visualization.",
+  "requestFramePermissions": []
+}
