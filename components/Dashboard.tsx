@@ -42,8 +42,15 @@ export const Dashboard: React.FC = () => {
   const [metrics] = useState<PracticeMetrics>(INITIAL_METRICS);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+  const [viewMode, setViewMode] = useState<'live' | 'historical'>('live');
+  const [selectedMonth, setSelectedMonth] = useState('January');
+  const [selectedYear, setSelectedYear] = useState('2025');
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
   const totalCards = 4;
+
+  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const years = ['2025', '2024', '2023', '2022'];
 
   const handlePrevious = () => {
     const newIndex = currentCardIndex === 0 ? 0 : currentCardIndex - 1;
@@ -270,9 +277,80 @@ export const Dashboard: React.FC = () => {
   return (
     <div className="flex-1 p-8 pt-2 flex flex-col h-[calc(100vh-80px)] overflow-hidden">
 
-      {/* Title Section */}
-      <div className="mb-6 flex-shrink-0">
+      {/* Title Section with Toggle */}
+      <div className="mb-6 flex-shrink-0 flex items-center justify-between">
         <h1 className="text-4xl font-normal text-gray-900 tracking-tight">Monthly Practice Review</h1>
+
+        {/* Live/Historical Toggle */}
+        <div className="flex items-center gap-3">
+          <div className="bg-gradient-to-b from-white via-white to-white/95 rounded-full p-1.5 shadow-lg ring-1 ring-slate-200/50 flex items-center gap-1"
+            style={{
+              boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.1), inset 0 1px 0 0 rgba(255, 255, 255, 0.8)'
+            }}
+          >
+            <button
+              onClick={() => {
+                setViewMode('live');
+                setIsDatePickerOpen(false);
+              }}
+              className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 ${
+                viewMode === 'live'
+                  ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 text-white shadow-xl'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+              style={viewMode === 'live' ? {
+                boxShadow: '0 8px 30px -8px rgba(0, 0, 0, 0.3), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)'
+              } : undefined}
+            >
+              Live
+            </button>
+            <button
+              onClick={() => {
+                setViewMode('historical');
+                setIsDatePickerOpen(true);
+              }}
+              className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 ${
+                viewMode === 'historical'
+                  ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 text-white shadow-xl'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+              style={viewMode === 'historical' ? {
+                boxShadow: '0 8px 30px -8px rgba(0, 0, 0, 0.3), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)'
+              } : undefined}
+            >
+              Historical
+            </button>
+          </div>
+
+          {/* Month/Year Selector */}
+          {viewMode === 'historical' && (
+            <div className="flex items-center gap-2 bg-gradient-to-b from-white via-white to-white/95 rounded-2xl p-3 shadow-lg ring-1 ring-slate-200/50"
+              style={{
+                boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.1), inset 0 1px 0 0 rgba(255, 255, 255, 0.8)'
+              }}
+            >
+              <select
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                className="bg-transparent text-sm font-semibold text-gray-900 border-none outline-none cursor-pointer pr-2"
+              >
+                {months.map((month) => (
+                  <option key={month} value={month}>{month}</option>
+                ))}
+              </select>
+              <span className="text-gray-400">|</span>
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(e.target.value)}
+                className="bg-transparent text-sm font-semibold text-gray-900 border-none outline-none cursor-pointer"
+              >
+                {years.map((year) => (
+                  <option key={year} value={year}>{year}</option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Main Layout */}

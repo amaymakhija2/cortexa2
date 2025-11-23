@@ -16,7 +16,7 @@ export const generateLiveNotes = async (metrics: PracticeMetrics): Promise<LiveN
   const ai = new GoogleGenAI({ apiKey: processEnvApiKey });
 
   const prompt = `
-    Analyze the following practice performance metrics for December:
+    Analyze the following practice performance metrics for January:
     
     1. ${metrics.revenue.label}: ${metrics.revenue.value} (${metrics.revenue.subtext}) - Status: ${metrics.revenue.status}
     2. ${metrics.sessions.label}: ${metrics.sessions.value} (${metrics.sessions.subtext}) - Status: ${metrics.sessions.status}

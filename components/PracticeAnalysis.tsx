@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { MetricChart } from './MetricChart';
 
-type TabType = 'financial' | 'capacity' | 'client-growth' | 'retention' | 'admin';
+type TabType = 'financial' | 'sessions' | 'client-growth' | 'retention' | 'admin';
 
 const REVENUE_DATA = [
   { month: 'Sep', value: 142500 },
@@ -20,12 +20,12 @@ const SESSIONS_DATA = [
 export const PracticeAnalysis: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('financial');
 
-  const tabs: { id: TabType; label: string }[] = [
-    { id: 'financial', label: 'Financial Analysis' },
-    { id: 'capacity', label: 'Capacity' },
-    { id: 'client-growth', label: 'Client Growth' },
-    { id: 'retention', label: 'Retention' },
-    { id: 'admin', label: 'Admin' }
+  const tabs: { id: TabType; label: string; shortLabel: string }[] = [
+    { id: 'financial', label: 'Financial Analysis', shortLabel: 'Financial' },
+    { id: 'sessions', label: 'Sessions Analysis', shortLabel: 'Sessions' },
+    { id: 'client-growth', label: 'Client Growth Analysis', shortLabel: 'Client Growth' },
+    { id: 'retention', label: 'Retention Analysis', shortLabel: 'Retention' },
+    { id: 'admin', label: 'Admin Analysis', shortLabel: 'Admin' }
   ];
 
   const formatCurrency = (value: number) => `$${(value / 1000).toFixed(1)}k`;
@@ -53,7 +53,7 @@ export const PracticeAnalysis: React.FC = () => {
               }
             `}
           >
-            {tab.label}
+            {activeTab === tab.id ? tab.label : tab.shortLabel}
           </button>
         ))}
       </div>
@@ -61,13 +61,20 @@ export const PracticeAnalysis: React.FC = () => {
       {/* Tab Content */}
       {activeTab === 'financial' && (
         <div className="flex flex-col gap-6 h-[calc(100%-240px)]">
-          <div className="grid grid-cols-2 gap-6 flex-1 min-h-0">
+          <div className="w-1/2 h-full">
             <MetricChart
               title="Gross Revenue"
               data={REVENUE_DATA}
               valueFormatter={formatCurrency}
               goal={150000}
             />
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'sessions' && (
+        <div className="flex flex-col gap-6 h-[calc(100%-240px)]">
+          <div className="w-1/2 h-full">
             <MetricChart
               title="Total Sessions"
               data={SESSIONS_DATA}
@@ -77,15 +84,8 @@ export const PracticeAnalysis: React.FC = () => {
         </div>
       )}
 
-      {activeTab !== 'financial' && (
+      {activeTab !== 'financial' && activeTab !== 'sessions' && (
         <div className="bg-white rounded-3xl p-8 shadow-sm min-h-[500px]">
-
-        {activeTab === 'capacity' && (
-          <div>
-            <h3 className="text-2xl font-semibold text-gray-900 mb-4">Capacity</h3>
-            <p className="text-gray-600">Capacity analysis content goes here...</p>
-          </div>
-        )}
 
         {activeTab === 'client-growth' && (
           <div>
