@@ -204,10 +204,10 @@ export const PriorityTaskCard: React.FC<PriorityTaskProps> = ({
         </div>
 
         {/* Content Section - Flexible Growth */}
-        <div className="flex-1 min-h-0 bg-white">
+        <div className="flex-1 min-h-0 bg-white flex flex-col">
           {/* Slots Chart */}
           {type === "slots" && chartData && chartData.length > 0 && (
-            <div className="p-8 h-full min-h-[280px]">
+            <div className="p-8 flex-1 min-h-[280px]">
               <div className="h-full w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
@@ -249,7 +249,7 @@ export const PriorityTaskCard: React.FC<PriorityTaskProps> = ({
 
           {/* Cancellations Charts */}
           {type === "cancellations" && chartData && chartData.length > 0 && (
-            <div className="p-8 space-y-8">
+            <div className="p-8 space-y-8 flex-1">
               {/* Monthly Trend */}
               <div className="h-[200px]">
                 <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4">Monthly Trend</p>
@@ -307,22 +307,25 @@ export const PriorityTaskCard: React.FC<PriorityTaskProps> = ({
 
           {/* Retention Table */}
           {type === "retention" && retentionData && (
-            <div className="p-0">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse table-fixed">
-                  <thead>
-                    <tr className="border-b border-slate-100">
+            <div className="p-0 flex-1 flex flex-col min-h-0">
+              <div className="flex-1 overflow-x-auto flex flex-col">
+                <table className="w-full h-full text-left border-collapse table-fixed flex flex-col">
+                  <thead className="flex-shrink-0">
+                    <tr className="border-b border-slate-100 flex w-full">
                       <th className="w-[20%] px-8 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Client</th>
                       <th className="w-[60%] px-4 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-center">Sessions Trend</th>
                       <th className="w-[20%] px-8 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-right">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-50">
-                    {retentionData.map((client) => (
-                      <tr key={client.id} className="group hover:bg-slate-50/50 transition-colors">
-                        <td className="px-8 py-4 text-sm font-medium text-slate-700">{client.id}</td>
-                        <td className="px-4 py-4">
-                          <div className="flex items-center justify-center gap-2 w-full">
+                  <tbody className="flex-1 flex flex-col">
+                    {retentionData.map((client, clientIdx) => (
+                      <tr
+                        key={client.id}
+                        className="group hover:bg-slate-50/50 transition-colors flex-1 flex w-full border-b border-slate-50 last:border-b-0"
+                      >
+                        <td className="w-[20%] px-8 py-4 text-sm font-medium text-slate-700 flex items-center">{client.id}</td>
+                        <td className="w-[60%] px-4 py-4 flex items-center">
+                          <div className="flex items-center justify-center gap-2 w-full h-full">
                             {client.sessions.map((session: any, idx: number) => {
                               const isDropped = client.dropped && session.month === client.droppedAfter
                               const isSpike = !client.dropped && session.count >= 6
@@ -332,7 +335,7 @@ export const PriorityTaskCard: React.FC<PriorityTaskProps> = ({
                                 <div
                                   key={idx}
                                   className={cn(
-                                    "flex-1 h-12 rounded-lg flex items-center justify-center text-sm font-bold transition-all",
+                                    "flex-1 h-full min-h-[3rem] rounded-lg flex items-center justify-center text-sm font-bold transition-all",
                                     session.count > 0
                                       ? isDropped
                                         ? "bg-red-100 text-red-700"
@@ -350,7 +353,7 @@ export const PriorityTaskCard: React.FC<PriorityTaskProps> = ({
                             })}
                           </div>
                         </td>
-                        <td className="px-8 py-4 text-right">
+                        <td className="w-[20%] px-8 py-4 text-right flex items-center justify-end">
                           <span className={cn(
                             "text-xs font-bold px-2 py-1 rounded-full",
                             client.dropped
@@ -372,35 +375,35 @@ export const PriorityTaskCard: React.FC<PriorityTaskProps> = ({
 
           {/* Accounts Receivable List */}
           {type === "accounts-receivable" && accountsReceivableData && (
-            <div className="p-0">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left">
-                  <thead>
-                    <tr className="border-b border-slate-100">
-                      <th className="px-8 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Client</th>
-                      <th className="px-4 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-right">Amount</th>
-                      <th className="px-8 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-right">Age</th>
+            <div className="p-0 flex-1 flex flex-col min-h-0">
+              <div className="flex-1 overflow-x-auto flex flex-col">
+                <table className="w-full h-full text-left flex flex-col">
+                  <thead className="flex-shrink-0">
+                    <tr className="border-b border-slate-100 flex w-full">
+                      <th className="flex-1 px-8 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Client</th>
+                      <th className="w-32 px-4 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-right">Amount</th>
+                      <th className="w-32 px-8 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-right">Age</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-50">
+                  <tbody className="flex-1 flex flex-col">
                     {accountsReceivableData.map((item: any, idx: number) => {
                       const isUrgent = item.daysOutstanding >= 30
                       const isWarning = item.daysOutstanding >= 20 && item.daysOutstanding < 30
 
                       return (
-                        <tr key={idx} className="group hover:bg-slate-50/50 transition-colors">
-                          <td className="px-8 py-4">
+                        <tr key={idx} className="group hover:bg-slate-50/50 transition-colors flex-1 flex w-full border-b border-slate-50 last:border-b-0">
+                          <td className="flex-1 px-8 py-4 flex items-center">
                             <div className="flex flex-col">
                               <span className="text-sm font-medium text-slate-900">{item.client}</span>
                               <span className="text-xs text-slate-500">{item.clinician}</span>
                             </div>
                           </td>
-                          <td className="px-4 py-4 text-right">
+                          <td className="w-32 px-4 py-4 text-right flex items-center justify-end">
                             <span className="text-sm font-bold text-slate-900">
                               ${item.amount.toLocaleString()}
                             </span>
                           </td>
-                          <td className="px-8 py-4 text-right">
+                          <td className="w-32 px-8 py-4 text-right flex items-center justify-end">
                             <span className={cn(
                               "text-xs font-bold px-2 py-1 rounded-full",
                               isUrgent
@@ -423,7 +426,7 @@ export const PriorityTaskCard: React.FC<PriorityTaskProps> = ({
 
           {/* Default Impact Breakdown */}
           {type === "default" && impactBreakdown && (
-            <div className="p-8">
+            <div className="p-8 flex-1 flex flex-col justify-center">
               <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4">{impact}</p>
               <div className="space-y-3">
                 {impactBreakdown.map((item, idx) => (
@@ -443,7 +446,7 @@ export const PriorityTaskCard: React.FC<PriorityTaskProps> = ({
         </div>
 
         {/* Action Footer */}
-        <div className="px-8 py-6 bg-white border-t border-slate-50 mt-auto">
+        <div className="px-8 py-6 bg-white border-t border-slate-50 flex-shrink-0">
           <div className="flex items-center gap-3">
             <button className="flex-1 px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-sm font-medium rounded-xl shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 group/btn">
               {action}

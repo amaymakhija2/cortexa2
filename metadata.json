@@ -1,5 +1,5 @@
 {
-  "name": "MindPulse AI Dashboard",
-  "description": "A comprehensive mental health monitoring dashboard featuring real-time metrics, AI-driven session analysis using Gemini, and mood tracking visualization.",
+  "name": "Cortexa Dashboard",
+  "description": "A comprehensive practice management dashboard featuring real-time metrics, AI-driven insights using Gemini, and sophisticated analytics visualization.",
   "requestFramePermissions": []
 }
