@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, LabelList, Cell, ReferenceLine, Tooltip } from 'recharts';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Info } from 'lucide-react';
 
 type TimePeriod = 'last-4-months' | 'last-6-months' | 'last-12-months' | 'ytd';
 
@@ -19,13 +19,19 @@ interface MetricChartProps {
   }>;
   breakdownData?: Array<{
     month: string;
-    grossRevenue: number;
-    clinicianCosts: number;
-    supervisorCosts: number;
-    creditCardFees: number;
-    netRevenue: number;
+    grossRevenue?: number;
+    clinicianCosts?: number;
+    supervisorCosts?: number;
+    creditCardFees?: number;
+    netRevenue?: number;
+    activeClients?: number;
+    retained?: number;
+    new?: number;
+    churned?: number;
   }>;
   timePeriod: TimePeriod;
+  showBreakdown?: boolean;
+  onToggleBreakdown?: () => void;
 }
 
 const CLINICIAN_COLORS = {
@@ -43,10 +49,32 @@ const BREAKDOWN_COLORS = {
   creditCardFees: '#ef4444'   // Red - credit card fees
 };
 
-export const MetricChart: React.FC<MetricChartProps> = ({ title, data, valueFormatter, goal, clinicianData, breakdownData, timePeriod }) => {
+const CLIENT_BREAKDOWN_COLORS = {
+  retained: '#2d6e7e',  // Teal - retained clients (matching Chen)
+  new: '#4da6be',       // Light teal - new clients (matching Patel)
+};
+
+export const MetricChart: React.FC<MetricChartProps> = ({
+  title,
+  data,
+  valueFormatter,
+  goal,
+  clinicianData,
+  breakdownData,
+  timePeriod,
+  showBreakdown: externalShowBreakdown,
+  onToggleBreakdown
+}) => {
   const formatValue = valueFormatter || ((value: number) => value.toString());
   const [showByclinician, setShowByclinician] = useState(false);
-  const [showBreakdown, setShowBreakdown] = useState(false);
+  const [internalShowBreakdown, setInternalShowBreakdown] = useState(false);
+
+  // Use external breakdown state if provided, otherwise use internal
+  const showBreakdown = externalShowBreakdown !== undefined ? externalShowBreakdown : internalShowBreakdown;
+  const handleToggleBreakdown = onToggleBreakdown || (() => setInternalShowBreakdown(!internalShowBreakdown));
+
+  // Detect if this is client growth data
+  const isClientGrowth = breakdownData && breakdownData[0] && 'activeClients' in breakdownData[0];
 
   const renderCustomLabel = useMemo(() => (props: any) => {
     const { x, y, width, value } = props;
@@ -153,7 +181,33 @@ export const MetricChart: React.FC<MetricChartProps> = ({ title, data, valueForm
               return formatValue(value);
             }}
           />
-          {showBreakdown && breakdownData ? (
+          {showBreakdown && breakdownData && isClientGrowth ? (
+            <>
+              <Bar dataKey="retained" stackId="a" fill={CLIENT_BREAKDOWN_COLORS.retained} radius={[0, 0, 0, 0]} maxBarSize={100} />
+              <Bar dataKey="new" stackId="a" fill={CLIENT_BREAKDOWN_COLORS.new} radius={[6, 6, 0, 0]} maxBarSize={100}>
+                <LabelList
+                  content={(props: any) => {
+                    const { x, y, width, index } = props;
+                    if (index === undefined || !breakdownData || !breakdownData[index]) return null;
+                    const dataPoint = breakdownData[index];
+                    return (
+                      <text
+                        x={x + width / 2}
+                        y={y - 10}
+                        fill="#1f2937"
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                        fontSize={15}
+                        fontWeight={700}
+                      >
+                        {dataPoint.activeClients}
+                      </text>
+                    );
+                  }}
+                />
+              </Bar>
+            </>
+          ) : showBreakdown && breakdownData ? (
             <>
               <Bar dataKey="creditCardFees" stackId="a" fill={BREAKDOWN_COLORS.creditCardFees} radius={[0, 0, 0, 0]} maxBarSize={100} />
               <Bar dataKey="supervisorCosts" stackId="a" fill={BREAKDOWN_COLORS.supervisorCosts} radius={[0, 0, 0, 0]} maxBarSize={100} />
@@ -174,7 +228,7 @@ export const MetricChart: React.FC<MetricChartProps> = ({ title, data, valueForm
                         fontSize={15}
                         fontWeight={700}
                       >
-                        {formatValue(dataPoint.grossRevenue)}
+                        {formatValue(dataPoint.grossRevenue || 0)}
                       </text>
                     );
                   }}
@@ -229,9 +283,21 @@ export const MetricChart: React.FC<MetricChartProps> = ({ title, data, valueForm
   return (
     <div className="relative w-full h-full rounded-[32px] p-8 shadow-2xl bg-white border-2 border-[#2d6e7e] flex flex-col" style={{ overflow: 'visible' }}>
       {/* Header */}
-      <div className="mb-6 relative z-20">
+      <div className="mb-6 relative">
         <div className="text-gray-500 text-xs font-semibold uppercase tracking-widest mb-3">ANALYTICS</div>
-        <h3 className="text-gray-900 text-3xl font-semibold mb-6">{title}</h3>
+        <h3 className="text-gray-900 text-3xl font-semibold mb-6 flex items-center gap-2">
+          {title}
+          <div className="group/info relative z-[100000]">
+            <Info size={20} className="text-[#2d6e7e] cursor-help" />
+            <div className="absolute left-0 top-8 invisible group-hover/info:visible opacity-0 group-hover/info:opacity-100 transition-all duration-200 w-80 z-[100000]">
+              <div className="bg-gray-900 text-white text-xs rounded-lg p-3 shadow-xl">
+                <p className="font-medium mb-1">Revenue Analysis</p>
+                <p className="text-gray-300">View your practice's gross revenue trends over time. Toggle between standard view, breakdown by clinician to see individual contributions, or revenue allocation to understand where your money goes (net revenue, clinician costs, supervisor costs, and credit card fees).</p>
+                <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+              </div>
+            </div>
+          </div>
+        </h3>
 
         {/* Controls Row */}
         <div className="flex items-center justify-between relative">
@@ -253,11 +319,11 @@ export const MetricChart: React.FC<MetricChartProps> = ({ title, data, valueForm
               </button>
             )}
 
-            {/* Revenue Allocation Breakdown Button */}
+            {/* Revenue Allocation / Client Growth Breakdown Button */}
             {breakdownData && (
               <button
                 onClick={() => {
-                  setShowBreakdown(!showBreakdown);
+                  handleToggleBreakdown();
                   if (!showBreakdown) setShowByclinician(false);
                 }}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
@@ -266,7 +332,7 @@ export const MetricChart: React.FC<MetricChartProps> = ({ title, data, valueForm
                     : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
                 }`}
               >
-                Where Does Revenue Go?
+                {isClientGrowth ? 'Show Breakdown (Retained + New)' : 'Where Does Revenue Go?'}
               </button>
             )}
           </div>
@@ -278,25 +344,40 @@ export const MetricChart: React.FC<MetricChartProps> = ({ title, data, valueForm
           </button>
         </div>
 
-        {/* Legend for Revenue Breakdown */}
+        {/* Legend for Breakdown */}
         {showBreakdown && (
           <div className="mt-4 flex flex-wrap gap-4 items-center">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded" style={{ backgroundColor: BREAKDOWN_COLORS.netRevenue }}></div>
-              <span className="text-sm font-medium text-gray-700">Net Revenue (You Keep)</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded" style={{ backgroundColor: BREAKDOWN_COLORS.clinicianCosts }}></div>
-              <span className="text-sm font-medium text-gray-700">Clinician Costs</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded" style={{ backgroundColor: BREAKDOWN_COLORS.supervisorCosts }}></div>
-              <span className="text-sm font-medium text-gray-700">Supervisor Costs</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded" style={{ backgroundColor: BREAKDOWN_COLORS.creditCardFees }}></div>
-              <span className="text-sm font-medium text-gray-700">Credit Card Fees</span>
-            </div>
+            {isClientGrowth ? (
+              <>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded" style={{ backgroundColor: CLIENT_BREAKDOWN_COLORS.retained }}></div>
+                  <span className="text-sm font-medium text-gray-700">Retained Clients</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded" style={{ backgroundColor: CLIENT_BREAKDOWN_COLORS.new }}></div>
+                  <span className="text-sm font-medium text-gray-700">New Clients</span>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded" style={{ backgroundColor: BREAKDOWN_COLORS.netRevenue }}></div>
+                  <span className="text-sm font-medium text-gray-700">Net Revenue (You Keep)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded" style={{ backgroundColor: BREAKDOWN_COLORS.clinicianCosts }}></div>
+                  <span className="text-sm font-medium text-gray-700">Clinician Costs</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded" style={{ backgroundColor: BREAKDOWN_COLORS.supervisorCosts }}></div>
+                  <span className="text-sm font-medium text-gray-700">Supervisor Costs</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded" style={{ backgroundColor: BREAKDOWN_COLORS.creditCardFees }}></div>
+                  <span className="text-sm font-medium text-gray-700">Credit Card Fees</span>
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>

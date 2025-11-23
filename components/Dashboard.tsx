@@ -19,9 +19,9 @@ const INITIAL_METRICS: PracticeMetrics = {
     status: "Healthy"
   },
   clientGrowth: {
-    label: "Client growth",
-    value: "+12 new clients",
-    subtext: "(17 new - 5 churned)",
+    label: "Client Overview",
+    value: "156 active clients",
+    subtext: "+17 new this month\n-5 churned this month",
     status: "Healthy"
   },
   attendance: {

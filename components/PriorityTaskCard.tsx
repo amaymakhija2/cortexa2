@@ -208,6 +208,19 @@ export const PriorityTaskCard: React.FC<PriorityTaskProps> = ({
           {/* Slots Chart */}
           {type === "slots" && chartData && chartData.length > 0 && (
             <div className="p-8 flex-1 min-h-[280px]">
+              <div className="mb-4 flex items-center gap-2">
+                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Available Slots by Clinician</p>
+                <div className="group/info relative z-[100000]">
+                  <Info size={12} className="text-slate-400 cursor-help" />
+                  <div className="absolute left-0 top-5 invisible group-hover/info:visible opacity-0 group-hover/info:opacity-100 transition-all duration-200 w-64 z-[100000]">
+                    <div className="bg-gray-900 text-white text-xs rounded-lg p-3 shadow-xl">
+                      <p className="font-medium mb-1">Clinician Availability</p>
+                      <p className="text-gray-300">Shows open appointment slots for each clinician. Use this to balance workload and identify who has capacity for new clients.</p>
+                      <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div className="h-full w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
@@ -252,7 +265,19 @@ export const PriorityTaskCard: React.FC<PriorityTaskProps> = ({
             <div className="p-8 space-y-8 flex-1">
               {/* Monthly Trend */}
               <div className="h-[200px]">
-                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4">Monthly Trend</p>
+                <div className="flex items-center gap-2 mb-4">
+                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Monthly Trend</p>
+                  <div className="group/info relative z-[100000]">
+                    <Info size={12} className="text-slate-400 cursor-help" />
+                    <div className="absolute left-0 top-5 invisible group-hover/info:visible opacity-0 group-hover/info:opacity-100 transition-all duration-200 w-64 z-[100000]">
+                      <div className="bg-gray-900 text-white text-xs rounded-lg p-3 shadow-xl">
+                        <p className="font-medium mb-1">Cancellation Trends</p>
+                        <p className="text-gray-300">Track monthly cancellation patterns. Red bars indicate months with unusually high cancellations (spikes) that may require attention.</p>
+                        <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={chartData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
                     <XAxis
@@ -278,7 +303,19 @@ export const PriorityTaskCard: React.FC<PriorityTaskProps> = ({
               {/* Clinician Breakdown */}
               {chartData2 && chartData2.length > 0 && (
                 <div className="h-[200px]">
-                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4">By Clinician</p>
+                  <div className="flex items-center gap-2 mb-4">
+                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">By Clinician</p>
+                    <div className="group/info relative z-[100000]">
+                      <Info size={12} className="text-slate-400 cursor-help" />
+                      <div className="absolute left-0 top-5 invisible group-hover/info:visible opacity-0 group-hover/info:opacity-100 transition-all duration-200 w-64 z-[100000]">
+                        <div className="bg-gray-900 text-white text-xs rounded-lg p-3 shadow-xl">
+                          <p className="font-medium mb-1">Cancellations by Provider</p>
+                          <p className="text-gray-300">Compare cancellation rates across your team. Red bars highlight clinicians with higher-than-normal cancellations to help identify training needs or scheduling issues.</p>
+                          <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={chartData2} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
                       <XAxis
@@ -313,7 +350,19 @@ export const PriorityTaskCard: React.FC<PriorityTaskProps> = ({
                   <thead className="flex-shrink-0">
                     <tr className="border-b border-slate-100 flex w-full">
                       <th className="w-[20%] px-8 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Client</th>
-                      <th className="w-[60%] px-4 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-center">Sessions Trend</th>
+                      <th className="w-[60%] px-4 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-center flex items-center justify-center gap-2">
+                        Sessions Trend
+                        <div className="group/info relative z-[100000]">
+                          <Info size={12} className="text-slate-400 cursor-help" />
+                          <div className="absolute left-0 top-5 invisible group-hover/info:visible opacity-0 group-hover/info:opacity-100 transition-all duration-200 w-72 z-[100000]">
+                            <div className="bg-gray-900 text-white text-xs rounded-lg p-3 shadow-xl">
+                              <p className="font-medium mb-1">Client Retention Patterns</p>
+                              <p className="text-gray-300">Visualize session frequency over the last 4 months. Red cells indicate clients who dropped off, amber shows decreasing attendance, and darker cells show higher usage. This helps identify at-risk clients early.</p>
+                              <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                            </div>
+                          </div>
+                        </div>
+                      </th>
                       <th className="w-[20%] px-8 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-right">Status</th>
                     </tr>
                   </thead>
@@ -376,6 +425,19 @@ export const PriorityTaskCard: React.FC<PriorityTaskProps> = ({
           {/* Accounts Receivable List */}
           {type === "accounts-receivable" && accountsReceivableData && (
             <div className="p-0 flex-1 flex flex-col min-h-0">
+              <div className="px-8 pt-4 pb-2 flex items-center gap-2 border-b border-slate-50">
+                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Outstanding Payments</p>
+                <div className="group/info relative z-[100000]">
+                  <Info size={12} className="text-slate-400 cursor-help" />
+                  <div className="absolute left-0 top-5 invisible group-hover/info:visible opacity-0 group-hover/info:opacity-100 transition-all duration-200 w-72 z-[100000]">
+                    <div className="bg-gray-900 text-white text-xs rounded-lg p-3 shadow-xl">
+                      <p className="font-medium mb-1">Accounts Receivable Aging</p>
+                      <p className="text-gray-300">Lists overdue payments with the number of days outstanding. Red badges (30+ days) indicate urgent follow-up needed, amber (20-29 days) shows warning status. Prioritize collection efforts based on age and amount.</p>
+                      <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div className="flex-1 overflow-x-auto flex flex-col">
                 <table className="w-full h-full text-left flex flex-col">
                   <thead className="flex-shrink-0">

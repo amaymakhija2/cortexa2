@@ -40,7 +40,16 @@ export const MoodGraphCard: React.FC<MoodGraphCardProps> = ({ notes, loadingNote
         <div className="flex items-center gap-6 mb-8">
           <h3 className="text-gray-800 text-xl font-medium flex items-center gap-2">
             Patient Volume
-            <Info size={16} className="text-[#2d6e7e]" />
+            <div className="group/info relative z-[100000]">
+              <Info size={16} className="text-[#2d6e7e] cursor-help" />
+              <div className="absolute left-0 top-6 invisible group-hover/info:visible opacity-0 group-hover/info:opacity-100 transition-all duration-200 w-72 z-[100000]">
+                <div className="bg-gray-900 text-white text-xs rounded-lg p-3 shadow-xl">
+                  <p className="font-medium mb-1">Patient Volume Overview</p>
+                  <p className="text-gray-300">Track your weekly session activity. Shows booked appointments, completed sessions, and cancellations to help you understand patient attendance patterns and optimize scheduling.</p>
+                  <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                </div>
+              </div>
+            </div>
           </h3>
 
           <div className="flex items-center gap-4 text-xs font-medium text-gray-600">

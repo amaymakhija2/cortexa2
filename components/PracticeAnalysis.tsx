@@ -1,6 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { MetricChart } from './MetricChart';
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, LabelList } from 'recharts';
+import { ResponsiveContainer, LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, LabelList, Legend } from 'recharts';
+import { Info, Calendar, X } from 'lucide-react';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
 type TabType = 'financial' | 'sessions' | 'client-growth' | 'retention' | 'admin';
 
@@ -21,18 +24,18 @@ const ALL_REVENUE_DATA = [
 ];
 
 const ALL_SESSIONS_DATA = [
-  { month: 'Jan', value: 628 },
-  { month: 'Feb', value: 641 },
-  { month: 'Mar', value: 635 },
-  { month: 'Apr', value: 658 },
-  { month: 'May', value: 651 },
-  { month: 'Jun', value: 672 },
-  { month: 'Jul', value: 665 },
-  { month: 'Aug', value: 689 },
-  { month: 'Sep', value: 645 },
-  { month: 'Oct', value: 712 },
-  { month: 'Nov', value: 683 },
-  { month: 'Dec', value: 698 }
+  { month: 'Jan', completed: 628, booked: 658, clients: 142, cancelled: 113, clinicianCancelled: 23, lateCancelled: 24, noShow: 7, show: 493 },
+  { month: 'Feb', completed: 641, booked: 672, clients: 145, cancelled: 115, clinicianCancelled: 23, lateCancelled: 25, noShow: 8, show: 501 },
+  { month: 'Mar', completed: 635, booked: 668, clients: 143, cancelled: 115, clinicianCancelled: 23, lateCancelled: 24, noShow: 8, show: 498 },
+  { month: 'Apr', completed: 658, booked: 695, clients: 148, cancelled: 119, clinicianCancelled: 24, lateCancelled: 25, noShow: 8, show: 519 },
+  { month: 'May', completed: 651, booked: 685, clients: 146, cancelled: 117, clinicianCancelled: 24, lateCancelled: 25, noShow: 8, show: 511 },
+  { month: 'Jun', completed: 672, booked: 708, clients: 151, cancelled: 121, clinicianCancelled: 25, lateCancelled: 26, noShow: 8, show: 528 },
+  { month: 'Jul', completed: 665, booked: 698, clients: 149, cancelled: 120, clinicianCancelled: 24, lateCancelled: 25, noShow: 8, show: 521 },
+  { month: 'Aug', completed: 689, booked: 725, clients: 154, cancelled: 124, clinicianCancelled: 25, lateCancelled: 27, noShow: 8, show: 541 },
+  { month: 'Sep', completed: 645, booked: 678, clients: 147, cancelled: 116, clinicianCancelled: 23, lateCancelled: 24, noShow: 8, show: 507 },
+  { month: 'Oct', completed: 712, booked: 748, clients: 158, cancelled: 128, clinicianCancelled: 26, lateCancelled: 27, noShow: 8, show: 559 },
+  { month: 'Nov', completed: 683, booked: 718, clients: 152, cancelled: 123, clinicianCancelled: 25, lateCancelled: 26, noShow: 8, show: 536 },
+  { month: 'Dec', completed: 698, booked: 732, clients: 155, cancelled: 125, clinicianCancelled: 25, lateCancelled: 26, noShow: 8, show: 548 }
 ];
 
 // Full clinician breakdown data
@@ -67,13 +70,41 @@ const ALL_REVENUE_BREAKDOWN_DATA = [
   { month: 'Dec', grossRevenue: 153400, clinicianCosts: 104312, supervisorCosts: 15340, creditCardFees: 6136, netRevenue: 27612 }  // 18% net, 68% clinician (best month!)
 ];
 
-type TimePeriod = 'last-4-months' | 'last-6-months' | 'last-12-months' | 'ytd';
+// Client growth data - active clients with breakdown of retained vs new
+const ALL_CLIENT_GROWTH_DATA = [
+  { month: 'Jan', activeClients: 142, retained: 135, new: 7, churned: 5 },
+  { month: 'Feb', activeClients: 145, retained: 140, new: 5, churned: 3 },
+  { month: 'Mar', activeClients: 143, retained: 138, new: 5, churned: 7 },
+  { month: 'Apr', activeClients: 148, retained: 140, new: 8, churned: 3 },
+  { month: 'May', activeClients: 146, retained: 143, new: 3, churned: 5 },
+  { month: 'Jun', activeClients: 151, retained: 143, new: 8, churned: 3 },
+  { month: 'Jul', activeClients: 149, retained: 146, new: 3, churned: 5 },
+  { month: 'Aug', activeClients: 154, retained: 147, new: 7, churned: 2 },
+  { month: 'Sep', activeClients: 147, retained: 143, new: 4, churned: 11 },
+  { month: 'Oct', activeClients: 158, retained: 145, new: 13, churned: 2 },
+  { month: 'Nov', activeClients: 152, retained: 150, new: 2, churned: 8 },
+  { month: 'Dec', activeClients: 156, retained: 149, new: 7, churned: 3 }
+];
+
+type TimePeriod = 'last-4-months' | 'last-6-months' | 'last-12-months' | 'ytd' | 'custom';
+
+// Month name to index mapping for date comparison
+const MONTH_MAP: { [key: string]: number } = {
+  'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5,
+  'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
+};
 
 export const PracticeAnalysis: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('financial');
   const [hoveredSessionValue, setHoveredSessionValue] = useState<number | null>(null);
   const [hoveredYTDValue, setHoveredYTDValue] = useState<number | null>(null);
+  const [hoveredWeeklySessions, setHoveredWeeklySessions] = useState<number | null>(null);
+  const [hoveredAvgSessionsPerClient, setHoveredAvgSessionsPerClient] = useState<number | null>(null);
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('last-4-months');
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [customStartDate, setCustomStartDate] = useState<Date | null>(new Date(2025, 0, 1)); // Jan 1, 2025
+  const [customEndDate, setCustomEndDate] = useState<Date | null>(new Date(2025, 11, 31)); // Dec 31, 2025
+  const [showClientBreakdown, setShowClientBreakdown] = useState(false);
 
   const tabs: { id: TabType; label: string; shortLabel: string }[] = [
     { id: 'financial', label: 'Financial Analysis', shortLabel: 'Financial' },
@@ -91,7 +122,7 @@ export const PracticeAnalysis: React.FC = () => {
   ];
 
   // Filter data based on selected time period
-  const getDataForPeriod = <T,>(data: T[], period: TimePeriod): T[] => {
+  const getDataForPeriod = <T extends { month: string }>(data: T[], period: TimePeriod): T[] => {
     switch (period) {
       case 'last-4-months':
         return data.slice(-4);
@@ -101,22 +132,43 @@ export const PracticeAnalysis: React.FC = () => {
         return data.slice(-12);
       case 'ytd':
         return data; // Full year data
+      case 'custom':
+        if (!customStartDate || !customEndDate) return data;
+        // For now, since we only have 2025 data, we'll filter by month
+        const startMonth = customStartDate.getMonth();
+        const endMonth = customEndDate.getMonth();
+        return data.filter((item) => {
+          const itemIndex = MONTH_MAP[item.month];
+          return itemIndex >= startMonth && itemIndex <= endMonth;
+        });
       default:
         return data.slice(-4);
     }
   };
 
+  const applyCustomRange = () => {
+    setTimePeriod('custom');
+    setShowDatePicker(false);
+  };
+
+  const formatDateRange = () => {
+    if (!customStartDate || !customEndDate) return 'Custom Range';
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return `${months[customStartDate.getMonth()]} ${customStartDate.getFullYear()} - ${months[customEndDate.getMonth()]} ${customEndDate.getFullYear()}`;
+  };
+
   // Memoized filtered data
-  const REVENUE_DATA = useMemo(() => getDataForPeriod(ALL_REVENUE_DATA, timePeriod), [timePeriod]);
-  const SESSIONS_DATA = useMemo(() => getDataForPeriod(ALL_SESSIONS_DATA, timePeriod), [timePeriod]);
-  const CLINICIAN_REVENUE_DATA = useMemo(() => getDataForPeriod(ALL_CLINICIAN_REVENUE_DATA, timePeriod), [timePeriod]);
-  const REVENUE_BREAKDOWN_DATA = useMemo(() => getDataForPeriod(ALL_REVENUE_BREAKDOWN_DATA, timePeriod), [timePeriod]);
+  const REVENUE_DATA = useMemo(() => getDataForPeriod(ALL_REVENUE_DATA, timePeriod), [timePeriod, customStartDate, customEndDate]);
+  const SESSIONS_DATA = useMemo(() => getDataForPeriod(ALL_SESSIONS_DATA, timePeriod), [timePeriod, customStartDate, customEndDate]);
+  const CLINICIAN_REVENUE_DATA = useMemo(() => getDataForPeriod(ALL_CLINICIAN_REVENUE_DATA, timePeriod), [timePeriod, customStartDate, customEndDate]);
+  const REVENUE_BREAKDOWN_DATA = useMemo(() => getDataForPeriod(ALL_REVENUE_BREAKDOWN_DATA, timePeriod), [timePeriod, customStartDate, customEndDate]);
+  const CLIENT_GROWTH_DATA = useMemo(() => getDataForPeriod(ALL_CLIENT_GROWTH_DATA, timePeriod), [timePeriod, customStartDate, customEndDate]);
 
   // Calculate session value and cumulative revenue for charts
   const SESSION_VALUE_DATA = useMemo(() =>
     REVENUE_DATA.map((rev, idx) => ({
       month: rev.month,
-      value: parseFloat((rev.value / SESSIONS_DATA[idx].value).toFixed(2))
+      value: parseFloat((rev.value / SESSIONS_DATA[idx].completed).toFixed(2))
     })),
     [REVENUE_DATA, SESSIONS_DATA]
   );
@@ -127,6 +179,23 @@ export const PracticeAnalysis: React.FC = () => {
       value: REVENUE_DATA.slice(0, idx + 1).reduce((sum, item) => sum + item.value, 0)
     })),
     [REVENUE_DATA]
+  );
+
+  // Calculate weekly sessions and clients data for sessions tab
+  const AVG_WEEKLY_SESSIONS_DATA = useMemo(() =>
+    SESSIONS_DATA.map((item) => ({
+      month: item.month,
+      value: parseFloat((item.completed / 4.33).toFixed(1)) // Average weeks per month
+    })),
+    [SESSIONS_DATA]
+  );
+
+  const AVG_SESSIONS_PER_CLIENT_DATA = useMemo(() =>
+    SESSIONS_DATA.map((item) => ({
+      month: item.month,
+      value: parseFloat((item.completed / item.clients).toFixed(2))
+    })),
+    [SESSIONS_DATA]
   );
 
   const formatCurrency = (value: number) => `$${(value / 1000).toFixed(1)}k`;
@@ -141,7 +210,7 @@ export const PracticeAnalysis: React.FC = () => {
       </div>
 
       {/* Time Period Selector */}
-      <div className="mb-6 flex items-center gap-3">
+      <div className="mb-6 flex items-center gap-3 relative">
         <span className="text-sm font-medium text-gray-600">Time Period:</span>
         <div
           className="inline-flex items-center gap-1 bg-gradient-to-b from-white via-white to-white/95 rounded-full p-1.5 shadow-lg ring-1 ring-slate-200/50"
@@ -165,7 +234,82 @@ export const PracticeAnalysis: React.FC = () => {
               {period.label}
             </button>
           ))}
+
+          {/* Custom Date Range Button */}
+          <button
+            onClick={() => setShowDatePicker(!showDatePicker)}
+            className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-200 flex items-center gap-2 ${
+              timePeriod === 'custom'
+                ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 text-white shadow-xl'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+            style={timePeriod === 'custom' ? {
+              boxShadow: '0 8px 30px -8px rgba(0, 0, 0, 0.3), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)'
+            } : undefined}
+          >
+            <Calendar size={16} />
+            {timePeriod === 'custom' ? formatDateRange() : 'Custom Range'}
+          </button>
         </div>
+
+        {/* Custom Date Picker Modal */}
+        {showDatePicker && (
+          <div className="absolute top-14 left-28 z-[100000] bg-white rounded-2xl shadow-2xl border-2 border-[#2d6e7e] p-6"
+            style={{
+              boxShadow: '0 20px 60px -10px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.02)'
+            }}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="text-lg font-semibold text-gray-900">Select Date Range</h4>
+              <button
+                onClick={() => setShowDatePicker(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="flex gap-4 mb-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">Start Date</label>
+                <DatePicker
+                  selected={customStartDate}
+                  onChange={(date) => setCustomStartDate(date)}
+                  selectsStart
+                  startDate={customStartDate}
+                  endDate={customEndDate}
+                  dateFormat="MMM yyyy"
+                  showMonthYearPicker
+                  inline
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">End Date</label>
+                <DatePicker
+                  selected={customEndDate}
+                  onChange={(date) => setCustomEndDate(date)}
+                  selectsEnd
+                  startDate={customStartDate}
+                  endDate={customEndDate}
+                  minDate={customStartDate}
+                  dateFormat="MMM yyyy"
+                  showMonthYearPicker
+                  inline
+                />
+              </div>
+            </div>
+
+            <button
+              onClick={applyCustomRange}
+              className="w-full px-5 py-3 bg-gradient-to-br from-[#2d6e7e] to-[#245563] text-white rounded-lg font-semibold shadow-md hover:shadow-xl transition-all duration-200"
+              style={{
+                boxShadow: '0 8px 30px -8px rgba(45, 110, 126, 0.4)'
+              }}
+            >
+              Apply Range
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Tabs */}
@@ -215,13 +359,25 @@ export const PracticeAnalysis: React.FC = () => {
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
 
-                <div className="relative z-10 px-5 pt-5 pb-2">
+                <div className="relative px-5 pt-5 pb-2">
                   <div className="text-gray-500 text-[10px] font-semibold uppercase tracking-widest mb-2">ANALYTICS</div>
-                  <h3 className="text-gray-900 text-lg font-semibold mb-2">Avg Session Value</h3>
+                  <h3 className="text-gray-900 text-lg font-semibold mb-2 flex items-center gap-2">
+                    Avg Session Value
+                    <div className="group/info relative z-[100000]">
+                      <Info size={14} className="text-[#2d6e7e] cursor-help" />
+                      <div className="absolute left-0 top-6 invisible group-hover/info:visible opacity-0 group-hover/info:opacity-100 transition-all duration-200 w-64 z-[100000]">
+                        <div className="bg-gray-900 text-white text-xs rounded-lg p-3 shadow-xl">
+                          <p className="font-medium mb-1">Average Session Value</p>
+                          <p className="text-gray-300">Shows the average revenue generated per completed session. This helps you understand your pricing effectiveness and revenue per appointment over time.</p>
+                          <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </h3>
                   <div className="text-2xl font-bold text-gray-900 tracking-tight transition-all duration-200">
                     ${hoveredSessionValue !== null
                       ? hoveredSessionValue.toFixed(2)
-                      : ((REVENUE_DATA.reduce((sum, item) => sum + item.value, 0) / SESSIONS_DATA.reduce((sum, item) => sum + item.value, 0)).toFixed(2))
+                      : ((REVENUE_DATA.reduce((sum, item) => sum + item.value, 0) / SESSIONS_DATA.reduce((sum, item) => sum + item.completed, 0)).toFixed(2))
                     }
                   </div>
                 </div>
@@ -293,9 +449,21 @@ export const PracticeAnalysis: React.FC = () => {
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
 
-                <div className="relative z-10 px-5 pt-5 pb-2">
+                <div className="relative px-5 pt-5 pb-2">
                   <div className="text-gray-500 text-[10px] font-semibold uppercase tracking-widest mb-2">ANALYTICS</div>
-                  <h3 className="text-gray-900 text-lg font-semibold mb-2">YTD Revenue</h3>
+                  <h3 className="text-gray-900 text-lg font-semibold mb-2 flex items-center gap-2">
+                    YTD Revenue
+                    <div className="group/info relative z-[100000]">
+                      <Info size={14} className="text-[#2d6e7e] cursor-help" />
+                      <div className="absolute left-0 top-6 invisible group-hover/info:visible opacity-0 group-hover/info:opacity-100 transition-all duration-200 w-64 z-[100000]">
+                        <div className="bg-gray-900 text-white text-xs rounded-lg p-3 shadow-xl">
+                          <p className="font-medium mb-1">Year-to-Date Revenue</p>
+                          <p className="text-gray-300">Displays your cumulative revenue from the beginning of the year. Track your progress toward annual revenue goals and see growth trends month by month.</p>
+                          <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </h3>
                   <div className="text-2xl font-bold text-gray-900 tracking-tight transition-all duration-200">
                     ${hoveredYTDValue !== null
                       ? (hoveredYTDValue / 1000).toFixed(0)
@@ -372,9 +540,21 @@ export const PracticeAnalysis: React.FC = () => {
             >
               <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
 
-              <div className="relative z-10 px-6 pt-6 pb-4 flex-shrink-0">
+              <div className="relative px-6 pt-6 pb-4 flex-shrink-0">
                 <div className="text-gray-500 text-xs font-semibold uppercase tracking-widest mb-2">ANALYTICS</div>
-                <h3 className="text-gray-900 text-2xl font-semibold mb-4">Revenue Margins</h3>
+                <h3 className="text-gray-900 text-2xl font-semibold mb-4 flex items-center gap-2">
+                  Revenue Margins
+                  <div className="group/info relative z-[100000]">
+                    <Info size={18} className="text-[#2d6e7e] cursor-help" />
+                    <div className="absolute left-0 top-8 invisible group-hover/info:visible opacity-0 group-hover/info:opacity-100 transition-all duration-200 w-80 z-[100000]">
+                      <div className="bg-gray-900 text-white text-xs rounded-lg p-3 shadow-xl">
+                        <p className="font-medium mb-1">Revenue Margins Breakdown</p>
+                        <p className="text-gray-300">See what percentage of your gross revenue goes to different expenses. Track your net margin (profit you keep), clinician costs, supervisor costs, and credit card processing fees over time to identify cost optimization opportunities.</p>
+                        <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                      </div>
+                    </div>
+                  </div>
+                </h3>
 
                 {/* Legend */}
                 <div className="flex flex-wrap gap-x-4 gap-y-2 mb-4">
@@ -498,62 +678,88 @@ export const PracticeAnalysis: React.FC = () => {
           </div>
 
           {/* Revenue Breakdown Table - Below the fold */}
-          <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[24px] shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300"
+          <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[24px] shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300 w-[55%]"
             style={{
               boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)'
             }}
           >
             <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
 
-            <div className="relative z-10 px-6 pt-6 pb-6">
+            <div className="relative px-6 pt-6 pb-6">
               <div className="text-gray-500 text-xs font-semibold uppercase tracking-widest mb-2">FINANCIAL BREAKDOWN</div>
-              <h3 className="text-gray-900 text-2xl font-semibold mb-4">Revenue Allocation</h3>
+              <h3 className="text-gray-900 text-2xl font-semibold mb-4 flex items-center gap-2">
+                Revenue Allocation
+                <div className="group/info relative z-[100000]">
+                  <Info size={18} className="text-[#2d6e7e] cursor-help" />
+                  <div className="absolute left-0 top-8 invisible group-hover/info:visible opacity-0 group-hover/info:opacity-100 transition-all duration-200 w-80 z-[100000]">
+                    <div className="bg-gray-900 text-white text-xs rounded-lg p-3 shadow-xl">
+                      <p className="font-medium mb-1">Revenue Allocation Table</p>
+                      <p className="text-gray-300">Detailed monthly breakdown showing where your gross revenue goes. View exact dollar amounts for clinician costs, supervisor costs, credit card fees, and your net revenue (what you keep after expenses).</p>
+                      <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                    </div>
+                  </div>
+                </div>
+              </h3>
 
               {/* Table */}
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b-2 border-gray-200">
-                      <th className="text-left py-3 px-2 text-xs font-bold text-gray-500 uppercase tracking-wider">Month</th>
-                      <th className="text-right py-3 px-2 text-xs font-bold text-gray-500 uppercase tracking-wider">Gross Revenue</th>
-                      <th className="text-right py-3 px-2 text-xs font-bold text-gray-500 uppercase tracking-wider">Clinician Cost</th>
-                      <th className="text-right py-3 px-2 text-xs font-bold text-gray-500 uppercase tracking-wider">Supervisor Cost</th>
-                      <th className="text-right py-3 px-2 text-xs font-bold text-gray-500 uppercase tracking-wider">Credit Card Fees</th>
-                      <th className="text-right py-3 px-2 text-xs font-bold text-green-700 uppercase tracking-wider">Net Revenue</th>
+                      <th className="text-left py-5 px-2 text-xs font-bold text-gray-500 uppercase tracking-wider"></th>
+                      {REVENUE_BREAKDOWN_DATA.map((item) => (
+                        <th key={item.month} className="text-right py-5 px-2 text-xs font-bold text-gray-500 uppercase tracking-wider">{item.month}</th>
+                      ))}
+                      <th className="text-right py-5 px-2 text-xs font-bold text-gray-500 uppercase tracking-wider">Total</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {REVENUE_BREAKDOWN_DATA.map((item, idx) => (
-                      <tr key={item.month} className={`border-b border-gray-100 hover:bg-gray-50/50 transition-colors ${idx === REVENUE_BREAKDOWN_DATA.length - 1 ? 'border-b-0' : ''}`}>
-                        <td className="py-3 px-2 text-sm font-semibold text-gray-900">{item.month}</td>
-                        <td className="py-3 px-2 text-sm font-semibold text-gray-900 text-right">${(item.grossRevenue / 1000).toFixed(1)}k</td>
-                        <td className="py-3 px-2 text-sm text-blue-600 text-right">${(item.clinicianCosts / 1000).toFixed(1)}k</td>
-                        <td className="py-3 px-2 text-sm text-amber-600 text-right">${(item.supervisorCosts / 1000).toFixed(1)}k</td>
-                        <td className="py-3 px-2 text-sm text-red-600 text-right">${(item.creditCardFees / 1000).toFixed(1)}k</td>
-                        <td className="py-3 px-2 text-sm font-bold text-green-700 text-right">${(item.netRevenue / 1000).toFixed(1)}k</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                  <tfoot>
-                    <tr className="border-t-2 border-gray-200 bg-gray-50/30">
-                      <td className="py-3 px-2 text-sm font-bold text-gray-900">Total</td>
-                      <td className="py-3 px-2 text-sm font-bold text-gray-900 text-right">
+                    <tr className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
+                      <td className="py-5 px-2 text-sm font-semibold text-gray-900">Gross Revenue</td>
+                      {REVENUE_BREAKDOWN_DATA.map((item) => (
+                        <td key={item.month} className="py-5 px-2 text-sm font-semibold text-gray-900 text-right">${(item.grossRevenue / 1000).toFixed(1)}k</td>
+                      ))}
+                      <td className="py-5 px-2 text-sm font-bold text-gray-900 text-right">
                         ${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.grossRevenue, 0) / 1000).toFixed(1)}k
                       </td>
-                      <td className="py-3 px-2 text-sm font-bold text-blue-600 text-right">
+                    </tr>
+                    <tr className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
+                      <td className="py-5 px-2 text-sm font-semibold text-gray-900">Clinician Cost</td>
+                      {REVENUE_BREAKDOWN_DATA.map((item) => (
+                        <td key={item.month} className="py-5 px-2 text-sm text-blue-600 text-right">${(item.clinicianCosts / 1000).toFixed(1)}k</td>
+                      ))}
+                      <td className="py-5 px-2 text-sm font-bold text-blue-600 text-right">
                         ${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.clinicianCosts, 0) / 1000).toFixed(1)}k
                       </td>
-                      <td className="py-3 px-2 text-sm font-bold text-amber-600 text-right">
+                    </tr>
+                    <tr className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
+                      <td className="py-5 px-2 text-sm font-semibold text-gray-900">Supervisor Cost</td>
+                      {REVENUE_BREAKDOWN_DATA.map((item) => (
+                        <td key={item.month} className="py-5 px-2 text-sm text-amber-600 text-right">${(item.supervisorCosts / 1000).toFixed(1)}k</td>
+                      ))}
+                      <td className="py-5 px-2 text-sm font-bold text-amber-600 text-right">
                         ${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.supervisorCosts, 0) / 1000).toFixed(1)}k
                       </td>
-                      <td className="py-3 px-2 text-sm font-bold text-red-600 text-right">
+                    </tr>
+                    <tr className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
+                      <td className="py-5 px-2 text-sm font-semibold text-gray-900">Credit Card Fees</td>
+                      {REVENUE_BREAKDOWN_DATA.map((item) => (
+                        <td key={item.month} className="py-5 px-2 text-sm text-red-600 text-right">${(item.creditCardFees / 1000).toFixed(1)}k</td>
+                      ))}
+                      <td className="py-5 px-2 text-sm font-bold text-red-600 text-right">
                         ${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.creditCardFees, 0) / 1000).toFixed(1)}k
                       </td>
-                      <td className="py-3 px-2 text-sm font-bold text-green-700 text-right">
+                    </tr>
+                    <tr className="hover:bg-gray-50/50 transition-colors">
+                      <td className="py-5 px-2 text-sm font-semibold text-green-700">Net Revenue</td>
+                      {REVENUE_BREAKDOWN_DATA.map((item) => (
+                        <td key={item.month} className="py-5 px-2 text-sm font-bold text-green-700 text-right">${(item.netRevenue / 1000).toFixed(1)}k</td>
+                      ))}
+                      <td className="py-5 px-2 text-sm font-bold text-green-700 text-right">
                         ${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.netRevenue, 0) / 1000).toFixed(1)}k
                       </td>
                     </tr>
-                  </tfoot>
+                  </tbody>
                 </table>
               </div>
             </div>
@@ -562,19 +768,564 @@ export const PracticeAnalysis: React.FC = () => {
       )}
 
       {activeTab === 'sessions' && (
-        <div className="flex flex-col gap-6 h-[calc(100%-240px)]">
-          <div className="w-1/2 h-full">
-            <MetricChart
-              title="Total Sessions"
-              data={SESSIONS_DATA}
-              goal={700}
-              timePeriod={timePeriod}
-            />
+        <div className="flex flex-col gap-6 overflow-y-auto">
+          {/* Top Row - Charts */}
+          <div className="flex gap-6 flex-shrink-0" style={{ height: 'calc(100vh - 400px)' }}>
+            <div className="w-[55%]" style={{ height: '100%' }}>
+            <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[24px] h-full flex flex-col shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300"
+              style={{
+                boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)'
+              }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+
+              <div className="relative px-6 pt-6 pb-4 flex-shrink-0">
+                <div className="text-gray-500 text-xs font-semibold uppercase tracking-widest mb-2">ANALYTICS</div>
+                <h3 className="text-gray-900 text-2xl font-semibold mb-4 flex items-center gap-2">
+                  Session Volume
+                  <div className="group/info relative z-[100000]">
+                    <Info size={18} className="text-[#2d6e7e] cursor-help" />
+                    <div className="absolute left-0 top-8 invisible group-hover/info:visible opacity-0 group-hover/info:opacity-100 transition-all duration-200 w-80 z-[100000]">
+                      <div className="bg-gray-900 text-white text-xs rounded-lg p-3 shadow-xl">
+                        <p className="font-medium mb-1">Session Volume Tracking</p>
+                        <p className="text-gray-300">Compare booked appointments versus completed sessions each month. The drop-off percentage above each bar pair shows your no-show and cancellation rate, helping you identify scheduling issues and improve attendance.</p>
+                        <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                      </div>
+                    </div>
+                  </div>
+                </h3>
+
+                {/* Legend */}
+                <div className="flex gap-4 mb-4">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-3 h-3 rounded-full bg-[#2d6e7e]"></div>
+                    <span className="text-xs font-medium text-gray-700">Booked Sessions</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-3 h-3 rounded-full bg-[#10b981]"></div>
+                    <span className="text-xs font-medium text-gray-700">Completed Sessions</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="relative z-10 px-4 pb-4 flex-1 min-h-0">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={SESSIONS_DATA.map((item, index) => ({
+                      ...item,
+                      dataIndex: index
+                    }))}
+                    margin={{ top: 50, right: 20, bottom: 5, left: 20 }}
+                    barGap={8}
+                    barCategoryGap="20%"
+                  >
+                    <defs>
+                      <linearGradient id="bookedGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#2d6e7e" stopOpacity={1}/>
+                        <stop offset="100%" stopColor="#1d4e5e" stopOpacity={1}/>
+                      </linearGradient>
+                      <linearGradient id="completedGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#10b981" stopOpacity={1}/>
+                        <stop offset="100%" stopColor="#059669" stopOpacity={1}/>
+                      </linearGradient>
+                      <filter id="softShadow" x="-50%" y="-50%" width="200%" height="200%">
+                        <feGaussianBlur in="SourceAlpha" stdDeviation="1.5"/>
+                        <feOffset dx="0" dy="2" result="offsetblur"/>
+                        <feComponentTransfer>
+                          <feFuncA type="linear" slope="0.15"/>
+                        </feComponentTransfer>
+                        <feMerge>
+                          <feMergeNode/>
+                          <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                      </filter>
+                    </defs>
+                    <XAxis
+                      dataKey="month"
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: '#6b7280', fontSize: 12, fontWeight: 600 }}
+                      dy={8}
+                    />
+                    <YAxis
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: '#6b7280', fontSize: 11, fontWeight: 600 }}
+                      domain={[0, 800]}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: '#1f2937',
+                        border: 'none',
+                        borderRadius: '12px',
+                        padding: '12px 16px',
+                        boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.3)'
+                      }}
+                      labelStyle={{ color: '#9ca3af', fontSize: '12px', fontWeight: 600, marginBottom: '4px' }}
+                      itemStyle={{ color: '#fff', fontSize: '14px', fontWeight: 700 }}
+                      formatter={(value: number, name: string, props: any) => {
+                        const dropOff = ((props.payload.booked - props.payload.completed) / props.payload.booked * 100).toFixed(1);
+                        const completion = ((props.payload.completed / props.payload.booked) * 100).toFixed(1);
+                        return [value, name === 'booked' ? `Booked (${completion}% completed)` : `Completed (${dropOff}% no-show)`];
+                      }}
+                    />
+                    <Bar dataKey="booked" fill="url(#bookedGradient)" radius={[8, 8, 0, 0]} name="Booked" maxBarSize={60}>
+                      <LabelList dataKey="booked" position="top" style={{ fill: '#1f2937', fontSize: '11px', fontWeight: 700 }} offset={8} />
+                      <LabelList
+                        content={(props: any) => {
+                          const { x, y, width, height, index, value } = props;
+                          if (index === undefined || !SESSIONS_DATA[index]) return null;
+
+                          const item = SESSIONS_DATA[index];
+                          const dropOff = ((item.booked - item.completed) / item.booked * 100).toFixed(1);
+                          const numDropOff = parseFloat(dropOff);
+
+                          // Position in the center of the bar group (accounting for gap between bars)
+                          const barGap = 8; // matches barGap prop
+                          const centerX = x + width + barGap / 2; // Center between the two bars
+                          const topY = y - 20; // Position above the bar
+
+                          return (
+                            <g>
+                              {/* Pill background */}
+                              <rect
+                                x={centerX - 30}
+                                y={topY - 50}
+                                width={60}
+                                height={24}
+                                rx={12}
+                                ry={12}
+                                fill="white"
+                                stroke={numDropOff > 5 ? '#ef4444' : numDropOff > 3 ? '#f59e0b' : '#10b981'}
+                                strokeWidth={2}
+                                filter="url(#softShadow)"
+                              />
+                              {/* Percentage text */}
+                              <text
+                                x={centerX}
+                                y={topY - 35}
+                                fill={numDropOff > 5 ? '#dc2626' : numDropOff > 3 ? '#d97706' : '#059669'}
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                fontSize={12}
+                                fontWeight={700}
+                                letterSpacing={0.2}
+                              >
+                                -{dropOff}%
+                              </text>
+                            </g>
+                          );
+                        }}
+                      />
+                    </Bar>
+                    <Bar dataKey="completed" fill="url(#completedGradient)" radius={[8, 8, 0, 0]} name="Completed" maxBarSize={60}>
+                      <LabelList dataKey="completed" position="top" style={{ fill: '#1f2937', fontSize: '11px', fontWeight: 700 }} offset={8} />
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+            </div>
+
+            {/* Right Side Metrics - Similar to Financial Analysis */}
+            <div className="flex flex-col gap-6 w-[45%]" style={{ height: '100%' }}>
+              <div className="flex gap-4 flex-shrink-0">
+                {/* Average Weekly Sessions - Compact */}
+                <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[20px] flex flex-col shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300 flex-1"
+                  style={{
+                    boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)'
+                  }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+
+                  <div className="relative px-5 pt-5 pb-2">
+                    <div className="text-gray-500 text-[10px] font-semibold uppercase tracking-widest mb-2">ANALYTICS</div>
+                    <h3 className="text-gray-900 text-lg font-semibold mb-2 flex items-center gap-2">
+                      Avg Weekly Sessions
+                      <div className="group/info relative z-[100000]">
+                        <Info size={14} className="text-[#2d6e7e] cursor-help" />
+                        <div className="absolute left-0 top-6 invisible group-hover/info:visible opacity-0 group-hover/info:opacity-100 transition-all duration-200 w-64 z-[100000]">
+                          <div className="bg-gray-900 text-white text-xs rounded-lg p-3 shadow-xl">
+                            <p className="font-medium mb-1">Average Weekly Sessions</p>
+                            <p className="text-gray-300">Shows the average number of completed sessions per week (monthly sessions divided by 4.33 weeks). Use this to track weekly productivity and identify capacity trends.</p>
+                            <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </h3>
+                    <div className="text-2xl font-bold text-gray-900 tracking-tight transition-all duration-200">
+                      {hoveredWeeklySessions !== null
+                        ? hoveredWeeklySessions.toFixed(1)
+                        : (SESSIONS_DATA.reduce((sum, item) => sum + item.completed, 0) / SESSIONS_DATA.length / 4.33).toFixed(1)
+                      }
+                    </div>
+                  </div>
+
+                  <div className="relative z-10 px-3 pb-2" style={{ height: '110px' }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart
+                        data={AVG_WEEKLY_SESSIONS_DATA}
+                        margin={{ top: 20, right: 10, bottom: 5, left: 5 }}
+                        onMouseMove={(e: any) => {
+                          if (e.activePayload && e.activePayload[0]) {
+                            setHoveredWeeklySessions(e.activePayload[0].value);
+                          }
+                        }}
+                        onMouseLeave={() => setHoveredWeeklySessions(null)}
+                      >
+                        <defs>
+                          <linearGradient id="weeklySessionsGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#2d6e7e" stopOpacity={0.2}/>
+                            <stop offset="100%" stopColor="#2d6e7e" stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                        <XAxis
+                          dataKey="month"
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fill: '#6b7280', fontSize: 11, fontWeight: 600 }}
+                          dy={3}
+                        />
+                        <YAxis hide domain={['dataMin - 10', 'dataMax + 10']} />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: '#1f2937',
+                            border: 'none',
+                            borderRadius: '10px',
+                            padding: '10px 14px',
+                            boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.3)'
+                          }}
+                          labelStyle={{ color: '#9ca3af', fontSize: '11px', fontWeight: 600, marginBottom: '3px' }}
+                          itemStyle={{ color: '#fff', fontSize: '14px', fontWeight: 700 }}
+                          formatter={(value: number) => [value.toFixed(1), 'Weekly Avg']}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="value"
+                          stroke="#2d6e7e"
+                          strokeWidth={2.5}
+                          dot={{ fill: '#2d6e7e', strokeWidth: 2, stroke: '#fff', r: 3 }}
+                          activeDot={{ r: 5, strokeWidth: 2, stroke: '#fff' }}
+                          fill="url(#weeklySessionsGradient)"
+                        >
+                          <LabelList
+                            dataKey="value"
+                            position="top"
+                            formatter={(value: number) => value.toFixed(0)}
+                            style={{ fill: '#1f2937', fontSize: '10px', fontWeight: 700 }}
+                          />
+                        </Line>
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+
+                {/* Avg Sessions per Client - Compact */}
+                <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[20px] flex flex-col shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300 flex-1"
+                  style={{
+                    boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)'
+                  }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+
+                  <div className="relative px-5 pt-5 pb-2">
+                    <div className="text-gray-500 text-[10px] font-semibold uppercase tracking-widest mb-2">ANALYTICS</div>
+                    <h3 className="text-gray-900 text-lg font-semibold mb-2 flex items-center gap-2">
+                      Sessions per Client Monthly
+                      <div className="group/info relative z-[100000]">
+                        <Info size={14} className="text-[#2d6e7e] cursor-help" />
+                        <div className="absolute left-0 top-6 invisible group-hover/info:visible opacity-0 group-hover/info:opacity-100 transition-all duration-200 w-64 z-[100000]">
+                          <div className="bg-gray-900 text-white text-xs rounded-lg p-3 shadow-xl">
+                            <p className="font-medium mb-1">Average Sessions per Client per Month</p>
+                            <p className="text-gray-300">Shows the average number of sessions each active client completes per month. This metric helps you understand monthly client engagement frequency and identify trends in session utilization patterns.</p>
+                            <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </h3>
+                    <div className="text-2xl font-bold text-gray-900 tracking-tight transition-all duration-200">
+                      {hoveredAvgSessionsPerClient !== null
+                        ? hoveredAvgSessionsPerClient.toFixed(2)
+                        : (SESSIONS_DATA.reduce((sum, item) => sum + item.completed, 0) / SESSIONS_DATA.reduce((sum, item) => sum + item.clients, 0)).toFixed(2)
+                      }
+                    </div>
+                  </div>
+
+                  <div className="relative z-10 px-3 pb-2" style={{ height: '110px' }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart
+                        data={AVG_SESSIONS_PER_CLIENT_DATA}
+                        margin={{ top: 20, right: 10, bottom: 5, left: 5 }}
+                        onMouseMove={(e: any) => {
+                          if (e.activePayload && e.activePayload[0]) {
+                            setHoveredAvgSessionsPerClient(e.activePayload[0].value);
+                          }
+                        }}
+                        onMouseLeave={() => setHoveredAvgSessionsPerClient(null)}
+                      >
+                        <defs>
+                          <linearGradient id="avgSessionsPerClientGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#2d6e7e" stopOpacity={0.2}/>
+                            <stop offset="100%" stopColor="#2d6e7e" stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                        <XAxis
+                          dataKey="month"
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fill: '#6b7280', fontSize: 11, fontWeight: 600 }}
+                          dy={3}
+                        />
+                        <YAxis hide domain={['dataMin - 0.5', 'dataMax + 0.5']} />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: '#1f2937',
+                            border: 'none',
+                            borderRadius: '10px',
+                            padding: '10px 14px',
+                            boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.3)'
+                          }}
+                          labelStyle={{ color: '#9ca3af', fontSize: '11px', fontWeight: 600, marginBottom: '3px' }}
+                          itemStyle={{ color: '#fff', fontSize: '14px', fontWeight: 700 }}
+                          formatter={(value: number) => [value.toFixed(2), 'Avg Sessions']}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="value"
+                          stroke="#2d6e7e"
+                          strokeWidth={2.5}
+                          dot={{ fill: '#2d6e7e', strokeWidth: 2, stroke: '#fff', r: 3 }}
+                          activeDot={{ r: 5, strokeWidth: 2, stroke: '#fff' }}
+                          fill="url(#avgSessionsPerClientGradient)"
+                        >
+                          <LabelList
+                            dataKey="value"
+                            position="top"
+                            formatter={(value: number) => value.toFixed(1)}
+                            style={{ fill: '#1f2937', fontSize: '10px', fontWeight: 700 }}
+                          />
+                        </Line>
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+
+              {/* Attendance Donut Chart */}
+              <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[24px] flex flex-col flex-1 shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300"
+                style={{
+                  boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)'
+                }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+
+                <div className="relative px-6 pt-6 pb-4 flex-shrink-0">
+                  <div className="text-gray-500 text-xs font-semibold uppercase tracking-widest mb-2">ANALYTICS</div>
+                  <h3 className="text-gray-900 text-2xl font-semibold mb-4 flex items-center gap-2">
+                    Attendance Breakdown
+                    <div className="group/info relative z-[100000]">
+                      <Info size={18} className="text-[#2d6e7e] cursor-help" />
+                      <div className="absolute left-0 top-8 invisible group-hover/info:visible opacity-0 group-hover/info:opacity-100 transition-all duration-200 w-80 z-[100000]">
+                        <div className="bg-gray-900 text-white text-xs rounded-lg p-3 shadow-xl">
+                          <p className="font-medium mb-1">Attendance Breakdown</p>
+                          <p className="text-gray-300">Visualizes the distribution of all session outcomes: shows (attended), cancellations, clinician cancellations, late cancellations, and no-shows. The center shows your overall show rate, while the non-billable cancel rate highlights revenue loss from non-client-initiated cancellations.</p>
+                          <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </h3>
+
+                  {/* Legend */}
+                  <div className="flex flex-wrap gap-x-4 gap-y-2 mb-4">
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-3 h-3 rounded-full bg-[#10b981]"></div>
+                      <span className="text-xs font-medium text-gray-700">Show</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-3 h-3 rounded-full bg-[#ef4444]"></div>
+                      <span className="text-xs font-medium text-gray-700">Canceled</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-3 h-3 rounded-full bg-[#3b82f6]"></div>
+                      <span className="text-xs font-medium text-gray-700">Clinician canceled</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-3 h-3 rounded-full bg-[#f59e0b]"></div>
+                      <span className="text-xs font-medium text-gray-700">Late canceled</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-3 h-3 rounded-full bg-[#6b7280]"></div>
+                      <span className="text-xs font-medium text-gray-700">No show</span>
+                    </div>
+                  </div>
+
+                  {/* Non-Billable Cancel Rate */}
+                  <div className="mt-2 p-3 bg-red-50 rounded-lg border border-red-200">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-red-900 uppercase tracking-wider">Non-Billable Cancel Rate</span>
+                      <span className="text-lg font-bold text-red-700">
+                        {(
+                          ((SESSIONS_DATA.reduce((sum, item) => sum + item.clinicianCancelled + item.cancelled, 0)) /
+                          SESSIONS_DATA.reduce((sum, item) =>
+                            sum + item.show + item.cancelled + item.clinicianCancelled + item.lateCancelled + item.noShow, 0
+                          )) * 100
+                        ).toFixed(1)}%
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="relative z-10 px-4 pb-4 flex-1 min-h-0 flex items-center justify-center">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <defs>
+                        <filter id="donutShadow" x="-50%" y="-50%" width="200%" height="200%">
+                          <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+                          <feOffset dx="0" dy="2" result="offsetblur"/>
+                          <feComponentTransfer>
+                            <feFuncA type="linear" slope="0.2"/>
+                          </feComponentTransfer>
+                          <feMerge>
+                            <feMergeNode/>
+                            <feMergeNode in="SourceGraphic"/>
+                          </feMerge>
+                        </filter>
+                      </defs>
+                      <Pie
+                        data={[
+                          {
+                            name: 'Show',
+                            value: SESSIONS_DATA.reduce((sum, item) => sum + item.show, 0),
+                            color: '#10b981'
+                          },
+                          {
+                            name: 'Canceled',
+                            value: SESSIONS_DATA.reduce((sum, item) => sum + item.cancelled, 0),
+                            color: '#ef4444'
+                          },
+                          {
+                            name: 'Clinician canceled',
+                            value: SESSIONS_DATA.reduce((sum, item) => sum + item.clinicianCancelled, 0),
+                            color: '#3b82f6'
+                          },
+                          {
+                            name: 'Late canceled',
+                            value: SESSIONS_DATA.reduce((sum, item) => sum + item.lateCancelled, 0),
+                            color: '#f59e0b'
+                          },
+                          {
+                            name: 'No show',
+                            value: SESSIONS_DATA.reduce((sum, item) => sum + item.noShow, 0),
+                            color: '#6b7280'
+                          }
+                        ]}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius="60%"
+                        outerRadius="85%"
+                        paddingAngle={2}
+                        dataKey="value"
+                      >
+                        {[
+                          { name: 'Show', value: SESSIONS_DATA.reduce((sum, item) => sum + item.show, 0), color: '#10b981' },
+                          { name: 'Canceled', value: SESSIONS_DATA.reduce((sum, item) => sum + item.cancelled, 0), color: '#ef4444' },
+                          { name: 'Clinician canceled', value: SESSIONS_DATA.reduce((sum, item) => sum + item.clinicianCancelled, 0), color: '#3b82f6' },
+                          { name: 'Late canceled', value: SESSIONS_DATA.reduce((sum, item) => sum + item.lateCancelled, 0), color: '#f59e0b' },
+                          { name: 'No show', value: SESSIONS_DATA.reduce((sum, item) => sum + item.noShow, 0), color: '#6b7280' }
+                        ].map((entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={entry.color}
+                            filter="url(#donutShadow)"
+                          />
+                        ))}
+                        <LabelList
+                          dataKey="value"
+                          position="outside"
+                          formatter={(value: number) => {
+                            const total = SESSIONS_DATA.reduce((sum, item) =>
+                              sum + item.show + item.cancelled + item.clinicianCancelled + item.lateCancelled + item.noShow, 0
+                            );
+                            return `${((value / total) * 100).toFixed(1)}%`;
+                          }}
+                          style={{ fill: '#1f2937', fontSize: '11px', fontWeight: 700 }}
+                        />
+                      </Pie>
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: '#1f2937',
+                          border: 'none',
+                          borderRadius: '12px',
+                          padding: '12px 16px',
+                          boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.3)'
+                        }}
+                        labelStyle={{ color: '#9ca3af', fontSize: '12px', fontWeight: 600, marginBottom: '4px' }}
+                        itemStyle={{ color: '#fff', fontSize: '14px', fontWeight: 700 }}
+                        formatter={(value: number) => {
+                          const total = SESSIONS_DATA.reduce((sum, item) =>
+                            sum + item.show + item.cancelled + item.clinicianCancelled + item.lateCancelled + item.noShow, 0
+                          );
+                          return [`${value} (${((value / total) * 100).toFixed(1)}%)`, ''];
+                        }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  {/* Center Text */}
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-gray-900">
+                        {(
+                          (SESSIONS_DATA.reduce((sum, item) => sum + item.show, 0) /
+                          SESSIONS_DATA.reduce((sum, item) =>
+                            sum + item.show + item.cancelled + item.clinicianCancelled + item.lateCancelled + item.noShow, 0
+                          )) * 100
+                        ).toFixed(1)}%
+                      </div>
+                      <div className="text-xs text-gray-500 font-semibold uppercase tracking-wide">Show Rate</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
 
-      {activeTab !== 'financial' && activeTab !== 'sessions' && (
+      {activeTab === 'client-growth' && (
+        <div className="flex flex-col gap-6 overflow-y-auto">
+          {/* Top Row - Main Chart */}
+          <div className="flex gap-6 flex-shrink-0" style={{ height: 'calc(100vh - 400px)' }}>
+            <div className="w-[55%]" style={{ height: '100%' }}>
+              <MetricChart
+                title="Active Clients"
+                data={CLIENT_GROWTH_DATA.map(item => ({ month: item.month, value: item.activeClients }))}
+                valueFormatter={(value: number) => value.toString()}
+                showBreakdown={showClientBreakdown}
+                onToggleBreakdown={() => setShowClientBreakdown(!showClientBreakdown)}
+                breakdownData={CLIENT_GROWTH_DATA}
+                timePeriod={timePeriod}
+              />
+            </div>
+
+            {/* Right Side Metrics - Placeholder for now */}
+            <div className="flex flex-col gap-6 w-[45%]" style={{ height: '100%' }}>
+              <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[24px] flex flex-col flex-1 shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden"
+                style={{
+                  boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)'
+                }}
+              >
+                <div className="relative px-6 pt-6 pb-4">
+                  <div className="text-gray-500 text-xs font-semibold uppercase tracking-widest mb-2">ANALYTICS</div>
+                  <h3 className="text-gray-900 text-2xl font-semibold mb-4">Client Growth Metrics</h3>
+                  <p className="text-gray-600">Additional metrics coming soon...</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab !== 'financial' && activeTab !== 'sessions' && activeTab !== 'client-growth' && (
         <div className="bg-white rounded-3xl p-8 shadow-sm min-h-[500px]">
           {activeTab === 'client-growth' && (
             <div>
