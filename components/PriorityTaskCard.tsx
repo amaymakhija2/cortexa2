@@ -126,7 +126,11 @@ export const PriorityTaskCard: React.FC<PriorityTaskProps> = ({
       className="relative h-full"
     >
       {/* Card Container */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col h-full overflow-hidden relative group">
+      <div className="bg-gradient-to-br from-white via-white to-slate-50/30 rounded-2xl border border-white shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col h-full overflow-hidden relative group ring-1 ring-slate-200/50"
+        style={{
+          boxShadow: '0 20px 60px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)'
+        }}
+      >
 
         {/* Carousel Navigation - Top Right */}
         {carouselProps && carouselProps.totalSlides > 1 && (
