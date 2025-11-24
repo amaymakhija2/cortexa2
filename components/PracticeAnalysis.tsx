@@ -5,7 +5,7 @@ import { Info, Calendar, X } from 'lucide-react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
-type TabType = 'financial' | 'sessions' | 'capacity-client' | 'retention' | 'admin';
+type TabType = 'financial' | 'sessions' | 'capacity-client' | 'retention' | 'insurance' | 'admin';
 
 // Full data set for all time periods
 const ALL_REVENUE_DATA = [
@@ -118,6 +118,98 @@ const ALL_CHURN_TIMING_DATA = [
   { month: 'Dec', earlyChurn: 1, mediumChurn: 1, lateChurn: 1 }
 ];
 
+// Admin Analytics Data
+
+// Client Balance Aging data
+const ALL_CLIENT_BALANCE_AGING_DATA = [
+  { month: 'Jan', current: 12500, days1_30: 8200, days31_60: 4100, days61_plus: 2800 },
+  { month: 'Feb', current: 11800, days1_30: 7900, days31_60: 3900, days61_plus: 3200 },
+  { month: 'Mar', current: 13200, days1_30: 8500, days31_60: 4300, days61_plus: 2900 },
+  { month: 'Apr', current: 12900, days1_30: 8100, days31_60: 4200, days61_plus: 3100 },
+  { month: 'May', current: 11500, days1_30: 7600, days31_60: 3800, days61_plus: 2700 },
+  { month: 'Jun', current: 13500, days1_30: 8800, days31_60: 4500, days61_plus: 3000 },
+  { month: 'Jul', current: 12200, days1_30: 7800, days31_60: 4000, days61_plus: 2900 },
+  { month: 'Aug', current: 13800, days1_30: 9100, days31_60: 4600, days61_plus: 3200 },
+  { month: 'Sep', current: 11900, days1_30: 7700, days31_60: 3900, days61_plus: 2800 },
+  { month: 'Oct', current: 14200, days1_30: 9400, days31_60: 4800, days61_plus: 3400 },
+  { month: 'Nov', current: 13100, days1_30: 8600, days31_60: 4400, days61_plus: 3100 },
+  { month: 'Dec', current: 13600, days1_30: 8900, days31_60: 4500, days61_plus: 3000 }
+];
+
+// Top 5 Clients by Past-Due Balance (December data)
+const TOP_CLIENTS_PAST_DUE = [
+  { name: 'Client A', balance: 2850, worstBucket: '61+ days' },
+  { name: 'Client B', balance: 2200, worstBucket: '31-60 days' },
+  { name: 'Client C', balance: 1950, worstBucket: '61+ days' },
+  { name: 'Client D', balance: 1680, worstBucket: '1-30 days' },
+  { name: 'Client E', balance: 1520, worstBucket: '31-60 days' }
+];
+
+// Claims Status data
+const ALL_CLAIMS_STATUS_DATA = [
+  { month: 'Jan', paid: 118, rejected: 8, denied: 4, deductible: 14 },
+  { month: 'Feb', paid: 122, rejected: 7, denied: 3, deductible: 15 },
+  { month: 'Mar', paid: 120, rejected: 9, denied: 4, deductible: 13 },
+  { month: 'Apr', paid: 128, rejected: 6, denied: 3, deductible: 16 },
+  { month: 'May', paid: 125, rejected: 8, denied: 4, deductible: 14 },
+  { month: 'Jun', paid: 132, rejected: 7, denied: 3, deductible: 17 },
+  { month: 'Jul', paid: 127, rejected: 9, denied: 5, deductible: 15 },
+  { month: 'Aug', paid: 135, rejected: 6, denied: 3, deductible: 18 },
+  { month: 'Sep', paid: 121, rejected: 10, denied: 6, deductible: 13 },
+  { month: 'Oct', paid: 142, rejected: 7, denied: 4, deductible: 19 },
+  { month: 'Nov', paid: 136, rejected: 8, denied: 4, deductible: 17 },
+  { month: 'Dec', paid: 139, rejected: 7, denied: 3, deductible: 18 }
+];
+
+// Outstanding Claims by Aging
+const OUTSTANDING_CLAIMS_AGING = [
+  { category: 'Unbilled', amount: 8500 },
+  { category: 'Due 30', amount: 12300 },
+  { category: 'Due 60', amount: 6700 },
+  { category: 'Due 90+', amount: 4200 }
+];
+
+// Notes Status data
+const ALL_NOTES_STATUS_DATA = [
+  { month: 'Jan', noNote: 15, unlocked: 28, locked: 585 },
+  { month: 'Feb', noNote: 12, unlocked: 25, locked: 604 },
+  { month: 'Mar', noNote: 18, unlocked: 31, locked: 586 },
+  { month: 'Apr', noNote: 14, unlocked: 27, locked: 617 },
+  { month: 'May', noNote: 16, unlocked: 29, locked: 606 },
+  { month: 'Jun', noNote: 11, unlocked: 24, locked: 637 },
+  { month: 'Jul', noNote: 19, unlocked: 33, locked: 613 },
+  { month: 'Aug', noNote: 13, unlocked: 26, locked: 650 },
+  { month: 'Sep', noNote: 21, unlocked: 35, locked: 589 },
+  { month: 'Oct', noNote: 10, unlocked: 22, locked: 680 },
+  { month: 'Nov', noNote: 17, unlocked: 30, locked: 636 },
+  { month: 'Dec', noNote: 14, unlocked: 28, locked: 656 }
+];
+
+// At-Risk Compliance List (oldest appointments without notes)
+const AT_RISK_COMPLIANCE = [
+  { date: '2025-11-15', clientInitials: 'J.D.', clinician: 'Chen' },
+  { date: '2025-11-18', clientInitials: 'M.S.', clinician: 'Rodriguez' },
+  { date: '2025-11-20', clientInitials: 'A.K.', clinician: 'Patel' },
+  { date: '2025-11-22', clientInitials: 'L.B.', clinician: 'Kim' },
+  { date: '2025-11-25', clientInitials: 'R.T.', clinician: 'Johnson' }
+];
+
+// Reminder Delivery data
+const ALL_REMINDER_DELIVERY_DATA = [
+  { month: 'Jan', sent: 1245, failed: 18 },
+  { month: 'Feb', sent: 1289, failed: 22 },
+  { month: 'Mar', sent: 1267, failed: 15 },
+  { month: 'Apr', sent: 1324, failed: 19 },
+  { month: 'May', sent: 1301, failed: 21 },
+  { month: 'Jun', sent: 1358, failed: 17 },
+  { month: 'Jul', sent: 1312, failed: 23 },
+  { month: 'Aug', sent: 1389, failed: 16 },
+  { month: 'Sep', sent: 1278, failed: 25 },
+  { month: 'Oct', sent: 1456, failed: 18 },
+  { month: 'Nov', sent: 1398, failed: 20 },
+  { month: 'Dec', sent: 1423, failed: 19 }
+];
+
 type TimePeriod = 'last-4-months' | 'last-6-months' | 'last-12-months' | 'ytd' | 'custom';
 
 // Month name to index mapping for date comparison
@@ -146,6 +238,7 @@ export const PracticeAnalysis: React.FC = () => {
     { id: 'sessions', label: 'Sessions Analysis', shortLabel: 'Sessions' },
     { id: 'capacity-client', label: 'Capacity & Client Analysis', shortLabel: 'Capacity & Client' },
     { id: 'retention', label: 'Retention Analysis', shortLabel: 'Retention' },
+    { id: 'insurance', label: 'Insurance Analysis', shortLabel: 'Insurance' },
     { id: 'admin', label: 'Admin Analysis', shortLabel: 'Admin' }
   ];
 
@@ -200,6 +293,12 @@ export const PracticeAnalysis: React.FC = () => {
   const CLIENT_GROWTH_DATA = useMemo(() => getDataForPeriod(ALL_CLIENT_GROWTH_DATA, timePeriod), [timePeriod, customStartDate, customEndDate]);
   const CHURN_BY_CLINICIAN_DATA = useMemo(() => getDataForPeriod(ALL_CHURN_BY_CLINICIAN_DATA, timePeriod), [timePeriod, customStartDate, customEndDate]);
   const CHURN_TIMING_DATA = useMemo(() => getDataForPeriod(ALL_CHURN_TIMING_DATA, timePeriod), [timePeriod, customStartDate, customEndDate]);
+
+  // Admin Analytics memoized data
+  const CLIENT_BALANCE_AGING_DATA = useMemo(() => getDataForPeriod(ALL_CLIENT_BALANCE_AGING_DATA, timePeriod), [timePeriod, customStartDate, customEndDate]);
+  const CLAIMS_STATUS_DATA = useMemo(() => getDataForPeriod(ALL_CLAIMS_STATUS_DATA, timePeriod), [timePeriod, customStartDate, customEndDate]);
+  const NOTES_STATUS_DATA = useMemo(() => getDataForPeriod(ALL_NOTES_STATUS_DATA, timePeriod), [timePeriod, customStartDate, customEndDate]);
+  const REMINDER_DELIVERY_DATA = useMemo(() => getDataForPeriod(ALL_REMINDER_DELIVERY_DATA, timePeriod), [timePeriod, customStartDate, customEndDate]);
 
   // Calculate session value and cumulative revenue for charts
   const SESSION_VALUE_DATA = useMemo(() =>
@@ -2491,147 +2590,391 @@ export const PracticeAnalysis: React.FC = () => {
             </div>
       )}
 
-      {activeTab === 'admin' && (
-        <div className="flex flex-col gap-6 overflow-y-auto">
-          {/* Top Row - Main Layout */}
-          <div className="flex gap-6 flex-shrink-0" style={{ height: 'calc(100vh - 400px)' }}>
-            {/* Left Side - Big Chart */}
-            <div className="w-[55%]" style={{ height: '100%' }}>
-              <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[24px] h-full flex flex-col shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300"
-                style={{
-                  boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)'
-                }}
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+      {activeTab === 'insurance' && (
+        <div className="flex flex-col gap-6 overflow-y-auto pb-6">
+          {/* Top Row - 2 Insurance Health Tiles */}
+          <div className="grid grid-cols-2 gap-4 flex-shrink-0">
+            {/* Tile 1: Total Insurance Balance Owed */}
+            {(() => {
+              const totalInsuranceBalance = OUTSTANDING_CLAIMS_AGING.reduce((sum, item) => sum + item.amount, 0);
+              return (
+                <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[20px] p-5 shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300"
+                  style={{
+                    boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)'
+                  }}>
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                  <div className="relative z-10">
+                    <div className="text-gray-500 text-[10px] font-semibold uppercase tracking-widest mb-2">OUTSTANDING INSURANCE</div>
+                    <div className="text-3xl font-bold text-gray-900 mb-1">${(totalInsuranceBalance / 1000).toFixed(1)}K</div>
+                    <div className="text-xs text-gray-600">Unpaid by insurance payers</div>
+                  </div>
+                </div>
+              );
+            })()}
 
-                <div className="relative px-6 pt-6 pb-4 flex-shrink-0">
-                  <div className="text-gray-500 text-xs font-semibold uppercase tracking-widest mb-2">ANALYTICS</div>
-                  <h3 className="text-gray-900 text-2xl font-semibold mb-4 flex items-center gap-2">
-                    Admin Overview
-                    <div className="group/info relative z-[100000]">
-                      <Info size={18} className="text-[#2d6e7e] cursor-help" />
-                      <div className="absolute left-0 top-8 invisible group-hover/info:visible opacity-0 group-hover/info:opacity-100 transition-all duration-200 w-80 z-[100000]">
-                        <div className="bg-gray-900 text-white text-xs rounded-lg p-3 shadow-xl">
-                          <p className="font-medium mb-1">Administrative Metrics</p>
-                          <p className="text-gray-300">Placeholder for administrative analytics and insights.</p>
-                          <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
-                        </div>
-                      </div>
-                    </div>
-                  </h3>
+            {/* Tile 2: Claims Needing Attention */}
+            {(() => {
+              const latestClaims = CLAIMS_STATUS_DATA[CLAIMS_STATUS_DATA.length - 1];
+              const needsAttention = latestClaims.rejected + latestClaims.denied;
+              return (
+                <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[20px] p-5 shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300"
+                  style={{
+                    boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)'
+                  }}>
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                  <div className="relative z-10">
+                    <div className="text-gray-500 text-[10px] font-semibold uppercase tracking-widest mb-2">NEEDS ATTENTION</div>
+                    <div className="text-3xl font-bold text-gray-900 mb-1">{needsAttention}</div>
+                    <div className="text-xs text-gray-600">Rejected ({latestClaims.rejected}) + Denied ({latestClaims.denied}) claims</div>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+
+          {/* Section 1: Claims Status & Outstanding */}
+          <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[24px] p-6 shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300"
+            style={{
+              boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)'
+            }}>
+            <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+            <div className="relative z-10">
+              <div className="text-gray-500 text-xs font-semibold uppercase tracking-widest mb-2">CLAIMS STATUS</div>
+              <h3 className="text-gray-900 text-xl font-semibold mb-6">Last 30 Days Claims Activity</h3>
+
+              <div className="grid grid-cols-2 gap-6">
+                {/* Claims Status Tiles */}
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-700 mb-3">Claims Breakdown</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    {(() => {
+                      const latestClaims = CLAIMS_STATUS_DATA[CLAIMS_STATUS_DATA.length - 1];
+                      return (
+                        <>
+                          <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                            <div className="text-3xl font-bold text-green-700">{latestClaims.paid}</div>
+                            <div className="text-xs text-green-600 mt-1">Paid claims</div>
+                          </div>
+                          <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+                            <div className="text-3xl font-bold text-red-700">{latestClaims.rejected}</div>
+                            <div className="text-xs text-red-600 mt-1">Rejected</div>
+                          </div>
+                          <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                            <div className="text-3xl font-bold text-orange-700">{latestClaims.denied}</div>
+                            <div className="text-xs text-orange-600 mt-1">Denied</div>
+                          </div>
+                          <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                            <div className="text-3xl font-bold text-blue-700">{latestClaims.deductible}</div>
+                            <div className="text-xs text-blue-600 mt-1">Deductible</div>
+                          </div>
+                        </>
+                      );
+                    })()}
+                  </div>
                 </div>
 
-                <div className="relative z-10 px-4 pb-4 flex-1 min-h-0 flex items-center justify-center">
-                  <div className="text-center text-gray-400">
-                    <p className="text-lg font-semibold">Admin Chart Placeholder</p>
-                    <p className="text-sm mt-2">Content coming soon</p>
+                {/* Claims Status Over Time Chart */}
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-700 mb-3">Claims Trend</h4>
+                  <ResponsiveContainer width="100%" height={240}>
+                    <LineChart data={CLAIMS_STATUS_DATA}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis dataKey="month" stroke="#6b7280" style={{ fontSize: '11px' }} />
+                      <YAxis stroke="#6b7280" style={{ fontSize: '11px' }} />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '8px',
+                          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                        }}
+                      />
+                      <Legend />
+                      <Line type="monotone" dataKey="paid" stroke="#10b981" strokeWidth={2} name="Paid" />
+                      <Line type="monotone" dataKey="rejected" stroke="#ef4444" strokeWidth={2} name="Rejected" />
+                      <Line type="monotone" dataKey="denied" stroke="#f97316" strokeWidth={2} name="Denied" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Section 2: Outstanding Claims by Aging */}
+          <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[24px] p-6 shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300"
+            style={{
+              boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)'
+            }}>
+            <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+            <div className="relative z-10">
+              <div className="text-gray-500 text-xs font-semibold uppercase tracking-widest mb-2">OUTSTANDING CLAIMS</div>
+              <h3 className="text-gray-900 text-xl font-semibold mb-6">Claims Aging Analysis</h3>
+
+              <div className="grid grid-cols-2 gap-6">
+                {/* Outstanding Claims Bar Chart */}
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-700 mb-3">Outstanding by Age</h4>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <BarChart data={OUTSTANDING_CLAIMS_AGING}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis dataKey="category" stroke="#6b7280" style={{ fontSize: '11px' }} />
+                      <YAxis stroke="#6b7280" style={{ fontSize: '11px' }} />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '8px',
+                          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                        }}
+                        formatter={(value) => `$${value.toLocaleString()}`}
+                      />
+                      <Bar dataKey="amount" fill="#3b82f6">
+                        {OUTSTANDING_CLAIMS_AGING.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={['#10b981', '#f59e0b', '#f97316', '#ef4444'][index]} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Outstanding Claims Summary */}
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-700 mb-3">Aging Breakdown</h4>
+                  <div className="space-y-3">
+                    {OUTSTANDING_CLAIMS_AGING.map((item, idx) => {
+                      const colors = [
+                        { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-700' },
+                        { bg: 'bg-yellow-50', border: 'border-yellow-200', text: 'text-yellow-700' },
+                        { bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-700' },
+                        { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700' }
+                      ];
+                      const color = colors[idx];
+                      return (
+                        <div key={idx} className={`flex items-center justify-between p-3 ${color.bg} rounded-lg border ${color.border}`}>
+                          <div className="flex-1">
+                            <div className="text-sm font-medium text-gray-900">{item.category}</div>
+                            <div className="text-xs text-gray-500 mt-1">
+                              {idx === 0 && 'Not yet billed to insurance'}
+                              {idx === 1 && 'Claims due in 30 days'}
+                              {idx === 2 && 'Claims due in 60 days'}
+                              {idx === 3 && 'Claims overdue 90+ days'}
+                            </div>
+                          </div>
+                          <div className={`text-lg font-bold ${color.text}`}>${(item.amount / 1000).toFixed(1)}K</div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      )}
 
-            {/* Right Side - Small Charts and Medium Chart */}
-            <div className="flex flex-col gap-6 w-[45%]" style={{ height: '100%' }}>
-              <div className="flex gap-4 flex-shrink-0">
-                {/* Small Chart 1 */}
-                <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[20px] flex flex-col shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300 flex-1"
+      {activeTab === 'admin' && (
+        <div className="flex flex-col gap-6 overflow-y-auto pb-6">
+          {/* Top Row - 3 Admin Health Tiles */}
+          <div className="grid grid-cols-3 gap-4 flex-shrink-0">
+            {/* Tile 1: Total Client Balance Owed */}
+            {(() => {
+              const latestData = CLIENT_BALANCE_AGING_DATA[CLIENT_BALANCE_AGING_DATA.length - 1];
+              const totalClientBalance = latestData.current + latestData.days1_30 + latestData.days31_60 + latestData.days61_plus;
+              return (
+                <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[20px] p-5 shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300"
                   style={{
                     boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)'
-                  }}
-                >
+                  }}>
                   <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-
-                  <div className="relative px-5 pt-5 pb-2">
-                    <div className="text-gray-500 text-[10px] font-semibold uppercase tracking-widest mb-2">ANALYTICS</div>
-                    <h3 className="text-gray-900 text-lg font-semibold mb-2 flex items-center gap-2">
-                      Metric 1
-                      <div className="group/info relative z-[100000]">
-                        <Info size={14} className="text-[#2d6e7e] cursor-help" />
-                        <div className="absolute left-0 top-6 invisible group-hover/info:visible opacity-0 group-hover/info:opacity-100 transition-all duration-200 w-64 z-[100000]">
-                          <div className="bg-gray-900 text-white text-xs rounded-lg p-3 shadow-xl">
-                            <p className="font-medium mb-1">Admin Metric 1</p>
-                            <p className="text-gray-300">Placeholder metric description.</p>
-                            <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
-                          </div>
-                        </div>
-                      </div>
-                    </h3>
-                    <div className="text-2xl font-bold text-gray-900 tracking-tight">--</div>
-                  </div>
-
-                  <div className="relative z-10 px-3 pb-2" style={{ height: '110px' }}>
-                    <div className="flex items-center justify-center h-full text-gray-400 text-sm">
-                      Placeholder
-                    </div>
+                  <div className="relative z-10">
+                    <div className="text-gray-500 text-[10px] font-semibold uppercase tracking-widest mb-2">BILLING</div>
+                    <div className="text-3xl font-bold text-gray-900 mb-1">${(totalClientBalance / 1000).toFixed(1)}K</div>
+                    <div className="text-xs text-gray-600">Clients still owe after invoices</div>
                   </div>
                 </div>
+              );
+            })()}
 
-                {/* Small Chart 2 */}
-                <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[20px] flex flex-col shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300 flex-1"
+            {/* Tile 2: Past-Due Invoices */}
+            {(() => {
+              const latestData = CLIENT_BALANCE_AGING_DATA[CLIENT_BALANCE_AGING_DATA.length - 1];
+              const pastDueTotal = latestData.days1_30 + latestData.days31_60 + latestData.days61_plus;
+              return (
+                <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[20px] p-5 shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300"
                   style={{
                     boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)'
-                  }}
-                >
+                  }}>
                   <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-
-                  <div className="relative px-5 pt-5 pb-2">
-                    <div className="text-gray-500 text-[10px] font-semibold uppercase tracking-widest mb-2">ANALYTICS</div>
-                    <h3 className="text-gray-900 text-lg font-semibold mb-2 flex items-center gap-2">
-                      Metric 2
-                      <div className="group/info relative z-[100000]">
-                        <Info size={14} className="text-[#2d6e7e] cursor-help" />
-                        <div className="absolute left-0 top-6 invisible group-hover/info:visible opacity-0 group-hover/info:opacity-100 transition-all duration-200 w-64 z-[100000]">
-                          <div className="bg-gray-900 text-white text-xs rounded-lg p-3 shadow-xl">
-                            <p className="font-medium mb-1">Admin Metric 2</p>
-                            <p className="text-gray-300">Placeholder metric description.</p>
-                            <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
-                          </div>
-                        </div>
-                      </div>
-                    </h3>
-                    <div className="text-2xl font-bold text-gray-900 tracking-tight">--</div>
+                  <div className="relative z-10">
+                    <div className="text-gray-500 text-[10px] font-semibold uppercase tracking-widest mb-2">AGING</div>
+                    <div className="text-3xl font-bold text-gray-900 mb-1">${(pastDueTotal / 1000).toFixed(1)}K</div>
+                    <div className="text-xs text-gray-600">1-30: ${(latestData.days1_30/1000).toFixed(1)}K · 31-60: ${(latestData.days31_60/1000).toFixed(1)}K · 61+: ${(latestData.days61_plus/1000).toFixed(1)}K</div>
                   </div>
+                </div>
+              );
+            })()}
 
-                  <div className="relative z-10 px-3 pb-2" style={{ height: '110px' }}>
-                    <div className="flex items-center justify-center h-full text-gray-400 text-sm">
-                      Placeholder
-                    </div>
+            {/* Tile 3: Unsigned/Missing Notes */}
+            {(() => {
+              const latestData = NOTES_STATUS_DATA[NOTES_STATUS_DATA.length - 1];
+              const missingNotes = latestData.noNote;
+              return (
+                <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[20px] p-5 shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300"
+                  style={{
+                    boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)'
+                  }}>
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                  <div className="relative z-10">
+                    <div className="text-gray-500 text-[10px] font-semibold uppercase tracking-widest mb-2">COMPLIANCE</div>
+                    <div className="text-3xl font-bold text-gray-900 mb-1">{missingNotes}</div>
+                    <div className="text-xs text-gray-600">Appointments without notes</div>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+
+          {/* Section 1: Billing Health */}
+          <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[24px] p-6 shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300"
+            style={{
+              boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)'
+            }}>
+            <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+            <div className="relative z-10">
+              <div className="text-gray-500 text-xs font-semibold uppercase tracking-widest mb-2">BILLING HEALTH</div>
+              <h3 className="text-gray-900 text-xl font-semibold mb-6">Client Balance Aging</h3>
+
+              <div className="grid grid-cols-2 gap-6">
+                {/* Chart: Client Balance Aging Bars */}
+                <div>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <BarChart data={[CLIENT_BALANCE_AGING_DATA[CLIENT_BALANCE_AGING_DATA.length - 1]]} layout="horizontal">
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis type="number" stroke="#6b7280" style={{ fontSize: '12px' }} />
+                      <YAxis dataKey="name" type="category" hide />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '8px',
+                          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                        }}
+                        formatter={(value) => `$${value.toLocaleString()}`}
+                      />
+                      <Bar dataKey="current" stackId="a" fill="#10b981" name="Current" />
+                      <Bar dataKey="days1_30" stackId="a" fill="#f59e0b" name="1-30 days" />
+                      <Bar dataKey="days31_60" stackId="a" fill="#f97316" name="31-60 days" />
+                      <Bar dataKey="days61_plus" stackId="a" fill="#ef4444" name="61+ days" />
+                      <Legend />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* List: Top 5 Clients by Past-Due Balance */}
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-700 mb-3">Top 5 Clients by Past-Due Balance</h4>
+                  <div className="space-y-2">
+                    {TOP_CLIENTS_PAST_DUE.map((client, idx) => (
+                      <div key={idx} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                        <div className="flex-1">
+                          <div className="text-sm font-medium text-gray-900">{client.name}</div>
+                          <div className="text-xs text-gray-500">{client.worstBucket}</div>
+                        </div>
+                        <div className="text-sm font-bold text-gray-900">${client.balance.toLocaleString()}</div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
 
-              {/* Medium Chart */}
-              <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[24px] flex flex-col flex-1 shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300"
-                style={{
-                  boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)'
-                }}
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+          {/* Section 2: Documentation & Notes */}
+          <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[24px] p-6 shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300"
+            style={{
+              boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)'
+            }}>
+            <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+            <div className="relative z-10">
+              <div className="text-gray-500 text-xs font-semibold uppercase tracking-widest mb-2">DOCUMENTATION & NOTES</div>
+              <h3 className="text-gray-900 text-xl font-semibold mb-6">Notes Status & Compliance</h3>
 
-                <div className="relative px-6 pt-6 pb-4 flex-shrink-0">
-                  <div className="text-gray-500 text-xs font-semibold uppercase tracking-widest mb-2">ANALYTICS</div>
-                  <h3 className="text-gray-900 text-2xl font-semibold mb-4 flex items-center gap-2">
-                    Admin Details
-                    <div className="group/info relative z-[100000]">
-                      <Info size={18} className="text-[#2d6e7e] cursor-help" />
-                      <div className="absolute left-0 top-8 invisible group-hover/info:visible opacity-0 group-hover/info:opacity-100 transition-all duration-200 w-80 z-[100000]">
-                        <div className="bg-gray-900 text-white text-xs rounded-lg p-3 shadow-xl">
-                          <p className="font-medium mb-1">Administrative Details</p>
-                          <p className="text-gray-300">Placeholder for detailed administrative metrics.</p>
-                          <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
-                        </div>
-                      </div>
-                    </div>
-                  </h3>
+              <div className="grid grid-cols-2 gap-6">
+                {/* Notes Status Tiles */}
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-700 mb-3">Current Period Status</h4>
+                  <div className="grid grid-cols-3 gap-3">
+                    {(() => {
+                      const latestNotes = NOTES_STATUS_DATA[NOTES_STATUS_DATA.length - 1];
+                      return (
+                        <>
+                          <div className="p-3 bg-red-50 rounded-lg border border-red-200">
+                            <div className="text-2xl font-bold text-red-700">{latestNotes.noNote}</div>
+                            <div className="text-xs text-red-600">No note</div>
+                          </div>
+                          <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                            <div className="text-2xl font-bold text-yellow-700">{latestNotes.unlocked}</div>
+                            <div className="text-xs text-yellow-600">Unlocked</div>
+                          </div>
+                          <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+                            <div className="text-2xl font-bold text-green-700">{latestNotes.locked}</div>
+                            <div className="text-xs text-green-600">Locked</div>
+                          </div>
+                        </>
+                      );
+                    })()}
+                  </div>
                 </div>
 
-                <div className="relative z-10 px-4 pb-4 flex-1 min-h-0 flex items-center justify-center">
-                  <div className="text-center text-gray-400">
-                    <p className="text-lg font-semibold">Medium Chart Placeholder</p>
-                    <p className="text-sm mt-2">Content coming soon</p>
+                {/* At-Risk Compliance List */}
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-700 mb-3">5 Oldest Appointments Without Notes</h4>
+                  <div className="space-y-2">
+                    {AT_RISK_COMPLIANCE.map((item, idx) => (
+                      <div key={idx} className="flex items-center justify-between p-2 bg-red-50 rounded-lg border border-red-100">
+                        <div className="flex items-center gap-3">
+                          <div className="text-xs font-medium text-gray-900">{item.date}</div>
+                          <div className="text-xs text-gray-600">{item.clientInitials}</div>
+                        </div>
+                        <div className="text-xs font-medium text-gray-700">{item.clinician}</div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* Section 3: Reminders & Email Health */}
+          <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[24px] p-6 shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300"
+            style={{
+              boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)'
+            }}>
+            <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+            <div className="relative z-10">
+              <div className="text-gray-500 text-xs font-semibold uppercase tracking-widest mb-2">REMINDERS & EMAIL HEALTH</div>
+              <h3 className="text-gray-900 text-xl font-semibold mb-6">Reminder Delivery Status</h3>
+
+              {(() => {
+                const latestReminders = REMINDER_DELIVERY_DATA[REMINDER_DELIVERY_DATA.length - 1];
+                const successRate = ((latestReminders.sent - latestReminders.failed) / latestReminders.sent * 100).toFixed(1);
+                return (
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                      <div className="text-3xl font-bold text-blue-700">{latestReminders.sent}</div>
+                      <div className="text-xs text-blue-600">Reminders sent (last 30 days)</div>
+                    </div>
+                    <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+                      <div className="text-3xl font-bold text-red-700">{latestReminders.failed}</div>
+                      <div className="text-xs text-red-600">Failed / not delivered</div>
+                    </div>
+                    <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                      <div className="text-3xl font-bold text-green-700">{successRate}%</div>
+                      <div className="text-xs text-green-600">Reminder success rate</div>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>
