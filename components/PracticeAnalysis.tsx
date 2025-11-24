@@ -72,18 +72,50 @@ const ALL_REVENUE_BREAKDOWN_DATA = [
 
 // Client growth data - active clients with breakdown of retained vs new, plus capacity
 const ALL_CLIENT_GROWTH_DATA = [
-  { month: 'Jan', activeClients: 142, capacity: 175, retained: 135, new: 7, churned: 5 },
-  { month: 'Feb', activeClients: 145, capacity: 175, retained: 140, new: 5, churned: 3 },
-  { month: 'Mar', activeClients: 143, capacity: 175, retained: 138, new: 5, churned: 7 },
-  { month: 'Apr', activeClients: 148, capacity: 180, retained: 140, new: 8, churned: 3 },
-  { month: 'May', activeClients: 146, capacity: 180, retained: 143, new: 3, churned: 5 },
-  { month: 'Jun', activeClients: 151, capacity: 180, retained: 143, new: 8, churned: 3 },
-  { month: 'Jul', activeClients: 149, capacity: 180, retained: 146, new: 3, churned: 5 },
-  { month: 'Aug', activeClients: 154, capacity: 180, retained: 147, new: 7, churned: 2 },
-  { month: 'Sep', activeClients: 147, capacity: 180, retained: 143, new: 4, churned: 11 },
-  { month: 'Oct', activeClients: 158, capacity: 180, retained: 145, new: 13, churned: 2 },
-  { month: 'Nov', activeClients: 152, capacity: 180, retained: 150, new: 2, churned: 8 },
-  { month: 'Dec', activeClients: 156, capacity: 180, retained: 149, new: 7, churned: 3 }
+  { month: 'Jan', activeClients: 142, capacity: 175, retained: 135, new: 7, churned: 5, withNextAppt: 128 },
+  { month: 'Feb', activeClients: 145, capacity: 175, retained: 140, new: 5, churned: 3, withNextAppt: 131 },
+  { month: 'Mar', activeClients: 143, capacity: 175, retained: 138, new: 5, churned: 7, withNextAppt: 129 },
+  { month: 'Apr', activeClients: 148, capacity: 180, retained: 140, new: 8, churned: 3, withNextAppt: 134 },
+  { month: 'May', activeClients: 146, capacity: 180, retained: 143, new: 3, churned: 5, withNextAppt: 132 },
+  { month: 'Jun', activeClients: 151, capacity: 180, retained: 143, new: 8, churned: 3, withNextAppt: 137 },
+  { month: 'Jul', activeClients: 149, capacity: 180, retained: 146, new: 3, churned: 5, withNextAppt: 135 },
+  { month: 'Aug', activeClients: 154, capacity: 180, retained: 147, new: 7, churned: 2, withNextAppt: 140 },
+  { month: 'Sep', activeClients: 147, capacity: 180, retained: 143, new: 4, churned: 11, withNextAppt: 133 },
+  { month: 'Oct', activeClients: 158, capacity: 180, retained: 145, new: 13, churned: 2, withNextAppt: 143 },
+  { month: 'Nov', activeClients: 152, capacity: 180, retained: 150, new: 2, churned: 8, withNextAppt: 138 },
+  { month: 'Dec', activeClients: 156, capacity: 180, retained: 149, new: 7, churned: 3, withNextAppt: 142 }
+];
+
+// Churn by clinician data - shows which clinicians are losing clients each month
+const ALL_CHURN_BY_CLINICIAN_DATA = [
+  { month: 'Jan', Chen: 2, Rodriguez: 1, Patel: 1, Kim: 0, Johnson: 1, total: 5 },
+  { month: 'Feb', Chen: 1, Rodriguez: 0, Patel: 1, Kim: 0, Johnson: 1, total: 3 },
+  { month: 'Mar', Chen: 2, Rodriguez: 1, Patel: 2, Kim: 1, Johnson: 1, total: 7 },
+  { month: 'Apr', Chen: 1, Rodriguez: 0, Patel: 1, Kim: 0, Johnson: 1, total: 3 },
+  { month: 'May', Chen: 2, Rodriguez: 1, Patel: 1, Kim: 0, Johnson: 1, total: 5 },
+  { month: 'Jun', Chen: 1, Rodriguez: 0, Patel: 1, Kim: 0, Johnson: 1, total: 3 },
+  { month: 'Jul', Chen: 2, Rodriguez: 1, Patel: 1, Kim: 0, Johnson: 1, total: 5 },
+  { month: 'Aug', Chen: 0, Rodriguez: 0, Patel: 1, Kim: 0, Johnson: 1, total: 2 },
+  { month: 'Sep', Chen: 3, Rodriguez: 2, Patel: 3, Kim: 2, Johnson: 1, total: 11 }, // High churn month
+  { month: 'Oct', Chen: 1, Rodriguez: 0, Patel: 0, Kim: 0, Johnson: 1, total: 2 },
+  { month: 'Nov', Chen: 2, Rodriguez: 2, Patel: 2, Kim: 1, Johnson: 1, total: 8 },
+  { month: 'Dec', Chen: 1, Rodriguez: 0, Patel: 1, Kim: 0, Johnson: 1, total: 3 }
+];
+
+// Churn timing breakdown data (early churn = 0-3 months, medium = 4-8 months, late = 9+ months)
+const ALL_CHURN_TIMING_DATA = [
+  { month: 'Jan', earlyChurn: 2, mediumChurn: 2, lateChurn: 1 },
+  { month: 'Feb', earlyChurn: 1, mediumChurn: 1, lateChurn: 1 },
+  { month: 'Mar', earlyChurn: 3, mediumChurn: 2, lateChurn: 2 },
+  { month: 'Apr', earlyChurn: 1, mediumChurn: 1, lateChurn: 1 },
+  { month: 'May', earlyChurn: 2, mediumChurn: 2, lateChurn: 1 },
+  { month: 'Jun', earlyChurn: 1, mediumChurn: 1, lateChurn: 1 },
+  { month: 'Jul', earlyChurn: 2, mediumChurn: 2, lateChurn: 1 },
+  { month: 'Aug', earlyChurn: 1, mediumChurn: 1, lateChurn: 0 },
+  { month: 'Sep', earlyChurn: 5, mediumChurn: 4, lateChurn: 2 },
+  { month: 'Oct', earlyChurn: 1, mediumChurn: 1, lateChurn: 0 },
+  { month: 'Nov', earlyChurn: 3, mediumChurn: 3, lateChurn: 2 },
+  { month: 'Dec', earlyChurn: 1, mediumChurn: 1, lateChurn: 1 }
 ];
 
 type TimePeriod = 'last-4-months' | 'last-6-months' | 'last-12-months' | 'ytd' | 'custom';
@@ -166,6 +198,8 @@ export const PracticeAnalysis: React.FC = () => {
   const CLINICIAN_REVENUE_DATA = useMemo(() => getDataForPeriod(ALL_CLINICIAN_REVENUE_DATA, timePeriod), [timePeriod, customStartDate, customEndDate]);
   const REVENUE_BREAKDOWN_DATA = useMemo(() => getDataForPeriod(ALL_REVENUE_BREAKDOWN_DATA, timePeriod), [timePeriod, customStartDate, customEndDate]);
   const CLIENT_GROWTH_DATA = useMemo(() => getDataForPeriod(ALL_CLIENT_GROWTH_DATA, timePeriod), [timePeriod, customStartDate, customEndDate]);
+  const CHURN_BY_CLINICIAN_DATA = useMemo(() => getDataForPeriod(ALL_CHURN_BY_CLINICIAN_DATA, timePeriod), [timePeriod, customStartDate, customEndDate]);
+  const CHURN_TIMING_DATA = useMemo(() => getDataForPeriod(ALL_CHURN_TIMING_DATA, timePeriod), [timePeriod, customStartDate, customEndDate]);
 
   // Calculate session value and cumulative revenue for charts
   const SESSION_VALUE_DATA = useMemo(() =>
@@ -1972,28 +2006,634 @@ export const PracticeAnalysis: React.FC = () => {
         </div>
       )}
 
-      {activeTab !== 'financial' && activeTab !== 'sessions' && activeTab !== 'capacity-client' && (
-        <div className="bg-white rounded-3xl p-8 shadow-sm min-h-[500px]">
-          {activeTab === 'capacity-client' && (
-            <div>
-              <h3 className="text-2xl font-semibold text-gray-900 mb-4">Client Growth</h3>
-              <p className="text-gray-600">Client growth analysis content goes here...</p>
-            </div>
-          )}
+      {activeTab === 'retention' && (
+            <div className="flex flex-col gap-6 overflow-y-auto">
+              {/* Churn Analysis Chart */}
+              <div className="flex gap-6 flex-shrink-0" style={{ height: 'calc(100vh - 400px)' }}>
+                <div className="w-[55%]" style={{ height: '100%' }}>
+                  <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[24px] h-full flex flex-col shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300"
+                    style={{
+                      boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)'
+                    }}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
 
-          {activeTab === 'retention' && (
-            <div>
-              <h3 className="text-2xl font-semibold text-gray-900 mb-4">Retention</h3>
-              <p className="text-gray-600">Retention analysis content goes here...</p>
-            </div>
-          )}
+                    <div className="relative px-6 pt-6 pb-4 flex-shrink-0">
+                      <div className="text-gray-500 text-xs font-semibold uppercase tracking-widest mb-2">ANALYTICS</div>
+                      <h3 className="text-gray-900 text-2xl font-semibold mb-4 flex items-center gap-2">
+                        Churn Analysis by Clinician
+                        <div className="group/info relative z-[100000]">
+                          <Info size={18} className="text-[#2d6e7e] cursor-help" />
+                          <div className="absolute left-0 top-8 invisible group-hover/info:visible opacity-0 group-hover/info:opacity-100 transition-all duration-200 w-80 z-[100000]">
+                            <div className="bg-gray-900 text-white text-xs rounded-lg p-3 shadow-xl">
+                              <p className="font-medium mb-1">Client Churn by Clinician</p>
+                              <p className="text-gray-300">Shows the breakdown of churned clients each month by clinician. Stacked bars reveal which clinicians are experiencing client loss and help identify retention issues that may require intervention.</p>
+                              <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                            </div>
+                          </div>
+                        </div>
+                      </h3>
 
-          {activeTab === 'admin' && (
-            <div>
-              <h3 className="text-2xl font-semibold text-gray-900 mb-4">Admin</h3>
-              <p className="text-gray-600">Admin analysis content goes here...</p>
+                      {/* Legend */}
+                      <div className="flex gap-4 mb-4 flex-wrap">
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#2d6e7e' }}></div>
+                          <span className="text-xs font-medium text-gray-700">Chen</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#3d8a9e' }}></div>
+                          <span className="text-xs font-medium text-gray-700">Rodriguez</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#4da6be' }}></div>
+                          <span className="text-xs font-medium text-gray-700">Patel</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#6bc2d8' }}></div>
+                          <span className="text-xs font-medium text-gray-700">Kim</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#89d4e8' }}></div>
+                          <span className="text-xs font-medium text-gray-700">Johnson</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="relative z-10 px-4 pb-4 flex-1 min-h-0">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          data={CHURN_BY_CLINICIAN_DATA}
+                          margin={{ top: 40, right: 20, bottom: 20, left: 20 }}
+                        >
+                          <defs>
+                            <linearGradient id="chenChurnGradient" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="#2d6e7e" stopOpacity={1}/>
+                              <stop offset="100%" stopColor="#1d4e5e" stopOpacity={1}/>
+                            </linearGradient>
+                            <linearGradient id="rodriguezChurnGradient" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="#3d8a9e" stopOpacity={1}/>
+                              <stop offset="100%" stopColor="#2d6a7e" stopOpacity={1}/>
+                            </linearGradient>
+                            <linearGradient id="patelChurnGradient" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="#4da6be" stopOpacity={1}/>
+                              <stop offset="100%" stopColor="#3d869e" stopOpacity={1}/>
+                            </linearGradient>
+                            <linearGradient id="kimChurnGradient" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="#6bc2d8" stopOpacity={1}/>
+                              <stop offset="100%" stopColor="#4da2be" stopOpacity={1}/>
+                            </linearGradient>
+                            <linearGradient id="johnsonChurnGradient" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="#89d4e8" stopOpacity={1}/>
+                              <stop offset="100%" stopColor="#6bc2d8" stopOpacity={1}/>
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+                          <XAxis
+                            dataKey="month"
+                            axisLine={false}
+                            tickLine={false}
+                            tick={{ fill: '#4b5563', fontSize: 14, fontWeight: 600 }}
+                            dy={10}
+                          />
+                          <YAxis
+                            axisLine={false}
+                            tickLine={false}
+                            tick={{ fill: '#6b7280', fontSize: 12, fontWeight: 600 }}
+                            label={{ value: 'Churned Clients', angle: -90, position: 'insideLeft', style: { fill: '#6b7280', fontSize: 12, fontWeight: 600 } }}
+                          />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: '#1f2937',
+                              border: 'none',
+                              borderRadius: '12px',
+                              padding: '12px 16px',
+                              boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.3)'
+                            }}
+                            labelStyle={{ color: '#9ca3af', fontSize: '12px', fontWeight: 600, marginBottom: '4px' }}
+                            itemStyle={{ color: '#fff', fontSize: '14px', fontWeight: 700 }}
+                            formatter={(value: number, name: string) => {
+                              return [value, name];
+                            }}
+                          />
+                          <Bar dataKey="Chen" stackId="a" fill="url(#chenChurnGradient)" radius={[0, 0, 0, 0]} maxBarSize={80} />
+                          <Bar dataKey="Rodriguez" stackId="a" fill="url(#rodriguezChurnGradient)" radius={[0, 0, 0, 0]} maxBarSize={80} />
+                          <Bar dataKey="Patel" stackId="a" fill="url(#patelChurnGradient)" radius={[0, 0, 0, 0]} maxBarSize={80} />
+                          <Bar dataKey="Kim" stackId="a" fill="url(#kimChurnGradient)" radius={[0, 0, 0, 0]} maxBarSize={80} />
+                          <Bar dataKey="Johnson" stackId="a" fill="url(#johnsonChurnGradient)" radius={[8, 8, 0, 0]} maxBarSize={80}>
+                            <LabelList
+                              content={(props: any) => {
+                                const { x, y, width, index } = props;
+                                if (index === undefined || !CHURN_BY_CLINICIAN_DATA[index]) return null;
+                                const total = CHURN_BY_CLINICIAN_DATA[index].total;
+                                return (
+                                  <text
+                                    x={x + width / 2}
+                                    y={y - 10}
+                                    fill="#1f2937"
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize={14}
+                                    fontWeight={700}
+                                  >
+                                    {total}
+                                  </text>
+                                );
+                              }}
+                            />
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Side - Small Charts and Medium Chart */}
+                <div className="flex flex-col gap-6 w-[45%]" style={{ height: '100%' }}>
+                  <div className="flex gap-4 flex-shrink-0">
+                    {/* Churn Timing - Small Chart 1 */}
+                    <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[20px] flex flex-col shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300 flex-1"
+                      style={{
+                        boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)'
+                      }}
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+
+                      <div className="relative px-5 pt-5 pb-2">
+                        <div className="text-gray-500 text-[10px] font-semibold uppercase tracking-widest mb-2">ANALYTICS</div>
+                        <h3 className="text-gray-900 text-lg font-semibold mb-2 flex items-center gap-2">
+                          Churn Timing
+                          <div className="group/info relative z-[100000]">
+                            <Info size={14} className="text-[#2d6e7e] cursor-help" />
+                            <div className="absolute left-0 top-6 invisible group-hover/info:visible opacity-0 group-hover/info:opacity-100 transition-all duration-200 w-64 z-[100000]">
+                              <div className="bg-gray-900 text-white text-xs rounded-lg p-3 shadow-xl">
+                                <p className="font-medium mb-1">Client Churn Timing</p>
+                                <p className="text-gray-300">Early (0-3mo), Medium (4-8mo), Late (9+mo)</p>
+                                <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                              </div>
+                            </div>
+                          </div>
+                        </h3>
+                      </div>
+
+                      <div className="relative z-10 px-1 pb-2" style={{ height: '130px' }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
+                            <Pie
+                              data={[
+                                {
+                                  name: 'Early (0-3mo)',
+                                  value: CHURN_TIMING_DATA.reduce((sum, item) => sum + item.earlyChurn, 0),
+                                  color: '#ef4444'
+                                },
+                                {
+                                  name: 'Medium (4-8mo)',
+                                  value: CHURN_TIMING_DATA.reduce((sum, item) => sum + item.mediumChurn, 0),
+                                  color: '#f59e0b'
+                                },
+                                {
+                                  name: 'Late (9+mo)',
+                                  value: CHURN_TIMING_DATA.reduce((sum, item) => sum + item.lateChurn, 0),
+                                  color: '#10b981'
+                                }
+                              ]}
+                              cx="50%"
+                              cy="50%"
+                              innerRadius="42%"
+                              outerRadius="72%"
+                              paddingAngle={2}
+                              dataKey="value"
+                              label={(entry) => {
+                                const total = CHURN_TIMING_DATA.reduce((sum, item) =>
+                                  sum + item.earlyChurn + item.mediumChurn + item.lateChurn, 0
+                                );
+                                const percentage = ((entry.value / total) * 100).toFixed(0);
+                                const shortName = entry.name.split(' ')[0];
+                                return `${shortName} ${percentage}%`;
+                              }}
+                              labelLine={true}
+                              style={{ fontSize: '11px', fontWeight: 600 }}
+                            >
+                              {[
+                                { name: 'Early (0-3mo)', value: CHURN_TIMING_DATA.reduce((sum, item) => sum + item.earlyChurn, 0), color: '#ef4444' },
+                                { name: 'Medium (4-8mo)', value: CHURN_TIMING_DATA.reduce((sum, item) => sum + item.mediumChurn, 0), color: '#f59e0b' },
+                                { name: 'Late (9+mo)', value: CHURN_TIMING_DATA.reduce((sum, item) => sum + item.lateChurn, 0), color: '#10b981' }
+                              ].map((entry, index) => (
+                                <Cell
+                                  key={`cell-${index}`}
+                                  fill={entry.color}
+                                />
+                              ))}
+                            </Pie>
+                            <Tooltip
+                              contentStyle={{
+                                backgroundColor: '#1f2937',
+                                border: 'none',
+                                borderRadius: '10px',
+                                padding: '10px 14px',
+                                boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.3)'
+                              }}
+                              labelStyle={{ color: '#9ca3af', fontSize: '11px', fontWeight: 600, marginBottom: '3px' }}
+                              itemStyle={{ color: '#fff', fontSize: '14px', fontWeight: 700 }}
+                              formatter={(value: number) => {
+                                const total = CHURN_TIMING_DATA.reduce((sum, item) =>
+                                  sum + item.earlyChurn + item.mediumChurn + item.lateChurn, 0
+                                );
+                                return [`${value} (${((value / total) * 100).toFixed(1)}%)`, ''];
+                              }}
+                            />
+                            <text
+                              x="50%"
+                              y="50%"
+                              textAnchor="middle"
+                              dominantBaseline="middle"
+                              className="font-bold text-gray-900"
+                              style={{ fontSize: '24px' }}
+                            >
+                              {CHURN_TIMING_DATA.reduce((sum, item) =>
+                                sum + item.earlyChurn + item.mediumChurn + item.lateChurn, 0
+                              )}
+                            </text>
+                            <text
+                              x="50%"
+                              y="50%"
+                              dy="16"
+                              textAnchor="middle"
+                              dominantBaseline="middle"
+                              className="text-gray-500"
+                              style={{ fontSize: '9px', fontWeight: 600 }}
+                            >
+                              Total
+                            </text>
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+
+                    {/* Rebook Rate - Small Chart 2 */}
+                    <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[20px] flex flex-col shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300 flex-1"
+                      style={{
+                        boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)'
+                      }}
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+
+                      <div className="relative px-5 pt-5 pb-2">
+                        <div className="text-gray-500 text-[10px] font-semibold uppercase tracking-widest mb-2">ANALYTICS</div>
+                        <h3 className="text-gray-900 text-lg font-semibold mb-2 flex items-center gap-2">
+                          Rebook Rate
+                          <div className="group/info relative z-[100000]">
+                            <Info size={14} className="text-[#2d6e7e] cursor-help" />
+                            <div className="absolute left-0 top-6 invisible group-hover/info:visible opacity-0 group-hover/info:opacity-100 transition-all duration-200 w-64 z-[100000]">
+                              <div className="bg-gray-900 text-white text-xs rounded-lg p-3 shadow-xl">
+                                <p className="font-medium mb-1">Rebook Rate</p>
+                                <p className="text-gray-300">Of the active clients, this is the percentage that have their next appointment scheduled</p>
+                                <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                              </div>
+                            </div>
+                          </div>
+                        </h3>
+                        <div className="text-2xl font-bold text-gray-900 tracking-tight">
+                          {CLIENT_GROWTH_DATA.length > 0
+                            ? `${((CLIENT_GROWTH_DATA.reduce((sum, item) => sum + (item.withNextAppt / item.activeClients), 0) / CLIENT_GROWTH_DATA.length) * 100).toFixed(1)}%`
+                            : '0.0%'}
+                        </div>
+                      </div>
+
+                      <div className="relative z-10 px-3 pb-2" style={{ height: '110px' }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart
+                            data={CLIENT_GROWTH_DATA.map(item => ({
+                              month: item.month,
+                              rebookRate: (item.withNextAppt / item.activeClients) * 100
+                            }))}
+                            margin={{ top: 20, right: 10, bottom: 5, left: 5 }}
+                          >
+                            <defs>
+                              <linearGradient id="rebookGradient" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="#10b981" stopOpacity={0.2}/>
+                                <stop offset="100%" stopColor="#10b981" stopOpacity={0}/>
+                              </linearGradient>
+                            </defs>
+                            <XAxis
+                              dataKey="month"
+                              axisLine={false}
+                              tickLine={false}
+                              tick={{ fill: '#6b7280', fontSize: 11, fontWeight: 600 }}
+                              dy={3}
+                            />
+                            <YAxis hide domain={[85, 100]} />
+                            <Tooltip
+                              contentStyle={{
+                                backgroundColor: '#1f2937',
+                                border: 'none',
+                                borderRadius: '10px',
+                                padding: '10px 14px',
+                                boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.3)'
+                              }}
+                              labelStyle={{ color: '#9ca3af', fontSize: '11px', fontWeight: 600, marginBottom: '3px' }}
+                              itemStyle={{ color: '#fff', fontSize: '14px', fontWeight: 700 }}
+                              formatter={(value: number) => [`${value.toFixed(1)}%`, 'Rebook Rate']}
+                            />
+                            <Line
+                              type="monotone"
+                              dataKey="rebookRate"
+                              stroke="#10b981"
+                              strokeWidth={2.5}
+                              dot={{ fill: '#10b981', strokeWidth: 2, stroke: '#fff', r: 3 }}
+                              activeDot={{ r: 5, strokeWidth: 2, stroke: '#fff' }}
+                              fill="url(#rebookGradient)"
+                            >
+                              <LabelList
+                                dataKey="rebookRate"
+                                position="top"
+                                style={{ fill: '#1f2937', fontSize: '10px', fontWeight: 700 }}
+                                offset={8}
+                                formatter={(value: number) => `${value.toFixed(1)}%`}
+                              />
+                            </Line>
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Churn Segment Analysis - Where Clients Drop Off */}
+                  <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[24px] flex flex-col flex-1 shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300"
+                    style={{
+                      boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)'
+                    }}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+
+                    <div className="relative px-6 pt-6 pb-4 flex-shrink-0">
+                      <div className="text-gray-500 text-xs font-semibold uppercase tracking-widest mb-2">CHURN ANALYSIS</div>
+                      <h3 className="text-gray-900 text-2xl font-semibold mb-4 flex items-center gap-2">
+                        Average Churn Point by Segment
+                        <div className="group/info relative z-[100000]">
+                          <Info size={18} className="text-[#2d6e7e] cursor-help" />
+                          <div className="absolute left-0 top-8 invisible group-hover/info:visible opacity-0 group-hover/info:opacity-100 transition-all duration-200 w-80 z-[100000]">
+                            <div className="bg-gray-900 text-white text-xs rounded-lg p-3 shadow-xl">
+                              <p className="font-medium mb-1">Where Clients Drop Off</p>
+                              <p className="text-gray-300">Shows the average session count at which clients churn within each segment: Early (&lt;5 sessions), Mid (5-25 sessions), and Late (&gt;25 sessions). Helps identify critical intervention points.</p>
+                              <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                            </div>
+                          </div>
+                        </div>
+                      </h3>
+
+                      {/* Segment Legend */}
+                      <div className="flex gap-6 mb-4">
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 rounded bg-gradient-to-br from-[#ef4444] to-[#dc2626]"></div>
+                          <span className="text-xs font-semibold text-gray-700">Early Churn (&lt;5 sessions)</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 rounded bg-gradient-to-br from-[#f59e0b] to-[#d97706]"></div>
+                          <span className="text-xs font-semibold text-gray-700">Mid Churn (5-25 sessions)</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 rounded bg-gradient-to-br from-[#10b981] to-[#059669]"></div>
+                          <span className="text-xs font-semibold text-gray-700">Late Churn (&gt;25 sessions)</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="relative z-10 px-8 pb-8 flex-1 min-h-0 flex items-center justify-center">
+                      <div className="flex gap-12 items-end w-full justify-center">
+                        {/* Early Churn */}
+                        <div className="flex flex-col items-center">
+                          <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Early Churn</div>
+                          <div className="relative">
+                            {/* Bar */}
+                            <div
+                              className="w-32 bg-gradient-to-t from-[#ef4444] to-[#dc2626] rounded-t-xl shadow-lg"
+                              style={{ height: '140px' }}
+                            >
+                              {/* Marker line at 3.5 sessions */}
+                              <div className="absolute top-0 left-0 right-0 flex items-center justify-center" style={{ top: 'calc(100% - 70%)' }}>
+                                <div className="absolute w-full h-0.5 bg-white/60"></div>
+                                <div className="absolute -right-12 bg-white px-2 py-1 rounded shadow-md border border-gray-200">
+                                  <span className="text-xs font-bold text-gray-900">3.5</span>
+                                </div>
+                              </div>
+                            </div>
+                            {/* Base label */}
+                            <div className="text-center mt-3">
+                              <div className="text-2xl font-bold text-[#ef4444]">3.5</div>
+                              <div className="text-xs text-gray-500 font-medium">sessions</div>
+                            </div>
+                          </div>
+                          <div className="mt-4 text-center">
+                            <div className="text-xs text-gray-600 font-medium">Range: 1-4 sessions</div>
+                          </div>
+                        </div>
+
+                        {/* Mid Churn */}
+                        <div className="flex flex-col items-center">
+                          <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Mid Churn</div>
+                          <div className="relative">
+                            {/* Bar */}
+                            <div
+                              className="w-32 bg-gradient-to-t from-[#f59e0b] to-[#d97706] rounded-t-xl shadow-lg"
+                              style={{ height: '200px' }}
+                            >
+                              {/* Marker line at 8 sessions */}
+                              <div className="absolute top-0 left-0 right-0 flex items-center justify-center" style={{ top: 'calc(100% - 40%)' }}>
+                                <div className="absolute w-full h-0.5 bg-white/60"></div>
+                                <div className="absolute -right-12 bg-white px-2 py-1 rounded shadow-md border border-gray-200">
+                                  <span className="text-xs font-bold text-gray-900">8</span>
+                                </div>
+                              </div>
+                            </div>
+                            {/* Base label */}
+                            <div className="text-center mt-3">
+                              <div className="text-2xl font-bold text-[#f59e0b]">8</div>
+                              <div className="text-xs text-gray-500 font-medium">sessions</div>
+                            </div>
+                          </div>
+                          <div className="mt-4 text-center">
+                            <div className="text-xs text-gray-600 font-medium">Range: 5-25 sessions</div>
+                          </div>
+                        </div>
+
+                        {/* Late Churn */}
+                        <div className="flex flex-col items-center">
+                          <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Late Churn</div>
+                          <div className="relative">
+                            {/* Bar */}
+                            <div
+                              className="w-32 bg-gradient-to-t from-[#10b981] to-[#059669] rounded-t-xl shadow-lg"
+                              style={{ height: '280px' }}
+                            >
+                              {/* Marker line at 30 sessions */}
+                              <div className="absolute top-0 left-0 right-0 flex items-center justify-center" style={{ top: 'calc(100% - 50%)' }}>
+                                <div className="absolute w-full h-0.5 bg-white/60"></div>
+                                <div className="absolute -right-12 bg-white px-2 py-1 rounded shadow-md border border-gray-200">
+                                  <span className="text-xs font-bold text-gray-900">30</span>
+                                </div>
+                              </div>
+                            </div>
+                            {/* Base label */}
+                            <div className="text-center mt-3">
+                              <div className="text-2xl font-bold text-[#10b981]">30</div>
+                              <div className="text-xs text-gray-500 font-medium">sessions</div>
+                            </div>
+                          </div>
+                          <div className="mt-4 text-center">
+                            <div className="text-xs text-gray-600 font-medium">Range: 25+ sessions</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-          )}
+      )}
+
+      {activeTab === 'admin' && (
+        <div className="flex flex-col gap-6 overflow-y-auto">
+          {/* Top Row - Main Layout */}
+          <div className="flex gap-6 flex-shrink-0" style={{ height: 'calc(100vh - 400px)' }}>
+            {/* Left Side - Big Chart */}
+            <div className="w-[55%]" style={{ height: '100%' }}>
+              <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[24px] h-full flex flex-col shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300"
+                style={{
+                  boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)'
+                }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+
+                <div className="relative px-6 pt-6 pb-4 flex-shrink-0">
+                  <div className="text-gray-500 text-xs font-semibold uppercase tracking-widest mb-2">ANALYTICS</div>
+                  <h3 className="text-gray-900 text-2xl font-semibold mb-4 flex items-center gap-2">
+                    Admin Overview
+                    <div className="group/info relative z-[100000]">
+                      <Info size={18} className="text-[#2d6e7e] cursor-help" />
+                      <div className="absolute left-0 top-8 invisible group-hover/info:visible opacity-0 group-hover/info:opacity-100 transition-all duration-200 w-80 z-[100000]">
+                        <div className="bg-gray-900 text-white text-xs rounded-lg p-3 shadow-xl">
+                          <p className="font-medium mb-1">Administrative Metrics</p>
+                          <p className="text-gray-300">Placeholder for administrative analytics and insights.</p>
+                          <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </h3>
+                </div>
+
+                <div className="relative z-10 px-4 pb-4 flex-1 min-h-0 flex items-center justify-center">
+                  <div className="text-center text-gray-400">
+                    <p className="text-lg font-semibold">Admin Chart Placeholder</p>
+                    <p className="text-sm mt-2">Content coming soon</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Side - Small Charts and Medium Chart */}
+            <div className="flex flex-col gap-6 w-[45%]" style={{ height: '100%' }}>
+              <div className="flex gap-4 flex-shrink-0">
+                {/* Small Chart 1 */}
+                <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[20px] flex flex-col shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300 flex-1"
+                  style={{
+                    boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)'
+                  }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+
+                  <div className="relative px-5 pt-5 pb-2">
+                    <div className="text-gray-500 text-[10px] font-semibold uppercase tracking-widest mb-2">ANALYTICS</div>
+                    <h3 className="text-gray-900 text-lg font-semibold mb-2 flex items-center gap-2">
+                      Metric 1
+                      <div className="group/info relative z-[100000]">
+                        <Info size={14} className="text-[#2d6e7e] cursor-help" />
+                        <div className="absolute left-0 top-6 invisible group-hover/info:visible opacity-0 group-hover/info:opacity-100 transition-all duration-200 w-64 z-[100000]">
+                          <div className="bg-gray-900 text-white text-xs rounded-lg p-3 shadow-xl">
+                            <p className="font-medium mb-1">Admin Metric 1</p>
+                            <p className="text-gray-300">Placeholder metric description.</p>
+                            <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </h3>
+                    <div className="text-2xl font-bold text-gray-900 tracking-tight">--</div>
+                  </div>
+
+                  <div className="relative z-10 px-3 pb-2" style={{ height: '110px' }}>
+                    <div className="flex items-center justify-center h-full text-gray-400 text-sm">
+                      Placeholder
+                    </div>
+                  </div>
+                </div>
+
+                {/* Small Chart 2 */}
+                <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[20px] flex flex-col shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300 flex-1"
+                  style={{
+                    boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)'
+                  }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+
+                  <div className="relative px-5 pt-5 pb-2">
+                    <div className="text-gray-500 text-[10px] font-semibold uppercase tracking-widest mb-2">ANALYTICS</div>
+                    <h3 className="text-gray-900 text-lg font-semibold mb-2 flex items-center gap-2">
+                      Metric 2
+                      <div className="group/info relative z-[100000]">
+                        <Info size={14} className="text-[#2d6e7e] cursor-help" />
+                        <div className="absolute left-0 top-6 invisible group-hover/info:visible opacity-0 group-hover/info:opacity-100 transition-all duration-200 w-64 z-[100000]">
+                          <div className="bg-gray-900 text-white text-xs rounded-lg p-3 shadow-xl">
+                            <p className="font-medium mb-1">Admin Metric 2</p>
+                            <p className="text-gray-300">Placeholder metric description.</p>
+                            <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </h3>
+                    <div className="text-2xl font-bold text-gray-900 tracking-tight">--</div>
+                  </div>
+
+                  <div className="relative z-10 px-3 pb-2" style={{ height: '110px' }}>
+                    <div className="flex items-center justify-center h-full text-gray-400 text-sm">
+                      Placeholder
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Medium Chart */}
+              <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[24px] flex flex-col flex-1 shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300"
+                style={{
+                  boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)'
+                }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+
+                <div className="relative px-6 pt-6 pb-4 flex-shrink-0">
+                  <div className="text-gray-500 text-xs font-semibold uppercase tracking-widest mb-2">ANALYTICS</div>
+                  <h3 className="text-gray-900 text-2xl font-semibold mb-4 flex items-center gap-2">
+                    Admin Details
+                    <div className="group/info relative z-[100000]">
+                      <Info size={18} className="text-[#2d6e7e] cursor-help" />
+                      <div className="absolute left-0 top-8 invisible group-hover/info:visible opacity-0 group-hover/info:opacity-100 transition-all duration-200 w-80 z-[100000]">
+                        <div className="bg-gray-900 text-white text-xs rounded-lg p-3 shadow-xl">
+                          <p className="font-medium mb-1">Administrative Details</p>
+                          <p className="text-gray-300">Placeholder for detailed administrative metrics.</p>
+                          <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </h3>
+                </div>
+
+                <div className="relative z-10 px-4 pb-4 flex-1 min-h-0 flex items-center justify-center">
+                  <div className="text-center text-gray-400">
+                    <p className="text-lg font-semibold">Medium Chart Placeholder</p>
+                    <p className="text-sm mt-2">Content coming soon</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
