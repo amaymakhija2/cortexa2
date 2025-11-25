@@ -1586,7 +1586,7 @@ export const PracticeAnalysis: React.FC = () => {
                 </div>
               </div>
 
-              {/* Total Sessions YTD */}
+              {/* Avg Monthly Sessions */}
               <div
                 className="rounded-3xl p-8 relative overflow-hidden"
                 style={{
@@ -1594,14 +1594,14 @@ export const PracticeAnalysis: React.FC = () => {
                   boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
                 }}
               >
-                <p className="text-stone-500 text-sm font-bold uppercase tracking-widest mb-4">Total Completed</p>
+                <p className="text-stone-500 text-sm font-bold uppercase tracking-widest mb-4">Avg Monthly</p>
                 <span
                   className="text-stone-900 font-bold block"
                   style={{ fontSize: '3rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
-                  {SESSIONS_DATA.reduce((sum, item) => sum + item.completed, 0).toLocaleString()}
+                  {Math.round(SESSIONS_DATA.reduce((sum, item) => sum + item.completed, 0) / SESSIONS_DATA.length).toLocaleString()}
                 </span>
-                <p className="text-stone-500 text-sm mt-3">{SESSIONS_DATA.length} months tracked</p>
+                <p className="text-stone-500 text-sm mt-3">sessions per month</p>
               </div>
 
               {/* Avg Weekly Sessions */}
@@ -1625,34 +1625,49 @@ export const PracticeAnalysis: React.FC = () => {
 
             {/* Session Volume & Attendance Breakdown - Side by Side */}
             <div className="grid grid-cols-2 gap-6">
-              {/* Session Volume - Vertical Bar Chart */}
+              {/* Session Volume - Dual Bar Chart with Drop-off */}
               <div
-                className="rounded-3xl p-8 relative"
+                className="rounded-3xl p-8 relative overflow-hidden"
                 style={{
-                  background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
+                  background: 'linear-gradient(145deg, #ffffff 0%, #fafaf9 50%, #f5f5f4 100%)',
                   boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)',
                   minHeight: '520px'
                 }}
               >
-                <div className="flex items-start justify-between mb-6">
+                {/* Subtle decorative element */}
+                <div className="absolute top-0 right-0 w-64 h-64 opacity-[0.03] pointer-events-none"
+                  style={{
+                    background: 'radial-gradient(circle at center, #0891b2 0%, transparent 70%)',
+                  }}
+                />
+
+                <div className="flex items-start justify-between mb-8">
                   <div>
-                    <p className="text-stone-500 text-sm font-bold uppercase tracking-widest mb-2">Monthly Trend</p>
-                    <h3 className="text-stone-900 text-2xl font-semibold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                    <p className="text-stone-400 text-xs font-bold uppercase tracking-[0.2em] mb-2">Monthly Trend</p>
+                    <h3 className="text-stone-900 text-2xl font-semibold tracking-tight" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
                       Session Volume
                     </h3>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-200">
-                      <div className="w-0.5 h-4 bg-amber-500" />
-                      <span className="text-amber-700 text-sm font-medium">700 Goal</span>
+                    <div className="flex items-center gap-2.5 px-4 py-2 rounded-full bg-stone-900/5 backdrop-blur-sm">
+                      <div className="w-3 h-3 rounded-full bg-gradient-to-br from-cyan-400 to-cyan-600 shadow-sm" />
+                      <span className="text-stone-700 text-sm font-medium">Booked</span>
+                    </div>
+                    <div className="flex items-center gap-2.5 px-4 py-2 rounded-full bg-stone-900/5 backdrop-blur-sm">
+                      <div className="w-3 h-3 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-sm" />
+                      <span className="text-stone-700 text-sm font-medium">Completed</span>
+                    </div>
+                    <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-300/50">
+                      <div className="w-4 h-0.5 bg-amber-500" style={{ borderTop: '2px dashed #f59e0b' }} />
+                      <span className="text-amber-700 text-sm font-semibold">700 Goal</span>
                     </div>
                   </div>
                 </div>
 
-                {/* Vertical Bar Chart */}
+                {/* Dual Bar Chart */}
                 <div className="flex">
                   {/* Y-axis labels */}
-                  <div className="flex flex-col justify-between text-xs text-stone-400 font-medium pr-3" style={{ height: '320px' }}>
+                  <div className="flex flex-col justify-between text-[11px] text-stone-400 font-semibold pr-4" style={{ height: '300px' }}>
                     <span>800</span>
                     <span>600</span>
                     <span>400</span>
@@ -1661,52 +1676,123 @@ export const PracticeAnalysis: React.FC = () => {
                   </div>
 
                   {/* Chart area */}
-                  <div className="flex-1 relative" style={{ height: '320px' }}>
+                  <div className="flex-1 relative" style={{ height: '300px' }}>
                     {/* Background grid lines */}
                     <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
                       {[0, 1, 2, 3, 4].map((i) => (
-                        <div key={i} className="border-t border-stone-100 w-full" />
+                        <div key={i} className="border-t border-stone-200/60 w-full" />
                       ))}
                     </div>
 
                     {/* Goal line - horizontal at 700 completed sessions */}
                     <div
-                      className="absolute left-0 right-0 border-t-2 border-dashed border-amber-400 z-10 pointer-events-none"
+                      className="absolute left-0 right-0 z-10 pointer-events-none flex items-center"
                       style={{ top: `${((800 - 700) / 800) * 100}%` }}
-                    />
+                    >
+                      <div className="flex-1 border-t-2 border-dashed border-amber-400" />
+                    </div>
 
-                    {/* Bars */}
-                    <div className="absolute inset-0 flex items-end justify-around gap-1 px-4">
+                    {/* Bars with drop-off indicators */}
+                    <div className="absolute inset-0 flex items-end justify-around px-2">
                       {SESSIONS_DATA.map((item, idx) => {
-                        const completedHeightPx = (item.completed / 800) * 320;
+                        const bookedHeightPx = (item.booked / 800) * 300;
+                        const completedHeightPx = (item.completed / 800) * 300;
+                        const dropOff = ((item.booked - item.completed) / item.booked * 100);
                         const isAboveGoal = item.completed >= 700;
                         const isCurrentMonth = idx === SESSIONS_DATA.length - 1;
 
                         return (
                           <div
                             key={item.month}
-                            className="group relative flex-1 flex flex-col items-center justify-end"
-                            style={{ maxWidth: '50px' }}
+                            className="group relative flex flex-col items-center justify-end"
+                            style={{ flex: '1', maxWidth: '72px' }}
                           >
-                            {/* Value label - always visible */}
-                            <div className="mb-2 z-20">
-                              <span className={`text-xs font-bold ${isAboveGoal ? 'text-emerald-600' : 'text-blue-600'}`}>
-                                {item.completed}
+                            {/* Drop-off indicator - floating pill above bars */}
+                            <div
+                              className={`absolute z-30 px-2.5 py-1 rounded-full text-[10px] font-bold shadow-lg transition-all duration-300 group-hover:scale-110 ${
+                                dropOff > 5
+                                  ? 'bg-gradient-to-r from-rose-500 to-rose-600 text-white'
+                                  : dropOff > 3
+                                    ? 'bg-gradient-to-r from-amber-400 to-amber-500 text-amber-900'
+                                    : 'bg-gradient-to-r from-emerald-400 to-emerald-500 text-emerald-900'
+                              }`}
+                              style={{
+                                top: `${Math.min(300 - bookedHeightPx - 32, 300 - completedHeightPx - 32)}px`,
+                                transform: 'translateY(-100%)'
+                              }}
+                            >
+                              <span className="flex items-center gap-0.5">
+                                <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                                </svg>
+                                {dropOff.toFixed(1)}%
                               </span>
                             </div>
-                            {/* Bar */}
+
+                            {/* Connecting line between bars showing drop */}
                             <div
-                              className={`rounded-t-md transition-all duration-300 cursor-pointer ${isCurrentMonth ? '' : 'opacity-80 hover:opacity-100'}`}
+                              className="absolute z-10 pointer-events-none"
                               style={{
-                                height: `${completedHeightPx}px`,
-                                width: '100%',
-                                maxWidth: '36px',
-                                background: isAboveGoal
-                                  ? 'linear-gradient(180deg, #34d399 0%, #059669 100%)'
-                                  : 'linear-gradient(180deg, #60a5fa 0%, #2563eb 100%)',
-                                boxShadow: '0 2px 8px -2px rgba(0,0,0,0.15)'
+                                left: '50%',
+                                bottom: `${completedHeightPx}px`,
+                                height: `${bookedHeightPx - completedHeightPx}px`,
+                                width: '1px',
+                                background: 'linear-gradient(180deg, rgba(239, 68, 68, 0.4) 0%, rgba(239, 68, 68, 0.1) 100%)'
                               }}
                             />
+
+                            {/* Bar pair container */}
+                            <div className="flex gap-1 items-end w-full justify-center">
+                              {/* Booked bar */}
+                              <div className="relative flex flex-col items-center" style={{ width: '40%' }}>
+                                <span className="text-[10px] font-bold text-cyan-600 mb-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  {item.booked}
+                                </span>
+                                <div
+                                  className={`w-full rounded-t-lg transition-all duration-300 cursor-pointer relative overflow-hidden ${
+                                    isCurrentMonth ? 'ring-2 ring-cyan-400/30 ring-offset-1' : 'opacity-85 hover:opacity-100'
+                                  }`}
+                                  style={{
+                                    height: `${bookedHeightPx}px`,
+                                    background: 'linear-gradient(180deg, #22d3ee 0%, #0891b2 50%, #0e7490 100%)',
+                                    boxShadow: '0 4px 12px -2px rgba(8, 145, 178, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)'
+                                  }}
+                                >
+                                  {/* Shine effect */}
+                                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                </div>
+                              </div>
+
+                              {/* Completed bar */}
+                              <div className="relative flex flex-col items-center" style={{ width: '40%' }}>
+                                <span className={`text-[10px] font-bold mb-1 ${isAboveGoal ? 'text-emerald-600' : 'text-emerald-600'}`}>
+                                  {item.completed}
+                                </span>
+                                <div
+                                  className={`w-full rounded-t-lg transition-all duration-300 cursor-pointer relative overflow-hidden ${
+                                    isCurrentMonth ? 'ring-2 ring-emerald-400/30 ring-offset-1' : 'opacity-85 hover:opacity-100'
+                                  }`}
+                                  style={{
+                                    height: `${completedHeightPx}px`,
+                                    background: isAboveGoal
+                                      ? 'linear-gradient(180deg, #34d399 0%, #10b981 50%, #059669 100%)'
+                                      : 'linear-gradient(180deg, #6ee7b7 0%, #34d399 50%, #10b981 100%)',
+                                    boxShadow: '0 4px 12px -2px rgba(16, 185, 129, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)'
+                                  }}
+                                >
+                                  {/* Shine effect */}
+                                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                  {/* Goal achieved indicator */}
+                                  {isAboveGoal && (
+                                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-amber-400 rounded-full flex items-center justify-center shadow-md">
+                                      <svg className="w-2.5 h-2.5 text-amber-900" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                      </svg>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
                           </div>
                         );
                       })}
@@ -1715,17 +1801,21 @@ export const PracticeAnalysis: React.FC = () => {
                 </div>
 
                 {/* Month labels */}
-                <div className="flex mt-3 pl-12">
-                  <div className="flex-1 flex justify-around gap-1 px-4">
+                <div className="flex mt-4 pl-10">
+                  <div className="flex-1 flex justify-around px-2">
                     {SESSIONS_DATA.map((item, idx) => {
                       const isCurrentMonth = idx === SESSIONS_DATA.length - 1;
                       return (
                         <div
                           key={item.month}
-                          className="flex-1 text-center"
-                          style={{ maxWidth: '50px' }}
+                          className="text-center"
+                          style={{ flex: '1', maxWidth: '72px' }}
                         >
-                          <span className={`text-xs font-semibold ${isCurrentMonth ? 'text-stone-900' : 'text-stone-500'}`}>
+                          <span className={`text-xs font-semibold ${
+                            isCurrentMonth
+                              ? 'text-stone-900 bg-stone-900/5 px-2 py-0.5 rounded-full'
+                              : 'text-stone-500'
+                          }`}>
                             {item.month}
                           </span>
                         </div>
@@ -1734,15 +1824,25 @@ export const PracticeAnalysis: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Legend */}
-                <div className="flex items-center justify-center gap-4 mt-6 pt-4 border-t border-stone-100">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-sm bg-gradient-to-b from-blue-500 to-blue-700" />
-                    <span className="text-stone-600 text-sm">Below Goal</span>
+                {/* Summary stats */}
+                <div className="flex items-center justify-between mt-6 pt-5 border-t border-stone-200/60">
+                  <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-2">
+                      <span className="text-stone-500 text-sm">Avg Drop-off:</span>
+                      <span className="text-rose-600 font-bold text-sm">
+                        {(SESSIONS_DATA.reduce((sum, item) => sum + ((item.booked - item.completed) / item.booked * 100), 0) / SESSIONS_DATA.length).toFixed(1)}%
+                      </span>
+                    </div>
+                    <div className="w-px h-4 bg-stone-200" />
+                    <div className="flex items-center gap-2">
+                      <span className="text-stone-500 text-sm">Goal Achieved:</span>
+                      <span className="text-emerald-600 font-bold text-sm">
+                        {SESSIONS_DATA.filter(item => item.completed >= 700).length}/{SESSIONS_DATA.length} months
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-sm bg-gradient-to-b from-emerald-400 to-emerald-600" />
-                    <span className="text-stone-600 text-sm">Goal Met</span>
+                  <div className="flex items-center gap-2 text-xs text-stone-400">
+                    <span>Hover for details</span>
                   </div>
                 </div>
               </div>
