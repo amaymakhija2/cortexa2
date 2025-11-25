@@ -106,7 +106,7 @@ export const SimpleAlertCard: React.FC<SimpleAlertCardProps> = ({
           </p>
 
           {/* Stats */}
-          <div className="flex items-center gap-6 mb-6">
+          <div className="flex items-center gap-6">
             {stats.map((stat, idx) => (
               <React.Fragment key={idx}>
                 {idx > 0 && <div className="w-px h-16 bg-stone-700" />}
@@ -120,9 +120,9 @@ export const SimpleAlertCard: React.FC<SimpleAlertCardProps> = ({
             ))}
           </div>
 
-          {/* Button */}
+          {/* Button - pinned to bottom */}
           <button className={`
-            w-full py-4
+            w-full py-4 mt-auto
             ${config.button}
             text-white text-base font-semibold
             rounded-xl
