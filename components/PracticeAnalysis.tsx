@@ -366,562 +366,567 @@ export const PracticeAnalysis: React.FC = () => {
 
   const formatCurrency = (value: number) => `$${(value / 1000).toFixed(1)}k`;
 
+  // Only render Financial tab with new design, others stay as is
+  const isFinancialTab = activeTab === 'financial';
+
   return (
-    <div className="flex-1 p-8 pt-2 overflow-y-auto h-[calc(100vh-80px)]">
-
-      {/* Title Section */}
-      <div className="mb-6">
-        <h2 className="text-gray-500 text-sm font-medium mb-1">DETAILED INSIGHTS</h2>
-        <h1 className="text-4xl font-normal text-gray-900 tracking-tight">Practice Detailed Analysis</h1>
-      </div>
-
-      {/* Time Period Selector */}
-      <div className="mb-6 flex items-center gap-3 relative">
-        <span className="text-sm font-medium text-gray-600">Time Period:</span>
+    <div
+      className={`flex-1 overflow-y-auto h-[calc(100vh-80px)] ${isFinancialTab ? 'bg-gradient-to-br from-stone-50 via-orange-50/20 to-stone-100/50' : 'p-8 pt-2'}`}
+    >
+      {/* Warm gradient overlay - same as Practice Overview */}
+      {isFinancialTab && (
         <div
-          className="inline-flex items-center gap-1 bg-gradient-to-b from-white via-white to-white/95 rounded-full p-1.5 shadow-lg ring-1 ring-slate-200/50"
+          className="fixed inset-0 pointer-events-none"
           style={{
-            boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.1), inset 0 1px 0 0 rgba(255, 255, 255, 0.8)'
+            background: 'radial-gradient(ellipse at top, rgba(251, 191, 36, 0.03) 0%, transparent 50%)',
           }}
-        >
-          {timePeriods.map((period) => (
-            <button
-              key={period.id}
-              onClick={() => setTimePeriod(period.id)}
-              className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${
-                timePeriod === period.id
-                  ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 text-white shadow-xl'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-              style={timePeriod === period.id ? {
-                boxShadow: '0 8px 30px -8px rgba(0, 0, 0, 0.3), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)'
-              } : undefined}
+        />
+      )}
+
+      {/* Financial Tab - Fully Redesigned */}
+      {isFinancialTab ? (
+        <div className="min-h-full relative">
+          {/* Integrated Header */}
+          <div className="sticky top-0 z-50 px-10 pt-8 pb-6" style={{ background: 'linear-gradient(180deg, rgba(250,250,249,0.97) 0%, rgba(250,250,249,0.95) 80%, transparent 100%)' }}>
+            <div className="flex items-end justify-between">
+              {/* Title & Breadcrumb */}
+              <div>
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="text-stone-400 text-sm font-medium uppercase tracking-widest">Detailed Analysis</span>
+                  <span className="text-stone-300">/</span>
+                  <span className="text-emerald-600 text-sm font-bold uppercase tracking-widest">Financial</span>
+                </div>
+                <h1
+                  className="text-5xl text-stone-900 font-bold tracking-tight"
+                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  Financial Performance
+                </h1>
+              </div>
+
+              {/* Time Period Selector - Redesigned */}
+              <div className="flex items-center gap-4">
+                <div
+                  className="flex items-center gap-1 p-1.5 rounded-2xl bg-white/80 backdrop-blur-sm"
+                  style={{
+                    boxShadow: '0 4px 20px -4px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.03)'
+                  }}
+                >
+                  {timePeriods.map((period) => (
+                    <button
+                      key={period.id}
+                      onClick={() => setTimePeriod(period.id)}
+                      className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${
+                        timePeriod === period.id
+                          ? 'bg-stone-900 text-white shadow-lg'
+                          : 'text-stone-500 hover:text-stone-900 hover:bg-stone-100'
+                      }`}
+                    >
+                      {period.label}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => setShowDatePicker(!showDatePicker)}
+                    className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-2 ${
+                      timePeriod === 'custom'
+                        ? 'bg-stone-900 text-white shadow-lg'
+                        : 'text-stone-500 hover:text-stone-900 hover:bg-stone-100'
+                    }`}
+                  >
+                    <Calendar size={16} />
+                    {timePeriod === 'custom' ? formatDateRange() : 'Custom'}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Tab Navigation - Minimal Pills */}
+            <div className="flex items-center gap-2 mt-8">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 ${
+                    activeTab === tab.id
+                      ? 'bg-stone-900 text-white shadow-md'
+                      : 'text-stone-500 hover:text-stone-800 border border-stone-300 hover:border-stone-400 bg-white/50'
+                  }`}
+                >
+                  {tab.shortLabel}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Custom Date Picker Modal */}
+          {showDatePicker && (
+            <div className="fixed top-32 right-10 z-[100000] rounded-3xl p-8 bg-white"
+              style={{
+                boxShadow: '0 25px 80px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05)'
+              }}
             >
-              {period.label}
-            </button>
-          ))}
+              <div className="flex items-center justify-between mb-6">
+                <h4 className="text-xl font-bold text-stone-900">Select Date Range</h4>
+                <button
+                  onClick={() => setShowDatePicker(false)}
+                  className="text-stone-400 hover:text-stone-600 transition-colors p-2 rounded-lg hover:bg-stone-100"
+                >
+                  <X size={20} />
+                </button>
+              </div>
 
-          {/* Custom Date Range Button */}
-          <button
-            onClick={() => setShowDatePicker(!showDatePicker)}
-            className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-200 flex items-center gap-2 ${
-              timePeriod === 'custom'
-                ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 text-white shadow-xl'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-            style={timePeriod === 'custom' ? {
-              boxShadow: '0 8px 30px -8px rgba(0, 0, 0, 0.3), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)'
-            } : undefined}
-          >
-            <Calendar size={16} />
-            {timePeriod === 'custom' ? formatDateRange() : 'Custom Range'}
-          </button>
-        </div>
+              <div className="flex gap-6 mb-6">
+                <div>
+                  <label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-3">Start Date</label>
+                  <DatePicker
+                    selected={customStartDate}
+                    onChange={(date) => setCustomStartDate(date)}
+                    selectsStart
+                    startDate={customStartDate}
+                    endDate={customEndDate}
+                    dateFormat="MMM yyyy"
+                    showMonthYearPicker
+                    inline
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-3">End Date</label>
+                  <DatePicker
+                    selected={customEndDate}
+                    onChange={(date) => setCustomEndDate(date)}
+                    selectsEnd
+                    startDate={customStartDate}
+                    endDate={customEndDate}
+                    minDate={customStartDate}
+                    dateFormat="MMM yyyy"
+                    showMonthYearPicker
+                    inline
+                  />
+                </div>
+              </div>
 
-        {/* Custom Date Picker Modal */}
-        {showDatePicker && (
-          <div className="absolute top-14 left-28 z-[100000] bg-white rounded-2xl shadow-2xl border-2 border-[#2d6e7e] p-6"
-            style={{
-              boxShadow: '0 20px 60px -10px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.02)'
-            }}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h4 className="text-lg font-semibold text-gray-900">Select Date Range</h4>
               <button
-                onClick={() => setShowDatePicker(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                onClick={applyCustomRange}
+                className="w-full px-6 py-4 bg-stone-900 text-white rounded-xl font-bold text-base hover:bg-stone-800 transition-all duration-200"
               >
-                <X size={20} />
+                Apply Range
               </button>
             </div>
+          )}
 
-            <div className="flex gap-4 mb-4">
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">Start Date</label>
-                <DatePicker
-                  selected={customStartDate}
-                  onChange={(date) => setCustomStartDate(date)}
-                  selectsStart
-                  startDate={customStartDate}
-                  endDate={customEndDate}
-                  dateFormat="MMM yyyy"
-                  showMonthYearPicker
-                  inline
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">End Date</label>
-                <DatePicker
-                  selected={customEndDate}
-                  onChange={(date) => setCustomEndDate(date)}
-                  selectsEnd
-                  startDate={customStartDate}
-                  endDate={customEndDate}
-                  minDate={customStartDate}
-                  dateFormat="MMM yyyy"
-                  showMonthYearPicker
-                  inline
-                />
-              </div>
-            </div>
+          {/* Main Content */}
+          <div className="px-10 pb-10 space-y-8">
 
-            <button
-              onClick={applyCustomRange}
-              className="w-full px-5 py-3 bg-gradient-to-br from-[#2d6e7e] to-[#245563] text-white rounded-lg font-semibold shadow-md hover:shadow-xl transition-all duration-200"
-              style={{
-                boxShadow: '0 8px 30px -8px rgba(45, 110, 126, 0.4)'
-              }}
-            >
-              Apply Range
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Tabs */}
-      <div className="flex gap-2 mb-6">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`
-              px-6 py-3 rounded-full text-base font-medium transition-all
-              ${activeTab === tab.id
-                ? 'bg-black text-white'
-                : 'bg-black text-white opacity-50 hover:opacity-70'
-              }
-            `}
-          >
-            {activeTab === tab.id ? tab.label : tab.shortLabel}
-          </button>
-        ))}
-      </div>
-
-      {/* Tab Content */}
-      {activeTab === 'financial' && (
-        <div className="flex flex-col gap-6 overflow-y-auto">
-          {/* Top Row - Charts - Full viewport height */}
-          <div className="flex gap-6 flex-shrink-0" style={{ height: 'calc(100vh - 400px)' }}>
-            <div className="w-[55%]" style={{ height: '100%' }}>
-              <MetricChart
-                title="Gross Revenue"
-                data={REVENUE_DATA}
-                valueFormatter={formatCurrency}
-                goal={150000}
-                clinicianData={CLINICIAN_REVENUE_DATA}
-                breakdownData={REVENUE_BREAKDOWN_DATA}
-                timePeriod={timePeriod}
-              />
-            </div>
-
-            {/* Right Side Metrics */}
-            <div className="flex flex-col gap-6 w-[45%]" style={{ height: '100%' }}>
-            <div className="flex gap-4 flex-shrink-0">
-              {/* Average Session Value - Compact */}
-              <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[20px] flex flex-col shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300 flex-1"
+            {/* Hero Stats Row */}
+            <div className="grid grid-cols-4 gap-6">
+              {/* Revenue Overview - Primary Card with Gross & Net */}
+              <div
+                className="col-span-2 rounded-3xl p-8 relative overflow-hidden"
                 style={{
-                  boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)'
+                  background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
+                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
                 }}
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    {/* Gross & Net Revenue Side by Side */}
+                    <div className="flex gap-8">
+                      {/* Gross Revenue */}
+                      <div className="flex-1">
+                        <p className="text-stone-500 text-sm font-bold uppercase tracking-widest mb-3">Gross Revenue</p>
+                        <div className="flex items-baseline gap-2">
+                          <span
+                            className="text-stone-900 font-bold"
+                            style={{ fontSize: '3.5rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
+                          >
+                            ${(REVENUE_DATA[REVENUE_DATA.length - 1]?.value / 1000).toFixed(1)}k
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 mt-3">
+                          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-100">
+                            <svg className="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                            </svg>
+                            <span className="text-emerald-700 font-bold text-sm">
+                              {(((REVENUE_DATA[REVENUE_DATA.length - 1]?.value - REVENUE_DATA[REVENUE_DATA.length - 2]?.value) / REVENUE_DATA[REVENUE_DATA.length - 2]?.value) * 100).toFixed(1)}%
+                            </span>
+                          </div>
+                          <span className="text-stone-400 text-xs">vs last month</span>
+                        </div>
+                      </div>
 
-                <div className="relative px-5 pt-5 pb-2">
-                  <div className="text-gray-500 text-[10px] font-semibold uppercase tracking-widest mb-2">ANALYTICS</div>
-                  <h3 className="text-gray-900 text-lg font-semibold mb-2 flex items-center gap-2">
-                    Avg Session Value
-                    <div className="group/info relative z-[100000]">
-                      <Info size={14} className="text-[#2d6e7e] cursor-help" />
-                      <div className="absolute left-0 top-6 invisible group-hover/info:visible opacity-0 group-hover/info:opacity-100 transition-all duration-200 w-64 z-[100000]">
-                        <div className="bg-gray-900 text-white text-xs rounded-lg p-3 shadow-xl">
-                          <p className="font-medium mb-1">Average Session Value</p>
-                          <p className="text-gray-300">Shows the average revenue generated per completed session. This helps you understand your pricing effectiveness and revenue per appointment over time.</p>
-                          <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                      {/* Divider */}
+                      <div className="w-px bg-stone-200 self-stretch my-1" />
+
+                      {/* Net Revenue */}
+                      <div className="flex-1">
+                        <p className="text-emerald-600 text-sm font-bold uppercase tracking-widest mb-3">Net Revenue</p>
+                        <div className="flex items-baseline gap-2">
+                          <span
+                            className="text-emerald-700 font-bold"
+                            style={{ fontSize: '3.5rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
+                          >
+                            ${(REVENUE_BREAKDOWN_DATA[REVENUE_BREAKDOWN_DATA.length - 1]?.netRevenue / 1000).toFixed(1)}k
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 mt-3">
+                          <div className="px-2.5 py-1 rounded-full bg-emerald-100">
+                            <span className="text-emerald-700 font-bold text-sm">
+                              {((REVENUE_BREAKDOWN_DATA[REVENUE_BREAKDOWN_DATA.length - 1]?.netRevenue / REVENUE_BREAKDOWN_DATA[REVENUE_BREAKDOWN_DATA.length - 1]?.grossRevenue) * 100).toFixed(1)}% margin
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </h3>
-                  <div className="text-2xl font-bold text-gray-900 tracking-tight transition-all duration-200">
-                    ${hoveredSessionValue !== null
-                      ? hoveredSessionValue.toFixed(2)
-                      : ((REVENUE_DATA.reduce((sum, item) => sum + item.value, 0) / SESSIONS_DATA.reduce((sum, item) => sum + item.completed, 0)).toFixed(2))
-                    }
                   </div>
-                </div>
 
-                <div className="relative z-10 px-3 pb-2" style={{ height: '110px' }}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart
-                      data={SESSION_VALUE_DATA}
-                      margin={{ top: 20, right: 10, bottom: 5, left: 5 }}
-                      onMouseMove={(e: any) => {
-                        if (e.activePayload && e.activePayload[0]) {
-                          setHoveredSessionValue(e.activePayload[0].value);
-                        }
-                      }}
-                      onMouseLeave={() => setHoveredSessionValue(null)}
-                    >
+                  {/* Goal Ring */}
+                  <div className="relative w-28 h-28 ml-6">
+                    <svg className="w-full h-full transform -rotate-90">
+                      <circle cx="56" cy="56" r="48" fill="none" stroke="#e7e5e4" strokeWidth="8" />
+                      <circle
+                        cx="56" cy="56" r="48" fill="none" stroke="url(#goalGradient)" strokeWidth="8"
+                        strokeLinecap="round"
+                        strokeDasharray={`${(REVENUE_DATA[REVENUE_DATA.length - 1]?.value / 150000) * 301.6} 301.6`}
+                      />
                       <defs>
-                        <linearGradient id="sessionValueGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#2d6e7e" stopOpacity={0.2}/>
-                          <stop offset="100%" stopColor="#2d6e7e" stopOpacity={0}/>
+                        <linearGradient id="goalGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                          <stop offset="0%" stopColor="#059669" />
+                          <stop offset="100%" stopColor="#10b981" />
                         </linearGradient>
                       </defs>
-                      <XAxis
-                        dataKey="month"
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fill: '#6b7280', fontSize: 11, fontWeight: 600 }}
-                        dy={3}
-                      />
-                      <YAxis hide domain={['dataMin - 10', 'dataMax + 10']} />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: '#1f2937',
-                          border: 'none',
-                          borderRadius: '10px',
-                          padding: '10px 14px',
-                          boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.3)'
-                        }}
-                        labelStyle={{ color: '#9ca3af', fontSize: '11px', fontWeight: 600, marginBottom: '3px' }}
-                        itemStyle={{ color: '#fff', fontSize: '14px', fontWeight: 700 }}
-                        formatter={(value: number) => [`$${value.toFixed(2)}`, 'Value']}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="value"
-                        stroke="#2d6e7e"
-                        strokeWidth={2.5}
-                        dot={{ fill: '#2d6e7e', strokeWidth: 2, stroke: '#fff', r: 3 }}
-                        activeDot={{ r: 5, strokeWidth: 2, stroke: '#fff' }}
-                        fill="url(#sessionValueGradient)"
-                      >
-                        <LabelList
-                          dataKey="value"
-                          position="top"
-                          formatter={(value: number) => `$${value.toFixed(0)}`}
-                          style={{ fill: '#1f2937', fontSize: '10px', fontWeight: 700 }}
-                        />
-                      </Line>
-                    </LineChart>
-                  </ResponsiveContainer>
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="text-stone-900 text-2xl font-bold">{((REVENUE_DATA[REVENUE_DATA.length - 1]?.value / 150000) * 100).toFixed(0)}%</span>
+                      <span className="text-stone-500 text-xs">of goal</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {/* YTD Revenue - Compact */}
-              <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[20px] flex flex-col shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300 flex-1"
+              {/* YTD Revenue */}
+              <div
+                className="rounded-3xl p-8 relative overflow-hidden"
                 style={{
-                  boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)'
+                  background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
+                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
                 }}
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                <p className="text-stone-500 text-sm font-bold uppercase tracking-widest mb-4">YTD Revenue</p>
+                <span
+                  className="text-stone-900 font-bold block"
+                  style={{ fontSize: '3rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  ${(REVENUE_DATA.reduce((sum, item) => sum + item.value, 0) / 1000000).toFixed(2)}M
+                </span>
+                <p className="text-stone-500 text-sm mt-3">{REVENUE_DATA.length} months tracked</p>
+              </div>
 
-                <div className="relative px-5 pt-5 pb-2">
-                  <div className="text-gray-500 text-[10px] font-semibold uppercase tracking-widest mb-2">ANALYTICS</div>
-                  <h3 className="text-gray-900 text-lg font-semibold mb-2 flex items-center gap-2">
-                    YTD Revenue
-                    <div className="group/info relative z-[100000]">
-                      <Info size={14} className="text-[#2d6e7e] cursor-help" />
-                      <div className="absolute left-0 top-6 invisible group-hover/info:visible opacity-0 group-hover/info:opacity-100 transition-all duration-200 w-64 z-[100000]">
-                        <div className="bg-gray-900 text-white text-xs rounded-lg p-3 shadow-xl">
-                          <p className="font-medium mb-1">Year-to-Date Revenue</p>
-                          <p className="text-gray-300">Displays your cumulative revenue from the beginning of the year. Track your progress toward annual revenue goals and see growth trends month by month.</p>
-                          <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
-                        </div>
-                      </div>
-                    </div>
-                  </h3>
-                  <div className="text-2xl font-bold text-gray-900 tracking-tight transition-all duration-200">
-                    ${hoveredYTDValue !== null
-                      ? (hoveredYTDValue / 1000).toFixed(0)
-                      : ((REVENUE_DATA.reduce((sum, item) => sum + item.value, 0)) / 1000).toFixed(0)
-                    }k
-                  </div>
-                </div>
-
-                <div className="relative z-10 px-3 pb-2" style={{ height: '110px' }}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart
-                      data={YTD_REVENUE_DATA}
-                      margin={{ top: 20, right: 10, bottom: 5, left: 5 }}
-                      onMouseMove={(e: any) => {
-                        if (e.activePayload && e.activePayload[0]) {
-                          setHoveredYTDValue(e.activePayload[0].value);
-                        }
-                      }}
-                      onMouseLeave={() => setHoveredYTDValue(null)}
-                    >
-                      <defs>
-                        <linearGradient id="ytdRevenueGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#2d6e7e" stopOpacity={0.2}/>
-                          <stop offset="100%" stopColor="#2d6e7e" stopOpacity={0}/>
-                        </linearGradient>
-                      </defs>
-                      <XAxis
-                        dataKey="month"
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fill: '#6b7280', fontSize: 11, fontWeight: 600 }}
-                        dy={3}
-                      />
-                      <YAxis hide domain={['dataMin - 50000', 'dataMax + 50000']} />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: '#1f2937',
-                          border: 'none',
-                          borderRadius: '10px',
-                          padding: '10px 14px',
-                          boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.3)'
-                        }}
-                        labelStyle={{ color: '#9ca3af', fontSize: '11px', fontWeight: 600, marginBottom: '3px' }}
-                        itemStyle={{ color: '#fff', fontSize: '14px', fontWeight: 700 }}
-                        formatter={(value: number) => [`$${(value / 1000).toFixed(0)}k`, 'YTD']}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="value"
-                        stroke="#2d6e7e"
-                        strokeWidth={2.5}
-                        dot={{ fill: '#2d6e7e', strokeWidth: 2, stroke: '#fff', r: 3 }}
-                        activeDot={{ r: 5, strokeWidth: 2, stroke: '#fff' }}
-                        fill="url(#ytdRevenueGradient)"
-                      >
-                        <LabelList
-                          dataKey="value"
-                          position="top"
-                          formatter={(value: number) => `$${(value / 1000).toFixed(0)}k`}
-                          style={{ fill: '#1f2937', fontSize: '10px', fontWeight: 700 }}
-                        />
-                      </Line>
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
+              {/* Avg Session Value */}
+              <div
+                className="rounded-3xl p-8 relative overflow-hidden"
+                style={{
+                  background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
+                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
+                }}
+              >
+                <p className="text-stone-500 text-sm font-bold uppercase tracking-widest mb-4">Avg Session Value</p>
+                <span
+                  className="text-stone-900 font-bold block"
+                  style={{ fontSize: '3rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  ${(REVENUE_DATA.reduce((sum, item) => sum + item.value, 0) / SESSIONS_DATA.reduce((sum, item) => sum + item.completed, 0)).toFixed(0)}
+                </span>
+                <p className="text-stone-500 text-sm mt-3">per completed session</p>
               </div>
             </div>
 
-            {/* Margins Chart */}
-            <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[24px] flex flex-col flex-1 shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300"
+            {/* Revenue Trend - Horizontal Bars */}
+            <div
+              className="rounded-3xl p-8"
               style={{
-                boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)'
+                background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
+                boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
               }}
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+              <div className="flex items-center justify-between mb-8">
+                <div>
+                  <p className="text-stone-500 text-sm font-bold uppercase tracking-widest mb-2">Monthly Trend</p>
+                  <h3 className="text-stone-900 text-2xl font-semibold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                    Revenue Performance
+                  </h3>
+                </div>
+                <div className="flex items-center gap-6">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-blue-500" />
+                    <span className="text-stone-600 text-sm">Below Goal</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                    <span className="text-stone-600 text-sm">Goal Met</span>
+                  </div>
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-200">
+                    <div className="w-0.5 h-4 bg-amber-500" />
+                    <span className="text-amber-700 text-sm font-medium">$150k Goal</span>
+                  </div>
+                </div>
+              </div>
 
-              <div className="relative px-6 pt-6 pb-4 flex-shrink-0">
-                <div className="text-gray-500 text-xs font-semibold uppercase tracking-widest mb-2">ANALYTICS</div>
-                <h3 className="text-gray-900 text-2xl font-semibold mb-4 flex items-center gap-2">
-                  Revenue Margins
-                  <div className="group/info relative z-[100000]">
-                    <Info size={18} className="text-[#2d6e7e] cursor-help" />
-                    <div className="absolute left-0 top-8 invisible group-hover/info:visible opacity-0 group-hover/info:opacity-100 transition-all duration-200 w-80 z-[100000]">
-                      <div className="bg-gray-900 text-white text-xs rounded-lg p-3 shadow-xl">
-                        <p className="font-medium mb-1">Revenue Margins Breakdown</p>
-                        <p className="text-gray-300">See what percentage of your gross revenue goes to different expenses. Track your net margin (profit you keep), clinician costs, supervisor costs, and credit card processing fees over time to identify cost optimization opportunities.</p>
-                        <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+              <div className="space-y-3">
+                {REVENUE_DATA.map((item, idx) => {
+                  const percentage = (item.value / 160000) * 100;
+                  const isAboveGoal = item.value >= 150000;
+                  const isCurrentMonth = idx === REVENUE_DATA.length - 1;
+
+                  return (
+                    <div key={item.month} className="group flex items-center gap-4">
+                      <span className={`w-10 text-sm font-bold ${isCurrentMonth ? 'text-stone-900' : 'text-stone-500'}`}>
+                        {item.month}
+                      </span>
+                      <div className="flex-1 relative h-10">
+                        <div className="absolute inset-0 bg-stone-100 rounded-lg" />
+                        {/* Goal line */}
+                        <div
+                          className="absolute top-0 bottom-0 w-px bg-amber-400"
+                          style={{ left: `${(150000 / 160000) * 100}%` }}
+                        />
+                        {/* Bar */}
+                        <div
+                          className={`absolute left-0 top-0 bottom-0 rounded-lg flex items-center justify-end pr-3 transition-all duration-500 ${
+                            isCurrentMonth ? 'opacity-100' : 'opacity-70 group-hover:opacity-100'
+                          }`}
+                          style={{
+                            width: `${Math.min(percentage, 100)}%`,
+                            background: isAboveGoal
+                              ? 'linear-gradient(90deg, #059669 0%, #10b981 100%)'
+                              : 'linear-gradient(90deg, #1e40af 0%, #3b82f6 100%)'
+                          }}
+                        >
+                          <span className="text-white font-bold text-sm">${(item.value / 1000).toFixed(0)}k</span>
+                        </div>
+                      </div>
+                      <div className={`w-16 text-right font-bold text-sm ${isAboveGoal ? 'text-emerald-600' : 'text-stone-500'}`}>
+                        {isAboveGoal ? 'HIT' : `${((item.value / 150000) * 100).toFixed(0)}%`}
                       </div>
                     </div>
-                  </div>
-                </h3>
-
-                {/* Legend */}
-                <div className="flex flex-wrap gap-x-4 gap-y-2 mb-4">
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-3 h-3 rounded-full bg-[#10b981]"></div>
-                    <span className="text-xs font-medium text-gray-700">Net Margin</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-3 h-3 rounded-full bg-[#3b82f6]"></div>
-                    <span className="text-xs font-medium text-gray-700">Clinician</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-3 h-3 rounded-full bg-[#f59e0b]"></div>
-                    <span className="text-xs font-medium text-gray-700">Supervisor</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-3 h-3 rounded-full bg-[#ef4444]"></div>
-                    <span className="text-xs font-medium text-gray-700">Credit Card</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="relative z-10 px-4 pb-4 flex-1 min-h-0">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart
-                    data={REVENUE_BREAKDOWN_DATA.map(item => ({
-                      month: item.month,
-                      netMargin: ((item.netRevenue / item.grossRevenue) * 100),
-                      clinicianMargin: ((item.clinicianCosts / item.grossRevenue) * 100),
-                      supervisorMargin: ((item.supervisorCosts / item.grossRevenue) * 100),
-                      creditCardMargin: ((item.creditCardFees / item.grossRevenue) * 100)
-                    }))}
-                    margin={{ top: 10, right: 20, bottom: 5, left: 0 }}
-                  >
-                    <defs>
-                      <linearGradient id="netMarginGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#10b981" stopOpacity={0.2}/>
-                        <stop offset="100%" stopColor="#10b981" stopOpacity={0}/>
-                      </linearGradient>
-                      <linearGradient id="clinicianMarginGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.2}/>
-                        <stop offset="100%" stopColor="#3b82f6" stopOpacity={0}/>
-                      </linearGradient>
-                      <linearGradient id="supervisorMarginGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.2}/>
-                        <stop offset="100%" stopColor="#f59e0b" stopOpacity={0}/>
-                      </linearGradient>
-                      <linearGradient id="creditCardMarginGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#ef4444" stopOpacity={0.2}/>
-                        <stop offset="100%" stopColor="#ef4444" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <XAxis
-                      dataKey="month"
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fill: '#6b7280', fontSize: 12, fontWeight: 600 }}
-                      dy={5}
-                    />
-                    <YAxis
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fill: '#6b7280', fontSize: 11, fontWeight: 600 }}
-                      tickFormatter={(value) => `${value}%`}
-                      domain={[0, 100]}
-                      ticks={[0, 25, 50, 75, 100]}
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: '#1f2937',
-                        border: 'none',
-                        borderRadius: '12px',
-                        padding: '12px 16px',
-                        boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.3)'
-                      }}
-                      labelStyle={{ color: '#9ca3af', fontSize: '12px', fontWeight: 600, marginBottom: '4px' }}
-                      itemStyle={{ color: '#fff', fontSize: '14px', fontWeight: 700 }}
-                      formatter={(value: number) => `${value.toFixed(1)}%`}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="netMargin"
-                      stroke="#10b981"
-                      strokeWidth={2.5}
-                      dot={{ fill: '#10b981', strokeWidth: 2, stroke: '#fff', r: 4 }}
-                      activeDot={{ r: 6, strokeWidth: 2, stroke: '#fff' }}
-                      name="Net Margin"
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="clinicianMargin"
-                      stroke="#3b82f6"
-                      strokeWidth={2.5}
-                      dot={{ fill: '#3b82f6', strokeWidth: 2, stroke: '#fff', r: 4 }}
-                      activeDot={{ r: 6, strokeWidth: 2, stroke: '#fff' }}
-                      name="Clinician Costs"
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="supervisorMargin"
-                      stroke="#f59e0b"
-                      strokeWidth={2.5}
-                      dot={{ fill: '#f59e0b', strokeWidth: 2, stroke: '#fff', r: 4 }}
-                      activeDot={{ r: 6, strokeWidth: 2, stroke: '#fff' }}
-                      name="Supervisor Costs"
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="creditCardMargin"
-                      stroke="#ef4444"
-                      strokeWidth={2.5}
-                      dot={{ fill: '#ef4444', strokeWidth: 2, stroke: '#fff', r: 4 }}
-                      activeDot={{ r: 6, strokeWidth: 2, stroke: '#fff' }}
-                      name="Credit Card Fees"
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
+                  );
+                })}
               </div>
             </div>
-            </div>
-          </div>
 
-          {/* Revenue Breakdown Table - Below the fold */}
-          <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[24px] shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300 w-[55%]"
-            style={{
-              boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)'
-            }}
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+            {/* Cost Breakdown - Full Width */}
+            <div
+              className="rounded-3xl p-8"
+              style={{
+                background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
+                boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
+              }}
+            >
+              <p className="text-stone-500 text-sm font-bold uppercase tracking-widest mb-6">Cost Breakdown</p>
 
-            <div className="relative px-6 pt-6 pb-6">
-              <div className="text-gray-500 text-xs font-semibold uppercase tracking-widest mb-2">FINANCIAL BREAKDOWN</div>
-              <h3 className="text-gray-900 text-2xl font-semibold mb-4 flex items-center gap-2">
-                Revenue Allocation
-                <div className="group/info relative z-[100000]">
-                  <Info size={18} className="text-[#2d6e7e] cursor-help" />
-                  <div className="absolute left-0 top-8 invisible group-hover/info:visible opacity-0 group-hover/info:opacity-100 transition-all duration-200 w-80 z-[100000]">
-                    <div className="bg-gray-900 text-white text-xs rounded-lg p-3 shadow-xl">
-                      <p className="font-medium mb-1">Revenue Allocation Table</p>
-                      <p className="text-gray-300">Detailed monthly breakdown showing where your gross revenue goes. View exact dollar amounts for clinician costs, supervisor costs, credit card fees, and your net revenue (what you keep after expenses).</p>
-                      <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+              <div className="grid grid-cols-3 gap-8">
+                {/* Clinician */}
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <div className="flex items-center gap-3">
+                      <div className="w-3 h-3 rounded-full bg-blue-500" />
+                      <span className="text-stone-700 font-medium">Clinician Costs</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-stone-500 text-sm">${(REVENUE_BREAKDOWN_DATA[REVENUE_BREAKDOWN_DATA.length - 1]?.clinicianCosts / 1000).toFixed(1)}k</span>
+                      <span className="text-stone-900 font-bold text-xl w-14 text-right">
+                        {((REVENUE_BREAKDOWN_DATA[REVENUE_BREAKDOWN_DATA.length - 1]?.clinicianCosts / REVENUE_BREAKDOWN_DATA[REVENUE_BREAKDOWN_DATA.length - 1]?.grossRevenue) * 100).toFixed(0)}%
+                      </span>
                     </div>
                   </div>
+                  <div className="h-2 bg-stone-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-blue-600 to-blue-400"
+                      style={{ width: `${(REVENUE_BREAKDOWN_DATA[REVENUE_BREAKDOWN_DATA.length - 1]?.clinicianCosts / REVENUE_BREAKDOWN_DATA[REVENUE_BREAKDOWN_DATA.length - 1]?.grossRevenue) * 100}%` }}
+                    />
+                  </div>
                 </div>
-              </h3>
 
-              {/* Table */}
+                {/* Supervisor */}
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <div className="flex items-center gap-3">
+                      <div className="w-3 h-3 rounded-full bg-amber-500" />
+                      <span className="text-stone-700 font-medium">Supervisor Costs</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-stone-500 text-sm">${(REVENUE_BREAKDOWN_DATA[REVENUE_BREAKDOWN_DATA.length - 1]?.supervisorCosts / 1000).toFixed(1)}k</span>
+                      <span className="text-stone-900 font-bold text-xl w-14 text-right">
+                        {((REVENUE_BREAKDOWN_DATA[REVENUE_BREAKDOWN_DATA.length - 1]?.supervisorCosts / REVENUE_BREAKDOWN_DATA[REVENUE_BREAKDOWN_DATA.length - 1]?.grossRevenue) * 100).toFixed(0)}%
+                      </span>
+                    </div>
+                  </div>
+                  <div className="h-2 bg-stone-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-amber-600 to-amber-400"
+                      style={{ width: `${(REVENUE_BREAKDOWN_DATA[REVENUE_BREAKDOWN_DATA.length - 1]?.supervisorCosts / REVENUE_BREAKDOWN_DATA[REVENUE_BREAKDOWN_DATA.length - 1]?.grossRevenue) * 100}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* CC Fees */}
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <div className="flex items-center gap-3">
+                      <div className="w-3 h-3 rounded-full bg-rose-500" />
+                      <span className="text-stone-700 font-medium">Credit Card Fees</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-stone-500 text-sm">${(REVENUE_BREAKDOWN_DATA[REVENUE_BREAKDOWN_DATA.length - 1]?.creditCardFees / 1000).toFixed(1)}k</span>
+                      <span className="text-stone-900 font-bold text-xl w-14 text-right">
+                        {((REVENUE_BREAKDOWN_DATA[REVENUE_BREAKDOWN_DATA.length - 1]?.creditCardFees / REVENUE_BREAKDOWN_DATA[REVENUE_BREAKDOWN_DATA.length - 1]?.grossRevenue) * 100).toFixed(0)}%
+                      </span>
+                    </div>
+                  </div>
+                  <div className="h-2 bg-stone-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-rose-600 to-rose-400"
+                      style={{ width: `${(REVENUE_BREAKDOWN_DATA[REVENUE_BREAKDOWN_DATA.length - 1]?.creditCardFees / REVENUE_BREAKDOWN_DATA[REVENUE_BREAKDOWN_DATA.length - 1]?.grossRevenue) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Team Performance */}
+            <div
+              className="rounded-3xl p-8"
+              style={{
+                background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
+                boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
+              }}
+            >
+              <p className="text-stone-500 text-sm font-bold uppercase tracking-widest mb-6">Team Performance</p>
+
+              <div className="grid grid-cols-5 gap-4">
+                {(() => {
+                  const lastMonth = CLINICIAN_REVENUE_DATA[CLINICIAN_REVENUE_DATA.length - 1];
+                  const clinicians = [
+                    { name: 'Chen', value: lastMonth?.Chen || 0, color: '#7c3aed' },
+                    { name: 'Rodriguez', value: lastMonth?.Rodriguez || 0, color: '#0891b2' },
+                    { name: 'Patel', value: lastMonth?.Patel || 0, color: '#d97706' },
+                    { name: 'Kim', value: lastMonth?.Kim || 0, color: '#db2777' },
+                    { name: 'Johnson', value: lastMonth?.Johnson || 0, color: '#059669' }
+                  ].sort((a, b) => b.value - a.value);
+
+                  const maxValue = Math.max(...clinicians.map(c => c.value));
+
+                  return clinicians.map((clinician, idx) => (
+                    <div
+                      key={clinician.name}
+                      className="rounded-2xl p-5 relative transition-all duration-300 hover:scale-[1.02]"
+                      style={{
+                        background: idx === 0 ? `linear-gradient(135deg, ${clinician.color}15 0%, ${clinician.color}08 100%)` : '#fafaf9',
+                        border: idx === 0 ? `1px solid ${clinician.color}40` : '1px solid #e7e5e4',
+                        boxShadow: idx === 0 ? `0 4px 16px -4px ${clinician.color}30` : 'none'
+                      }}
+                    >
+                      {idx === 0 && (
+                        <div className="absolute top-3 right-3 px-2 py-0.5 rounded text-[10px] font-bold uppercase" style={{ background: clinician.color, color: 'white' }}>
+                          Top
+                        </div>
+                      )}
+                      <p className="text-stone-500 text-xs font-bold uppercase tracking-wide mb-1">#{idx + 1}</p>
+                      <h4 className="text-stone-900 text-xl font-bold mb-3">{clinician.name}</h4>
+                      <div className="text-2xl font-bold mb-3" style={{ color: clinician.color, fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                        ${(clinician.value / 1000).toFixed(1)}k
+                      </div>
+                      <div className="h-1.5 bg-stone-200 rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full"
+                          style={{ width: `${(clinician.value / maxValue) * 100}%`, background: clinician.color }}
+                        />
+                      </div>
+                      <p className="text-stone-500 text-xs mt-2">
+                        {((clinician.value / (REVENUE_DATA[REVENUE_DATA.length - 1]?.value || 1)) * 100).toFixed(0)}% of total
+                      </p>
+                    </div>
+                  ));
+                })()}
+              </div>
+            </div>
+
+            {/* Detailed Table */}
+            <div
+              className="rounded-3xl p-8"
+              style={{
+                background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
+                boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
+              }}
+            >
+              <p className="text-stone-500 text-sm font-bold uppercase tracking-widest mb-6">Full Breakdown</p>
+
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b-2 border-gray-200">
-                      <th className="text-left py-5 px-2 text-xs font-bold text-gray-500 uppercase tracking-wider"></th>
+                    <tr className="border-b border-stone-200">
+                      <th className="text-left py-4 px-3 text-xs font-bold text-stone-500 uppercase tracking-wider"></th>
                       {REVENUE_BREAKDOWN_DATA.map((item) => (
-                        <th key={item.month} className="text-right py-5 px-2 text-xs font-bold text-gray-500 uppercase tracking-wider">{item.month}</th>
+                        <th key={item.month} className="text-right py-4 px-3 text-xs font-bold text-stone-500 uppercase tracking-wider">{item.month}</th>
                       ))}
-                      <th className="text-right py-5 px-2 text-xs font-bold text-gray-500 uppercase tracking-wider">Total</th>
+                      <th className="text-right py-4 px-3 text-xs font-bold text-stone-900 uppercase tracking-wider">Total</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
-                      <td className="py-5 px-2 text-sm font-semibold text-gray-900">Gross Revenue</td>
+                    <tr className="border-b border-stone-100 hover:bg-stone-50 transition-colors">
+                      <td className="py-4 px-3 text-sm font-semibold text-stone-900">Gross Revenue</td>
                       {REVENUE_BREAKDOWN_DATA.map((item) => (
-                        <td key={item.month} className="py-5 px-2 text-sm font-semibold text-gray-900 text-right">${(item.grossRevenue / 1000).toFixed(1)}k</td>
+                        <td key={item.month} className="py-4 px-3 text-sm text-stone-600 text-right">${(item.grossRevenue / 1000).toFixed(1)}k</td>
                       ))}
-                      <td className="py-5 px-2 text-sm font-bold text-gray-900 text-right">
+                      <td className="py-4 px-3 text-sm font-bold text-stone-900 text-right">
                         ${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.grossRevenue, 0) / 1000).toFixed(1)}k
                       </td>
                     </tr>
-                    <tr className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
-                      <td className="py-5 px-2 text-sm font-semibold text-gray-900">Clinician Cost</td>
+                    <tr className="border-b border-stone-100 hover:bg-stone-50 transition-colors">
+                      <td className="py-4 px-3 text-sm font-semibold text-stone-900 flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-blue-500" />
+                        Clinician Cost
+                      </td>
                       {REVENUE_BREAKDOWN_DATA.map((item) => (
-                        <td key={item.month} className="py-5 px-2 text-sm text-blue-600 text-right">${(item.clinicianCosts / 1000).toFixed(1)}k</td>
+                        <td key={item.month} className="py-4 px-3 text-sm text-blue-600 text-right">${(item.clinicianCosts / 1000).toFixed(1)}k</td>
                       ))}
-                      <td className="py-5 px-2 text-sm font-bold text-blue-600 text-right">
+                      <td className="py-4 px-3 text-sm font-bold text-blue-600 text-right">
                         ${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.clinicianCosts, 0) / 1000).toFixed(1)}k
                       </td>
                     </tr>
-                    <tr className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
-                      <td className="py-5 px-2 text-sm font-semibold text-gray-900">Supervisor Cost</td>
+                    <tr className="border-b border-stone-100 hover:bg-stone-50 transition-colors">
+                      <td className="py-4 px-3 text-sm font-semibold text-stone-900 flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-amber-500" />
+                        Supervisor Cost
+                      </td>
                       {REVENUE_BREAKDOWN_DATA.map((item) => (
-                        <td key={item.month} className="py-5 px-2 text-sm text-amber-600 text-right">${(item.supervisorCosts / 1000).toFixed(1)}k</td>
+                        <td key={item.month} className="py-4 px-3 text-sm text-amber-600 text-right">${(item.supervisorCosts / 1000).toFixed(1)}k</td>
                       ))}
-                      <td className="py-5 px-2 text-sm font-bold text-amber-600 text-right">
+                      <td className="py-4 px-3 text-sm font-bold text-amber-600 text-right">
                         ${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.supervisorCosts, 0) / 1000).toFixed(1)}k
                       </td>
                     </tr>
-                    <tr className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
-                      <td className="py-5 px-2 text-sm font-semibold text-gray-900">Credit Card Fees</td>
+                    <tr className="border-b border-stone-100 hover:bg-stone-50 transition-colors">
+                      <td className="py-4 px-3 text-sm font-semibold text-stone-900 flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-rose-500" />
+                        Credit Card Fees
+                      </td>
                       {REVENUE_BREAKDOWN_DATA.map((item) => (
-                        <td key={item.month} className="py-5 px-2 text-sm text-red-600 text-right">${(item.creditCardFees / 1000).toFixed(1)}k</td>
+                        <td key={item.month} className="py-4 px-3 text-sm text-rose-600 text-right">${(item.creditCardFees / 1000).toFixed(1)}k</td>
                       ))}
-                      <td className="py-5 px-2 text-sm font-bold text-red-600 text-right">
+                      <td className="py-4 px-3 text-sm font-bold text-rose-600 text-right">
                         ${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.creditCardFees, 0) / 1000).toFixed(1)}k
                       </td>
                     </tr>
-                    <tr className="hover:bg-gray-50/50 transition-colors">
-                      <td className="py-5 px-2 text-sm font-semibold text-green-700">Net Revenue</td>
+                    <tr className="hover:bg-emerald-50 transition-colors">
+                      <td className="py-4 px-3 text-sm font-bold text-emerald-700 flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                        Net Revenue
+                      </td>
                       {REVENUE_BREAKDOWN_DATA.map((item) => (
-                        <td key={item.month} className="py-5 px-2 text-sm font-bold text-green-700 text-right">${(item.netRevenue / 1000).toFixed(1)}k</td>
+                        <td key={item.month} className="py-4 px-3 text-sm font-bold text-emerald-600 text-right">${(item.netRevenue / 1000).toFixed(1)}k</td>
                       ))}
-                      <td className="py-5 px-2 text-sm font-bold text-green-700 text-right">
+                      <td className="py-4 px-3 text-base font-bold text-emerald-700 text-right">
                         ${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.netRevenue, 0) / 1000).toFixed(1)}k
                       </td>
                     </tr>
@@ -931,6 +936,134 @@ export const PracticeAnalysis: React.FC = () => {
             </div>
           </div>
         </div>
+      ) : (
+        <>
+          {/* Original Header for other tabs */}
+          <div className="mb-6">
+            <h2 className="text-gray-500 text-sm font-medium mb-1">DETAILED INSIGHTS</h2>
+            <h1 className="text-4xl font-normal text-gray-900 tracking-tight">Practice Detailed Analysis</h1>
+          </div>
+
+          {/* Original Time Period Selector for other tabs */}
+          <div className="mb-6 flex items-center gap-3 relative">
+            <span className="text-sm font-medium text-gray-600">Time Period:</span>
+            <div
+              className="inline-flex items-center gap-1 bg-gradient-to-b from-white via-white to-white/95 rounded-full p-1.5 shadow-lg ring-1 ring-slate-200/50"
+              style={{
+                boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.1), inset 0 1px 0 0 rgba(255, 255, 255, 0.8)'
+              }}
+            >
+              {timePeriods.map((period) => (
+                <button
+                  key={period.id}
+                  onClick={() => setTimePeriod(period.id)}
+                  className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${
+                    timePeriod === period.id
+                      ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 text-white shadow-xl'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                  style={timePeriod === period.id ? {
+                    boxShadow: '0 8px 30px -8px rgba(0, 0, 0, 0.3), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)'
+                  } : undefined}
+                >
+                  {period.label}
+                </button>
+              ))}
+
+              <button
+                onClick={() => setShowDatePicker(!showDatePicker)}
+                className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-200 flex items-center gap-2 ${
+                  timePeriod === 'custom'
+                    ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 text-white shadow-xl'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+                style={timePeriod === 'custom' ? {
+                  boxShadow: '0 8px 30px -8px rgba(0, 0, 0, 0.3), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)'
+                } : undefined}
+              >
+                <Calendar size={16} />
+                {timePeriod === 'custom' ? formatDateRange() : 'Custom Range'}
+              </button>
+            </div>
+
+            {showDatePicker && (
+              <div className="absolute top-14 left-28 z-[100000] bg-white rounded-2xl shadow-2xl border-2 border-[#2d6e7e] p-6"
+                style={{
+                  boxShadow: '0 20px 60px -10px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.02)'
+                }}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="text-lg font-semibold text-gray-900">Select Date Range</h4>
+                  <button
+                    onClick={() => setShowDatePicker(false)}
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+
+                <div className="flex gap-4 mb-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">Start Date</label>
+                    <DatePicker
+                      selected={customStartDate}
+                      onChange={(date) => setCustomStartDate(date)}
+                      selectsStart
+                      startDate={customStartDate}
+                      endDate={customEndDate}
+                      dateFormat="MMM yyyy"
+                      showMonthYearPicker
+                      inline
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">End Date</label>
+                    <DatePicker
+                      selected={customEndDate}
+                      onChange={(date) => setCustomEndDate(date)}
+                      selectsEnd
+                      startDate={customStartDate}
+                      endDate={customEndDate}
+                      minDate={customStartDate}
+                      dateFormat="MMM yyyy"
+                      showMonthYearPicker
+                      inline
+                    />
+                  </div>
+                </div>
+
+                <button
+                  onClick={applyCustomRange}
+                  className="w-full px-5 py-3 bg-gradient-to-br from-[#2d6e7e] to-[#245563] text-white rounded-lg font-semibold shadow-md hover:shadow-xl transition-all duration-200"
+                  style={{
+                    boxShadow: '0 8px 30px -8px rgba(45, 110, 126, 0.4)'
+                  }}
+                >
+                  Apply Range
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Original Tabs for other tabs */}
+          <div className="flex gap-2 mb-6">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`
+                  px-6 py-3 rounded-full text-base font-medium transition-all
+                  ${activeTab === tab.id
+                    ? 'bg-black text-white'
+                    : 'bg-black text-white opacity-50 hover:opacity-70'
+                  }
+                `}
+              >
+                {activeTab === tab.id ? tab.label : tab.shortLabel}
+              </button>
+            ))}
+          </div>
+        </>
       )}
 
       {activeTab === 'sessions' && (
