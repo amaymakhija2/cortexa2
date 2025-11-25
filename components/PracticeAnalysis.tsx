@@ -369,15 +369,16 @@ export const PracticeAnalysis: React.FC = () => {
 
   const formatCurrency = (value: number) => `$${(value / 1000).toFixed(1)}k`;
 
-  // Only render Financial tab with new design, others stay as is
+  // Render Financial and Sessions tabs with new design
   const isFinancialTab = activeTab === 'financial';
+  const isSessionsTab = activeTab === 'sessions';
 
   return (
     <div
-      className={`flex-1 overflow-y-auto h-[calc(100vh-80px)] ${isFinancialTab ? 'bg-gradient-to-br from-stone-50 via-orange-50/20 to-stone-100/50' : 'p-8 pt-2'}`}
+      className={`flex-1 overflow-y-auto h-[calc(100vh-80px)] ${(isFinancialTab || isSessionsTab) ? 'bg-gradient-to-br from-stone-50 via-orange-50/20 to-stone-100/50' : 'p-8 pt-2'}`}
     >
       {/* Warm gradient overlay - same as Practice Overview */}
-      {isFinancialTab && (
+      {(isFinancialTab || isSessionsTab) && (
         <div
           className="fixed inset-0 pointer-events-none"
           style={{
@@ -387,7 +388,7 @@ export const PracticeAnalysis: React.FC = () => {
       )}
 
       {/* Financial Tab - Fully Redesigned */}
-      {isFinancialTab ? (
+      {isFinancialTab && (
         <div className="min-h-full relative">
           {/* Integrated Header */}
           <div className="sticky top-0 z-50 px-10 pt-8 pb-6" style={{ background: 'linear-gradient(180deg, rgba(250,250,249,0.97) 0%, rgba(250,250,249,0.95) 80%, transparent 100%)' }}>
@@ -1232,9 +1233,11 @@ export const PracticeAnalysis: React.FC = () => {
             </div>
           </div>
         </div>
-      ) : (
+      )}
+
+      {/* Original Header for other tabs (not Financial or Sessions) */}
+      {!isFinancialTab && !isSessionsTab && (
         <>
-          {/* Original Header for other tabs */}
           <div className="mb-6">
             <h2 className="text-gray-500 text-sm font-medium mb-1">DETAILED INSIGHTS</h2>
             <h1 className="text-4xl font-normal text-gray-900 tracking-tight">Practice Detailed Analysis</h1>
@@ -1362,524 +1365,708 @@ export const PracticeAnalysis: React.FC = () => {
         </>
       )}
 
-      {activeTab === 'sessions' && (
-        <div className="flex flex-col gap-6 overflow-y-auto">
-          {/* Top Row - Charts */}
-          <div className="flex gap-6 flex-shrink-0" style={{ height: 'calc(100vh - 400px)' }}>
-            <div className="w-[55%]" style={{ height: '100%' }}>
-            <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[24px] h-full flex flex-col shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300"
+      {/* Sessions Tab - Fully Redesigned */}
+      {isSessionsTab && (
+        <div className="min-h-full relative">
+          {/* Integrated Header */}
+          <div className="sticky top-0 z-50 px-10 pt-8 pb-6" style={{ background: 'linear-gradient(180deg, rgba(250,250,249,0.97) 0%, rgba(250,250,249,0.95) 80%, transparent 100%)' }}>
+            <div className="flex items-end justify-between">
+              {/* Title & Breadcrumb */}
+              <div>
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="text-stone-400 text-sm font-medium uppercase tracking-widest">Detailed Analysis</span>
+                  <span className="text-stone-300">/</span>
+                  <span className="text-cyan-600 text-sm font-bold uppercase tracking-widest">Sessions</span>
+                </div>
+                <h1
+                  className="text-5xl text-stone-900 font-bold tracking-tight"
+                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  Sessions Performance
+                </h1>
+              </div>
+
+              {/* Time Period Selector - Redesigned */}
+              <div className="flex items-center gap-4">
+                <div
+                  className="flex items-center gap-1 p-1.5 rounded-2xl bg-white/80 backdrop-blur-sm"
+                  style={{
+                    boxShadow: '0 4px 20px -4px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.03)'
+                  }}
+                >
+                  {timePeriods.map((period) => (
+                    <button
+                      key={period.id}
+                      onClick={() => setTimePeriod(period.id)}
+                      className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${
+                        timePeriod === period.id
+                          ? 'bg-stone-900 text-white shadow-lg'
+                          : 'text-stone-500 hover:text-stone-900 hover:bg-stone-100'
+                      }`}
+                    >
+                      {period.label}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => setShowDatePicker(!showDatePicker)}
+                    className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-2 ${
+                      timePeriod === 'custom'
+                        ? 'bg-stone-900 text-white shadow-lg'
+                        : 'text-stone-500 hover:text-stone-900 hover:bg-stone-100'
+                    }`}
+                  >
+                    <Calendar size={16} />
+                    {timePeriod === 'custom' ? formatDateRange() : 'Custom'}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Tab Navigation - Minimal Pills */}
+            <div className="flex items-center gap-2 mt-8">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 ${
+                    activeTab === tab.id
+                      ? 'bg-stone-900 text-white shadow-md'
+                      : 'text-stone-500 hover:text-stone-800 border border-stone-300 hover:border-stone-400 bg-white/50'
+                  }`}
+                >
+                  {tab.shortLabel}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Custom Date Picker Modal */}
+          {showDatePicker && (
+            <div className="fixed top-32 right-10 z-[100000] rounded-3xl p-8 bg-white"
               style={{
-                boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)'
+                boxShadow: '0 25px 80px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05)'
               }}
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-
-              <div className="relative px-6 pt-6 pb-4 flex-shrink-0">
-                <div className="text-gray-500 text-xs font-semibold uppercase tracking-widest mb-2">ANALYTICS</div>
-                <h3 className="text-gray-900 text-2xl font-semibold mb-4 flex items-center gap-2">
-                  Session Volume
-                  <div className="group/info relative z-[100000]">
-                    <Info size={18} className="text-[#2d6e7e] cursor-help" />
-                    <div className="absolute left-0 top-8 invisible group-hover/info:visible opacity-0 group-hover/info:opacity-100 transition-all duration-200 w-80 z-[100000]">
-                      <div className="bg-gray-900 text-white text-xs rounded-lg p-3 shadow-xl">
-                        <p className="font-medium mb-1">Session Volume Tracking</p>
-                        <p className="text-gray-300">Compare booked appointments versus completed sessions each month. The drop-off percentage above each bar pair shows your no-show and cancellation rate, helping you identify scheduling issues and improve attendance.</p>
-                        <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
-                      </div>
-                    </div>
-                  </div>
-                </h3>
-
-                {/* Legend */}
-                <div className="flex gap-4 mb-4">
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-3 h-3 rounded-full bg-[#2d6e7e]"></div>
-                    <span className="text-xs font-medium text-gray-700">Booked Sessions</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-3 h-3 rounded-full bg-[#10b981]"></div>
-                    <span className="text-xs font-medium text-gray-700">Completed Sessions</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="relative z-10 px-4 pb-4 flex-1 min-h-0">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={SESSIONS_DATA.map((item, index) => ({
-                      ...item,
-                      dataIndex: index
-                    }))}
-                    margin={{ top: 50, right: 20, bottom: 5, left: 20 }}
-                    barGap={8}
-                    barCategoryGap="20%"
-                  >
-                    <defs>
-                      <linearGradient id="bookedGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#2d6e7e" stopOpacity={1}/>
-                        <stop offset="100%" stopColor="#1d4e5e" stopOpacity={1}/>
-                      </linearGradient>
-                      <linearGradient id="completedGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#10b981" stopOpacity={1}/>
-                        <stop offset="100%" stopColor="#059669" stopOpacity={1}/>
-                      </linearGradient>
-                      <filter id="softShadow" x="-50%" y="-50%" width="200%" height="200%">
-                        <feGaussianBlur in="SourceAlpha" stdDeviation="1.5"/>
-                        <feOffset dx="0" dy="2" result="offsetblur"/>
-                        <feComponentTransfer>
-                          <feFuncA type="linear" slope="0.15"/>
-                        </feComponentTransfer>
-                        <feMerge>
-                          <feMergeNode/>
-                          <feMergeNode in="SourceGraphic"/>
-                        </feMerge>
-                      </filter>
-                    </defs>
-                    <XAxis
-                      dataKey="month"
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fill: '#6b7280', fontSize: 12, fontWeight: 600 }}
-                      dy={8}
-                    />
-                    <YAxis
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fill: '#6b7280', fontSize: 11, fontWeight: 600 }}
-                      domain={[0, 800]}
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: '#1f2937',
-                        border: 'none',
-                        borderRadius: '12px',
-                        padding: '12px 16px',
-                        boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.3)'
-                      }}
-                      labelStyle={{ color: '#9ca3af', fontSize: '12px', fontWeight: 600, marginBottom: '4px' }}
-                      itemStyle={{ color: '#fff', fontSize: '14px', fontWeight: 700 }}
-                      formatter={(value: number, name: string, props: any) => {
-                        const dropOff = ((props.payload.booked - props.payload.completed) / props.payload.booked * 100).toFixed(1);
-                        const completion = ((props.payload.completed / props.payload.booked) * 100).toFixed(1);
-                        return [value, name === 'booked' ? `Booked (${completion}% completed)` : `Completed (${dropOff}% no-show)`];
-                      }}
-                    />
-                    <Bar dataKey="booked" fill="url(#bookedGradient)" radius={[8, 8, 0, 0]} name="Booked" maxBarSize={60}>
-                      <LabelList dataKey="booked" position="top" style={{ fill: '#1f2937', fontSize: '11px', fontWeight: 700 }} offset={8} />
-                      <LabelList
-                        content={(props: any) => {
-                          const { x, y, width, height, index, value } = props;
-                          if (index === undefined || !SESSIONS_DATA[index]) return null;
-
-                          const item = SESSIONS_DATA[index];
-                          const dropOff = ((item.booked - item.completed) / item.booked * 100).toFixed(1);
-                          const numDropOff = parseFloat(dropOff);
-
-                          // Position in the center of the bar group (accounting for gap between bars)
-                          const barGap = 8; // matches barGap prop
-                          const centerX = x + width + barGap / 2; // Center between the two bars
-                          const topY = y - 20; // Position above the bar
-
-                          return (
-                            <g>
-                              {/* Pill background */}
-                              <rect
-                                x={centerX - 30}
-                                y={topY - 50}
-                                width={60}
-                                height={24}
-                                rx={12}
-                                ry={12}
-                                fill="white"
-                                stroke={numDropOff > 5 ? '#ef4444' : numDropOff > 3 ? '#f59e0b' : '#10b981'}
-                                strokeWidth={2}
-                                filter="url(#softShadow)"
-                              />
-                              {/* Percentage text */}
-                              <text
-                                x={centerX}
-                                y={topY - 35}
-                                fill={numDropOff > 5 ? '#dc2626' : numDropOff > 3 ? '#d97706' : '#059669'}
-                                textAnchor="middle"
-                                dominantBaseline="middle"
-                                fontSize={12}
-                                fontWeight={700}
-                                letterSpacing={0.2}
-                              >
-                                -{dropOff}%
-                              </text>
-                            </g>
-                          );
-                        }}
-                      />
-                    </Bar>
-                    <Bar dataKey="completed" fill="url(#completedGradient)" radius={[8, 8, 0, 0]} name="Completed" maxBarSize={60}>
-                      <LabelList dataKey="completed" position="top" style={{ fill: '#1f2937', fontSize: '11px', fontWeight: 700 }} offset={8} />
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-            </div>
-
-            {/* Right Side Metrics - Similar to Financial Analysis */}
-            <div className="flex flex-col gap-6 w-[45%]" style={{ height: '100%' }}>
-              <div className="flex gap-4 flex-shrink-0">
-                {/* Average Weekly Sessions - Compact */}
-                <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[20px] flex flex-col shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300 flex-1"
-                  style={{
-                    boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)'
-                  }}
+              <div className="flex items-center justify-between mb-6">
+                <h4 className="text-xl font-bold text-stone-900">Select Date Range</h4>
+                <button
+                  onClick={() => setShowDatePicker(false)}
+                  className="text-stone-400 hover:text-stone-600 transition-colors p-2 rounded-lg hover:bg-stone-100"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                  <X size={20} />
+                </button>
+              </div>
 
-                  <div className="relative px-5 pt-5 pb-2">
-                    <div className="text-gray-500 text-[10px] font-semibold uppercase tracking-widest mb-2">ANALYTICS</div>
-                    <h3 className="text-gray-900 text-lg font-semibold mb-2 flex items-center gap-2">
-                      Avg Weekly Sessions
-                      <div className="group/info relative z-[100000]">
-                        <Info size={14} className="text-[#2d6e7e] cursor-help" />
-                        <div className="absolute left-0 top-6 invisible group-hover/info:visible opacity-0 group-hover/info:opacity-100 transition-all duration-200 w-64 z-[100000]">
-                          <div className="bg-gray-900 text-white text-xs rounded-lg p-3 shadow-xl">
-                            <p className="font-medium mb-1">Average Weekly Sessions</p>
-                            <p className="text-gray-300">Shows the average number of completed sessions per week (monthly sessions divided by 4.33 weeks). Use this to track weekly productivity and identify capacity trends.</p>
-                            <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
-                          </div>
-                        </div>
-                      </div>
-                    </h3>
-                    <div className="text-2xl font-bold text-gray-900 tracking-tight transition-all duration-200">
-                      {hoveredWeeklySessions !== null
-                        ? hoveredWeeklySessions.toFixed(1)
-                        : (SESSIONS_DATA.reduce((sum, item) => sum + item.completed, 0) / SESSIONS_DATA.length / 4.33).toFixed(1)
-                      }
-                    </div>
-                  </div>
-
-                  <div className="relative z-10 px-3 pb-2" style={{ height: '110px' }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart
-                        data={AVG_WEEKLY_SESSIONS_DATA}
-                        margin={{ top: 20, right: 10, bottom: 5, left: 5 }}
-                        onMouseMove={(e: any) => {
-                          if (e.activePayload && e.activePayload[0]) {
-                            setHoveredWeeklySessions(e.activePayload[0].value);
-                          }
-                        }}
-                        onMouseLeave={() => setHoveredWeeklySessions(null)}
-                      >
-                        <defs>
-                          <linearGradient id="weeklySessionsGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#2d6e7e" stopOpacity={0.2}/>
-                            <stop offset="100%" stopColor="#2d6e7e" stopOpacity={0}/>
-                          </linearGradient>
-                        </defs>
-                        <XAxis
-                          dataKey="month"
-                          axisLine={false}
-                          tickLine={false}
-                          tick={{ fill: '#6b7280', fontSize: 11, fontWeight: 600 }}
-                          dy={3}
-                        />
-                        <YAxis hide domain={['dataMin - 10', 'dataMax + 10']} />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: '#1f2937',
-                            border: 'none',
-                            borderRadius: '10px',
-                            padding: '10px 14px',
-                            boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.3)'
-                          }}
-                          labelStyle={{ color: '#9ca3af', fontSize: '11px', fontWeight: 600, marginBottom: '3px' }}
-                          itemStyle={{ color: '#fff', fontSize: '14px', fontWeight: 700 }}
-                          formatter={(value: number) => [value.toFixed(1), 'Weekly Avg']}
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="value"
-                          stroke="#2d6e7e"
-                          strokeWidth={2.5}
-                          dot={{ fill: '#2d6e7e', strokeWidth: 2, stroke: '#fff', r: 3 }}
-                          activeDot={{ r: 5, strokeWidth: 2, stroke: '#fff' }}
-                          fill="url(#weeklySessionsGradient)"
-                        >
-                          <LabelList
-                            dataKey="value"
-                            position="top"
-                            formatter={(value: number) => value.toFixed(0)}
-                            style={{ fill: '#1f2937', fontSize: '10px', fontWeight: 700 }}
-                          />
-                        </Line>
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
+              <div className="flex gap-6 mb-6">
+                <div>
+                  <label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-3">Start Date</label>
+                  <DatePicker
+                    selected={customStartDate}
+                    onChange={(date) => setCustomStartDate(date)}
+                    selectsStart
+                    startDate={customStartDate}
+                    endDate={customEndDate}
+                    dateFormat="MMM yyyy"
+                    showMonthYearPicker
+                    inline
+                  />
                 </div>
-
-                {/* Avg Sessions per Client - Compact */}
-                <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[20px] flex flex-col shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300 flex-1"
-                  style={{
-                    boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)'
-                  }}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-
-                  <div className="relative px-5 pt-5 pb-2">
-                    <div className="text-gray-500 text-[10px] font-semibold uppercase tracking-widest mb-2">ANALYTICS</div>
-                    <h3 className="text-gray-900 text-lg font-semibold mb-2 flex items-center gap-2">
-                      Sessions per Client Monthly
-                      <div className="group/info relative z-[100000]">
-                        <Info size={14} className="text-[#2d6e7e] cursor-help" />
-                        <div className="absolute left-0 top-6 invisible group-hover/info:visible opacity-0 group-hover/info:opacity-100 transition-all duration-200 w-64 z-[100000]">
-                          <div className="bg-gray-900 text-white text-xs rounded-lg p-3 shadow-xl">
-                            <p className="font-medium mb-1">Average Sessions per Client per Month</p>
-                            <p className="text-gray-300">Shows the average number of sessions each active client completes per month. This metric helps you understand monthly client engagement frequency and identify trends in session utilization patterns.</p>
-                            <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
-                          </div>
-                        </div>
-                      </div>
-                    </h3>
-                    <div className="text-2xl font-bold text-gray-900 tracking-tight transition-all duration-200">
-                      {hoveredAvgSessionsPerClient !== null
-                        ? hoveredAvgSessionsPerClient.toFixed(2)
-                        : (SESSIONS_DATA.reduce((sum, item) => sum + item.completed, 0) / SESSIONS_DATA.reduce((sum, item) => sum + item.clients, 0)).toFixed(2)
-                      }
-                    </div>
-                  </div>
-
-                  <div className="relative z-10 px-3 pb-2" style={{ height: '110px' }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart
-                        data={AVG_SESSIONS_PER_CLIENT_DATA}
-                        margin={{ top: 20, right: 10, bottom: 5, left: 5 }}
-                        onMouseMove={(e: any) => {
-                          if (e.activePayload && e.activePayload[0]) {
-                            setHoveredAvgSessionsPerClient(e.activePayload[0].value);
-                          }
-                        }}
-                        onMouseLeave={() => setHoveredAvgSessionsPerClient(null)}
-                      >
-                        <defs>
-                          <linearGradient id="avgSessionsPerClientGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#2d6e7e" stopOpacity={0.2}/>
-                            <stop offset="100%" stopColor="#2d6e7e" stopOpacity={0}/>
-                          </linearGradient>
-                        </defs>
-                        <XAxis
-                          dataKey="month"
-                          axisLine={false}
-                          tickLine={false}
-                          tick={{ fill: '#6b7280', fontSize: 11, fontWeight: 600 }}
-                          dy={3}
-                        />
-                        <YAxis hide domain={['dataMin - 0.5', 'dataMax + 0.5']} />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: '#1f2937',
-                            border: 'none',
-                            borderRadius: '10px',
-                            padding: '10px 14px',
-                            boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.3)'
-                          }}
-                          labelStyle={{ color: '#9ca3af', fontSize: '11px', fontWeight: 600, marginBottom: '3px' }}
-                          itemStyle={{ color: '#fff', fontSize: '14px', fontWeight: 700 }}
-                          formatter={(value: number) => [value.toFixed(2), 'Avg Sessions']}
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="value"
-                          stroke="#2d6e7e"
-                          strokeWidth={2.5}
-                          dot={{ fill: '#2d6e7e', strokeWidth: 2, stroke: '#fff', r: 3 }}
-                          activeDot={{ r: 5, strokeWidth: 2, stroke: '#fff' }}
-                          fill="url(#avgSessionsPerClientGradient)"
-                        >
-                          <LabelList
-                            dataKey="value"
-                            position="top"
-                            formatter={(value: number) => value.toFixed(1)}
-                            style={{ fill: '#1f2937', fontSize: '10px', fontWeight: 700 }}
-                          />
-                        </Line>
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
+                <div>
+                  <label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-3">End Date</label>
+                  <DatePicker
+                    selected={customEndDate}
+                    onChange={(date) => setCustomEndDate(date)}
+                    selectsEnd
+                    startDate={customStartDate}
+                    endDate={customEndDate}
+                    minDate={customStartDate}
+                    dateFormat="MMM yyyy"
+                    showMonthYearPicker
+                    inline
+                  />
                 </div>
               </div>
 
-              {/* Attendance Donut Chart */}
-              <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[24px] flex flex-col flex-1 shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300"
+              <button
+                onClick={applyCustomRange}
+                className="w-full px-6 py-4 bg-stone-900 text-white rounded-xl font-bold text-base hover:bg-stone-800 transition-all duration-200"
+              >
+                Apply Range
+              </button>
+            </div>
+          )}
+
+          {/* Main Content */}
+          <div className="px-10 pb-10 space-y-8">
+
+            {/* Hero Stats Row */}
+            <div className="grid grid-cols-4 gap-6">
+              {/* Sessions Overview - Primary Card with Completed & Booked */}
+              <div
+                className="col-span-2 rounded-3xl p-8 relative overflow-hidden"
                 style={{
-                  boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)'
+                  background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
+                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
                 }}
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    {/* Completed & Booked Sessions Side by Side */}
+                    <div className="flex gap-8">
+                      {/* Completed Sessions */}
+                      <div className="flex-1">
+                        <p className="text-emerald-600 text-sm font-bold uppercase tracking-widest mb-3">Completed Sessions</p>
+                        <div className="flex items-baseline gap-2">
+                          <span
+                            className="text-emerald-700 font-bold"
+                            style={{ fontSize: '3.5rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
+                          >
+                            {SESSIONS_DATA[SESSIONS_DATA.length - 1]?.completed}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 mt-3">
+                          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-100">
+                            <svg className="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                            </svg>
+                            <span className="text-emerald-700 font-bold text-sm">
+                              {(((SESSIONS_DATA[SESSIONS_DATA.length - 1]?.completed - SESSIONS_DATA[SESSIONS_DATA.length - 2]?.completed) / SESSIONS_DATA[SESSIONS_DATA.length - 2]?.completed) * 100).toFixed(1)}%
+                            </span>
+                          </div>
+                          <span className="text-stone-400 text-xs">vs last month</span>
+                        </div>
+                      </div>
 
-                <div className="relative px-6 pt-6 pb-4 flex-shrink-0">
-                  <div className="text-gray-500 text-xs font-semibold uppercase tracking-widest mb-2">ANALYTICS</div>
-                  <h3 className="text-gray-900 text-2xl font-semibold mb-4 flex items-center gap-2">
-                    Attendance Breakdown
-                    <div className="group/info relative z-[100000]">
-                      <Info size={18} className="text-[#2d6e7e] cursor-help" />
-                      <div className="absolute left-0 top-8 invisible group-hover/info:visible opacity-0 group-hover/info:opacity-100 transition-all duration-200 w-80 z-[100000]">
-                        <div className="bg-gray-900 text-white text-xs rounded-lg p-3 shadow-xl">
-                          <p className="font-medium mb-1">Attendance Breakdown</p>
-                          <p className="text-gray-300">Visualizes the distribution of all session outcomes: shows (attended), cancellations, clinician cancellations, late cancellations, and no-shows. The center shows your overall show rate, while the non-billable cancel rate highlights revenue loss from non-client-initiated cancellations.</p>
-                          <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                      {/* Divider */}
+                      <div className="w-px bg-stone-200 self-stretch my-1" />
+
+                      {/* Booked Sessions */}
+                      <div className="flex-1">
+                        <p className="text-stone-500 text-sm font-bold uppercase tracking-widest mb-3">Booked Sessions</p>
+                        <div className="flex items-baseline gap-2">
+                          <span
+                            className="text-stone-900 font-bold"
+                            style={{ fontSize: '3.5rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
+                          >
+                            {SESSIONS_DATA[SESSIONS_DATA.length - 1]?.booked}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 mt-3">
+                          <div className="px-2.5 py-1 rounded-full bg-cyan-100">
+                            <span className="text-cyan-700 font-bold text-sm">
+                              {((SESSIONS_DATA[SESSIONS_DATA.length - 1]?.completed / SESSIONS_DATA[SESSIONS_DATA.length - 1]?.booked) * 100).toFixed(1)}% completion
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </h3>
-
-                  {/* Legend */}
-                  <div className="flex flex-wrap gap-x-4 gap-y-2 mb-4">
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-3 h-3 rounded-full bg-[#10b981]"></div>
-                      <span className="text-xs font-medium text-gray-700">Show</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-3 h-3 rounded-full bg-[#ef4444]"></div>
-                      <span className="text-xs font-medium text-gray-700">Canceled</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-3 h-3 rounded-full bg-[#3b82f6]"></div>
-                      <span className="text-xs font-medium text-gray-700">Clinician canceled</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-3 h-3 rounded-full bg-[#f59e0b]"></div>
-                      <span className="text-xs font-medium text-gray-700">Late canceled</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-3 h-3 rounded-full bg-[#6b7280]"></div>
-                      <span className="text-xs font-medium text-gray-700">No show</span>
-                    </div>
                   </div>
 
-                  {/* Non-Billable Cancel Rate */}
-                  <div className="mt-2 p-3 bg-red-50 rounded-lg border border-red-200">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold text-red-900 uppercase tracking-wider">Non-Billable Cancel Rate</span>
-                      <span className="text-lg font-bold text-red-700">
-                        {(
-                          ((SESSIONS_DATA.reduce((sum, item) => sum + item.clinicianCancelled + item.cancelled, 0)) /
-                          SESSIONS_DATA.reduce((sum, item) =>
-                            sum + item.show + item.cancelled + item.clinicianCancelled + item.lateCancelled + item.noShow, 0
-                          )) * 100
-                        ).toFixed(1)}%
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="relative z-10 px-4 pb-4 flex-1 min-h-0 flex items-center justify-center">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <defs>
-                        <filter id="donutShadow" x="-50%" y="-50%" width="200%" height="200%">
-                          <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
-                          <feOffset dx="0" dy="2" result="offsetblur"/>
-                          <feComponentTransfer>
-                            <feFuncA type="linear" slope="0.2"/>
-                          </feComponentTransfer>
-                          <feMerge>
-                            <feMergeNode/>
-                            <feMergeNode in="SourceGraphic"/>
-                          </feMerge>
-                        </filter>
-                      </defs>
-                      <Pie
-                        data={[
-                          {
-                            name: 'Show',
-                            value: SESSIONS_DATA.reduce((sum, item) => sum + item.show, 0),
-                            color: '#10b981'
-                          },
-                          {
-                            name: 'Canceled',
-                            value: SESSIONS_DATA.reduce((sum, item) => sum + item.cancelled, 0),
-                            color: '#ef4444'
-                          },
-                          {
-                            name: 'Clinician canceled',
-                            value: SESSIONS_DATA.reduce((sum, item) => sum + item.clinicianCancelled, 0),
-                            color: '#3b82f6'
-                          },
-                          {
-                            name: 'Late canceled',
-                            value: SESSIONS_DATA.reduce((sum, item) => sum + item.lateCancelled, 0),
-                            color: '#f59e0b'
-                          },
-                          {
-                            name: 'No show',
-                            value: SESSIONS_DATA.reduce((sum, item) => sum + item.noShow, 0),
-                            color: '#6b7280'
-                          }
-                        ]}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius="60%"
-                        outerRadius="85%"
-                        paddingAngle={2}
-                        dataKey="value"
-                      >
-                        {[
-                          { name: 'Show', value: SESSIONS_DATA.reduce((sum, item) => sum + item.show, 0), color: '#10b981' },
-                          { name: 'Canceled', value: SESSIONS_DATA.reduce((sum, item) => sum + item.cancelled, 0), color: '#ef4444' },
-                          { name: 'Clinician canceled', value: SESSIONS_DATA.reduce((sum, item) => sum + item.clinicianCancelled, 0), color: '#3b82f6' },
-                          { name: 'Late canceled', value: SESSIONS_DATA.reduce((sum, item) => sum + item.lateCancelled, 0), color: '#f59e0b' },
-                          { name: 'No show', value: SESSIONS_DATA.reduce((sum, item) => sum + item.noShow, 0), color: '#6b7280' }
-                        ].map((entry, index) => (
-                          <Cell
-                            key={`cell-${index}`}
-                            fill={entry.color}
-                            filter="url(#donutShadow)"
-                          />
-                        ))}
-                        <LabelList
-                          dataKey="value"
-                          position="outside"
-                          formatter={(value: number) => {
-                            const total = SESSIONS_DATA.reduce((sum, item) =>
-                              sum + item.show + item.cancelled + item.clinicianCancelled + item.lateCancelled + item.noShow, 0
-                            );
-                            return `${((value / total) * 100).toFixed(1)}%`;
-                          }}
-                          style={{ fill: '#1f2937', fontSize: '11px', fontWeight: 700 }}
-                        />
-                      </Pie>
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: '#1f2937',
-                          border: 'none',
-                          borderRadius: '12px',
-                          padding: '12px 16px',
-                          boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.3)'
-                        }}
-                        labelStyle={{ color: '#9ca3af', fontSize: '12px', fontWeight: 600, marginBottom: '4px' }}
-                        itemStyle={{ color: '#fff', fontSize: '14px', fontWeight: 700 }}
-                        formatter={(value: number) => {
-                          const total = SESSIONS_DATA.reduce((sum, item) =>
-                            sum + item.show + item.cancelled + item.clinicianCancelled + item.lateCancelled + item.noShow, 0
-                          );
-                          return [`${value} (${((value / total) * 100).toFixed(1)}%)`, ''];
-                        }}
+                  {/* Show Rate Ring */}
+                  <div className="relative w-28 h-28 ml-6">
+                    <svg className="w-full h-full transform -rotate-90">
+                      <circle cx="56" cy="56" r="48" fill="none" stroke="#e7e5e4" strokeWidth="8" />
+                      <circle
+                        cx="56" cy="56" r="48" fill="none" stroke="url(#showRateGradient)" strokeWidth="8"
+                        strokeLinecap="round"
+                        strokeDasharray={`${(SESSIONS_DATA[SESSIONS_DATA.length - 1]?.completed / SESSIONS_DATA[SESSIONS_DATA.length - 1]?.booked) * 301.6} 301.6`}
                       />
-                    </PieChart>
-                  </ResponsiveContainer>
-                  {/* Center Text */}
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div className="text-center">
-                      <div className="text-3xl font-bold text-gray-900">
-                        {(
-                          (SESSIONS_DATA.reduce((sum, item) => sum + item.show, 0) /
-                          SESSIONS_DATA.reduce((sum, item) =>
-                            sum + item.show + item.cancelled + item.clinicianCancelled + item.lateCancelled + item.noShow, 0
-                          )) * 100
-                        ).toFixed(1)}%
-                      </div>
-                      <div className="text-xs text-gray-500 font-semibold uppercase tracking-wide">Show Rate</div>
+                      <defs>
+                        <linearGradient id="showRateGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                          <stop offset="0%" stopColor="#0891b2" />
+                          <stop offset="100%" stopColor="#06b6d4" />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="text-stone-900 text-2xl font-bold">{((SESSIONS_DATA[SESSIONS_DATA.length - 1]?.completed / SESSIONS_DATA[SESSIONS_DATA.length - 1]?.booked) * 100).toFixed(0)}%</span>
+                      <span className="text-stone-500 text-xs">show rate</span>
                     </div>
                   </div>
                 </div>
+              </div>
+
+              {/* Total Sessions YTD */}
+              <div
+                className="rounded-3xl p-8 relative overflow-hidden"
+                style={{
+                  background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
+                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
+                }}
+              >
+                <p className="text-stone-500 text-sm font-bold uppercase tracking-widest mb-4">Total Completed</p>
+                <span
+                  className="text-stone-900 font-bold block"
+                  style={{ fontSize: '3rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  {SESSIONS_DATA.reduce((sum, item) => sum + item.completed, 0).toLocaleString()}
+                </span>
+                <p className="text-stone-500 text-sm mt-3">{SESSIONS_DATA.length} months tracked</p>
+              </div>
+
+              {/* Avg Weekly Sessions */}
+              <div
+                className="rounded-3xl p-8 relative overflow-hidden"
+                style={{
+                  background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
+                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
+                }}
+              >
+                <p className="text-stone-500 text-sm font-bold uppercase tracking-widest mb-4">Avg Weekly</p>
+                <span
+                  className="text-stone-900 font-bold block"
+                  style={{ fontSize: '3rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  {(SESSIONS_DATA.reduce((sum, item) => sum + item.completed, 0) / SESSIONS_DATA.length / 4.33).toFixed(0)}
+                </span>
+                <p className="text-stone-500 text-sm mt-3">sessions per week</p>
+              </div>
+            </div>
+
+            {/* Session Volume & Attendance Breakdown - Side by Side */}
+            <div className="grid grid-cols-2 gap-6">
+              {/* Session Volume - Vertical Bar Chart */}
+              <div
+                className="rounded-3xl p-8 relative"
+                style={{
+                  background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
+                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)',
+                  minHeight: '520px'
+                }}
+              >
+                <div className="flex items-start justify-between mb-6">
+                  <div>
+                    <p className="text-stone-500 text-sm font-bold uppercase tracking-widest mb-2">Monthly Trend</p>
+                    <h3 className="text-stone-900 text-2xl font-semibold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                      Session Volume
+                    </h3>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-cyan-50 border border-cyan-200">
+                      <div className="w-3 h-3 rounded-full bg-gradient-to-b from-cyan-500 to-cyan-700" />
+                      <span className="text-cyan-700 text-sm font-medium">Booked</span>
+                    </div>
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200">
+                      <div className="w-3 h-3 rounded-full bg-gradient-to-b from-emerald-400 to-emerald-600" />
+                      <span className="text-emerald-700 text-sm font-medium">Completed</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Vertical Bar Chart */}
+                <div className="flex">
+                  {/* Y-axis labels */}
+                  <div className="flex flex-col justify-between text-xs text-stone-400 font-medium pr-3" style={{ height: '320px' }}>
+                    <span>800</span>
+                    <span>600</span>
+                    <span>400</span>
+                    <span>200</span>
+                    <span>0</span>
+                  </div>
+
+                  {/* Chart area */}
+                  <div className="flex-1 relative" style={{ height: '320px' }}>
+                    {/* Background grid lines */}
+                    <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
+                      {[0, 1, 2, 3, 4].map((i) => (
+                        <div key={i} className="border-t border-stone-100 w-full" />
+                      ))}
+                    </div>
+
+                    {/* Bars */}
+                    <div className="absolute inset-0 flex items-end justify-around gap-1 px-2">
+                      {SESSIONS_DATA.map((item, idx) => {
+                        const bookedHeightPx = (item.booked / 800) * 320;
+                        const completedHeightPx = (item.completed / 800) * 320;
+                        const dropOff = ((item.booked - item.completed) / item.booked * 100);
+                        const isCurrentMonth = idx === SESSIONS_DATA.length - 1;
+
+                        return (
+                          <div
+                            key={item.month}
+                            className="group relative flex-1 flex flex-col items-center justify-end"
+                            style={{ maxWidth: '60px' }}
+                          >
+                            {/* Drop-off pill */}
+                            <div
+                              className={`absolute -top-8 left-1/2 transform -translate-x-1/2 px-2 py-1 rounded-full text-[10px] font-bold whitespace-nowrap ${
+                                dropOff > 5 ? 'bg-rose-100 text-rose-700 border border-rose-200' :
+                                dropOff > 3 ? 'bg-amber-100 text-amber-700 border border-amber-200' :
+                                'bg-emerald-100 text-emerald-700 border border-emerald-200'
+                              }`}
+                            >
+                              -{dropOff.toFixed(1)}%
+                            </div>
+                            {/* Bar pair */}
+                            <div className="flex gap-1 items-end w-full justify-center">
+                              {/* Booked bar */}
+                              <div
+                                className={`rounded-t-md transition-all duration-300 ${isCurrentMonth ? '' : 'opacity-80 hover:opacity-100'}`}
+                                style={{
+                                  height: `${bookedHeightPx}px`,
+                                  width: '14px',
+                                  background: 'linear-gradient(180deg, #22d3ee 0%, #0891b2 100%)',
+                                  boxShadow: '0 2px 8px -2px rgba(8, 145, 178, 0.3)'
+                                }}
+                              />
+                              {/* Completed bar */}
+                              <div
+                                className={`rounded-t-md transition-all duration-300 ${isCurrentMonth ? '' : 'opacity-80 hover:opacity-100'}`}
+                                style={{
+                                  height: `${completedHeightPx}px`,
+                                  width: '14px',
+                                  background: 'linear-gradient(180deg, #34d399 0%, #059669 100%)',
+                                  boxShadow: '0 2px 8px -2px rgba(5, 150, 105, 0.3)'
+                                }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Month labels */}
+                <div className="flex mt-3 pl-10">
+                  <div className="flex-1 flex justify-around gap-1 px-2">
+                    {SESSIONS_DATA.map((item, idx) => {
+                      const isCurrentMonth = idx === SESSIONS_DATA.length - 1;
+                      return (
+                        <div
+                          key={item.month}
+                          className="flex-1 text-center"
+                          style={{ maxWidth: '60px' }}
+                        >
+                          <span className={`text-xs font-semibold ${isCurrentMonth ? 'text-stone-900' : 'text-stone-500'}`}>
+                            {item.month}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Attendance Breakdown - Donut Chart */}
+              <div
+                className="rounded-3xl p-8"
+                style={{
+                  background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
+                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)',
+                  minHeight: '520px'
+                }}
+              >
+                <div className="mb-6">
+                  <p className="text-stone-500 text-sm font-bold uppercase tracking-widest mb-2">This Period</p>
+                  <h3 className="text-stone-900 text-2xl font-semibold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                    Attendance Breakdown
+                  </h3>
+                </div>
+
+                {/* Donut Chart */}
+                {(() => {
+                  const segments = [
+                    { label: 'Attended', value: SESSIONS_DATA.reduce((sum, item) => sum + item.show, 0), color: '#10b981' },
+                    { label: 'Cancelled', value: SESSIONS_DATA.reduce((sum, item) => sum + item.cancelled, 0), color: '#ef4444' },
+                    { label: 'Clinician Cancelled', value: SESSIONS_DATA.reduce((sum, item) => sum + item.clinicianCancelled, 0), color: '#3b82f6' },
+                    { label: 'Late Cancelled', value: SESSIONS_DATA.reduce((sum, item) => sum + item.lateCancelled, 0), color: '#f59e0b' },
+                    { label: 'No Show', value: SESSIONS_DATA.reduce((sum, item) => sum + item.noShow, 0), color: '#6b7280' }
+                  ];
+
+                  const total = segments.reduce((sum, s) => sum + s.value, 0);
+
+                  // SVG donut chart calculations using arc paths
+                  const size = 280;
+                  const outerRadius = 130;
+                  const innerRadius = 82;
+                  const centerX = size / 2;
+                  const centerY = size / 2;
+
+                  // Calculate arc paths
+                  const createArcPath = (startAngle: number, endAngle: number, outerR: number, innerR: number) => {
+                    const startOuterX = centerX + outerR * Math.cos(startAngle);
+                    const startOuterY = centerY + outerR * Math.sin(startAngle);
+                    const endOuterX = centerX + outerR * Math.cos(endAngle);
+                    const endOuterY = centerY + outerR * Math.sin(endAngle);
+                    const startInnerX = centerX + innerR * Math.cos(endAngle);
+                    const startInnerY = centerY + innerR * Math.sin(endAngle);
+                    const endInnerX = centerX + innerR * Math.cos(startAngle);
+                    const endInnerY = centerY + innerR * Math.sin(startAngle);
+
+                    const largeArcFlag = endAngle - startAngle > Math.PI ? 1 : 0;
+
+                    return `M ${startOuterX} ${startOuterY}
+                            A ${outerR} ${outerR} 0 ${largeArcFlag} 1 ${endOuterX} ${endOuterY}
+                            L ${startInnerX} ${startInnerY}
+                            A ${innerR} ${innerR} 0 ${largeArcFlag} 0 ${endInnerX} ${endInnerY}
+                            Z`;
+                  };
+
+                  let currentAngle = -Math.PI / 2; // Start from top
+
+                  return (
+                    <div className="flex flex-col items-center">
+                      {/* SVG Donut */}
+                      <div className="relative" style={{ width: size, height: size }}>
+                        <svg width={size} height={size} className="overflow-visible">
+                          {segments.map((segment) => {
+                            const percent = segment.value / total;
+                            const angleSize = percent * 2 * Math.PI;
+                            const startAngle = currentAngle;
+                            const endAngle = currentAngle + angleSize - 0.02; // Small gap between segments
+                            currentAngle += angleSize;
+
+                            const path = createArcPath(startAngle, endAngle, outerRadius, innerRadius);
+
+                            return (
+                              <path
+                                key={segment.label}
+                                d={path}
+                                fill={segment.color}
+                                className="cursor-pointer transition-all duration-200 hover:brightness-110"
+                                style={{
+                                  filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1))',
+                                }}
+                              />
+                            );
+                          })}
+                        </svg>
+
+                        {/* Center content */}
+                        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                          <span className="text-stone-500 text-sm font-medium mb-1">Show Rate</span>
+                          <span
+                            className="text-emerald-600 font-bold"
+                            style={{ fontSize: '2.25rem', fontFamily: "'DM Serif Display', Georgia, serif" }}
+                          >
+                            {((segments[0].value / total) * 100).toFixed(1)}%
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Legend with values */}
+                      <div className="grid grid-cols-2 gap-x-8 gap-y-4 mt-8 w-full max-w-sm">
+                        {segments.map((segment) => (
+                          <div key={segment.label} className="flex items-center gap-3">
+                            <div
+                              className="w-4 h-4 rounded-full flex-shrink-0"
+                              style={{ backgroundColor: segment.color }}
+                            />
+                            <div className="flex flex-col">
+                              <span className="text-stone-600 text-sm">{segment.label}</span>
+                              <div className="flex items-baseline gap-2">
+                                <span className="text-stone-900 font-bold">{segment.value.toLocaleString()}</span>
+                                <span className="text-stone-400 text-xs">
+                                  {((segment.value / total) * 100).toFixed(0)}%
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+
+            {/* Secondary Metrics Row */}
+            <div className="grid grid-cols-3 gap-6">
+              {/* Sessions per Client */}
+              <div
+                className="rounded-3xl p-8"
+                style={{
+                  background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
+                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
+                }}
+              >
+                <p className="text-stone-500 text-sm font-bold uppercase tracking-widest mb-4">Sessions per Client</p>
+                <div className="flex items-baseline gap-3">
+                  <span
+                    className="text-stone-900 font-bold"
+                    style={{ fontSize: '3rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
+                  >
+                    {(SESSIONS_DATA.reduce((sum, item) => sum + item.completed, 0) / SESSIONS_DATA.reduce((sum, item) => sum + item.clients, 0)).toFixed(1)}
+                  </span>
+                  <span className="text-stone-500 text-lg">avg</span>
+                </div>
+                <div className="mt-6 h-20">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={AVG_SESSIONS_PER_CLIENT_DATA} margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
+                      <Line
+                        type="monotone"
+                        dataKey="value"
+                        stroke="#0891b2"
+                        strokeWidth={2.5}
+                        dot={false}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Utilization Rate */}
+              <div
+                className="rounded-3xl p-8"
+                style={{
+                  background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
+                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
+                }}
+              >
+                <p className="text-stone-500 text-sm font-bold uppercase tracking-widest mb-4">Utilization Rate</p>
+                <div className="flex items-baseline gap-3">
+                  <span
+                    className="text-cyan-600 font-bold"
+                    style={{ fontSize: '3rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
+                  >
+                    {UTILIZATION_DATA[UTILIZATION_DATA.length - 1]?.value}%
+                  </span>
+                </div>
+                <div className="mt-6 h-20">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={UTILIZATION_DATA} margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
+                      <Line
+                        type="monotone"
+                        dataKey="value"
+                        stroke="#059669"
+                        strokeWidth={2.5}
+                        dot={false}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Non-Billable Rate Alert */}
+              <div
+                className="rounded-3xl p-8 relative overflow-hidden"
+                style={{
+                  background: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
+                  boxShadow: '0 4px 24px -4px rgba(239, 68, 68, 0.15), 0 0 0 1px rgba(239, 68, 68, 0.1)'
+                }}
+              >
+                <div className="absolute top-4 right-4">
+                  <div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center">
+                    <svg className="w-5 h-5 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                  </div>
+                </div>
+                <p className="text-rose-700 text-sm font-bold uppercase tracking-widest mb-4">Non-Billable Rate</p>
+                <div className="flex items-baseline gap-3">
+                  <span
+                    className="text-rose-700 font-bold"
+                    style={{ fontSize: '3rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
+                  >
+                    {(
+                      ((SESSIONS_DATA.reduce((sum, item) => sum + item.clinicianCancelled + item.cancelled, 0)) /
+                      SESSIONS_DATA.reduce((sum, item) =>
+                        sum + item.show + item.cancelled + item.clinicianCancelled + item.lateCancelled + item.noShow, 0
+                      )) * 100
+                    ).toFixed(1)}%
+                  </span>
+                </div>
+                <p className="text-rose-600 text-sm mt-3">Cancellations & clinician cancellations</p>
+              </div>
+            </div>
+
+            {/* Detailed Table */}
+            <div
+              className="rounded-3xl p-8"
+              style={{
+                background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
+                boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
+              }}
+            >
+              <p className="text-stone-500 text-sm font-bold uppercase tracking-widest mb-6">Full Breakdown</p>
+
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-stone-200">
+                      <th className="text-left py-4 px-3 text-xs font-bold text-stone-500 uppercase tracking-wider"></th>
+                      {SESSIONS_DATA.map((item) => (
+                        <th key={item.month} className="text-right py-4 px-3 text-xs font-bold text-stone-500 uppercase tracking-wider">{item.month}</th>
+                      ))}
+                      <th className="text-right py-4 px-3 text-xs font-bold text-stone-900 uppercase tracking-wider">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-b border-stone-100 hover:bg-stone-50 transition-colors">
+                      <td className="py-4 px-3 text-sm font-semibold text-stone-900 flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-cyan-500" />
+                        Booked
+                      </td>
+                      {SESSIONS_DATA.map((item) => (
+                        <td key={item.month} className="py-4 px-3 text-sm text-stone-600 text-right">{item.booked}</td>
+                      ))}
+                      <td className="py-4 px-3 text-sm font-bold text-stone-900 text-right">
+                        {SESSIONS_DATA.reduce((sum, item) => sum + item.booked, 0).toLocaleString()}
+                      </td>
+                    </tr>
+                    <tr className="border-b border-stone-100 hover:bg-emerald-50 transition-colors">
+                      <td className="py-4 px-3 text-sm font-semibold text-emerald-700 flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                        Completed
+                      </td>
+                      {SESSIONS_DATA.map((item) => (
+                        <td key={item.month} className="py-4 px-3 text-sm font-bold text-emerald-600 text-right">{item.completed}</td>
+                      ))}
+                      <td className="py-4 px-3 text-base font-bold text-emerald-700 text-right">
+                        {SESSIONS_DATA.reduce((sum, item) => sum + item.completed, 0).toLocaleString()}
+                      </td>
+                    </tr>
+                    <tr className="border-b border-stone-100 hover:bg-stone-50 transition-colors">
+                      <td className="py-4 px-3 text-sm font-semibold text-stone-900 flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-rose-500" />
+                        Cancelled
+                      </td>
+                      {SESSIONS_DATA.map((item) => (
+                        <td key={item.month} className="py-4 px-3 text-sm text-rose-600 text-right">{item.cancelled}</td>
+                      ))}
+                      <td className="py-4 px-3 text-sm font-bold text-rose-600 text-right">
+                        {SESSIONS_DATA.reduce((sum, item) => sum + item.cancelled, 0).toLocaleString()}
+                      </td>
+                    </tr>
+                    <tr className="border-b border-stone-100 hover:bg-stone-50 transition-colors">
+                      <td className="py-4 px-3 text-sm font-semibold text-stone-900 flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-blue-500" />
+                        Clinician Cancelled
+                      </td>
+                      {SESSIONS_DATA.map((item) => (
+                        <td key={item.month} className="py-4 px-3 text-sm text-blue-600 text-right">{item.clinicianCancelled}</td>
+                      ))}
+                      <td className="py-4 px-3 text-sm font-bold text-blue-600 text-right">
+                        {SESSIONS_DATA.reduce((sum, item) => sum + item.clinicianCancelled, 0).toLocaleString()}
+                      </td>
+                    </tr>
+                    <tr className="border-b border-stone-100 hover:bg-stone-50 transition-colors">
+                      <td className="py-4 px-3 text-sm font-semibold text-stone-900 flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-amber-500" />
+                        Late Cancelled
+                      </td>
+                      {SESSIONS_DATA.map((item) => (
+                        <td key={item.month} className="py-4 px-3 text-sm text-amber-600 text-right">{item.lateCancelled}</td>
+                      ))}
+                      <td className="py-4 px-3 text-sm font-bold text-amber-600 text-right">
+                        {SESSIONS_DATA.reduce((sum, item) => sum + item.lateCancelled, 0).toLocaleString()}
+                      </td>
+                    </tr>
+                    <tr className="hover:bg-stone-50 transition-colors">
+                      <td className="py-4 px-3 text-sm font-semibold text-stone-900 flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-stone-500" />
+                        No Show
+                      </td>
+                      {SESSIONS_DATA.map((item) => (
+                        <td key={item.month} className="py-4 px-3 text-sm text-stone-600 text-right">{item.noShow}</td>
+                      ))}
+                      <td className="py-4 px-3 text-sm font-bold text-stone-600 text-right">
+                        {SESSIONS_DATA.reduce((sum, item) => sum + item.noShow, 0).toLocaleString()}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
