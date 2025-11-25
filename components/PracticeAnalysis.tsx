@@ -1642,13 +1642,9 @@ export const PracticeAnalysis: React.FC = () => {
                     </h3>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-cyan-50 border border-cyan-200">
-                      <div className="w-3 h-3 rounded-full bg-gradient-to-b from-cyan-500 to-cyan-700" />
-                      <span className="text-cyan-700 text-sm font-medium">Booked</span>
-                    </div>
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200">
-                      <div className="w-3 h-3 rounded-full bg-gradient-to-b from-emerald-400 to-emerald-600" />
-                      <span className="text-emerald-700 text-sm font-medium">Completed</span>
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-200">
+                      <div className="w-0.5 h-4 bg-amber-500" />
+                      <span className="text-amber-700 text-sm font-medium">700 Goal</span>
                     </div>
                   </div>
                 </div>
@@ -1673,53 +1669,44 @@ export const PracticeAnalysis: React.FC = () => {
                       ))}
                     </div>
 
+                    {/* Goal line - horizontal at 700 completed sessions */}
+                    <div
+                      className="absolute left-0 right-0 border-t-2 border-dashed border-amber-400 z-10 pointer-events-none"
+                      style={{ top: `${((800 - 700) / 800) * 100}%` }}
+                    />
+
                     {/* Bars */}
-                    <div className="absolute inset-0 flex items-end justify-around gap-1 px-2">
+                    <div className="absolute inset-0 flex items-end justify-around gap-1 px-4">
                       {SESSIONS_DATA.map((item, idx) => {
-                        const bookedHeightPx = (item.booked / 800) * 320;
                         const completedHeightPx = (item.completed / 800) * 320;
-                        const dropOff = ((item.booked - item.completed) / item.booked * 100);
+                        const isAboveGoal = item.completed >= 700;
                         const isCurrentMonth = idx === SESSIONS_DATA.length - 1;
 
                         return (
                           <div
                             key={item.month}
                             className="group relative flex-1 flex flex-col items-center justify-end"
-                            style={{ maxWidth: '60px' }}
+                            style={{ maxWidth: '50px' }}
                           >
-                            {/* Drop-off pill */}
+                            {/* Value label - always visible */}
+                            <div className="mb-2 z-20">
+                              <span className={`text-xs font-bold ${isAboveGoal ? 'text-emerald-600' : 'text-blue-600'}`}>
+                                {item.completed}
+                              </span>
+                            </div>
+                            {/* Bar */}
                             <div
-                              className={`absolute -top-8 left-1/2 transform -translate-x-1/2 px-2 py-1 rounded-full text-[10px] font-bold whitespace-nowrap ${
-                                dropOff > 5 ? 'bg-rose-100 text-rose-700 border border-rose-200' :
-                                dropOff > 3 ? 'bg-amber-100 text-amber-700 border border-amber-200' :
-                                'bg-emerald-100 text-emerald-700 border border-emerald-200'
-                              }`}
-                            >
-                              -{dropOff.toFixed(1)}%
-                            </div>
-                            {/* Bar pair */}
-                            <div className="flex gap-1 items-end w-full justify-center">
-                              {/* Booked bar */}
-                              <div
-                                className={`rounded-t-md transition-all duration-300 ${isCurrentMonth ? '' : 'opacity-80 hover:opacity-100'}`}
-                                style={{
-                                  height: `${bookedHeightPx}px`,
-                                  width: '14px',
-                                  background: 'linear-gradient(180deg, #22d3ee 0%, #0891b2 100%)',
-                                  boxShadow: '0 2px 8px -2px rgba(8, 145, 178, 0.3)'
-                                }}
-                              />
-                              {/* Completed bar */}
-                              <div
-                                className={`rounded-t-md transition-all duration-300 ${isCurrentMonth ? '' : 'opacity-80 hover:opacity-100'}`}
-                                style={{
-                                  height: `${completedHeightPx}px`,
-                                  width: '14px',
-                                  background: 'linear-gradient(180deg, #34d399 0%, #059669 100%)',
-                                  boxShadow: '0 2px 8px -2px rgba(5, 150, 105, 0.3)'
-                                }}
-                              />
-                            </div>
+                              className={`rounded-t-md transition-all duration-300 cursor-pointer ${isCurrentMonth ? '' : 'opacity-80 hover:opacity-100'}`}
+                              style={{
+                                height: `${completedHeightPx}px`,
+                                width: '100%',
+                                maxWidth: '36px',
+                                background: isAboveGoal
+                                  ? 'linear-gradient(180deg, #34d399 0%, #059669 100%)'
+                                  : 'linear-gradient(180deg, #60a5fa 0%, #2563eb 100%)',
+                                boxShadow: '0 2px 8px -2px rgba(0,0,0,0.15)'
+                              }}
+                            />
                           </div>
                         );
                       })}
@@ -1728,15 +1715,15 @@ export const PracticeAnalysis: React.FC = () => {
                 </div>
 
                 {/* Month labels */}
-                <div className="flex mt-3 pl-10">
-                  <div className="flex-1 flex justify-around gap-1 px-2">
+                <div className="flex mt-3 pl-12">
+                  <div className="flex-1 flex justify-around gap-1 px-4">
                     {SESSIONS_DATA.map((item, idx) => {
                       const isCurrentMonth = idx === SESSIONS_DATA.length - 1;
                       return (
                         <div
                           key={item.month}
                           className="flex-1 text-center"
-                          style={{ maxWidth: '60px' }}
+                          style={{ maxWidth: '50px' }}
                         >
                           <span className={`text-xs font-semibold ${isCurrentMonth ? 'text-stone-900' : 'text-stone-500'}`}>
                             {item.month}
@@ -1744,6 +1731,18 @@ export const PracticeAnalysis: React.FC = () => {
                         </div>
                       );
                     })}
+                  </div>
+                </div>
+
+                {/* Legend */}
+                <div className="flex items-center justify-center gap-4 mt-6 pt-4 border-t border-stone-100">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-sm bg-gradient-to-b from-blue-500 to-blue-700" />
+                    <span className="text-stone-600 text-sm">Below Goal</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-sm bg-gradient-to-b from-emerald-400 to-emerald-600" />
+                    <span className="text-stone-600 text-sm">Goal Met</span>
                   </div>
                 </div>
               </div>
