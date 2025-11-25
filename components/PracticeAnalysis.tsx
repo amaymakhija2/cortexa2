@@ -1501,87 +1501,49 @@ export const PracticeAnalysis: React.FC = () => {
 
             {/* Hero Stats Row */}
             <div className="grid grid-cols-4 gap-6">
-              {/* Sessions Overview - Primary Card with Completed & Booked */}
+              {/* This Month's Sessions - Hero Card */}
               <div
-                className="col-span-2 rounded-3xl p-8 relative overflow-hidden"
+                className="rounded-3xl p-8 relative overflow-hidden"
                 style={{
-                  background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
-                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
+                  background: 'linear-gradient(145deg, #ffffff 0%, #fafaf9 50%, #f5f5f4 100%)',
+                  boxShadow: '0 8px 32px -4px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.03)'
                 }}
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    {/* Completed & Booked Sessions Side by Side */}
-                    <div className="flex gap-8">
-                      {/* Completed Sessions */}
-                      <div className="flex-1">
-                        <p className="text-emerald-600 text-sm font-bold uppercase tracking-widest mb-3">Completed Sessions</p>
-                        <div className="flex items-baseline gap-2">
-                          <span
-                            className="text-emerald-700 font-bold"
-                            style={{ fontSize: '3.5rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
-                          >
-                            {SESSIONS_DATA[SESSIONS_DATA.length - 1]?.completed}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 mt-3">
-                          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-100">
-                            <svg className="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                            </svg>
-                            <span className="text-emerald-700 font-bold text-sm">
-                              {(((SESSIONS_DATA[SESSIONS_DATA.length - 1]?.completed - SESSIONS_DATA[SESSIONS_DATA.length - 2]?.completed) / SESSIONS_DATA[SESSIONS_DATA.length - 2]?.completed) * 100).toFixed(1)}%
-                            </span>
-                          </div>
-                          <span className="text-stone-400 text-xs">vs last month</span>
-                        </div>
-                      </div>
+                {/* Decorative accent */}
+                <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-emerald-400 via-cyan-500 to-emerald-500 rounded-l-3xl" />
 
-                      {/* Divider */}
-                      <div className="w-px bg-stone-200 self-stretch my-1" />
+                <div className="pl-3">
+                  <p className="text-stone-400 text-xs font-bold uppercase tracking-[0.2em] mb-4">This Month · {SESSIONS_DATA[SESSIONS_DATA.length - 1]?.month}</p>
 
-                      {/* Booked Sessions */}
-                      <div className="flex-1">
-                        <p className="text-stone-500 text-sm font-bold uppercase tracking-widest mb-3">Booked Sessions</p>
-                        <div className="flex items-baseline gap-2">
-                          <span
-                            className="text-stone-900 font-bold"
-                            style={{ fontSize: '3.5rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
-                          >
-                            {SESSIONS_DATA[SESSIONS_DATA.length - 1]?.booked}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 mt-3">
-                          <div className="px-2.5 py-1 rounded-full bg-cyan-100">
-                            <span className="text-cyan-700 font-bold text-sm">
-                              {((SESSIONS_DATA[SESSIONS_DATA.length - 1]?.completed / SESSIONS_DATA[SESSIONS_DATA.length - 1]?.booked) * 100).toFixed(1)}% completion
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                  <div className="flex items-baseline gap-2">
+                    <span
+                      className="text-stone-900 font-bold tracking-tight"
+                      style={{ fontSize: '3.5rem', lineHeight: 0.9, fontFamily: "'DM Serif Display', Georgia, serif" }}
+                    >
+                      {SESSIONS_DATA[SESSIONS_DATA.length - 1]?.completed}
+                    </span>
+                    <span className="text-emerald-600 text-sm font-bold uppercase">Completed</span>
                   </div>
+                  <p className="text-stone-400 text-sm mt-2">of {SESSIONS_DATA[SESSIONS_DATA.length - 1]?.booked} booked</p>
 
-                  {/* Show Rate Ring */}
-                  <div className="relative w-28 h-28 ml-6">
-                    <svg className="w-full h-full transform -rotate-90">
-                      <circle cx="56" cy="56" r="48" fill="none" stroke="#e7e5e4" strokeWidth="8" />
-                      <circle
-                        cx="56" cy="56" r="48" fill="none" stroke="url(#showRateGradient)" strokeWidth="8"
-                        strokeLinecap="round"
-                        strokeDasharray={`${(SESSIONS_DATA[SESSIONS_DATA.length - 1]?.completed / SESSIONS_DATA[SESSIONS_DATA.length - 1]?.booked) * 301.6} 301.6`}
-                      />
-                      <defs>
-                        <linearGradient id="showRateGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                          <stop offset="0%" stopColor="#0891b2" />
-                          <stop offset="100%" stopColor="#06b6d4" />
-                        </linearGradient>
-                      </defs>
-                    </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-stone-900 text-2xl font-bold">{((SESSIONS_DATA[SESSIONS_DATA.length - 1]?.completed / SESSIONS_DATA[SESSIONS_DATA.length - 1]?.booked) * 100).toFixed(0)}%</span>
-                      <span className="text-stone-500 text-xs">show rate</span>
-                    </div>
+                  {/* Month over Month Change */}
+                  <div className="mt-4">
+                    {(() => {
+                      const current = SESSIONS_DATA[SESSIONS_DATA.length - 1]?.completed;
+                      const previous = SESSIONS_DATA[SESSIONS_DATA.length - 2]?.completed;
+                      const change = ((current - previous) / previous * 100);
+                      const isPositive = change >= 0;
+                      return (
+                        <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full ${isPositive ? 'bg-emerald-50 border border-emerald-200' : 'bg-rose-50 border border-rose-200'}`}>
+                          <svg className={`w-3.5 h-3.5 ${isPositive ? 'text-emerald-500' : 'text-rose-500 rotate-180'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                          </svg>
+                          <span className={`font-bold text-sm ${isPositive ? 'text-emerald-700' : 'text-rose-700'}`}>
+                            {isPositive ? '+' : ''}{change.toFixed(1)}%
+                          </span>
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
               </div>
@@ -1590,36 +1552,54 @@ export const PracticeAnalysis: React.FC = () => {
               <div
                 className="rounded-3xl p-8 relative overflow-hidden"
                 style={{
-                  background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
+                  background: 'linear-gradient(145deg, #ffffff 0%, #fafaf9 100%)',
                   boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
                 }}
               >
-                <p className="text-stone-500 text-sm font-bold uppercase tracking-widest mb-4">Avg Monthly</p>
+                <p className="text-stone-400 text-xs font-bold uppercase tracking-[0.2em] mb-4">Avg Monthly</p>
                 <span
-                  className="text-stone-900 font-bold block"
+                  className="text-stone-900 font-bold block tracking-tight"
                   style={{ fontSize: '3rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
                   {Math.round(SESSIONS_DATA.reduce((sum, item) => sum + item.completed, 0) / SESSIONS_DATA.length).toLocaleString()}
                 </span>
-                <p className="text-stone-500 text-sm mt-3">sessions per month</p>
+                <p className="text-stone-500 text-sm mt-3">completed sessions</p>
               </div>
 
               {/* Avg Weekly Sessions */}
               <div
                 className="rounded-3xl p-8 relative overflow-hidden"
                 style={{
-                  background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
+                  background: 'linear-gradient(145deg, #ffffff 0%, #fafaf9 100%)',
                   boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
                 }}
               >
-                <p className="text-stone-500 text-sm font-bold uppercase tracking-widest mb-4">Avg Weekly</p>
+                <p className="text-stone-400 text-xs font-bold uppercase tracking-[0.2em] mb-4">Avg Weekly</p>
                 <span
-                  className="text-stone-900 font-bold block"
+                  className="text-stone-900 font-bold block tracking-tight"
                   style={{ fontSize: '3rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
-                  {(SESSIONS_DATA.reduce((sum, item) => sum + item.completed, 0) / SESSIONS_DATA.length / 4.33).toFixed(0)}
+                  {Math.round(SESSIONS_DATA.reduce((sum, item) => sum + item.completed, 0) / SESSIONS_DATA.length / 4.33)}
                 </span>
                 <p className="text-stone-500 text-sm mt-3">sessions per week</p>
+              </div>
+
+              {/* Avg Sessions per Client */}
+              <div
+                className="rounded-3xl p-8 relative overflow-hidden"
+                style={{
+                  background: 'linear-gradient(145deg, #ffffff 0%, #fafaf9 100%)',
+                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
+                }}
+              >
+                <p className="text-stone-400 text-xs font-bold uppercase tracking-[0.2em] mb-4">Per Client</p>
+                <span
+                  className="text-stone-900 font-bold block tracking-tight"
+                  style={{ fontSize: '3rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  {(SESSIONS_DATA.reduce((sum, item) => sum + item.completed, 0) / SESSIONS_DATA.reduce((sum, item) => sum + item.clients, 0)).toFixed(1)}
+                </span>
+                <p className="text-stone-500 text-sm mt-3">avg sessions/client</p>
               </div>
             </div>
 
