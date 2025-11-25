@@ -1,6 +1,6 @@
 import React from "react"
 import { motion } from "framer-motion"
-import { ArrowRight, Sparkles } from "lucide-react"
+import { ArrowRight, Sparkles, AlertTriangle, TrendingUp, Clock } from "lucide-react"
 
 interface PriorityTaskProps {
   index: number
@@ -22,21 +22,33 @@ interface PriorityTaskProps {
 const statusConfig = {
   critical: {
     label: "Urgent",
-    color: "#dc2626",
+    color: "#b91c1c",
     colorLight: "#fef2f2",
-    gradient: "from-red-500 to-rose-600"
+    colorMuted: "#fca5a5",
+    gradient: "from-red-600 to-rose-700",
+    icon: AlertTriangle,
+    accentBorder: "border-l-red-500",
+    topBar: "from-red-500 to-rose-600"
   },
   warning: {
     label: "Attention",
-    color: "#d97706",
+    color: "#b45309",
     colorLight: "#fffbeb",
-    gradient: "from-amber-500 to-orange-500"
+    colorMuted: "#fcd34d",
+    gradient: "from-amber-500 to-orange-600",
+    icon: Clock,
+    accentBorder: "border-l-amber-500",
+    topBar: "from-amber-500 to-orange-500"
   },
   good: {
     label: "Opportunity",
-    color: "#059669",
+    color: "#047857",
     colorLight: "#ecfdf5",
-    gradient: "from-emerald-500 to-teal-500"
+    colorMuted: "#6ee7b7",
+    gradient: "from-emerald-500 to-teal-600",
+    icon: TrendingUp,
+    accentBorder: "border-l-emerald-500",
+    topBar: "from-emerald-500 to-teal-500"
   }
 }
 
@@ -96,6 +108,7 @@ export const PriorityTaskCard: React.FC<PriorityTaskProps> = ({
   chartData2,
 }) => {
   const config = statusConfig[status]
+  const StatusIcon = config.icon
 
   // Extract the key metric
   const getMetric = () => {
@@ -125,64 +138,99 @@ export const PriorityTaskCard: React.FC<PriorityTaskProps> = ({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.08, duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-      className="h-full"
+      transition={{ delay: index * 0.1, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      className="h-full group"
     >
-      <div className="h-full bg-white rounded-[28px] shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col">
+      <div className="h-full bg-white rounded-[28px] shadow-[0_2px_8px_rgba(0,0,0,0.06),0_8px_32px_rgba(0,0,0,0.08)] overflow-hidden flex flex-col border border-stone-200 hover:shadow-[0_4px_12px_rgba(0,0,0,0.08),0_16px_48px_rgba(0,0,0,0.1)] transition-shadow duration-500">
 
-        {/* Top color bar */}
-        <div className={`h-1.5 bg-gradient-to-r ${config.gradient}`} />
+        {/* Bold top color bar for instant recognition */}
+        <div className={`h-2 bg-gradient-to-r ${config.topBar}`} />
 
-        <div className="flex flex-col h-full p-8">
+        <div className="flex flex-col h-full">
 
-          {/* Header: Status + Metric */}
-          <div className="flex items-start justify-between mb-6">
-            <div>
-              <div className="flex items-center gap-3 mb-3">
-                <span
-                  className="text-xs font-bold uppercase tracking-[0.2em]"
-                  style={{ color: config.color }}
-                >
-                  {config.label}
-                </span>
-                {dueToday && (
-                  <>
-                    <span className="w-1 h-1 rounded-full bg-stone-300" />
-                    <span className="text-xs font-medium text-stone-400 uppercase tracking-wider">Today</span>
-                  </>
-                )}
-              </div>
-              <h2 className="text-2xl font-bold text-stone-900 leading-tight">
-                {title}
-              </h2>
-              <p className="text-base text-stone-500 mt-1">
-                {description}
-              </p>
-            </div>
-
-            {/* Hero Metric */}
-            {metric && (
-              <div className="text-right flex-shrink-0 pl-6">
-                <div className="flex items-baseline justify-end gap-2">
+          {/* Top Section: Compact Header with Status + Title + Metric */}
+          <div className="px-8 pt-6 pb-5 border-b border-stone-100">
+            <div className="flex items-start justify-between gap-6">
+              <div className="flex-1 min-w-0">
+                {/* Status Badge */}
+                <div className="flex items-center gap-2.5 mb-3">
+                  <div
+                    className="w-7 h-7 rounded-lg flex items-center justify-center"
+                    style={{ backgroundColor: config.colorLight }}
+                  >
+                    <StatusIcon className="w-4 h-4" style={{ color: config.color }} />
+                  </div>
                   <span
-                    className="text-5xl font-black tracking-tight tabular-nums"
+                    className="text-[11px] font-bold uppercase tracking-[0.15em]"
                     style={{ color: config.color }}
                   >
-                    {metric.value}
+                    {config.label}
                   </span>
-                  {metric.change && (
-                    <span className="text-lg font-bold text-red-500">{metric.change}</span>
+                  {dueToday && (
+                    <>
+                      <span className="w-1 h-1 rounded-full bg-stone-300" />
+                      <span className="text-[11px] font-semibold text-stone-400 uppercase tracking-wider">Today</span>
+                    </>
                   )}
                 </div>
-                <span className="text-sm text-stone-400 font-medium">{metric.label}</span>
+
+                {/* Title & Description */}
+                <h2 className="text-xl font-semibold text-stone-900 leading-snug tracking-tight">
+                  {title}
+                </h2>
+                <p className="text-sm text-stone-500 mt-1 font-medium">
+                  {description}
+                </p>
               </div>
-            )}
+
+              {/* Hero Metric - Compact */}
+              {metric && (
+                <div className="text-right flex-shrink-0">
+                  <div className="flex items-baseline justify-end gap-1.5">
+                    <span
+                      className="text-4xl font-black tracking-tight tabular-nums"
+                      style={{ color: config.color }}
+                    >
+                      {metric.value}
+                    </span>
+                    {metric.change && (
+                      <span className="text-sm font-bold text-red-500">{metric.change}</span>
+                    )}
+                  </div>
+                  <span className="text-xs text-stone-400 font-medium">{metric.label}</span>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Visualization Area */}
-          <div className="flex-1 min-h-0 py-4">
+          {/* HERO: AI Insight - The Main Event */}
+          <div className="px-8 py-5 bg-stone-50 border-y border-stone-100">
+            <div className={`relative pl-5 border-l-[3px] ${config.accentBorder}`}>
+              <motion.div
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.1 + 0.2, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <div className="flex items-center gap-2 mb-2.5">
+                  <Sparkles className="w-3.5 h-3.5 text-violet-500" />
+                  <span className="text-[10px] font-bold text-violet-600 uppercase tracking-[0.15em]">
+                    AI Insight
+                  </span>
+                </div>
+                <p
+                  className="text-[15px] text-stone-700 leading-[1.65]"
+                  style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}
+                >
+                  {aiGuidance}
+                </p>
+              </motion.div>
+            </div>
+          </div>
+
+          {/* Visualization Area - Compact */}
+          <div className="flex-1 min-h-0 px-8 py-4 overflow-hidden">
 
             {/* RETENTION: Clean session matrix */}
             {type === "retention" && retentionData && (
@@ -336,32 +384,25 @@ export const PriorityTaskCard: React.FC<PriorityTaskProps> = ({
             )}
           </div>
 
-          {/* AI Insight */}
-          <div className="pt-5 border-t border-stone-100 mt-auto">
-            <div className="flex gap-4">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center flex-shrink-0">
-                <Sparkles className="w-4 h-4 text-white" />
-              </div>
-              <p className="text-[15px] text-stone-600 leading-relaxed">
-                {aiGuidance}
-              </p>
-            </div>
+          {/* Action Button - Refined */}
+          <div className="px-8 pb-7 pt-4 mt-auto">
+            <button
+              className={`
+                w-full py-4 px-6
+                bg-gradient-to-r ${config.gradient}
+                hover:brightness-110 active:brightness-95
+                text-white text-[15px] font-semibold
+                rounded-2xl
+                transition-all duration-300
+                flex items-center justify-center gap-2.5
+                shadow-lg shadow-stone-900/10
+                group
+              `}
+            >
+              {action}
+              <ArrowRight className="w-5 h-5 opacity-80 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300" />
+            </button>
           </div>
-
-          {/* Action Button */}
-          <button className="
-            mt-6 w-full py-4
-            bg-stone-900 hover:bg-stone-800 active:bg-stone-950
-            text-white text-base font-semibold
-            rounded-2xl
-            transition-all duration-200
-            flex items-center justify-center gap-2
-            group
-            shadow-lg shadow-stone-900/10
-          ">
-            {action}
-            <ArrowRight className="w-5 h-5 opacity-70 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
-          </button>
         </div>
       </div>
     </motion.div>
