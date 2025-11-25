@@ -7,32 +7,37 @@ import { PracticeMetrics } from '../types';
 
 const INITIAL_METRICS: PracticeMetrics = {
   revenue: {
-    label: "December Revenue",
+    label: "Revenue",
     value: "$153.4k",
+    valueLabel: "",
     subtext: "$160.0k goal, 96% complete",
     status: "Needs attention"
   },
   sessions: {
-    label: "December Sessions",
-    value: "698 sessions",
+    label: "Sessions",
+    value: "698",
+    valueLabel: "completed sessions",
     subtext: "82% capacity · 18 open slots",
     status: "Healthy"
   },
   clientGrowth: {
-    label: "Client Overview",
-    value: "156 active clients",
-    subtext: "+17 new this month\n-5 churned this month",
+    label: "Clients",
+    value: "156",
+    valueLabel: "active clients",
+    subtext: "+17 new · -5 churned",
     status: "Healthy"
   },
   attendance: {
-    label: "Client Attendance",
-    value: "68% rebook rate",
-    subtext: "8.9% cancel rate, 2% no show rate",
+    label: "Attendance",
+    value: "68%",
+    valueLabel: "rebook rate",
+    subtext: "8.9% cancel · 2% no show",
     status: "Needs attention"
   },
   compliance: {
-    label: "Admin & compliance",
-    value: "12 unsigned notes",
+    label: "Compliance",
+    value: "12",
+    valueLabel: "unsigned notes",
     subtext: "Goal: 0 · 3 clinicians affected",
     status: "Critical"
   }
@@ -43,9 +48,8 @@ export const Dashboard: React.FC = () => {
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
   const [viewMode, setViewMode] = useState<'live' | 'historical'>('live');
-  const [selectedMonth, setSelectedMonth] = useState('January');
+  const [selectedMonth, setSelectedMonth] = useState('December');
   const [selectedYear, setSelectedYear] = useState('2025');
-  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
   const totalCards = 4;
 
@@ -76,7 +80,6 @@ export const Dashboard: React.FC = () => {
   };
 
   const priorityCards = [
-    // Card 1: Client Retention Alert
     <PriorityTaskCard
       key="retention"
       index={1}
@@ -89,81 +92,14 @@ export const Dashboard: React.FC = () => {
       dueToday={true}
       type="retention"
       retentionData={[
-        {
-          id: "Sarah M.",
-          acquiredMonth: "June",
-          sessions: [
-            { month: "Jun", count: 3 },
-            { month: "Jul", count: 2 },
-            { month: "Aug", count: 0 },
-            { month: "Sep", count: 0 },
-          ],
-          dropped: true,
-          droppedAfter: "Jul"
-        },
-        {
-          id: "James T.",
-          acquiredMonth: "June",
-          sessions: [
-            { month: "Jun", count: 4 },
-            { month: "Jul", count: 3 },
-            { month: "Aug", count: 2 },
-            { month: "Sep", count: 3 },
-          ],
-          dropped: false,
-          droppedAfter: null
-        },
-        {
-          id: "Maria G.",
-          acquiredMonth: "June",
-          sessions: [
-            { month: "Jun", count: 2 },
-            { month: "Jul", count: 0 },
-            { month: "Aug", count: 0 },
-            { month: "Sep", count: 0 },
-          ],
-          dropped: true,
-          droppedAfter: "Jun"
-        },
-        {
-          id: "Alex K.",
-          acquiredMonth: "July",
-          sessions: [
-            { month: "Jun", count: 0 },
-            { month: "Jul", count: 4 },
-            { month: "Aug", count: 3 },
-            { month: "Sep", count: 3 },
-          ],
-          dropped: false,
-          droppedAfter: null
-        },
-        {
-          id: "Emma R.",
-          acquiredMonth: "July",
-          sessions: [
-            { month: "Jun", count: 0 },
-            { month: "Jul", count: 2 },
-            { month: "Aug", count: 0 },
-            { month: "Sep", count: 0 },
-          ],
-          dropped: true,
-          droppedAfter: "Jul"
-        },
-        {
-          id: "David L.",
-          acquiredMonth: "August",
-          sessions: [
-            { month: "Jun", count: 0 },
-            { month: "Jul", count: 0 },
-            { month: "Aug", count: 3 },
-            { month: "Sep", count: 0 },
-          ],
-          dropped: true,
-          droppedAfter: "Aug"
-        },
+        { id: "Sarah M.", acquiredMonth: "June", sessions: [{ month: "Jun", count: 3 }, { month: "Jul", count: 2 }, { month: "Aug", count: 0 }, { month: "Sep", count: 0 }], dropped: true, droppedAfter: "Jul" },
+        { id: "James T.", acquiredMonth: "June", sessions: [{ month: "Jun", count: 4 }, { month: "Jul", count: 3 }, { month: "Aug", count: 2 }, { month: "Sep", count: 3 }], dropped: false, droppedAfter: null },
+        { id: "Maria G.", acquiredMonth: "June", sessions: [{ month: "Jun", count: 2 }, { month: "Jul", count: 0 }, { month: "Aug", count: 0 }, { month: "Sep", count: 0 }], dropped: true, droppedAfter: "Jun" },
+        { id: "Alex K.", acquiredMonth: "July", sessions: [{ month: "Jun", count: 0 }, { month: "Jul", count: 4 }, { month: "Aug", count: 3 }, { month: "Sep", count: 3 }], dropped: false, droppedAfter: null },
+        { id: "Emma R.", acquiredMonth: "July", sessions: [{ month: "Jun", count: 0 }, { month: "Jul", count: 2 }, { month: "Aug", count: 0 }, { month: "Sep", count: 0 }], dropped: true, droppedAfter: "Jul" },
+        { id: "David L.", acquiredMonth: "August", sessions: [{ month: "Jun", count: 0 }, { month: "Jul", count: 0 }, { month: "Aug", count: 3 }, { month: "Sep", count: 0 }], dropped: true, droppedAfter: "Aug" },
       ]}
     />,
-    // Card 2: Cancellation Spike
     <PriorityTaskCard
       key="cancellations"
       index={2}
@@ -189,7 +125,6 @@ export const Dashboard: React.FC = () => {
         { name: "Johnson", cancellations: 2, isSpike: false },
       ]}
     />,
-    // Card 3: Accounts Receivable
     <PriorityTaskCard
       key="ar"
       index={3}
@@ -202,57 +137,16 @@ export const Dashboard: React.FC = () => {
       dueToday={true}
       type="accounts-receivable"
       accountsReceivableData={[
-        {
-          client: "Jennifer Martinez",
-          clinician: "Chen",
-          amount: 1850,
-          daysOutstanding: 42
-        },
-        {
-          client: "Robert Thompson",
-          clinician: "Chen",
-          amount: 1200,
-          daysOutstanding: 35
-        },
-        {
-          client: "Emily Davis",
-          clinician: "Rodriguez",
-          amount: 950,
-          daysOutstanding: 28
-        },
-        {
-          client: "Michael Brown",
-          clinician: "Rodriguez",
-          amount: 1450,
-          daysOutstanding: 24
-        },
-        {
-          client: "Sarah Johnson",
-          clinician: "Kim",
-          amount: 800,
-          daysOutstanding: 21
-        },
-        {
-          client: "David Wilson",
-          clinician: "Kim",
-          amount: 1150,
-          daysOutstanding: 18
-        },
-        {
-          client: "Lisa Anderson",
-          clinician: "Johnson",
-          amount: 1300,
-          daysOutstanding: 16
-        },
-        {
-          client: "James Taylor",
-          clinician: "Patel",
-          amount: 750,
-          daysOutstanding: 14
-        },
+        { client: "Jennifer Martinez", clinician: "Chen", amount: 1850, daysOutstanding: 42 },
+        { client: "Robert Thompson", clinician: "Chen", amount: 1200, daysOutstanding: 35 },
+        { client: "Emily Davis", clinician: "Rodriguez", amount: 950, daysOutstanding: 28 },
+        { client: "Michael Brown", clinician: "Rodriguez", amount: 1450, daysOutstanding: 24 },
+        { client: "Sarah Johnson", clinician: "Kim", amount: 800, daysOutstanding: 21 },
+        { client: "David Wilson", clinician: "Kim", amount: 1150, daysOutstanding: 18 },
+        { client: "Lisa Anderson", clinician: "Johnson", amount: 1300, daysOutstanding: 16 },
+        { client: "James Taylor", clinician: "Patel", amount: 750, daysOutstanding: 14 },
       ]}
     />,
-    // Card 4: Open Slots
     <PriorityTaskCard
       key="slots"
       index={4}
@@ -275,142 +169,159 @@ export const Dashboard: React.FC = () => {
   ];
 
   return (
-    <div className="flex-1 p-8 pt-2 flex flex-col h-[calc(100vh-80px)] overflow-hidden">
+    <div className="flex-1 p-8 pt-6 flex flex-col h-[calc(100vh-80px)] overflow-hidden bg-gradient-to-br from-stone-50 via-orange-50/20 to-stone-100/50">
 
-      {/* Title Section with Toggle */}
-      <div className="mb-6 flex-shrink-0 flex items-center justify-between">
-        <h1 className="text-4xl font-normal text-gray-900 tracking-tight">Monthly Practice Review</h1>
+      {/* Warm gradient overlay */}
+      <div
+        className="fixed inset-0 pointer-events-none"
+        style={{
+          background: 'radial-gradient(ellipse at top, rgba(251, 191, 36, 0.03) 0%, transparent 50%)',
+        }}
+      />
 
-        {/* Live/Historical Toggle */}
-        <div className="flex items-center gap-3">
-          <div className="bg-gradient-to-b from-white via-white to-white/95 rounded-full p-1.5 shadow-lg ring-1 ring-slate-200/50 flex items-center gap-1"
-            style={{
-              boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.1), inset 0 1px 0 0 rgba(255, 255, 255, 0.8)'
-            }}
-          >
-            <button
-              onClick={() => {
-                setViewMode('live');
-                setIsDatePickerOpen(false);
-              }}
-              className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 ${
-                viewMode === 'live'
-                  ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 text-white shadow-xl'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-              style={viewMode === 'live' ? {
-                boxShadow: '0 8px 30px -8px rgba(0, 0, 0, 0.3), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)'
-              } : undefined}
-            >
-              Live
-            </button>
-            <button
-              onClick={() => {
-                setViewMode('historical');
-                setIsDatePickerOpen(true);
-              }}
-              className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 ${
-                viewMode === 'historical'
-                  ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 text-white shadow-xl'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-              style={viewMode === 'historical' ? {
-                boxShadow: '0 8px 30px -8px rgba(0, 0, 0, 0.3), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)'
-              } : undefined}
-            >
-              Historical
-            </button>
-          </div>
+      {/* Header Section - Simplified */}
+      <div className="mb-8 flex-shrink-0 relative">
+        <div className="flex items-start justify-between">
+          <h1 className="text-4xl font-light text-stone-900 tracking-tight" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+            December Practice Review
+          </h1>
 
-          {/* Month/Year Selector */}
-          {viewMode === 'historical' && (
-            <div className="flex items-center gap-2 bg-gradient-to-b from-white via-white to-white/95 rounded-2xl p-3 shadow-lg ring-1 ring-slate-200/50"
-              style={{
-                boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.1), inset 0 1px 0 0 rgba(255, 255, 255, 0.8)'
-              }}
-            >
-              <select
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(e.target.value)}
-                className="bg-transparent text-sm font-semibold text-gray-900 border-none outline-none cursor-pointer pr-2"
+          {/* Mode Toggle */}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center p-1 rounded-full bg-stone-100 border border-stone-200/60">
+              <button
+                onClick={() => setViewMode('live')}
+                className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+                  viewMode === 'live'
+                    ? 'bg-stone-900 text-white shadow-sm'
+                    : 'text-stone-500 hover:text-stone-700'
+                }`}
               >
-                {months.map((month) => (
-                  <option key={month} value={month}>{month}</option>
-                ))}
-              </select>
-              <span className="text-gray-400">|</span>
-              <select
-                value={selectedYear}
-                onChange={(e) => setSelectedYear(e.target.value)}
-                className="bg-transparent text-sm font-semibold text-gray-900 border-none outline-none cursor-pointer"
+                Live
+              </button>
+              <button
+                onClick={() => setViewMode('historical')}
+                className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+                  viewMode === 'historical'
+                    ? 'bg-stone-900 text-white shadow-sm'
+                    : 'text-stone-500 hover:text-stone-700'
+                }`}
               >
-                {years.map((year) => (
-                  <option key={year} value={year}>{year}</option>
-                ))}
-              </select>
+                Historical
+              </button>
             </div>
-          )}
+
+            {viewMode === 'historical' && (
+              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-stone-100 border border-stone-200/60">
+                <select
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(e.target.value)}
+                  className="bg-transparent text-sm font-medium text-stone-700 border-none outline-none cursor-pointer appearance-none"
+                >
+                  {months.map((month) => (
+                    <option key={month} value={month}>{month}</option>
+                  ))}
+                </select>
+                <span className="text-stone-300">·</span>
+                <select
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(e.target.value)}
+                  className="bg-transparent text-sm font-medium text-stone-700 border-none outline-none cursor-pointer appearance-none"
+                >
+                  {years.map((year) => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Main Layout */}
-      <div className="flex flex-col gap-6 flex-1 min-h-0">
-          <div className="flex-shrink-0">
-            <MetricsRow metrics={metrics} />
-          </div>
+      <div className="flex flex-col gap-8 flex-1 min-h-0">
+        {/* Metrics Row */}
+        <div className="flex-shrink-0">
+          <MetricsRow metrics={metrics} />
+        </div>
 
-          {/* Priority Tasks and Key Insights Section */}
-          <div className="flex flex-col gap-4 flex-1 min-h-0">
-            <div className="flex items-center justify-between flex-shrink-0">
-              <h2 className="text-2xl font-semibold text-gray-900">Priority Tasks and Key Insights</h2>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handlePrevious}
-                  disabled={currentCardIndex === 0}
-                  className="p-2 rounded-full bg-white hover:bg-gray-100 border border-gray-200 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                  aria-label="Previous card"
-                >
-                  <ChevronLeft size={20} className="text-gray-700" />
-                </button>
-                <span className="text-sm text-gray-600 min-w-[60px] text-center">
-                  {currentCardIndex + 1} / {totalCards}
-                </span>
-                <button
-                  onClick={handleNext}
-                  disabled={currentCardIndex === totalCards - 1}
-                  className="p-2 rounded-full bg-white hover:bg-gray-100 border border-gray-200 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                  aria-label="Next card"
-                >
-                  <ChevronRight size={20} className="text-gray-700" />
-                </button>
-              </div>
-            </div>
-            <div className="relative flex-1 min-h-0 overflow-hidden">
-              <div
-                ref={scrollContainerRef}
-                className="flex gap-4 h-full overflow-x-auto overflow-y-hidden snap-x snap-mandatory scrollbar-hide"
-                style={{
-                  scrollbarWidth: 'none',
-                  msOverflowStyle: 'none',
-                }}
-              >
-                {priorityCards.map((card, index) => (
-                  <div
-                    key={index}
-                    className="snap-start flex-shrink-0 h-full"
-                    style={{
-                      width: 'calc(66.666% - 10px)',
-                      minWidth: 'calc(66.666% - 10px)'
+        {/* Priority Tasks Section */}
+        <div className="flex flex-col gap-5 flex-1 min-h-0">
+          <div className="flex items-center justify-between flex-shrink-0">
+            <h2 className="text-xl font-medium text-stone-800 tracking-tight">
+              Priority Tasks
+              <span className="ml-3 text-sm font-normal text-stone-400">
+                {totalCards} items
+              </span>
+            </h2>
+
+            {/* Navigation */}
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1.5 mr-3">
+                {Array.from({ length: totalCards }).map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => {
+                      setCurrentCardIndex(idx);
+                      scrollToCard(idx);
                     }}
-                  >
-                    {card}
-                  </div>
+                    className={`transition-all duration-300 rounded-full ${
+                      currentCardIndex === idx
+                        ? 'w-6 h-1.5 bg-stone-800'
+                        : 'w-1.5 h-1.5 bg-stone-300 hover:bg-stone-400'
+                    }`}
+                    aria-label={`Go to card ${idx + 1}`}
+                  />
                 ))}
               </div>
+              <button
+                onClick={handlePrevious}
+                disabled={currentCardIndex === 0}
+                className="w-9 h-9 rounded-full bg-white border border-stone-200 flex items-center justify-center transition-all hover:border-stone-300 hover:shadow-sm disabled:opacity-30 disabled:cursor-not-allowed"
+                aria-label="Previous card"
+              >
+                <ChevronLeft size={16} className="text-stone-600" />
+              </button>
+              <button
+                onClick={handleNext}
+                disabled={currentCardIndex === totalCards - 1}
+                className="w-9 h-9 rounded-full bg-white border border-stone-200 flex items-center justify-center transition-all hover:border-stone-300 hover:shadow-sm disabled:opacity-30 disabled:cursor-not-allowed"
+                aria-label="Next card"
+              >
+                <ChevronRight size={16} className="text-stone-600" />
+              </button>
             </div>
           </div>
-      </div>
 
+          {/* Cards Container */}
+          <div className="relative flex-1 min-h-0 overflow-hidden">
+            <div
+              ref={scrollContainerRef}
+              className="flex gap-5 h-full overflow-x-auto overflow-y-hidden snap-x snap-mandatory scrollbar-hide pb-2"
+              style={{
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+              }}
+            >
+              {priorityCards.map((card, index) => (
+                <div
+                  key={index}
+                  className="snap-start flex-shrink-0 h-full"
+                  style={{
+                    width: 'calc(66.666% - 10px)',
+                    minWidth: 'calc(66.666% - 10px)'
+                  }}
+                >
+                  {card}
+                </div>
+              ))}
+            </div>
+
+            {/* Fade edge */}
+            <div className="absolute right-0 top-0 bottom-2 w-20 bg-gradient-to-l from-stone-50 to-transparent pointer-events-none" />
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

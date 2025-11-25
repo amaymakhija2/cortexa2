@@ -2,6 +2,7 @@
 export interface MetricDetail {
   label: string;
   value: string;
+  valueLabel?: string;
   subtext: string;
   status: 'Healthy' | 'Needs attention' | 'Critical';
 }

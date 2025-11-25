@@ -1,84 +1,136 @@
 
 import React from 'react';
 import { PracticeMetrics, MetricDetail } from '../types';
-import { Info } from 'lucide-react';
+import { Info, DollarSign, Users, Calendar, UserCheck, FileText } from 'lucide-react';
 
-const StatusBadge: React.FC<{ status: MetricDetail['status'] }> = ({ status }) => {
-  const styles = {
-    'Healthy': 'bg-emerald-100 text-emerald-800 border-emerald-200',
-    'Needs attention': 'bg-amber-100 text-amber-800 border-amber-200',
-    'Critical': 'bg-rose-100 text-rose-800 border-rose-200',
+const StatusIndicator: React.FC<{ status: MetricDetail['status'] }> = ({ status }) => {
+  const configs = {
+    'Healthy': { color: 'bg-emerald-500', label: 'On Track' },
+    'Needs attention': { color: 'bg-amber-500', label: 'Monitor' },
+    'Critical': { color: 'bg-rose-500', label: 'Action Needed' },
   };
 
+  const config = configs[status];
+
   return (
-    <span className={`px-3 py-1 rounded-full text-xs uppercase tracking-wide font-bold border ${styles[status]}`}>
-      {status}
-    </span>
+    <div className="flex items-center gap-2.5">
+      <div className={`w-2.5 h-2.5 rounded-full ${config.color}`} />
+      <span className="text-sm font-medium text-stone-600">
+        {config.label}
+      </span>
+    </div>
   );
+};
+
+const getMetricIcon = (label: string) => {
+  const icons: Record<string, React.ReactNode> = {
+    'Revenue': <DollarSign size={22} strokeWidth={1.5} />,
+    'Sessions': <Calendar size={22} strokeWidth={1.5} />,
+    'Active Clients': <Users size={22} strokeWidth={1.5} />,
+    'Attendance': <UserCheck size={22} strokeWidth={1.5} />,
+    'Compliance': <FileText size={22} strokeWidth={1.5} />,
+  };
+  return icons[label] || <Info size={22} strokeWidth={1.5} />;
 };
 
 const getMetricTooltip = (label: string): { title: string; description: string } => {
   const tooltips: Record<string, { title: string; description: string }> = {
-    'December Revenue': {
-      title: 'Monthly Revenue Goal',
-      description: 'Track your current month\'s gross revenue against your monthly target. See how close you are to hitting your revenue goals and what percentage of your target you\'ve achieved.'
+    'Revenue': {
+      title: 'Monthly Revenue',
+      description: 'Track your current month\'s gross revenue against your monthly target.'
     },
-    'December Sessions': {
+    'Sessions': {
       title: 'Session Capacity',
-      description: 'Monitor your practice capacity utilization. Shows total completed sessions for the month, your current capacity percentage, and remaining open appointment slots.'
+      description: 'Total completed sessions for the month and remaining open slots.'
     },
-    'Client Overview': {
-      title: 'Client Growth Metrics',
-      description: 'Track your active client base size and monthly changes. See how many active clients you have, new client acquisitions, and client churn to understand your practice growth.'
+    'Active Clients': {
+      title: 'Client Growth',
+      description: 'Active client count with new acquisitions and churn this month.'
     },
-    'Client Attendance': {
-      title: 'Attendance & Retention',
-      description: 'Monitor client engagement and attendance patterns. Track rebook rates (clients scheduling follow-up appointments), cancellation rates, and no-show rates to identify retention opportunities.'
+    'Attendance': {
+      title: 'Attendance Rate',
+      description: 'Client rebook rate, cancellations, and no-shows.'
     },
-    'Admin & compliance': {
-      title: 'Administrative Compliance',
-      description: 'Stay on top of required administrative tasks. Shows outstanding items like unsigned session notes, overdue documentation, and which clinicians need attention to maintain compliance.'
+    'Compliance': {
+      title: 'Compliance Status',
+      description: 'Outstanding notes and documentation requiring attention.'
     }
   };
 
   return tooltips[label] || { title: label, description: 'Practice metric overview' };
 };
 
-const MetricCard: React.FC<{ data: MetricDetail }> = ({ data }) => {
+const MetricCard: React.FC<{ data: MetricDetail; index: number }> = ({ data, index }) => {
   const tooltip = getMetricTooltip(data.label);
+  const icon = getMetricIcon(data.label);
 
   return (
-    <div className="bg-gradient-to-br from-white via-white to-slate-50/20 p-6 rounded-2xl flex flex-col h-52 shadow-lg border border-white relative overflow-hidden group hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 ring-1 ring-slate-200/40"
+    <div
+      className="group relative bg-white/90 backdrop-blur-sm rounded-2xl flex flex-col h-52 transition-all duration-300 hover:bg-white hover:shadow-xl"
       style={{
-        boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)'
+        boxShadow: '0 1px 3px rgba(0,0,0,0.05), 0 4px 12px rgba(0,0,0,0.03)',
       }}
     >
-       {/* Subtle gradient overlay */}
-       <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+      {/* Border */}
+      <div className="absolute inset-0 rounded-2xl border border-stone-200/60 group-hover:border-stone-300 transition-colors duration-300" />
 
-       <div className="flex justify-between items-start mb-4 relative z-10">
-          <div className="flex items-center gap-2">
-            <span className="text-gray-700 text-sm font-bold uppercase tracking-wider">{data.label}</span>
-            <div className="group/tooltip relative z-[100000]">
-              <Info size={14} className="text-[#2d6e7e] cursor-help" />
-              <div className="absolute left-0 top-6 invisible group-hover/tooltip:visible opacity-0 group-hover/tooltip:opacity-100 transition-all duration-200 w-64 z-[100000]">
-                <div className="bg-gray-900 text-white text-xs rounded-lg p-3 shadow-xl">
-                  <p className="font-medium mb-1">{tooltip.title}</p>
-                  <p className="text-gray-300">{tooltip.description}</p>
-                  <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
-                </div>
+      {/* Status line */}
+      <div className={`absolute top-0 left-6 right-6 h-[3px] rounded-full ${
+        data.status === 'Healthy' ? 'bg-emerald-400' :
+        data.status === 'Needs attention' ? 'bg-amber-400' :
+        'bg-rose-400'
+      }`} />
+
+      {/* Content */}
+      <div className="flex-1 p-6 flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+              data.status === 'Healthy' ? 'bg-emerald-50 text-emerald-600' :
+              data.status === 'Needs attention' ? 'bg-amber-50 text-amber-600' :
+              'bg-rose-50 text-rose-600'
+            }`}>
+              {icon}
+            </div>
+            <span className="text-sm font-semibold text-stone-700 uppercase tracking-wide">{data.label}</span>
+          </div>
+
+          {/* Tooltip */}
+          <div className="group/tooltip relative z-[100000]">
+            <Info size={16} className="text-stone-300 hover:text-stone-400 cursor-help transition-colors" />
+            <div className="absolute right-0 top-6 invisible group-hover/tooltip:visible opacity-0 group-hover/tooltip:opacity-100 transition-all duration-200 w-56 z-[100000]">
+              <div className="bg-stone-900 text-white text-sm rounded-xl p-4 shadow-2xl">
+                <p className="font-semibold mb-1">{tooltip.title}</p>
+                <p className="text-stone-300 leading-relaxed text-xs">{tooltip.description}</p>
+                <div className="absolute -top-1.5 right-4 w-3 h-3 bg-stone-900 transform rotate-45" />
               </div>
             </div>
           </div>
-          <StatusBadge status={data.status} />
-       </div>
+        </div>
 
-       <div className="flex flex-col justify-end h-full pb-2 relative z-10">
-          <div className="text-4xl font-bold bg-gradient-to-br from-gray-900 to-gray-700 bg-clip-text text-transparent mb-3 tracking-tight">{data.value}</div>
-          <div className="text-sm text-gray-700 font-medium leading-relaxed whitespace-pre-line">
+        {/* Value */}
+        <div className="flex-1 flex flex-col justify-center">
+          <div className="flex items-baseline gap-2 mb-2">
+            <span className="text-4xl font-bold text-stone-900 tracking-tight">
+              {data.value}
+            </span>
+            {data.valueLabel && (
+              <span className="text-lg text-stone-500">
+                {data.valueLabel}
+              </span>
+            )}
+          </div>
+          <div className="text-base text-stone-500 leading-relaxed">
             {data.subtext}
           </div>
-       </div>
+        </div>
+
+        {/* Footer */}
+        <div className="pt-4 border-t border-stone-100">
+          <StatusIndicator status={data.status} />
+        </div>
+      </div>
     </div>
   );
 };
@@ -93,9 +145,9 @@ export const MetricsRow: React.FC<{ metrics: PracticeMetrics }> = ({ metrics }) 
   ];
 
   return (
-    <div className="grid grid-cols-5 gap-5 mb-6">
+    <div className="grid grid-cols-5 gap-5">
       {cards.map((metric, index) => (
-        <MetricCard key={index} data={metric} />
+        <MetricCard key={index} data={metric} index={index} />
       ))}
     </div>
   );
