@@ -229,6 +229,9 @@ export const PracticeAnalysis: React.FC = () => {
   const [hoveredHoursUtilization, setHoveredHoursUtilization] = useState<number | null>(null);
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('last-4-months');
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [hoveredDonutSegment, setHoveredDonutSegment] = useState<{ label: string; value: number; percent: number; color: string } | null>(null);
+  const [showClinicianBreakdown, setShowClinicianBreakdown] = useState(false);
+  const [hoveredClinicianBar, setHoveredClinicianBar] = useState<{ month: string; clinician: string; value: number; color: string } | null>(null);
   const [customStartDate, setCustomStartDate] = useState<Date | null>(new Date(2025, 0, 1)); // Jan 1, 2025
   const [customEndDate, setCustomEndDate] = useState<Date | null>(new Date(2025, 11, 31)); // Dec 31, 2025
   const [showClientBreakdown, setShowClientBreakdown] = useState(false);
@@ -641,155 +644,448 @@ export const PracticeAnalysis: React.FC = () => {
               </div>
             </div>
 
-            {/* Revenue Trend - Horizontal Bars */}
-            <div
-              className="rounded-3xl p-8"
-              style={{
-                background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
-                boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
-              }}
-            >
-              <div className="flex items-center justify-between mb-8">
-                <div>
-                  <p className="text-stone-500 text-sm font-bold uppercase tracking-widest mb-2">Monthly Trend</p>
-                  <h3 className="text-stone-900 text-2xl font-semibold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
-                    Revenue Performance
-                  </h3>
+            {/* Revenue Performance & Cost Breakdown - Side by Side */}
+            <div className="grid grid-cols-2 gap-6">
+              {/* Revenue Performance - Vertical Bar Chart */}
+              <div
+                className="rounded-3xl p-8 relative"
+                style={{
+                  background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
+                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)',
+                  minHeight: '520px'
+                }}
+              >
+                <div className="flex items-start justify-between mb-6">
+                  <div>
+                    <p className="text-stone-500 text-sm font-bold uppercase tracking-widest mb-2">Monthly Trend</p>
+                    <h3 className="text-stone-900 text-2xl font-semibold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                      Revenue Performance
+                    </h3>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {/* Hover tooltip for clinician breakdown - positioned within header area */}
+                    {hoveredClinicianBar && (
+                      <div
+                        className="px-3 py-2 rounded-lg shadow-xl pointer-events-none animate-pulse"
+                        style={{
+                          background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)',
+                        }}
+                      >
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: hoveredClinicianBar.color }} />
+                          <span className="text-white font-semibold">{hoveredClinicianBar.clinician}</span>
+                          <span className="text-indigo-300">•</span>
+                          <span className="text-white font-bold">${(hoveredClinicianBar.value / 1000).toFixed(1)}k</span>
+                          <span className="text-indigo-300 text-sm">({hoveredClinicianBar.month})</span>
+                        </div>
+                      </div>
+                    )}
+                    {/* Toggle Button */}
+                    {!hoveredClinicianBar && (
+                      <button
+                        onClick={() => setShowClinicianBreakdown(!showClinicianBreakdown)}
+                        className="relative flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300"
+                        style={{
+                          background: showClinicianBreakdown
+                            ? 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)'
+                            : 'linear-gradient(135deg, #f5f5f4 0%, #e7e5e4 100%)',
+                          boxShadow: showClinicianBreakdown
+                            ? '0 4px 12px -2px rgba(30, 27, 75, 0.4), inset 0 1px 0 rgba(255,255,255,0.1)'
+                            : '0 2px 8px -2px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.8)'
+                        }}
+                      >
+                        <svg
+                          className={`w-4 h-4 transition-colors duration-300 ${showClinicianBreakdown ? 'text-indigo-300' : 'text-stone-500'}`}
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        <span className={`text-sm font-semibold transition-colors duration-300 ${showClinicianBreakdown ? 'text-white' : 'text-stone-600'}`}>
+                          By Clinician
+                        </span>
+                        <div
+                          className={`w-2 h-2 rounded-full transition-all duration-300 ${showClinicianBreakdown ? 'bg-emerald-400 shadow-lg shadow-emerald-400/50' : 'bg-stone-400'}`}
+                        />
+                      </button>
+                    )}
+                    {/* Goal indicator */}
+                    {!showClinicianBreakdown && !hoveredClinicianBar && (
+                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-200">
+                        <div className="w-0.5 h-4 bg-amber-500" />
+                        <span className="text-amber-700 text-sm font-medium">$150k Goal</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div className="flex items-center gap-6">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-blue-500" />
-                    <span className="text-stone-600 text-sm">Below Goal</span>
+
+                {/* Vertical Bar Chart */}
+                <div className="flex">
+                  {/* Y-axis labels */}
+                  <div className="flex flex-col justify-between text-xs text-stone-400 font-medium pr-3" style={{ height: '320px' }}>
+                    <span>$160k</span>
+                    <span>$120k</span>
+                    <span>$80k</span>
+                    <span>$40k</span>
+                    <span>$0</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-emerald-500" />
-                    <span className="text-stone-600 text-sm">Goal Met</span>
+
+                  {/* Chart area */}
+                  <div className="flex-1 relative" style={{ height: '320px' }}>
+                    {/* Background grid lines */}
+                    <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
+                      {[0, 1, 2, 3, 4].map((i) => (
+                        <div key={i} className="border-t border-stone-100 w-full" />
+                      ))}
+                    </div>
+
+                    {/* Goal line - horizontal (only in total view) */}
+                    {!showClinicianBreakdown && (
+                      <div
+                        className="absolute left-0 right-0 border-t-2 border-dashed border-amber-400 z-10 pointer-events-none"
+                        style={{ top: `${((160000 - 150000) / 160000) * 100}%` }}
+                      />
+                    )}
+
+                    {/* Bars - Total View */}
+                    {!showClinicianBreakdown && (
+                      <div className="absolute inset-0 flex items-end justify-around gap-1 px-4">
+                        {REVENUE_DATA.map((item, idx) => {
+                          const heightPx = (item.value / 160000) * 320;
+                          const isAboveGoal = item.value >= 150000;
+                          const isCurrentMonth = idx === REVENUE_DATA.length - 1;
+
+                          return (
+                            <div
+                              key={item.month}
+                              className="group relative flex-1 flex flex-col items-center justify-end"
+                              style={{ maxWidth: '50px' }}
+                            >
+                              {/* Value label - always visible */}
+                              <div className="mb-2 z-20">
+                                <span className={`text-xs font-bold ${isAboveGoal ? 'text-emerald-600' : 'text-blue-600'}`}>
+                                  ${(item.value / 1000).toFixed(0)}k
+                                </span>
+                              </div>
+                              {/* Bar */}
+                              <div
+                                className={`rounded-t-md transition-all duration-300 cursor-pointer ${
+                                  isCurrentMonth ? '' : 'opacity-80 hover:opacity-100'
+                                }`}
+                                style={{
+                                  height: `${heightPx}px`,
+                                  width: '100%',
+                                  maxWidth: '36px',
+                                  background: isAboveGoal
+                                    ? 'linear-gradient(180deg, #34d399 0%, #059669 100%)'
+                                    : 'linear-gradient(180deg, #60a5fa 0%, #2563eb 100%)',
+                                  boxShadow: '0 2px 8px -2px rgba(0,0,0,0.15)'
+                                }}
+                              />
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Bars - Clinician Breakdown (Stacked) */}
+                    {showClinicianBreakdown && (
+                      <div className="absolute inset-0 flex items-end justify-around gap-1 px-4">
+                        {(() => {
+                          const clinicianColors = {
+                            Chen: { color: '#7c3aed', gradient: 'linear-gradient(180deg, #a78bfa 0%, #7c3aed 100%)' },
+                            Rodriguez: { color: '#0891b2', gradient: 'linear-gradient(180deg, #22d3ee 0%, #0891b2 100%)' },
+                            Patel: { color: '#d97706', gradient: 'linear-gradient(180deg, #fbbf24 0%, #d97706 100%)' },
+                            Kim: { color: '#db2777', gradient: 'linear-gradient(180deg, #f472b6 0%, #db2777 100%)' },
+                            Johnson: { color: '#059669', gradient: 'linear-gradient(180deg, #34d399 0%, #059669 100%)' }
+                          };
+                          const clinicianOrder = ['Johnson', 'Kim', 'Patel', 'Rodriguez', 'Chen'];
+
+                          return CLINICIAN_REVENUE_DATA.map((item, idx) => {
+                            const total = (item.Chen || 0) + (item.Rodriguez || 0) + (item.Patel || 0) + (item.Kim || 0) + (item.Johnson || 0);
+                            const totalHeightPx = (total / 160000) * 320;
+                            const isCurrentMonth = idx === CLINICIAN_REVENUE_DATA.length - 1;
+
+                            return (
+                              <div
+                                key={item.month}
+                                className="group relative flex-1 flex flex-col items-center justify-end"
+                                style={{ maxWidth: '50px' }}
+                              >
+                                {/* Total value label */}
+                                <div className="mb-2 z-20">
+                                  <span className="text-xs font-bold text-indigo-600">
+                                    ${(total / 1000).toFixed(0)}k
+                                  </span>
+                                </div>
+                                {/* Stacked Bar */}
+                                <div
+                                  className="relative rounded-t-md overflow-hidden transition-all duration-300"
+                                  style={{
+                                    height: `${totalHeightPx}px`,
+                                    width: '100%',
+                                    maxWidth: '36px',
+                                    boxShadow: isCurrentMonth ? '0 4px 12px -2px rgba(124, 58, 237, 0.3)' : '0 2px 8px -2px rgba(0,0,0,0.1)'
+                                  }}
+                                >
+                                  {clinicianOrder.map((clinician) => {
+                                    const value = item[clinician as keyof typeof item] as number || 0;
+                                    const segmentHeightPercent = (value / total) * 100;
+                                    const colorData = clinicianColors[clinician as keyof typeof clinicianColors];
+
+                                    return (
+                                      <div
+                                        key={clinician}
+                                        className="w-full cursor-pointer transition-all duration-200 hover:brightness-110"
+                                        style={{
+                                          height: `${segmentHeightPercent}%`,
+                                          background: colorData.gradient,
+                                          borderBottom: '1px solid rgba(255,255,255,0.2)'
+                                        }}
+                                        onMouseEnter={() => setHoveredClinicianBar({
+                                          month: item.month,
+                                          clinician,
+                                          value,
+                                          color: colorData.color
+                                        })}
+                                        onMouseLeave={() => setHoveredClinicianBar(null)}
+                                      />
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            );
+                          });
+                        })()}
+                      </div>
+                    )}
                   </div>
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-200">
-                    <div className="w-0.5 h-4 bg-amber-500" />
-                    <span className="text-amber-700 text-sm font-medium">$150k Goal</span>
+                </div>
+
+                {/* Month labels */}
+                <div className="flex mt-3 pl-12">
+                  <div className="flex-1 flex justify-around gap-1 px-4">
+                    {(showClinicianBreakdown ? CLINICIAN_REVENUE_DATA : REVENUE_DATA).map((item, idx) => {
+                      const isCurrentMonth = idx === (showClinicianBreakdown ? CLINICIAN_REVENUE_DATA : REVENUE_DATA).length - 1;
+                      return (
+                        <div
+                          key={item.month}
+                          className="flex-1 text-center"
+                          style={{ maxWidth: '50px' }}
+                        >
+                          <span className={`text-xs font-semibold ${isCurrentMonth ? 'text-stone-900' : 'text-stone-500'}`}>
+                            {item.month}
+                          </span>
+                        </div>
+                      );
+                    })}
                   </div>
+                </div>
+
+                {/* Legend */}
+                <div className="flex items-center justify-center gap-4 mt-6 pt-4 border-t border-stone-100">
+                  {showClinicianBreakdown ? (
+                    <>
+                      {[
+                        { name: 'Chen', color: '#7c3aed' },
+                        { name: 'Rodriguez', color: '#0891b2' },
+                        { name: 'Patel', color: '#d97706' },
+                        { name: 'Kim', color: '#db2777' },
+                        { name: 'Johnson', color: '#059669' }
+                      ].map((clinician) => (
+                        <div key={clinician.name} className="flex items-center gap-1.5">
+                          <div
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: clinician.color }}
+                          />
+                          <span className="text-stone-600 text-xs font-medium">{clinician.name}</span>
+                        </div>
+                      ))}
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-sm bg-gradient-to-b from-blue-500 to-blue-700" />
+                        <span className="text-stone-600 text-sm">Below Goal</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-sm bg-gradient-to-b from-emerald-400 to-emerald-600" />
+                        <span className="text-stone-600 text-sm">Goal Met</span>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
 
-              <div className="space-y-3">
-                {REVENUE_DATA.map((item, idx) => {
-                  const percentage = (item.value / 160000) * 100;
-                  const isAboveGoal = item.value >= 150000;
-                  const isCurrentMonth = idx === REVENUE_DATA.length - 1;
+              {/* Revenue Distribution - Donut Chart */}
+              <div
+                className="rounded-3xl p-8"
+                style={{
+                  background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
+                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)',
+                  minHeight: '520px'
+                }}
+              >
+                <div className="mb-6">
+                  <p className="text-stone-500 text-sm font-bold uppercase tracking-widest mb-2">This Month</p>
+                  <h3 className="text-stone-900 text-2xl font-semibold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                    Revenue Distribution
+                  </h3>
+                </div>
+
+                {/* Donut Chart */}
+                {(() => {
+                  const lastMonth = REVENUE_BREAKDOWN_DATA[REVENUE_BREAKDOWN_DATA.length - 1];
+                  const gross = lastMonth?.grossRevenue || 1;
+                  const segments = [
+                    { label: 'Clinician Costs', value: lastMonth?.clinicianCosts || 0, color: '#3b82f6' },
+                    { label: 'Supervisor Costs', value: lastMonth?.supervisorCosts || 0, color: '#f59e0b' },
+                    { label: 'CC Fees', value: lastMonth?.creditCardFees || 0, color: '#f43f5e' },
+                    { label: 'Net Revenue', value: lastMonth?.netRevenue || 0, color: '#10b981' }
+                  ];
+
+                  const total = segments.reduce((sum, s) => sum + s.value, 0);
+
+                  // SVG donut chart calculations using arc paths
+                  const size = 280;
+                  const outerRadius = 130;
+                  const innerRadius = 82;
+                  const centerX = size / 2;
+                  const centerY = size / 2;
+
+                  // Calculate arc paths
+                  const createArcPath = (startAngle: number, endAngle: number, outerR: number, innerR: number) => {
+                    const startOuterX = centerX + outerR * Math.cos(startAngle);
+                    const startOuterY = centerY + outerR * Math.sin(startAngle);
+                    const endOuterX = centerX + outerR * Math.cos(endAngle);
+                    const endOuterY = centerY + outerR * Math.sin(endAngle);
+                    const startInnerX = centerX + innerR * Math.cos(endAngle);
+                    const startInnerY = centerY + innerR * Math.sin(endAngle);
+                    const endInnerX = centerX + innerR * Math.cos(startAngle);
+                    const endInnerY = centerY + innerR * Math.sin(startAngle);
+
+                    const largeArcFlag = endAngle - startAngle > Math.PI ? 1 : 0;
+
+                    return `M ${startOuterX} ${startOuterY}
+                            A ${outerR} ${outerR} 0 ${largeArcFlag} 1 ${endOuterX} ${endOuterY}
+                            L ${startInnerX} ${startInnerY}
+                            A ${innerR} ${innerR} 0 ${largeArcFlag} 0 ${endInnerX} ${endInnerY}
+                            Z`;
+                  };
+
+                  let currentAngle = -Math.PI / 2; // Start from top
 
                   return (
-                    <div key={item.month} className="group flex items-center gap-4">
-                      <span className={`w-10 text-sm font-bold ${isCurrentMonth ? 'text-stone-900' : 'text-stone-500'}`}>
-                        {item.month}
-                      </span>
-                      <div className="flex-1 relative h-10">
-                        <div className="absolute inset-0 bg-stone-100 rounded-lg" />
-                        {/* Goal line */}
-                        <div
-                          className="absolute top-0 bottom-0 w-px bg-amber-400"
-                          style={{ left: `${(150000 / 160000) * 100}%` }}
-                        />
-                        {/* Bar */}
-                        <div
-                          className={`absolute left-0 top-0 bottom-0 rounded-lg flex items-center justify-end pr-3 transition-all duration-500 ${
-                            isCurrentMonth ? 'opacity-100' : 'opacity-70 group-hover:opacity-100'
-                          }`}
-                          style={{
-                            width: `${Math.min(percentage, 100)}%`,
-                            background: isAboveGoal
-                              ? 'linear-gradient(90deg, #059669 0%, #10b981 100%)'
-                              : 'linear-gradient(90deg, #1e40af 0%, #3b82f6 100%)'
-                          }}
-                        >
-                          <span className="text-white font-bold text-sm">${(item.value / 1000).toFixed(0)}k</span>
+                    <div className="flex flex-col items-center">
+                      {/* SVG Donut */}
+                      <div className="relative" style={{ width: size, height: size }}>
+                        <svg width={size} height={size} className="overflow-visible">
+                          {segments.map((segment) => {
+                            const percent = segment.value / total;
+                            const angleSize = percent * 2 * Math.PI;
+                            const startAngle = currentAngle;
+                            const endAngle = currentAngle + angleSize - 0.02; // Small gap between segments
+                            currentAngle += angleSize;
+
+                            const path = createArcPath(startAngle, endAngle, outerRadius, innerRadius);
+                            const isHovered = hoveredDonutSegment?.label === segment.label;
+
+                            return (
+                              <path
+                                key={segment.label}
+                                d={path}
+                                fill={segment.color}
+                                className="cursor-pointer transition-all duration-200"
+                                style={{
+                                  filter: isHovered ? 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.25))' : 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1))',
+                                  transformOrigin: `${centerX}px ${centerY}px`,
+                                  transform: isHovered ? 'scale(1.05)' : 'scale(1)',
+                                  opacity: hoveredDonutSegment && !isHovered ? 0.5 : 1
+                                }}
+                                onMouseEnter={() => {
+                                  setHoveredDonutSegment({ label: segment.label, value: segment.value, percent: percent * 100, color: segment.color });
+                                }}
+                                onMouseLeave={() => {
+                                  setHoveredDonutSegment(null);
+                                }}
+                              />
+                            );
+                          })}
+                        </svg>
+
+                        {/* Center content - shows hovered segment or default */}
+                        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                          {hoveredDonutSegment ? (
+                            <>
+                              <div
+                                className="w-3 h-3 rounded-full mb-2"
+                                style={{ backgroundColor: hoveredDonutSegment.color }}
+                              />
+                              <span className="text-stone-600 text-sm font-medium mb-1">{hoveredDonutSegment.label}</span>
+                              <span
+                                className="text-stone-900 font-bold"
+                                style={{ fontSize: '2rem', fontFamily: "'DM Serif Display', Georgia, serif" }}
+                              >
+                                ${(hoveredDonutSegment.value / 1000).toFixed(1)}k
+                              </span>
+                              <span className="text-stone-500 text-sm font-semibold mt-1">
+                                {hoveredDonutSegment.percent.toFixed(1)}%
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              <span className="text-stone-500 text-sm font-medium mb-1">Gross Revenue</span>
+                              <span
+                                className="text-stone-900 font-bold"
+                                style={{ fontSize: '2.25rem', fontFamily: "'DM Serif Display', Georgia, serif" }}
+                              >
+                                ${(gross / 1000).toFixed(0)}k
+                              </span>
+                            </>
+                          )}
                         </div>
                       </div>
-                      <div className={`w-16 text-right font-bold text-sm ${isAboveGoal ? 'text-emerald-600' : 'text-stone-500'}`}>
-                        {isAboveGoal ? 'HIT' : `${((item.value / 150000) * 100).toFixed(0)}%`}
+
+                      {/* Legend with values */}
+                      <div className="grid grid-cols-2 gap-x-8 gap-y-4 mt-8 w-full max-w-sm">
+                        {segments.map((segment) => {
+                          const isHovered = hoveredDonutSegment?.label === segment.label;
+                          return (
+                            <div
+                              key={segment.label}
+                              className={`flex items-center gap-3 cursor-pointer transition-opacity duration-200 ${
+                                hoveredDonutSegment && !isHovered ? 'opacity-50' : 'opacity-100'
+                              }`}
+                              onMouseEnter={() => {
+                                setHoveredDonutSegment({ label: segment.label, value: segment.value, percent: (segment.value / total) * 100, color: segment.color });
+                              }}
+                              onMouseLeave={() => {
+                                setHoveredDonutSegment(null);
+                              }}
+                            >
+                              <div
+                                className={`w-4 h-4 rounded-full flex-shrink-0 transition-transform duration-200 ${isHovered ? 'scale-125' : ''}`}
+                                style={{ backgroundColor: segment.color }}
+                              />
+                              <div className="flex flex-col">
+                                <span className={`text-sm transition-colors duration-200 ${isHovered ? 'text-stone-900 font-semibold' : 'text-stone-600'}`}>
+                                  {segment.label}
+                                </span>
+                                <div className="flex items-baseline gap-2">
+                                  <span className="text-stone-900 font-bold">${(segment.value / 1000).toFixed(1)}k</span>
+                                  <span className="text-stone-400 text-xs">
+                                    {((segment.value / total) * 100).toFixed(0)}%
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   );
-                })}
-              </div>
-            </div>
-
-            {/* Cost Breakdown - Full Width */}
-            <div
-              className="rounded-3xl p-8"
-              style={{
-                background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
-                boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
-              }}
-            >
-              <p className="text-stone-500 text-sm font-bold uppercase tracking-widest mb-6">Cost Breakdown</p>
-
-              <div className="grid grid-cols-3 gap-8">
-                {/* Clinician */}
-                <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <div className="flex items-center gap-3">
-                      <div className="w-3 h-3 rounded-full bg-blue-500" />
-                      <span className="text-stone-700 font-medium">Clinician Costs</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-stone-500 text-sm">${(REVENUE_BREAKDOWN_DATA[REVENUE_BREAKDOWN_DATA.length - 1]?.clinicianCosts / 1000).toFixed(1)}k</span>
-                      <span className="text-stone-900 font-bold text-xl w-14 text-right">
-                        {((REVENUE_BREAKDOWN_DATA[REVENUE_BREAKDOWN_DATA.length - 1]?.clinicianCosts / REVENUE_BREAKDOWN_DATA[REVENUE_BREAKDOWN_DATA.length - 1]?.grossRevenue) * 100).toFixed(0)}%
-                      </span>
-                    </div>
-                  </div>
-                  <div className="h-2 bg-stone-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-blue-600 to-blue-400"
-                      style={{ width: `${(REVENUE_BREAKDOWN_DATA[REVENUE_BREAKDOWN_DATA.length - 1]?.clinicianCosts / REVENUE_BREAKDOWN_DATA[REVENUE_BREAKDOWN_DATA.length - 1]?.grossRevenue) * 100}%` }}
-                    />
-                  </div>
-                </div>
-
-                {/* Supervisor */}
-                <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <div className="flex items-center gap-3">
-                      <div className="w-3 h-3 rounded-full bg-amber-500" />
-                      <span className="text-stone-700 font-medium">Supervisor Costs</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-stone-500 text-sm">${(REVENUE_BREAKDOWN_DATA[REVENUE_BREAKDOWN_DATA.length - 1]?.supervisorCosts / 1000).toFixed(1)}k</span>
-                      <span className="text-stone-900 font-bold text-xl w-14 text-right">
-                        {((REVENUE_BREAKDOWN_DATA[REVENUE_BREAKDOWN_DATA.length - 1]?.supervisorCosts / REVENUE_BREAKDOWN_DATA[REVENUE_BREAKDOWN_DATA.length - 1]?.grossRevenue) * 100).toFixed(0)}%
-                      </span>
-                    </div>
-                  </div>
-                  <div className="h-2 bg-stone-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-amber-600 to-amber-400"
-                      style={{ width: `${(REVENUE_BREAKDOWN_DATA[REVENUE_BREAKDOWN_DATA.length - 1]?.supervisorCosts / REVENUE_BREAKDOWN_DATA[REVENUE_BREAKDOWN_DATA.length - 1]?.grossRevenue) * 100}%` }}
-                    />
-                  </div>
-                </div>
-
-                {/* CC Fees */}
-                <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <div className="flex items-center gap-3">
-                      <div className="w-3 h-3 rounded-full bg-rose-500" />
-                      <span className="text-stone-700 font-medium">Credit Card Fees</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-stone-500 text-sm">${(REVENUE_BREAKDOWN_DATA[REVENUE_BREAKDOWN_DATA.length - 1]?.creditCardFees / 1000).toFixed(1)}k</span>
-                      <span className="text-stone-900 font-bold text-xl w-14 text-right">
-                        {((REVENUE_BREAKDOWN_DATA[REVENUE_BREAKDOWN_DATA.length - 1]?.creditCardFees / REVENUE_BREAKDOWN_DATA[REVENUE_BREAKDOWN_DATA.length - 1]?.grossRevenue) * 100).toFixed(0)}%
-                      </span>
-                    </div>
-                  </div>
-                  <div className="h-2 bg-stone-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-rose-600 to-rose-400"
-                      style={{ width: `${(REVENUE_BREAKDOWN_DATA[REVENUE_BREAKDOWN_DATA.length - 1]?.creditCardFees / REVENUE_BREAKDOWN_DATA[REVENUE_BREAKDOWN_DATA.length - 1]?.grossRevenue) * 100}%` }}
-                    />
-                  </div>
-                </div>
+                })()}
               </div>
             </div>
 
