@@ -210,7 +210,7 @@ const ALL_REMINDER_DELIVERY_DATA = [
   { month: 'Dec', sent: 1423, failed: 19 }
 ];
 
-type TimePeriod = 'last-4-months' | 'last-6-months' | 'last-12-months' | 'ytd' | 'custom';
+type TimePeriod = 'last-12-months' | 'this-year' | 'this-quarter' | 'last-quarter' | 'this-month' | 'last-month' | '2024' | '2023' | 'custom';
 
 // Month name to index mapping for date comparison
 const MONTH_MAP: { [key: string]: number } = {
@@ -227,7 +227,7 @@ export const PracticeAnalysis: React.FC = () => {
   const [hoveredUtilization, setHoveredUtilization] = useState<number | null>(null);
   const [hoveredOpenSlots, setHoveredOpenSlots] = useState<number | null>(null);
   const [hoveredHoursUtilization, setHoveredHoursUtilization] = useState<number | null>(null);
-  const [timePeriod, setTimePeriod] = useState<TimePeriod>('last-4-months');
+  const [timePeriod, setTimePeriod] = useState<TimePeriod>('last-12-months');
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [hoveredDonutSegment, setHoveredDonutSegment] = useState<{ label: string; value: number; percent: number; color: string } | null>(null);
   const [showClinicianBreakdown, setShowClinicianBreakdown] = useState(false);
@@ -246,26 +246,53 @@ export const PracticeAnalysis: React.FC = () => {
   ];
 
   const timePeriods: { id: TimePeriod; label: string }[] = [
-    { id: 'last-4-months', label: 'Last 4 months' },
-    { id: 'last-6-months', label: 'Last 6 months' },
     { id: 'last-12-months', label: 'Last 12 months' },
-    { id: 'ytd', label: 'Year to date' }
+    { id: 'this-year', label: 'This Year' },
+    { id: 'this-quarter', label: 'This Quarter' },
+    { id: 'last-quarter', label: 'Last Quarter' },
+    { id: 'this-month', label: 'This Month' },
+    { id: 'last-month', label: 'Last Month' },
+    { id: '2024', label: '2024' },
+    { id: '2023', label: '2023' }
   ];
+
+  // Get current date info for period calculations
+  const now = new Date();
+  const currentMonth = now.getMonth(); // 0-11
+  const currentQuarter = Math.floor(currentMonth / 3); // 0-3
 
   // Filter data based on selected time period
   const getDataForPeriod = <T extends { month: string }>(data: T[], period: TimePeriod): T[] => {
     switch (period) {
-      case 'last-4-months':
-        return data.slice(-4);
-      case 'last-6-months':
-        return data.slice(-6);
       case 'last-12-months':
         return data.slice(-12);
-      case 'ytd':
-        return data; // Full year data
+      case 'this-year':
+        // All data for current year (assuming data is 2025)
+        return data.slice(0, currentMonth + 1);
+      case 'this-quarter': {
+        const quarterStart = currentQuarter * 3;
+        return data.filter((_, idx) => idx >= quarterStart && idx <= currentMonth);
+      }
+      case 'last-quarter': {
+        const lastQuarter = currentQuarter === 0 ? 3 : currentQuarter - 1;
+        const lastQuarterStart = lastQuarter * 3;
+        const lastQuarterEnd = lastQuarterStart + 2;
+        return data.filter((_, idx) => idx >= lastQuarterStart && idx <= lastQuarterEnd);
+      }
+      case 'this-month':
+        return data.filter((_, idx) => idx === currentMonth);
+      case 'last-month': {
+        const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+        return data.filter((_, idx) => idx === lastMonth);
+      }
+      case '2024':
+        // For demo purposes, return all 12 months as "2024 data"
+        return data;
+      case '2023':
+        // For demo, return same data as placeholder for 2023
+        return data;
       case 'custom':
         if (!customStartDate || !customEndDate) return data;
-        // For now, since we only have 2025 data, we'll filter by month
         const startMonth = customStartDate.getMonth();
         const endMonth = customEndDate.getMonth();
         return data.filter((item) => {
@@ -273,7 +300,49 @@ export const PracticeAnalysis: React.FC = () => {
           return itemIndex >= startMonth && itemIndex <= endMonth;
         });
       default:
-        return data.slice(-4);
+        return data.slice(-12);
+    }
+  };
+
+  // Get human-readable date range label for the selected period
+  const getDateRangeLabel = (): string => {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const fullMonths = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+    switch (timePeriod) {
+      case 'last-12-months': {
+        const startMonth = (currentMonth + 1) % 12;
+        return `${months[startMonth]} 2024 – ${months[currentMonth]} 2025`;
+      }
+      case 'this-year':
+        return `Jan – ${months[currentMonth]} 2025`;
+      case 'this-quarter': {
+        const quarterStart = currentQuarter * 3;
+        return `${months[quarterStart]} – ${months[currentMonth]} 2025`;
+      }
+      case 'last-quarter': {
+        const lastQuarter = currentQuarter === 0 ? 3 : currentQuarter - 1;
+        const lastQuarterStart = lastQuarter * 3;
+        const lastQuarterEnd = lastQuarterStart + 2;
+        const year = currentQuarter === 0 ? 2024 : 2025;
+        return `${months[lastQuarterStart]} – ${months[lastQuarterEnd]} ${year}`;
+      }
+      case 'this-month':
+        return `${fullMonths[currentMonth]} 2025`;
+      case 'last-month': {
+        const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+        const year = currentMonth === 0 ? 2024 : 2025;
+        return `${fullMonths[lastMonth]} ${year}`;
+      }
+      case '2024':
+        return 'Jan – Dec 2024';
+      case '2023':
+        return 'Jan – Dec 2023';
+      case 'custom':
+        if (!customStartDate || !customEndDate) return 'Custom Range';
+        return `${months[customStartDate.getMonth()]} ${customStartDate.getFullYear()} – ${months[customEndDate.getMonth()]} ${customEndDate.getFullYear()}`;
+      default:
+        return '';
     }
   };
 
@@ -285,7 +354,7 @@ export const PracticeAnalysis: React.FC = () => {
   const formatDateRange = () => {
     if (!customStartDate || !customEndDate) return 'Custom Range';
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return `${months[customStartDate.getMonth()]} ${customStartDate.getFullYear()} - ${months[customEndDate.getMonth()]} ${customEndDate.getFullYear()}`;
+    return `${months[customStartDate.getMonth()]} ${customStartDate.getFullYear()} – ${months[customEndDate.getMonth()]} ${customEndDate.getFullYear()}`;
   };
 
   // Memoized filtered data
@@ -400,12 +469,17 @@ export const PracticeAnalysis: React.FC = () => {
                   <span className="text-stone-300">/</span>
                   <span className="text-emerald-600 text-sm font-bold uppercase tracking-widest">Financial</span>
                 </div>
-                <h1
-                  className="text-5xl text-stone-900 font-bold tracking-tight"
-                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-                >
-                  Financial Performance
-                </h1>
+                <div className="flex items-baseline gap-4">
+                  <h1
+                    className="text-5xl text-stone-900 font-bold tracking-tight"
+                    style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                  >
+                    Financial Performance
+                  </h1>
+                  <span className="text-stone-400 text-base font-medium">
+                    {getDateRangeLabel()}
+                  </span>
+                </div>
               </div>
 
               {/* Time Period Selector - Redesigned */}
@@ -523,125 +597,113 @@ export const PracticeAnalysis: React.FC = () => {
 
             {/* Hero Stats Row */}
             <div className="grid grid-cols-4 gap-6">
-              {/* Revenue Overview - Primary Card with Gross & Net */}
+              {/* Total Gross Revenue Card */}
               <div
-                className="col-span-2 rounded-3xl p-8 relative overflow-hidden"
+                className="rounded-3xl p-6 relative overflow-hidden"
                 style={{
                   background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
                   boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
                 }}
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    {/* Gross & Net Revenue Side by Side */}
-                    <div className="flex gap-8">
-                      {/* Gross Revenue */}
-                      <div className="flex-1">
-                        <p className="text-stone-500 text-sm font-bold uppercase tracking-widest mb-3">Gross Revenue</p>
-                        <div className="flex items-baseline gap-2">
-                          <span
-                            className="text-stone-900 font-bold"
-                            style={{ fontSize: '3.5rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
-                          >
-                            ${(REVENUE_DATA[REVENUE_DATA.length - 1]?.value / 1000).toFixed(1)}k
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 mt-3">
-                          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-100">
-                            <svg className="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                            </svg>
-                            <span className="text-emerald-700 font-bold text-sm">
-                              {(((REVENUE_DATA[REVENUE_DATA.length - 1]?.value - REVENUE_DATA[REVENUE_DATA.length - 2]?.value) / REVENUE_DATA[REVENUE_DATA.length - 2]?.value) * 100).toFixed(1)}%
-                            </span>
-                          </div>
-                          <span className="text-stone-400 text-xs">vs last month</span>
-                        </div>
-                      </div>
-
-                      {/* Divider */}
-                      <div className="w-px bg-stone-200 self-stretch my-1" />
-
-                      {/* Net Revenue */}
-                      <div className="flex-1">
-                        <p className="text-emerald-600 text-sm font-bold uppercase tracking-widest mb-3">Net Revenue</p>
-                        <div className="flex items-baseline gap-2">
-                          <span
-                            className="text-emerald-700 font-bold"
-                            style={{ fontSize: '3.5rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
-                          >
-                            ${(REVENUE_BREAKDOWN_DATA[REVENUE_BREAKDOWN_DATA.length - 1]?.netRevenue / 1000).toFixed(1)}k
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 mt-3">
-                          <div className="px-2.5 py-1 rounded-full bg-emerald-100">
-                            <span className="text-emerald-700 font-bold text-sm">
-                              {((REVENUE_BREAKDOWN_DATA[REVENUE_BREAKDOWN_DATA.length - 1]?.netRevenue / REVENUE_BREAKDOWN_DATA[REVENUE_BREAKDOWN_DATA.length - 1]?.grossRevenue) * 100).toFixed(1)}% margin
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Goal Ring */}
-                  <div className="relative w-28 h-28 ml-6">
-                    <svg className="w-full h-full transform -rotate-90">
-                      <circle cx="56" cy="56" r="48" fill="none" stroke="#e7e5e4" strokeWidth="8" />
-                      <circle
-                        cx="56" cy="56" r="48" fill="none" stroke="url(#goalGradient)" strokeWidth="8"
-                        strokeLinecap="round"
-                        strokeDasharray={`${(REVENUE_DATA[REVENUE_DATA.length - 1]?.value / 150000) * 301.6} 301.6`}
-                      />
-                      <defs>
-                        <linearGradient id="goalGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                          <stop offset="0%" stopColor="#059669" />
-                          <stop offset="100%" stopColor="#10b981" />
-                        </linearGradient>
-                      </defs>
-                    </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-stone-900 text-2xl font-bold">{((REVENUE_DATA[REVENUE_DATA.length - 1]?.value / 150000) * 100).toFixed(0)}%</span>
-                      <span className="text-stone-500 text-xs">of goal</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* YTD Revenue */}
-              <div
-                className="rounded-3xl p-8 relative overflow-hidden"
-                style={{
-                  background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
-                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
-                }}
-              >
-                <p className="text-stone-500 text-sm font-bold uppercase tracking-widest mb-4">YTD Revenue</p>
+                <h3
+                  className="text-stone-800 text-2xl font-semibold mb-4"
+                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  Total Gross Revenue
+                </h3>
                 <span
                   className="text-stone-900 font-bold block"
-                  style={{ fontSize: '3rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
+                  style={{ fontSize: '2.5rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
                   ${(REVENUE_DATA.reduce((sum, item) => sum + item.value, 0) / 1000000).toFixed(2)}M
                 </span>
-                <p className="text-stone-500 text-sm mt-3">{REVENUE_DATA.length} months tracked</p>
+                <p className="text-stone-500 text-lg mt-3">
+                  across {REVENUE_DATA.length} months
+                </p>
               </div>
 
-              {/* Avg Session Value */}
+              {/* Total Net Revenue Card */}
               <div
-                className="rounded-3xl p-8 relative overflow-hidden"
+                className="rounded-3xl p-6 relative overflow-hidden"
                 style={{
                   background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
                   boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
                 }}
               >
-                <p className="text-stone-500 text-sm font-bold uppercase tracking-widest mb-4">Avg Session Value</p>
+                <h3
+                  className="text-stone-800 text-2xl font-semibold mb-4"
+                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  Total Net Revenue
+                </h3>
                 <span
                   className="text-stone-900 font-bold block"
-                  style={{ fontSize: '3rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
+                  style={{ fontSize: '2.5rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
-                  ${(REVENUE_DATA.reduce((sum, item) => sum + item.value, 0) / SESSIONS_DATA.reduce((sum, item) => sum + item.completed, 0)).toFixed(0)}
+                  ${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.netRevenue, 0) / 1000).toFixed(0)}k
                 </span>
-                <p className="text-stone-500 text-sm mt-3">per completed session</p>
+                <p className="text-stone-500 text-lg mt-3">
+                  {((REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.netRevenue, 0) / REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.grossRevenue, 0)) * 100).toFixed(1)}% avg margin
+                </p>
+              </div>
+
+              {/* Goal Achievement Card */}
+              <div
+                className="rounded-3xl p-6 relative overflow-hidden"
+                style={{
+                  background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
+                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
+                }}
+              >
+                <h3
+                  className="text-stone-800 text-2xl font-semibold mb-4"
+                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  Goal Achievement
+                </h3>
+                {(() => {
+                  const MONTHLY_GOAL = 150000;
+                  const monthsMet = REVENUE_DATA.filter(item => item.value >= MONTHLY_GOAL).length;
+                  return (
+                    <>
+                      <span
+                        className="text-stone-900 font-bold block"
+                        style={{ fontSize: '2.5rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
+                      >
+                        {monthsMet}/{REVENUE_DATA.length}
+                      </span>
+                      <p className="text-stone-500 text-lg mt-3">
+                        months hit $150k goal
+                      </p>
+                    </>
+                  );
+                })()}
+              </div>
+
+              {/* Avg Revenue Card - Monthly & Weekly in one line */}
+              <div
+                className="rounded-3xl p-6 relative overflow-hidden"
+                style={{
+                  background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
+                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
+                }}
+              >
+                <h3
+                  className="text-stone-800 text-2xl font-semibold mb-4"
+                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  Avg Revenue
+                </h3>
+                <span
+                  className="text-stone-900 font-bold block"
+                  style={{ fontSize: '2.5rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  ${(REVENUE_DATA.reduce((sum, item) => sum + item.value, 0) / REVENUE_DATA.length / 1000).toFixed(0)}k
+                  <span className="text-stone-400 text-xl font-medium" style={{ fontFamily: "system-ui, sans-serif" }}>/mo</span>
+                </span>
+                <p className="text-stone-500 text-lg mt-3">
+                  ${(REVENUE_DATA.reduce((sum, item) => sum + item.value, 0) / REVENUE_DATA.length / 4.33 / 1000).toFixed(1)}k/week
+                </p>
               </div>
             </div>
 
@@ -658,10 +720,10 @@ export const PracticeAnalysis: React.FC = () => {
               >
                 <div className="flex items-start justify-between mb-6">
                   <div>
-                    <p className="text-stone-500 text-sm font-bold uppercase tracking-widest mb-2">Monthly Trend</p>
-                    <h3 className="text-stone-900 text-2xl font-semibold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                    <h3 className="text-stone-900 text-2xl font-semibold mb-1" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
                       Revenue Performance
                     </h3>
+                    <p className="text-stone-400 text-sm">Monthly breakdown</p>
                   </div>
                   <div className="flex items-center gap-3">
                     {/* Hover tooltip for clinician breakdown - positioned within header area */}
@@ -929,10 +991,10 @@ export const PracticeAnalysis: React.FC = () => {
                 }}
               >
                 <div className="mb-6">
-                  <p className="text-stone-500 text-sm font-bold uppercase tracking-widest mb-2">This Month</p>
-                  <h3 className="text-stone-900 text-2xl font-semibold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                  <h3 className="text-stone-900 text-2xl font-semibold mb-1" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
                     Revenue Distribution
                   </h3>
+                  <p className="text-stone-400 text-sm">Where the money goes</p>
                 </div>
 
                 {/* Donut Chart */}
@@ -1098,7 +1160,9 @@ export const PracticeAnalysis: React.FC = () => {
                 boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
               }}
             >
-              <p className="text-stone-500 text-sm font-bold uppercase tracking-widest mb-6">Team Performance</p>
+              <h3 className="text-stone-900 text-2xl font-semibold mb-6" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                Team Performance
+              </h3>
 
               <div className="grid grid-cols-5 gap-4">
                 {(() => {
@@ -1156,7 +1220,9 @@ export const PracticeAnalysis: React.FC = () => {
                 boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
               }}
             >
-              <p className="text-stone-500 text-sm font-bold uppercase tracking-widest mb-6">Full Breakdown</p>
+              <h3 className="text-stone-900 text-2xl font-semibold mb-6" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                Full Breakdown
+              </h3>
 
               <div className="overflow-x-auto">
                 <table className="w-full">
@@ -1513,7 +1579,7 @@ export const PracticeAnalysis: React.FC = () => {
                 <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-emerald-400 via-cyan-500 to-emerald-500 rounded-l-3xl" />
 
                 <div className="pl-3">
-                  <p className="text-stone-400 text-xs font-bold uppercase tracking-[0.2em] mb-4">This Month · {SESSIONS_DATA[SESSIONS_DATA.length - 1]?.month}</p>
+                  <p className="text-stone-400 text-xs font-bold uppercase tracking-[0.2em] mb-4">{getDateRangeLabel()}</p>
 
                   <div className="flex items-baseline gap-2">
                     <span
