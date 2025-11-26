@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { MetricChart } from './MetricChart';
 import { ResponsiveContainer, LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, LabelList, Legend, CartesianGrid, ReferenceLine } from 'recharts';
-import { Info, Calendar, X } from 'lucide-react';
+import { Info, Calendar, X, ArrowRight } from 'lucide-react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
@@ -1680,9 +1680,9 @@ export const PracticeAnalysis: React.FC = () => {
 
             {/* Session Volume & Attendance Breakdown - Side by Side */}
             <div className="grid grid-cols-2 gap-6">
-              {/* Session Volume - Dual Bar Chart with Drop-off */}
+              {/* Session Volume - Single Bar Chart */}
               <div
-                className="rounded-3xl p-8 relative overflow-hidden"
+                className="rounded-3xl p-8 relative overflow-hidden flex flex-col"
                 style={{
                   background: 'linear-gradient(145deg, #ffffff 0%, #fafaf9 50%, #f5f5f4 100%)',
                   boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)',
@@ -1699,15 +1699,11 @@ export const PracticeAnalysis: React.FC = () => {
                 <div className="flex items-start justify-between mb-6">
                   <div>
                     <h3 className="text-stone-800 text-2xl font-semibold mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
-                      Session Performance
+                      Completed Sessions
                     </h3>
-                    <p className="text-stone-500 text-lg">Monthly breakdown</p>
+                    <p className="text-stone-500 text-lg">Monthly performance</p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2.5 px-4 py-2 rounded-full bg-stone-900/5 backdrop-blur-sm">
-                      <div className="w-3 h-3 rounded-full bg-gradient-to-br from-cyan-400 to-cyan-600 shadow-sm" />
-                      <span className="text-stone-700 text-sm font-medium">Booked</span>
-                    </div>
                     <div className="flex items-center gap-2.5 px-4 py-2 rounded-full bg-stone-900/5 backdrop-blur-sm">
                       <div className="w-3 h-3 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-sm" />
                       <span className="text-stone-700 text-sm font-medium">Completed</span>
@@ -1716,13 +1712,38 @@ export const PracticeAnalysis: React.FC = () => {
                       <div className="w-4 h-0.5 bg-amber-500" style={{ borderTop: '2px dashed #f59e0b' }} />
                       <span className="text-amber-700 text-sm font-semibold">700 Goal</span>
                     </div>
+                    {/* Sessions Report Button */}
+                    <button
+                      className="group relative px-6 py-2.5 rounded-full text-sm font-bold tracking-wide transition-all duration-300 ease-out transform hover:scale-[1.03] active:scale-[0.98]"
+                      style={{
+                        background: 'linear-gradient(135deg, #1c1917 0%, #292524 50%, #1c1917 100%)',
+                        boxShadow: '0 8px 20px -6px rgba(28, 25, 23, 0.4), 0 4px 8px -4px rgba(28, 25, 23, 0.2), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)',
+                        color: '#fafaf9',
+                        letterSpacing: '0.02em'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.boxShadow = '0 12px 24px -6px rgba(28, 25, 23, 0.5), 0 6px 12px -4px rgba(28, 25, 23, 0.3), inset 0 1px 0 0 rgba(255, 255, 255, 0.15)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.boxShadow = '0 8px 20px -6px rgba(28, 25, 23, 0.4), 0 4px 8px -4px rgba(28, 25, 23, 0.2), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)';
+                      }}
+                    >
+                      <span className="relative z-10 flex items-center gap-2">
+                        Sessions Report
+                        <ArrowRight
+                          size={16}
+                          className="transition-transform duration-300 group-hover:translate-x-1"
+                          strokeWidth={2.5}
+                        />
+                      </span>
+                    </button>
                   </div>
                 </div>
 
-                {/* Dual Bar Chart */}
-                <div className="flex">
+                {/* Single Bar Chart - Completed Sessions Only */}
+                <div className="flex flex-1 min-h-0">
                   {/* Y-axis labels */}
-                  <div className="flex flex-col justify-between text-[11px] text-stone-400 font-semibold pr-4" style={{ height: '300px' }}>
+                  <div className="flex flex-col justify-between text-[11px] text-stone-400 font-semibold pr-4 py-1">
                     <span>800</span>
                     <span>600</span>
                     <span>400</span>
@@ -1731,7 +1752,7 @@ export const PracticeAnalysis: React.FC = () => {
                   </div>
 
                   {/* Chart area */}
-                  <div className="flex-1 relative" style={{ height: '300px' }}>
+                  <div className="flex-1 relative">
                     {/* Background grid lines */}
                     <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
                       {[0, 1, 2, 3, 4].map((i) => (
@@ -1747,100 +1768,50 @@ export const PracticeAnalysis: React.FC = () => {
                       <div className="flex-1 border-t-2 border-dashed border-amber-400" />
                     </div>
 
-                    {/* Bars with drop-off indicators */}
+                    {/* Completed Sessions Bars */}
                     <div className="absolute inset-0 flex items-end justify-around px-2">
                       {SESSIONS_DATA.map((item, idx) => {
-                        const bookedHeightPx = (item.booked / 800) * 300;
-                        const completedHeightPx = (item.completed / 800) * 300;
-                        const dropOff = ((item.booked - item.completed) / item.booked * 100);
+                        const completedHeightPercent = (item.completed / 800) * 100;
                         const isAboveGoal = item.completed >= 700;
                         const isCurrentMonth = idx === SESSIONS_DATA.length - 1;
 
                         return (
                           <div
                             key={item.month}
-                            className="group relative flex flex-col items-center justify-end"
+                            className="group relative flex flex-col items-center justify-end h-full"
                             style={{ flex: '1', maxWidth: '72px' }}
                           >
-                            {/* Drop-off indicator - floating pill above bars */}
-                            <div
-                              className={`absolute z-30 px-2.5 py-1 rounded-full text-[10px] font-bold shadow-lg transition-all duration-300 group-hover:scale-110 ${
-                                dropOff > 5
-                                  ? 'bg-gradient-to-r from-rose-500 to-rose-600 text-white'
-                                  : dropOff > 3
-                                    ? 'bg-gradient-to-r from-amber-400 to-amber-500 text-amber-900'
-                                    : 'bg-gradient-to-r from-emerald-400 to-emerald-500 text-emerald-900'
-                              }`}
-                              style={{
-                                top: `${Math.min(300 - bookedHeightPx - 32, 300 - completedHeightPx - 32)}px`,
-                                transform: 'translateY(-100%)'
-                              }}
-                            >
-                              <span className="flex items-center gap-0.5">
-                                <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                                </svg>
-                                {dropOff.toFixed(1)}%
-                              </span>
-                            </div>
-
-                            {/* Connecting line between bars showing drop */}
-                            <div
-                              className="absolute z-10 pointer-events-none"
-                              style={{
-                                left: '50%',
-                                bottom: `${completedHeightPx}px`,
-                                height: `${bookedHeightPx - completedHeightPx}px`,
-                                width: '1px',
-                                background: 'linear-gradient(180deg, rgba(239, 68, 68, 0.4) 0%, rgba(239, 68, 68, 0.1) 100%)'
-                              }}
-                            />
-
-                            {/* Bar pair container */}
-                            <div className="flex gap-1 items-end w-full justify-center">
-                              {/* Booked bar */}
-                              <div className="relative flex flex-col items-center" style={{ width: '40%' }}>
-                                <span className="text-[10px] font-bold text-cyan-600 mb-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  {item.booked}
-                                </span>
-                                <div
-                                  className={`w-full rounded-t-lg transition-all duration-300 cursor-pointer relative overflow-hidden ${
-                                    isCurrentMonth ? 'ring-2 ring-cyan-400/30 ring-offset-1' : 'opacity-85 hover:opacity-100'
-                                  }`}
-                                  style={{
-                                    height: `${bookedHeightPx}px`,
-                                    background: 'linear-gradient(180deg, #22d3ee 0%, #0891b2 50%, #0e7490 100%)',
-                                    boxShadow: '0 4px 12px -2px rgba(8, 145, 178, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)'
-                                  }}
-                                >
-                                  {/* Shine effect */}
-                                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                                </div>
-                              </div>
-
+                            {/* Single bar container */}
+                            <div className="flex items-end w-full justify-center h-full">
                               {/* Completed bar */}
-                              <div className="relative flex flex-col items-center" style={{ width: '40%' }}>
-                                <span className={`text-[10px] font-bold mb-1 ${isAboveGoal ? 'text-emerald-600' : 'text-emerald-600'}`}>
+                              <div className="relative flex flex-col items-end justify-end h-full" style={{ width: '65%' }}>
+                                <span className={`text-[11px] font-bold mb-1.5 ${isAboveGoal ? 'text-emerald-600' : 'text-blue-600'}`}>
                                   {item.completed}
                                 </span>
                                 <div
-                                  className={`w-full rounded-t-lg transition-all duration-300 cursor-pointer relative overflow-hidden ${
-                                    isCurrentMonth ? 'ring-2 ring-emerald-400/30 ring-offset-1' : 'opacity-85 hover:opacity-100'
+                                  className={`w-full rounded-t-xl transition-all duration-300 cursor-pointer relative overflow-hidden ${
+                                    isCurrentMonth
+                                      ? isAboveGoal
+                                        ? 'ring-2 ring-emerald-400/40 ring-offset-2'
+                                        : 'ring-2 ring-blue-400/40 ring-offset-2'
+                                      : 'hover:brightness-110'
                                   }`}
                                   style={{
-                                    height: `${completedHeightPx}px`,
+                                    height: `${completedHeightPercent}%`,
                                     background: isAboveGoal
-                                      ? 'linear-gradient(180deg, #34d399 0%, #10b981 50%, #059669 100%)'
-                                      : 'linear-gradient(180deg, #6ee7b7 0%, #34d399 50%, #10b981 100%)',
-                                    boxShadow: '0 4px 12px -2px rgba(16, 185, 129, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)'
+                                      ? 'linear-gradient(180deg, #34d399 0%, #059669 100%)'
+                                      : 'linear-gradient(180deg, #60a5fa 0%, #2563eb 100%)',
+                                    boxShadow: isAboveGoal
+                                      ? '0 4px 12px -2px rgba(16, 185, 129, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)'
+                                      : '0 4px 12px -2px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)'
                                   }}
                                 >
                                   {/* Shine effect */}
                                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                                   {/* Goal achieved indicator */}
                                   {isAboveGoal && (
-                                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-amber-400 rounded-full flex items-center justify-center shadow-md">
-                                      <svg className="w-2.5 h-2.5 text-amber-900" fill="currentColor" viewBox="0 0 20 20">
+                                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-amber-400 rounded-full flex items-center justify-center shadow-md">
+                                      <svg className="w-3 h-3 text-amber-900" fill="currentColor" viewBox="0 0 20 20">
                                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                       </svg>
                                     </div>
@@ -1856,7 +1827,7 @@ export const PracticeAnalysis: React.FC = () => {
                 </div>
 
                 {/* Month labels */}
-                <div className="flex mt-4 pl-10">
+                <div className="flex mt-3 pl-10 flex-shrink-0">
                   <div className="flex-1 flex justify-around px-2">
                     {SESSIONS_DATA.map((item, idx) => {
                       const isCurrentMonth = idx === SESSIONS_DATA.length - 1;
@@ -1879,26 +1850,48 @@ export const PracticeAnalysis: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Summary stats */}
-                <div className="flex items-center justify-between mt-6 pt-5 border-t border-stone-200/60">
-                  <div className="flex items-center gap-6">
-                    <div className="flex items-center gap-2">
-                      <span className="text-stone-500 text-sm">Avg Drop-off:</span>
-                      <span className="text-rose-600 font-bold text-sm">
-                        {(SESSIONS_DATA.reduce((sum, item) => sum + ((item.booked - item.completed) / item.booked * 100), 0) / SESSIONS_DATA.length).toFixed(1)}%
-                      </span>
-                    </div>
-                    <div className="w-px h-4 bg-stone-200" />
-                    <div className="flex items-center gap-2">
-                      <span className="text-stone-500 text-sm">Goal Achieved:</span>
-                      <span className="text-emerald-600 font-bold text-sm">
-                        {SESSIONS_DATA.filter(item => item.completed >= 700).length}/{SESSIONS_DATA.length} months
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-stone-400">
-                    <span>Hover for details</span>
-                  </div>
+                {/* Insights Row */}
+                <div className="flex items-center justify-between pt-4 border-t border-stone-200/60 flex-shrink-0 mt-3">
+                  {(() => {
+                    const completedValues = SESSIONS_DATA.map(item => item.completed);
+                    const maxCompleted = Math.max(...completedValues);
+                    const minCompleted = Math.min(...completedValues);
+                    const bestMonth = SESSIONS_DATA.find(item => item.completed === maxCompleted)?.month || '';
+                    const lowestMonth = SESSIONS_DATA.find(item => item.completed === minCompleted)?.month || '';
+
+                    // Calculate month-over-month trend (comparing last month to previous)
+                    const lastMonth = SESSIONS_DATA[SESSIONS_DATA.length - 1]?.completed || 0;
+                    const prevMonth = SESSIONS_DATA[SESSIONS_DATA.length - 2]?.completed || 0;
+                    const momChange = prevMonth > 0 ? ((lastMonth - prevMonth) / prevMonth * 100) : 0;
+
+                    return (
+                      <div className="flex items-center gap-8 w-full">
+                        <div className="flex items-center gap-2">
+                          <span className="text-stone-500 text-sm">Best Month:</span>
+                          <span className="text-emerald-600 font-bold text-sm">
+                            {bestMonth} ({maxCompleted})
+                          </span>
+                        </div>
+                        <div className="w-px h-4 bg-stone-200" />
+                        <div className="flex items-center gap-2">
+                          <span className="text-stone-500 text-sm">MoM Trend:</span>
+                          <span className={`font-bold text-sm ${momChange >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                            {momChange >= 0 ? '+' : ''}{momChange.toFixed(1)}%
+                          </span>
+                        </div>
+                        <div className="w-px h-4 bg-stone-200" />
+                        <div className="flex items-center gap-2">
+                          <span className="text-stone-500 text-sm">Range:</span>
+                          <span className="text-stone-700 font-bold text-sm">
+                            {minCompleted} – {maxCompleted}
+                          </span>
+                          <span className="text-stone-400 text-xs">
+                            ({lowestMonth} to {bestMonth})
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
 
@@ -2026,10 +2019,10 @@ export const PracticeAnalysis: React.FC = () => {
             </div>
 
             {/* Secondary Metrics Row */}
-            <div className="grid grid-cols-3 gap-6">
+            <div className="grid grid-cols-2 gap-6">
               {/* Sessions per Client */}
               <div
-                className="rounded-3xl p-6"
+                className="rounded-3xl p-6 relative overflow-hidden"
                 style={{
                   background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
                   boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
@@ -2047,54 +2040,9 @@ export const PracticeAnalysis: React.FC = () => {
                 >
                   {(SESSIONS_DATA.reduce((sum, item) => sum + item.completed, 0) / SESSIONS_DATA.reduce((sum, item) => sum + item.clients, 0)).toFixed(1)}
                 </span>
-                <div className="mt-4 h-16">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={AVG_SESSIONS_PER_CLIENT_DATA} margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
-                      <Line
-                        type="monotone"
-                        dataKey="value"
-                        stroke="#0891b2"
-                        strokeWidth={2.5}
-                        dot={false}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-
-              {/* Avg Utilization Rate */}
-              <div
-                className="rounded-3xl p-6"
-                style={{
-                  background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
-                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
-                }}
-              >
-                <h3
-                  className="text-stone-800 text-2xl font-semibold mb-4"
-                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-                >
-                  Avg Utilization Rate
-                </h3>
-                <span
-                  className="text-stone-900 font-bold block"
-                  style={{ fontSize: '2.5rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
-                >
-                  {(UTILIZATION_DATA.reduce((sum, item) => sum + item.value, 0) / UTILIZATION_DATA.length).toFixed(1)}%
-                </span>
-                <div className="mt-4 h-16">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={UTILIZATION_DATA} margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
-                      <Line
-                        type="monotone"
-                        dataKey="value"
-                        stroke="#059669"
-                        strokeWidth={2.5}
-                        dot={false}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
+                <p className="text-stone-500 text-lg mt-3">
+                  sessions per active client
+                </p>
               </div>
 
               {/* Avg Non-Billable Rate */}
@@ -2144,84 +2092,84 @@ export const PracticeAnalysis: React.FC = () => {
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-stone-200">
-                      <th className="text-left py-4 px-3 text-xs font-bold text-stone-500 uppercase tracking-wider"></th>
+                    <tr className="border-b-2 border-stone-200">
+                      <th className="text-left py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider"></th>
                       {SESSIONS_DATA.map((item) => (
-                        <th key={item.month} className="text-right py-4 px-3 text-xs font-bold text-stone-500 uppercase tracking-wider">{item.month}</th>
+                        <th key={item.month} className="text-right py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">{item.month}</th>
                       ))}
-                      <th className="text-right py-4 px-3 text-xs font-bold text-stone-900 uppercase tracking-wider">Total</th>
+                      <th className="text-right py-5 px-4 text-sm font-bold text-stone-900 uppercase tracking-wider">Total</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr className="border-b border-stone-100 hover:bg-stone-50 transition-colors">
-                      <td className="py-4 px-3 text-sm font-semibold text-stone-900 flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-cyan-500" />
+                      <td className="py-5 px-4 text-base font-semibold text-stone-900 flex items-center gap-3">
+                        <div className="w-3 h-3 rounded-full bg-cyan-500" />
                         Booked
                       </td>
                       {SESSIONS_DATA.map((item) => (
-                        <td key={item.month} className="py-4 px-3 text-sm text-stone-600 text-right">{item.booked}</td>
+                        <td key={item.month} className="py-5 px-4 text-base text-stone-600 text-right">{item.booked}</td>
                       ))}
-                      <td className="py-4 px-3 text-sm font-bold text-stone-900 text-right">
+                      <td className="py-5 px-4 text-base font-bold text-stone-900 text-right">
                         {SESSIONS_DATA.reduce((sum, item) => sum + item.booked, 0).toLocaleString()}
                       </td>
                     </tr>
                     <tr className="border-b border-stone-100 hover:bg-emerald-50 transition-colors">
-                      <td className="py-4 px-3 text-sm font-semibold text-emerald-700 flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                      <td className="py-5 px-4 text-base font-semibold text-emerald-700 flex items-center gap-3">
+                        <div className="w-3 h-3 rounded-full bg-emerald-500" />
                         Completed
                       </td>
                       {SESSIONS_DATA.map((item) => (
-                        <td key={item.month} className="py-4 px-3 text-sm font-bold text-emerald-600 text-right">{item.completed}</td>
+                        <td key={item.month} className="py-5 px-4 text-base font-bold text-emerald-600 text-right">{item.completed}</td>
                       ))}
-                      <td className="py-4 px-3 text-base font-bold text-emerald-700 text-right">
+                      <td className="py-5 px-4 text-lg font-bold text-emerald-700 text-right">
                         {SESSIONS_DATA.reduce((sum, item) => sum + item.completed, 0).toLocaleString()}
                       </td>
                     </tr>
                     <tr className="border-b border-stone-100 hover:bg-stone-50 transition-colors">
-                      <td className="py-4 px-3 text-sm font-semibold text-stone-900 flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-rose-500" />
+                      <td className="py-5 px-4 text-base font-semibold text-stone-900 flex items-center gap-3">
+                        <div className="w-3 h-3 rounded-full bg-rose-500" />
                         Cancelled
                       </td>
                       {SESSIONS_DATA.map((item) => (
-                        <td key={item.month} className="py-4 px-3 text-sm text-rose-600 text-right">{item.cancelled}</td>
+                        <td key={item.month} className="py-5 px-4 text-base text-rose-600 text-right">{item.cancelled}</td>
                       ))}
-                      <td className="py-4 px-3 text-sm font-bold text-rose-600 text-right">
+                      <td className="py-5 px-4 text-base font-bold text-rose-600 text-right">
                         {SESSIONS_DATA.reduce((sum, item) => sum + item.cancelled, 0).toLocaleString()}
                       </td>
                     </tr>
                     <tr className="border-b border-stone-100 hover:bg-stone-50 transition-colors">
-                      <td className="py-4 px-3 text-sm font-semibold text-stone-900 flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-blue-500" />
+                      <td className="py-5 px-4 text-base font-semibold text-stone-900 flex items-center gap-3">
+                        <div className="w-3 h-3 rounded-full bg-blue-500" />
                         Clinician Cancelled
                       </td>
                       {SESSIONS_DATA.map((item) => (
-                        <td key={item.month} className="py-4 px-3 text-sm text-blue-600 text-right">{item.clinicianCancelled}</td>
+                        <td key={item.month} className="py-5 px-4 text-base text-blue-600 text-right">{item.clinicianCancelled}</td>
                       ))}
-                      <td className="py-4 px-3 text-sm font-bold text-blue-600 text-right">
+                      <td className="py-5 px-4 text-base font-bold text-blue-600 text-right">
                         {SESSIONS_DATA.reduce((sum, item) => sum + item.clinicianCancelled, 0).toLocaleString()}
                       </td>
                     </tr>
                     <tr className="border-b border-stone-100 hover:bg-stone-50 transition-colors">
-                      <td className="py-4 px-3 text-sm font-semibold text-stone-900 flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-amber-500" />
+                      <td className="py-5 px-4 text-base font-semibold text-stone-900 flex items-center gap-3">
+                        <div className="w-3 h-3 rounded-full bg-amber-500" />
                         Late Cancelled
                       </td>
                       {SESSIONS_DATA.map((item) => (
-                        <td key={item.month} className="py-4 px-3 text-sm text-amber-600 text-right">{item.lateCancelled}</td>
+                        <td key={item.month} className="py-5 px-4 text-base text-amber-600 text-right">{item.lateCancelled}</td>
                       ))}
-                      <td className="py-4 px-3 text-sm font-bold text-amber-600 text-right">
+                      <td className="py-5 px-4 text-base font-bold text-amber-600 text-right">
                         {SESSIONS_DATA.reduce((sum, item) => sum + item.lateCancelled, 0).toLocaleString()}
                       </td>
                     </tr>
                     <tr className="hover:bg-stone-50 transition-colors">
-                      <td className="py-4 px-3 text-sm font-semibold text-stone-900 flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-stone-500" />
+                      <td className="py-5 px-4 text-base font-semibold text-stone-900 flex items-center gap-3">
+                        <div className="w-3 h-3 rounded-full bg-stone-500" />
                         No Show
                       </td>
                       {SESSIONS_DATA.map((item) => (
-                        <td key={item.month} className="py-4 px-3 text-sm text-stone-600 text-right">{item.noShow}</td>
+                        <td key={item.month} className="py-5 px-4 text-base text-stone-600 text-right">{item.noShow}</td>
                       ))}
-                      <td className="py-4 px-3 text-sm font-bold text-stone-600 text-right">
+                      <td className="py-5 px-4 text-base font-bold text-stone-600 text-right">
                         {SESSIONS_DATA.reduce((sum, item) => sum + item.noShow, 0).toLocaleString()}
                       </td>
                     </tr>
