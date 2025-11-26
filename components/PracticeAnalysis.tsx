@@ -38,6 +38,22 @@ const ALL_SESSIONS_DATA = [
   { month: 'Dec', completed: 698, booked: 732, clients: 155, cancelled: 125, clinicianCancelled: 25, lateCancelled: 26, noShow: 8, show: 548 }
 ];
 
+// Full clinician sessions breakdown data
+const ALL_CLINICIAN_SESSIONS_DATA = [
+  { month: 'Jan', Chen: 138, Rodriguez: 128, Patel: 115, Kim: 125, Johnson: 122 },
+  { month: 'Feb', Chen: 142, Rodriguez: 130, Patel: 118, Kim: 128, Johnson: 123 },
+  { month: 'Mar', Chen: 140, Rodriguez: 129, Patel: 116, Kim: 127, Johnson: 123 },
+  { month: 'Apr', Chen: 145, Rodriguez: 134, Patel: 120, Kim: 132, Johnson: 127 },
+  { month: 'May', Chen: 144, Rodriguez: 132, Patel: 119, Kim: 130, Johnson: 126 },
+  { month: 'Jun', Chen: 148, Rodriguez: 137, Patel: 123, Kim: 135, Johnson: 129 },
+  { month: 'Jul', Chen: 146, Rodriguez: 135, Patel: 122, Kim: 133, Johnson: 129 },
+  { month: 'Aug', Chen: 152, Rodriguez: 140, Patel: 126, Kim: 138, Johnson: 133 },
+  { month: 'Sep', Chen: 142, Rodriguez: 131, Patel: 118, Kim: 129, Johnson: 125 },
+  { month: 'Oct', Chen: 157, Rodriguez: 145, Patel: 130, Kim: 143, Johnson: 137 },
+  { month: 'Nov', Chen: 150, Rodriguez: 139, Patel: 125, Kim: 137, Johnson: 132 },
+  { month: 'Dec', Chen: 154, Rodriguez: 142, Patel: 128, Kim: 140, Johnson: 134 }
+];
+
 // Full clinician breakdown data
 const ALL_CLINICIAN_REVENUE_DATA = [
   { month: 'Jan', Chen: 33000, Rodriguez: 30500, Patel: 27000, Kim: 24000, Johnson: 23500 },
@@ -231,7 +247,9 @@ export const PracticeAnalysis: React.FC = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [hoveredDonutSegment, setHoveredDonutSegment] = useState<{ label: string; value: number; percent: number; color: string } | null>(null);
   const [showClinicianBreakdown, setShowClinicianBreakdown] = useState(false);
+  const [showSessionsClinicianBreakdown, setShowSessionsClinicianBreakdown] = useState(false);
   const [hoveredClinicianBar, setHoveredClinicianBar] = useState<{ month: string; clinician: string; value: number; color: string } | null>(null);
+  const [hoveredSessionsClinicianBar, setHoveredSessionsClinicianBar] = useState<{ month: string; clinician: string; value: number; color: string } | null>(null);
   const [customStartDate, setCustomStartDate] = useState<Date | null>(new Date(2025, 0, 1)); // Jan 1, 2025
   const [customEndDate, setCustomEndDate] = useState<Date | null>(new Date(2025, 11, 31)); // Dec 31, 2025
   const [showClientBreakdown, setShowClientBreakdown] = useState(false);
@@ -361,6 +379,7 @@ export const PracticeAnalysis: React.FC = () => {
   const REVENUE_DATA = useMemo(() => getDataForPeriod(ALL_REVENUE_DATA, timePeriod), [timePeriod, customStartDate, customEndDate]);
   const SESSIONS_DATA = useMemo(() => getDataForPeriod(ALL_SESSIONS_DATA, timePeriod), [timePeriod, customStartDate, customEndDate]);
   const CLINICIAN_REVENUE_DATA = useMemo(() => getDataForPeriod(ALL_CLINICIAN_REVENUE_DATA, timePeriod), [timePeriod, customStartDate, customEndDate]);
+  const CLINICIAN_SESSIONS_DATA = useMemo(() => getDataForPeriod(ALL_CLINICIAN_SESSIONS_DATA, timePeriod), [timePeriod, customStartDate, customEndDate]);
   const REVENUE_BREAKDOWN_DATA = useMemo(() => getDataForPeriod(ALL_REVENUE_BREAKDOWN_DATA, timePeriod), [timePeriod, customStartDate, customEndDate]);
   const CLIENT_GROWTH_DATA = useMemo(() => getDataForPeriod(ALL_CLIENT_GROWTH_DATA, timePeriod), [timePeriod, customStartDate, customEndDate]);
   const CHURN_BY_CLINICIAN_DATA = useMemo(() => getDataForPeriod(ALL_CHURN_BY_CLINICIAN_DATA, timePeriod), [timePeriod, customStartDate, customEndDate]);
@@ -711,11 +730,12 @@ export const PracticeAnalysis: React.FC = () => {
             <div className="grid grid-cols-2 gap-6">
               {/* Revenue Performance - Vertical Bar Chart */}
               <div
-                className="rounded-3xl p-8 relative"
+                className="rounded-2xl p-8 relative flex flex-col overflow-hidden"
                 style={{
-                  background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
-                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)',
-                  minHeight: '520px'
+                  background: '#ffffff',
+                  height: '750px',
+                  border: '2px solid #d6d3d1',
+                  borderLeft: '4px solid #059669'
                 }}
               >
                 <div className="flex items-start justify-between mb-6">
@@ -775,18 +795,43 @@ export const PracticeAnalysis: React.FC = () => {
                     )}
                     {/* Goal indicator */}
                     {!showClinicianBreakdown && !hoveredClinicianBar && (
-                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-200">
-                        <div className="w-0.5 h-4 bg-amber-500" />
-                        <span className="text-amber-700 text-sm font-medium">$150k Goal</span>
+                      <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-300/50">
+                        <div className="w-4 h-0.5 bg-amber-500" style={{ borderTop: '2px dashed #f59e0b' }} />
+                        <span className="text-amber-700 text-sm font-semibold">$150k Goal</span>
                       </div>
                     )}
+                    {/* Revenue Report Button */}
+                    <button
+                      className="group relative px-6 py-2.5 rounded-full text-sm font-bold tracking-wide transition-all duration-300 ease-out transform hover:scale-[1.03] active:scale-[0.98]"
+                      style={{
+                        background: 'linear-gradient(135deg, #1c1917 0%, #292524 50%, #1c1917 100%)',
+                        boxShadow: '0 8px 20px -6px rgba(28, 25, 23, 0.4), 0 4px 8px -4px rgba(28, 25, 23, 0.2), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)',
+                        color: '#fafaf9',
+                        letterSpacing: '0.02em'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.boxShadow = '0 12px 24px -6px rgba(28, 25, 23, 0.5), 0 6px 12px -4px rgba(28, 25, 23, 0.3), inset 0 1px 0 0 rgba(255, 255, 255, 0.15)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.boxShadow = '0 8px 20px -6px rgba(28, 25, 23, 0.4), 0 4px 8px -4px rgba(28, 25, 23, 0.2), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)';
+                      }}
+                    >
+                      <span className="relative z-10 flex items-center gap-2">
+                        Revenue Report
+                        <ArrowRight
+                          size={16}
+                          className="transition-transform duration-300 group-hover:translate-x-1"
+                          strokeWidth={2.5}
+                        />
+                      </span>
+                    </button>
                   </div>
                 </div>
 
                 {/* Vertical Bar Chart */}
-                <div className="flex">
+                <div className="flex flex-1 min-h-0">
                   {/* Y-axis labels */}
-                  <div className="flex flex-col justify-between text-sm text-stone-500 font-medium pr-3" style={{ height: '320px' }}>
+                  <div className="flex flex-col justify-between text-sm text-stone-500 font-semibold pr-4 py-1">
                     <span>$160k</span>
                     <span>$120k</span>
                     <span>$80k</span>
@@ -795,7 +840,7 @@ export const PracticeAnalysis: React.FC = () => {
                   </div>
 
                   {/* Chart area */}
-                  <div className="flex-1 relative" style={{ height: '320px' }}>
+                  <div className="flex-1 relative">
                     {/* Background grid lines */}
                     <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
                       {[0, 1, 2, 3, 4].map((i) => (
@@ -813,39 +858,47 @@ export const PracticeAnalysis: React.FC = () => {
 
                     {/* Bars - Total View */}
                     {!showClinicianBreakdown && (
-                      <div className="absolute inset-0 flex items-end justify-around gap-1 px-4">
+                      <div className="absolute inset-0 flex items-end justify-around px-2">
                         {REVENUE_DATA.map((item, idx) => {
-                          const heightPx = (item.value / 160000) * 320;
+                          const heightPercent = (item.value / 160000) * 100;
                           const isAboveGoal = item.value >= 150000;
                           const isCurrentMonth = idx === REVENUE_DATA.length - 1;
 
                           return (
                             <div
                               key={item.month}
-                              className="group relative flex-1 flex flex-col items-center justify-end"
-                              style={{ maxWidth: '50px' }}
+                              className="group relative flex flex-col items-center justify-end h-full"
+                              style={{ flex: '1', maxWidth: '72px' }}
                             >
-                              {/* Value label - always visible */}
-                              <div className="mb-2 z-20">
-                                <span className={`text-sm font-bold ${isAboveGoal ? 'text-emerald-600' : 'text-blue-600'}`}>
-                                  ${(item.value / 1000).toFixed(0)}k
-                                </span>
+                              {/* Single bar container */}
+                              <div className="flex items-end w-full justify-center h-full">
+                                <div className="relative flex flex-col items-end justify-end h-full" style={{ width: '65%' }}>
+                                  <span className={`text-sm font-bold mb-1.5 ${isAboveGoal ? 'text-emerald-600' : 'text-blue-600'}`}>
+                                    ${(item.value / 1000).toFixed(0)}k
+                                  </span>
+                                  <div
+                                    className={`w-full rounded-t-xl transition-all duration-300 cursor-pointer relative overflow-hidden ${
+                                      isCurrentMonth
+                                        ? isAboveGoal
+                                          ? 'ring-2 ring-emerald-400/40 ring-offset-2'
+                                          : 'ring-2 ring-blue-400/40 ring-offset-2'
+                                        : 'hover:brightness-110'
+                                    }`}
+                                    style={{
+                                      height: `${heightPercent}%`,
+                                      background: isAboveGoal
+                                        ? 'linear-gradient(180deg, #34d399 0%, #059669 100%)'
+                                        : 'linear-gradient(180deg, #60a5fa 0%, #2563eb 100%)',
+                                      boxShadow: isAboveGoal
+                                        ? '0 4px 12px -2px rgba(16, 185, 129, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)'
+                                        : '0 4px 12px -2px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)'
+                                    }}
+                                  >
+                                    {/* Shine effect */}
+                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                  </div>
+                                </div>
                               </div>
-                              {/* Bar */}
-                              <div
-                                className={`rounded-t-md transition-all duration-300 cursor-pointer ${
-                                  isCurrentMonth ? '' : 'opacity-80 hover:opacity-100'
-                                }`}
-                                style={{
-                                  height: `${heightPx}px`,
-                                  width: '100%',
-                                  maxWidth: '36px',
-                                  background: isAboveGoal
-                                    ? 'linear-gradient(180deg, #34d399 0%, #059669 100%)'
-                                    : 'linear-gradient(180deg, #60a5fa 0%, #2563eb 100%)',
-                                  boxShadow: '0 2px 8px -2px rgba(0,0,0,0.15)'
-                                }}
-                              />
                             </div>
                           );
                         })}
@@ -927,17 +980,21 @@ export const PracticeAnalysis: React.FC = () => {
                 </div>
 
                 {/* Month labels */}
-                <div className="flex mt-3 pl-12">
-                  <div className="flex-1 flex justify-around gap-1 px-4">
+                <div className="flex mt-4 pl-12 flex-shrink-0">
+                  <div className="flex-1 flex justify-around px-2">
                     {(showClinicianBreakdown ? CLINICIAN_REVENUE_DATA : REVENUE_DATA).map((item, idx) => {
                       const isCurrentMonth = idx === (showClinicianBreakdown ? CLINICIAN_REVENUE_DATA : REVENUE_DATA).length - 1;
                       return (
                         <div
                           key={item.month}
-                          className="flex-1 text-center"
-                          style={{ maxWidth: '50px' }}
+                          className="text-center"
+                          style={{ flex: '1', maxWidth: '72px' }}
                         >
-                          <span className={`text-sm font-semibold ${isCurrentMonth ? 'text-stone-900' : 'text-stone-500'}`}>
+                          <span className={`text-sm font-semibold ${
+                            isCurrentMonth
+                              ? 'text-stone-900 bg-stone-900/5 px-3 py-1 rounded-full'
+                              : 'text-stone-500'
+                          }`}>
                             {item.month}
                           </span>
                         </div>
@@ -946,10 +1003,10 @@ export const PracticeAnalysis: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Legend */}
-                <div className="flex items-center justify-center gap-4 mt-6 pt-4 border-t border-stone-100">
+                {/* Insights Row */}
+                <div className="flex items-center justify-between pt-5 border-t border-stone-200/60 flex-shrink-0 mt-4">
                   {showClinicianBreakdown ? (
-                    <>
+                    <div className="flex items-center gap-5 w-full flex-wrap">
                       {[
                         { name: 'Chen', color: '#7c3aed' },
                         { name: 'Rodriguez', color: '#0891b2' },
@@ -962,32 +1019,59 @@ export const PracticeAnalysis: React.FC = () => {
                             className="w-4 h-4 rounded-full"
                             style={{ backgroundColor: clinician.color }}
                           />
-                          <span className="text-stone-600 text-sm font-medium">{clinician.name}</span>
+                          <span className="text-stone-600 text-base font-medium">{clinician.name}</span>
                         </div>
                       ))}
-                    </>
+                    </div>
                   ) : (
-                    <>
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 rounded-sm bg-gradient-to-b from-blue-500 to-blue-700" />
-                        <span className="text-stone-600 text-base">Below Goal</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 rounded-sm bg-gradient-to-b from-emerald-400 to-emerald-600" />
-                        <span className="text-stone-600 text-base">Goal Met</span>
-                      </div>
-                    </>
+                    (() => {
+                      const revenueValues = REVENUE_DATA.map(item => item.value);
+                      const maxRevenue = Math.max(...revenueValues);
+                      const minRevenue = Math.min(...revenueValues);
+                      const bestMonth = REVENUE_DATA.find(item => item.value === maxRevenue)?.month || '';
+                      const lowestMonth = REVENUE_DATA.find(item => item.value === minRevenue)?.month || '';
+
+                      // Calculate month-over-month trend (comparing last month to previous)
+                      const lastMonth = REVENUE_DATA[REVENUE_DATA.length - 1]?.value || 0;
+                      const prevMonth = REVENUE_DATA[REVENUE_DATA.length - 2]?.value || 0;
+                      const momChange = prevMonth > 0 ? ((lastMonth - prevMonth) / prevMonth * 100) : 0;
+
+                      return (
+                        <div className="flex items-center gap-8 w-full">
+                          <div className="flex items-center gap-2">
+                            <span className="text-stone-500 text-base">Best Month:</span>
+                            <span className="text-emerald-600 font-bold text-base">
+                              {bestMonth} (${(maxRevenue / 1000).toFixed(0)}k)
+                            </span>
+                          </div>
+                          <div className="w-px h-5 bg-stone-200" />
+                          <div className="flex items-center gap-2">
+                            <span className="text-stone-500 text-base">MoM Trend:</span>
+                            <span className={`font-bold text-base ${momChange >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                              {momChange >= 0 ? '+' : ''}{momChange.toFixed(1)}%
+                            </span>
+                          </div>
+                          <div className="w-px h-5 bg-stone-200" />
+                          <div className="flex items-center gap-2">
+                            <span className="text-stone-500 text-base">Range:</span>
+                            <span className="text-stone-700 font-bold text-base">
+                              ${(minRevenue / 1000).toFixed(0)}k – ${(maxRevenue / 1000).toFixed(0)}k
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })()
                   )}
                 </div>
               </div>
 
               {/* Revenue Distribution - Donut Chart */}
               <div
-                className="rounded-3xl p-8"
+                className="rounded-3xl p-8 overflow-hidden"
                 style={{
                   background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
                   boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)',
-                  minHeight: '520px'
+                  height: '750px'
                 }}
               >
                 <div className="mb-6">
@@ -1011,9 +1095,9 @@ export const PracticeAnalysis: React.FC = () => {
                   const total = segments.reduce((sum, s) => sum + s.value, 0);
 
                   // SVG donut chart calculations using arc paths
-                  const size = 280;
-                  const outerRadius = 130;
-                  const innerRadius = 82;
+                  const size = 520;
+                  const outerRadius = 240;
+                  const innerRadius = 155;
                   const centerX = size / 2;
                   const centerY = size / 2;
 
@@ -1040,105 +1124,85 @@ export const PracticeAnalysis: React.FC = () => {
                   let currentAngle = -Math.PI / 2; // Start from top
 
                   return (
-                    <div className="flex flex-col items-center">
+                    <div className="flex items-center justify-center gap-12 h-full">
                       {/* SVG Donut */}
-                      <div className="relative" style={{ width: size, height: size }}>
+                      <div className="relative flex-shrink-0" style={{ width: size, height: size }}>
                         <svg width={size} height={size} className="overflow-visible">
                           {segments.map((segment) => {
                             const percent = segment.value / total;
                             const angleSize = percent * 2 * Math.PI;
                             const startAngle = currentAngle;
-                            const endAngle = currentAngle + angleSize - 0.02; // Small gap between segments
+                            const endAngle = currentAngle + angleSize - 0.02;
                             currentAngle += angleSize;
 
                             const path = createArcPath(startAngle, endAngle, outerRadius, innerRadius);
-                            const isHovered = hoveredDonutSegment?.label === segment.label;
 
                             return (
                               <path
                                 key={segment.label}
                                 d={path}
                                 fill={segment.color}
-                                className="cursor-pointer transition-all duration-200"
+                                className="cursor-pointer transition-all duration-200 hover:brightness-110"
                                 style={{
-                                  filter: isHovered ? 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.25))' : 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1))',
-                                  transformOrigin: `${centerX}px ${centerY}px`,
-                                  transform: isHovered ? 'scale(1.05)' : 'scale(1)',
-                                  opacity: hoveredDonutSegment && !isHovered ? 0.5 : 1
-                                }}
-                                onMouseEnter={() => {
-                                  setHoveredDonutSegment({ label: segment.label, value: segment.value, percent: percent * 100, color: segment.color });
-                                }}
-                                onMouseLeave={() => {
-                                  setHoveredDonutSegment(null);
+                                  filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1))',
                                 }}
                               />
                             );
                           })}
                         </svg>
 
-                        {/* Center content - shows hovered segment or default */}
+                        {/* Center content */}
                         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                          {hoveredDonutSegment ? (
-                            <>
-                              <div
-                                className="w-3 h-3 rounded-full mb-2"
-                                style={{ backgroundColor: hoveredDonutSegment.color }}
-                              />
-                              <span className="text-stone-600 text-sm font-medium mb-1">{hoveredDonutSegment.label}</span>
-                              <span
-                                className="text-stone-900 font-bold"
-                                style={{ fontSize: '2rem', fontFamily: "'DM Serif Display', Georgia, serif" }}
-                              >
-                                {hoveredDonutSegment.value >= 1000000 ? `$${(hoveredDonutSegment.value / 1000000).toFixed(2)}M` : `$${(hoveredDonutSegment.value / 1000).toFixed(1)}k`}
-                              </span>
-                              <span className="text-stone-500 text-sm font-semibold mt-1">
-                                {hoveredDonutSegment.percent.toFixed(1)}%
-                              </span>
-                            </>
-                          ) : (
-                            <>
-                              <span className="text-stone-500 text-sm font-medium mb-1">Gross Revenue</span>
-                              <span
-                                className="text-stone-900 font-bold"
-                                style={{ fontSize: '2.25rem', fontFamily: "'DM Serif Display', Georgia, serif" }}
-                              >
-                                {gross >= 1000000 ? `$${(gross / 1000000).toFixed(2)}M` : `$${(gross / 1000).toFixed(0)}k`}
-                              </span>
-                            </>
-                          )}
+                          <span className="text-stone-500 text-xl font-medium mb-2">Gross Revenue</span>
+                          <span
+                            className="text-stone-900 font-bold"
+                            style={{ fontSize: '4.5rem', fontFamily: "'DM Serif Display', Georgia, serif" }}
+                          >
+                            {gross >= 1000000 ? `$${(gross / 1000000).toFixed(2)}M` : `$${(gross / 1000).toFixed(0)}k`}
+                          </span>
                         </div>
                       </div>
 
-                      {/* Legend with values */}
-                      <div className="grid grid-cols-2 gap-x-8 gap-y-4 mt-8 w-full max-w-sm">
+                      {/* Legend - Vertical stack on the right */}
+                      <div className="flex flex-col gap-6">
                         {segments.map((segment) => {
-                          const isHovered = hoveredDonutSegment?.label === segment.label;
+                          const percent = ((segment.value / total) * 100).toFixed(1);
                           return (
                             <div
                               key={segment.label}
-                              className={`flex items-center gap-3 cursor-pointer transition-opacity duration-200 ${
-                                hoveredDonutSegment && !isHovered ? 'opacity-50' : 'opacity-100'
-                              }`}
-                              onMouseEnter={() => {
-                                setHoveredDonutSegment({ label: segment.label, value: segment.value, percent: (segment.value / total) * 100, color: segment.color });
-                              }}
-                              onMouseLeave={() => {
-                                setHoveredDonutSegment(null);
-                              }}
+                              className="flex items-center gap-5 py-4 px-5 rounded-2xl transition-all duration-200 hover:bg-stone-50"
+                              style={{ minWidth: '340px' }}
                             >
+                              {/* Color indicator with glow */}
                               <div
-                                className={`w-5 h-5 rounded-full flex-shrink-0 transition-transform duration-200 ${isHovered ? 'scale-125' : ''}`}
-                                style={{ backgroundColor: segment.color }}
+                                className="w-7 h-7 rounded-full flex-shrink-0"
+                                style={{
+                                  backgroundColor: segment.color,
+                                  boxShadow: `0 0 16px ${segment.color}50`
+                                }}
                               />
-                              <div className="flex flex-col">
-                                <span className={`text-base transition-colors duration-200 ${isHovered ? 'text-stone-900 font-semibold' : 'text-stone-600'}`}>
+
+                              {/* Label and stats */}
+                              <div className="flex-1 flex items-center justify-between gap-8">
+                                <span
+                                  className="text-stone-700 font-semibold text-xl"
+                                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                                >
                                   {segment.label}
                                 </span>
-                                <div className="flex items-baseline gap-2">
-                                  <span className="text-stone-900 font-bold text-lg">{segment.value >= 1000000 ? `$${(segment.value / 1000000).toFixed(2)}M` : `$${(segment.value / 1000).toFixed(1)}k`}</span>
-                                  <span className="text-stone-400 text-sm">
-                                    {((segment.value / total) * 100).toFixed(0)}%
+
+                                <div className="flex items-baseline gap-4">
+                                  <span
+                                    className="text-stone-900 font-bold text-3xl tabular-nums"
+                                    style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                                  >
+                                    {segment.value >= 1000000 ? `$${(segment.value / 1000000).toFixed(2)}M` : `$${(segment.value / 1000).toFixed(1)}k`}
+                                  </span>
+                                  <span
+                                    className="text-stone-400 font-semibold text-lg tabular-nums"
+                                    style={{ minWidth: '60px', textAlign: 'right' }}
+                                  >
+                                    {percent}%
                                   </span>
                                 </div>
                               </div>
@@ -1651,7 +1715,7 @@ export const PracticeAnalysis: React.FC = () => {
                 </p>
               </div>
 
-              {/* Avg Sessions */}
+              {/* Avg Non-Billable Cancel Rate */}
               <div
                 className="rounded-3xl p-6 relative overflow-hidden"
                 style={{
@@ -1663,18 +1727,20 @@ export const PracticeAnalysis: React.FC = () => {
                   className="text-stone-800 text-2xl font-semibold mb-4"
                   style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
-                  Avg Sessions
+                  Avg Non-Billable Cancel Rate
                 </h3>
                 <span
                   className="text-stone-900 font-bold block"
                   style={{ fontSize: '2.5rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
-                  {Math.round(SESSIONS_DATA.reduce((sum, item) => sum + item.completed, 0) / SESSIONS_DATA.length).toLocaleString()}
-                  <span className="text-stone-400 text-xl font-medium" style={{ fontFamily: "system-ui, sans-serif" }}>/mo</span>
+                  {(
+                    ((SESSIONS_DATA.reduce((sum, item) => sum + item.clinicianCancelled + item.cancelled, 0)) /
+                    SESSIONS_DATA.reduce((sum, item) =>
+                      sum + item.show + item.cancelled + item.clinicianCancelled + item.lateCancelled + item.noShow, 0
+                    )) * 100
+                  ).toFixed(1)}%
                 </span>
-                <p className="text-stone-500 text-lg mt-3">
-                  {Math.round(SESSIONS_DATA.reduce((sum, item) => sum + item.completed, 0) / SESSIONS_DATA.length / 4.33)}/week
-                </p>
+                <p className="text-stone-500 text-lg mt-3">Client Cancellations + Clinician Cancellations</p>
               </div>
             </div>
 
@@ -1682,19 +1748,14 @@ export const PracticeAnalysis: React.FC = () => {
             <div className="grid grid-cols-2 gap-6">
               {/* Session Volume - Single Bar Chart */}
               <div
-                className="rounded-3xl p-8 relative overflow-hidden flex flex-col"
+                className="rounded-2xl p-8 relative overflow-hidden flex flex-col"
                 style={{
-                  background: 'linear-gradient(145deg, #ffffff 0%, #fafaf9 50%, #f5f5f4 100%)',
-                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)',
-                  minHeight: '520px'
+                  background: '#ffffff',
+                  height: '750px',
+                  border: '2px solid #d6d3d1',
+                  borderLeft: '4px solid #059669'
                 }}
               >
-                {/* Subtle decorative element */}
-                <div className="absolute top-0 right-0 w-64 h-64 opacity-[0.03] pointer-events-none"
-                  style={{
-                    background: 'radial-gradient(circle at center, #0891b2 0%, transparent 70%)',
-                  }}
-                />
 
                 <div className="flex items-start justify-between mb-6">
                   <div>
@@ -1704,14 +1765,60 @@ export const PracticeAnalysis: React.FC = () => {
                     <p className="text-stone-500 text-lg">Monthly performance</p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2.5 px-4 py-2 rounded-full bg-stone-900/5 backdrop-blur-sm">
-                      <div className="w-3 h-3 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-sm" />
-                      <span className="text-stone-700 text-sm font-medium">Completed</span>
-                    </div>
-                    <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-300/50">
-                      <div className="w-4 h-0.5 bg-amber-500" style={{ borderTop: '2px dashed #f59e0b' }} />
-                      <span className="text-amber-700 text-sm font-semibold">700 Goal</span>
-                    </div>
+                    {/* Hover tooltip for clinician breakdown */}
+                    {hoveredSessionsClinicianBar && (
+                      <div
+                        className="px-3 py-2 rounded-lg shadow-xl pointer-events-none animate-pulse"
+                        style={{
+                          background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)',
+                        }}
+                      >
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: hoveredSessionsClinicianBar.color }} />
+                          <span className="text-white font-semibold">{hoveredSessionsClinicianBar.clinician}</span>
+                          <span className="text-indigo-300">•</span>
+                          <span className="text-white font-bold">{hoveredSessionsClinicianBar.value}</span>
+                          <span className="text-indigo-300 text-sm">({hoveredSessionsClinicianBar.month})</span>
+                        </div>
+                      </div>
+                    )}
+                    {/* Toggle Button */}
+                    {!hoveredSessionsClinicianBar && (
+                      <button
+                        onClick={() => setShowSessionsClinicianBreakdown(!showSessionsClinicianBreakdown)}
+                        className="relative flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300"
+                        style={{
+                          background: showSessionsClinicianBreakdown
+                            ? 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)'
+                            : 'linear-gradient(135deg, #f5f5f4 0%, #e7e5e4 100%)',
+                          boxShadow: showSessionsClinicianBreakdown
+                            ? '0 4px 12px -2px rgba(30, 27, 75, 0.4), inset 0 1px 0 rgba(255,255,255,0.1)'
+                            : '0 2px 8px -2px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.8)'
+                        }}
+                      >
+                        <svg
+                          className={`w-4 h-4 transition-colors duration-300 ${showSessionsClinicianBreakdown ? 'text-indigo-300' : 'text-stone-500'}`}
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        <span className={`text-sm font-semibold transition-colors duration-300 ${showSessionsClinicianBreakdown ? 'text-white' : 'text-stone-600'}`}>
+                          By Clinician
+                        </span>
+                        <div
+                          className={`w-2 h-2 rounded-full transition-all duration-300 ${showSessionsClinicianBreakdown ? 'bg-emerald-400 shadow-lg shadow-emerald-400/50' : 'bg-stone-400'}`}
+                        />
+                      </button>
+                    )}
+                    {/* Goal indicator */}
+                    {!showSessionsClinicianBreakdown && !hoveredSessionsClinicianBar && (
+                      <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-300/50">
+                        <div className="w-4 h-0.5 bg-amber-500" style={{ borderTop: '2px dashed #f59e0b' }} />
+                        <span className="text-amber-700 text-sm font-semibold">700 Goal</span>
+                      </div>
+                    )}
                     {/* Sessions Report Button */}
                     <button
                       className="group relative px-6 py-2.5 rounded-full text-sm font-bold tracking-wide transition-all duration-300 ease-out transform hover:scale-[1.03] active:scale-[0.98]"
@@ -1743,7 +1850,7 @@ export const PracticeAnalysis: React.FC = () => {
                 {/* Single Bar Chart - Completed Sessions Only */}
                 <div className="flex flex-1 min-h-0">
                   {/* Y-axis labels */}
-                  <div className="flex flex-col justify-between text-[11px] text-stone-400 font-semibold pr-4 py-1">
+                  <div className="flex flex-col justify-between text-sm text-stone-500 font-semibold pr-4 py-1">
                     <span>800</span>
                     <span>600</span>
                     <span>400</span>
@@ -1760,86 +1867,154 @@ export const PracticeAnalysis: React.FC = () => {
                       ))}
                     </div>
 
-                    {/* Goal line - horizontal at 700 completed sessions */}
-                    <div
-                      className="absolute left-0 right-0 z-10 pointer-events-none flex items-center"
-                      style={{ top: `${((800 - 700) / 800) * 100}%` }}
-                    >
-                      <div className="flex-1 border-t-2 border-dashed border-amber-400" />
-                    </div>
+                    {/* Goal line - horizontal at 700 completed sessions (only in total view) */}
+                    {!showSessionsClinicianBreakdown && (
+                      <div
+                        className="absolute left-0 right-0 z-10 pointer-events-none flex items-center"
+                        style={{ top: `${((800 - 700) / 800) * 100}%` }}
+                      >
+                        <div className="flex-1 border-t-2 border-dashed border-amber-400" />
+                      </div>
+                    )}
 
-                    {/* Completed Sessions Bars */}
-                    <div className="absolute inset-0 flex items-end justify-around px-2">
-                      {SESSIONS_DATA.map((item, idx) => {
-                        const completedHeightPercent = (item.completed / 800) * 100;
-                        const isAboveGoal = item.completed >= 700;
-                        const isCurrentMonth = idx === SESSIONS_DATA.length - 1;
+                    {/* Completed Sessions Bars - Total View */}
+                    {!showSessionsClinicianBreakdown && (
+                      <div className="absolute inset-0 flex items-end justify-around px-2">
+                        {SESSIONS_DATA.map((item, idx) => {
+                          const completedHeightPercent = (item.completed / 800) * 100;
+                          const isAboveGoal = item.completed >= 700;
+                          const isCurrentMonth = idx === SESSIONS_DATA.length - 1;
 
-                        return (
-                          <div
-                            key={item.month}
-                            className="group relative flex flex-col items-center justify-end h-full"
-                            style={{ flex: '1', maxWidth: '72px' }}
-                          >
-                            {/* Single bar container */}
-                            <div className="flex items-end w-full justify-center h-full">
-                              {/* Completed bar */}
-                              <div className="relative flex flex-col items-end justify-end h-full" style={{ width: '65%' }}>
-                                <span className={`text-[11px] font-bold mb-1.5 ${isAboveGoal ? 'text-emerald-600' : 'text-blue-600'}`}>
-                                  {item.completed}
-                                </span>
-                                <div
-                                  className={`w-full rounded-t-xl transition-all duration-300 cursor-pointer relative overflow-hidden ${
-                                    isCurrentMonth
-                                      ? isAboveGoal
-                                        ? 'ring-2 ring-emerald-400/40 ring-offset-2'
-                                        : 'ring-2 ring-blue-400/40 ring-offset-2'
-                                      : 'hover:brightness-110'
-                                  }`}
-                                  style={{
-                                    height: `${completedHeightPercent}%`,
-                                    background: isAboveGoal
-                                      ? 'linear-gradient(180deg, #34d399 0%, #059669 100%)'
-                                      : 'linear-gradient(180deg, #60a5fa 0%, #2563eb 100%)',
-                                    boxShadow: isAboveGoal
-                                      ? '0 4px 12px -2px rgba(16, 185, 129, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)'
-                                      : '0 4px 12px -2px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)'
-                                  }}
-                                >
-                                  {/* Shine effect */}
-                                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                                  {/* Goal achieved indicator */}
-                                  {isAboveGoal && (
-                                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-amber-400 rounded-full flex items-center justify-center shadow-md">
-                                      <svg className="w-3 h-3 text-amber-900" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                      </svg>
-                                    </div>
-                                  )}
+                          return (
+                            <div
+                              key={item.month}
+                              className="group relative flex flex-col items-center justify-end h-full"
+                              style={{ flex: '1', maxWidth: '72px' }}
+                            >
+                              {/* Single bar container */}
+                              <div className="flex items-end w-full justify-center h-full">
+                                {/* Completed bar */}
+                                <div className="relative flex flex-col items-end justify-end h-full" style={{ width: '65%' }}>
+                                  <span className={`text-sm font-bold mb-1.5 ${isAboveGoal ? 'text-emerald-600' : 'text-blue-600'}`}>
+                                    {item.completed}
+                                  </span>
+                                  <div
+                                    className={`w-full rounded-t-xl transition-all duration-300 cursor-pointer relative overflow-hidden ${
+                                      isCurrentMonth
+                                        ? isAboveGoal
+                                          ? 'ring-2 ring-emerald-400/40 ring-offset-2'
+                                          : 'ring-2 ring-blue-400/40 ring-offset-2'
+                                        : 'hover:brightness-110'
+                                    }`}
+                                    style={{
+                                      height: `${completedHeightPercent}%`,
+                                      background: isAboveGoal
+                                        ? 'linear-gradient(180deg, #34d399 0%, #059669 100%)'
+                                        : 'linear-gradient(180deg, #60a5fa 0%, #2563eb 100%)',
+                                      boxShadow: isAboveGoal
+                                        ? '0 4px 12px -2px rgba(16, 185, 129, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)'
+                                        : '0 4px 12px -2px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)'
+                                    }}
+                                  >
+                                    {/* Shine effect */}
+                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                  </div>
                                 </div>
                               </div>
                             </div>
-                          </div>
-                        );
-                      })}
-                    </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Bars - Clinician Breakdown (Stacked) */}
+                    {showSessionsClinicianBreakdown && (
+                      <div className="absolute inset-0 flex items-end justify-around gap-1 px-4">
+                        {(() => {
+                          const clinicianColors = {
+                            Chen: { color: '#7c3aed', gradient: 'linear-gradient(180deg, #a78bfa 0%, #7c3aed 100%)' },
+                            Rodriguez: { color: '#0891b2', gradient: 'linear-gradient(180deg, #22d3ee 0%, #0891b2 100%)' },
+                            Patel: { color: '#d97706', gradient: 'linear-gradient(180deg, #fbbf24 0%, #d97706 100%)' },
+                            Kim: { color: '#db2777', gradient: 'linear-gradient(180deg, #f472b6 0%, #db2777 100%)' },
+                            Johnson: { color: '#059669', gradient: 'linear-gradient(180deg, #34d399 0%, #059669 100%)' }
+                          };
+                          const clinicianOrder = ['Johnson', 'Kim', 'Patel', 'Rodriguez', 'Chen'];
+
+                          return CLINICIAN_SESSIONS_DATA.map((item, idx) => {
+                            const total = (item.Chen || 0) + (item.Rodriguez || 0) + (item.Patel || 0) + (item.Kim || 0) + (item.Johnson || 0);
+                            const totalHeightPercent = (total / 800) * 100;
+                            const isCurrentMonth = idx === CLINICIAN_SESSIONS_DATA.length - 1;
+
+                            return (
+                              <div
+                                key={item.month}
+                                className="group relative flex-1 flex flex-col items-center justify-end h-full"
+                                style={{ maxWidth: '50px' }}
+                              >
+                                {/* Total value label */}
+                                <div className="mb-2 z-20">
+                                  <span className="text-sm font-bold text-indigo-600">
+                                    {total}
+                                  </span>
+                                </div>
+                                {/* Stacked Bar */}
+                                <div
+                                  className="relative rounded-t-md overflow-hidden transition-all duration-300"
+                                  style={{
+                                    height: `${totalHeightPercent}%`,
+                                    width: '100%',
+                                    maxWidth: '36px',
+                                    boxShadow: isCurrentMonth ? '0 4px 12px -2px rgba(124, 58, 237, 0.3)' : '0 2px 8px -2px rgba(0,0,0,0.1)'
+                                  }}
+                                >
+                                  {clinicianOrder.map((clinician) => {
+                                    const value = item[clinician as keyof typeof item] as number || 0;
+                                    const segmentHeightPercent = (value / total) * 100;
+                                    const colorData = clinicianColors[clinician as keyof typeof clinicianColors];
+
+                                    return (
+                                      <div
+                                        key={clinician}
+                                        className="w-full cursor-pointer transition-all duration-200 hover:brightness-110"
+                                        style={{
+                                          height: `${segmentHeightPercent}%`,
+                                          background: colorData.gradient,
+                                          borderBottom: '1px solid rgba(255,255,255,0.2)'
+                                        }}
+                                        onMouseEnter={() => setHoveredSessionsClinicianBar({
+                                          month: item.month,
+                                          clinician,
+                                          value,
+                                          color: colorData.color
+                                        })}
+                                        onMouseLeave={() => setHoveredSessionsClinicianBar(null)}
+                                      />
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            );
+                          });
+                        })()}
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 {/* Month labels */}
-                <div className="flex mt-3 pl-10 flex-shrink-0">
+                <div className="flex mt-4 pl-12 flex-shrink-0">
                   <div className="flex-1 flex justify-around px-2">
-                    {SESSIONS_DATA.map((item, idx) => {
-                      const isCurrentMonth = idx === SESSIONS_DATA.length - 1;
+                    {(showSessionsClinicianBreakdown ? CLINICIAN_SESSIONS_DATA : SESSIONS_DATA).map((item, idx) => {
+                      const isCurrentMonth = idx === (showSessionsClinicianBreakdown ? CLINICIAN_SESSIONS_DATA : SESSIONS_DATA).length - 1;
                       return (
                         <div
                           key={item.month}
                           className="text-center"
                           style={{ flex: '1', maxWidth: '72px' }}
                         >
-                          <span className={`text-xs font-semibold ${
+                          <span className={`text-sm font-semibold ${
                             isCurrentMonth
-                              ? 'text-stone-900 bg-stone-900/5 px-2 py-0.5 rounded-full'
+                              ? 'text-stone-900 bg-stone-900/5 px-3 py-1 rounded-full'
                               : 'text-stone-500'
                           }`}>
                             {item.month}
@@ -1851,57 +2026,73 @@ export const PracticeAnalysis: React.FC = () => {
                 </div>
 
                 {/* Insights Row */}
-                <div className="flex items-center justify-between pt-4 border-t border-stone-200/60 flex-shrink-0 mt-3">
-                  {(() => {
-                    const completedValues = SESSIONS_DATA.map(item => item.completed);
-                    const maxCompleted = Math.max(...completedValues);
-                    const minCompleted = Math.min(...completedValues);
-                    const bestMonth = SESSIONS_DATA.find(item => item.completed === maxCompleted)?.month || '';
-                    const lowestMonth = SESSIONS_DATA.find(item => item.completed === minCompleted)?.month || '';
+                <div className="flex items-center justify-between pt-5 border-t border-stone-200/60 flex-shrink-0 mt-4">
+                  {showSessionsClinicianBreakdown ? (
+                    <div className="flex items-center gap-5 w-full flex-wrap">
+                      {[
+                        { name: 'Chen', color: '#7c3aed' },
+                        { name: 'Rodriguez', color: '#0891b2' },
+                        { name: 'Patel', color: '#d97706' },
+                        { name: 'Kim', color: '#db2777' },
+                        { name: 'Johnson', color: '#059669' }
+                      ].map((clinician) => (
+                        <div key={clinician.name} className="flex items-center gap-2">
+                          <div
+                            className="w-4 h-4 rounded-full"
+                            style={{ backgroundColor: clinician.color }}
+                          />
+                          <span className="text-stone-600 text-base font-medium">{clinician.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    (() => {
+                      const completedValues = SESSIONS_DATA.map(item => item.completed);
+                      const maxCompleted = Math.max(...completedValues);
+                      const minCompleted = Math.min(...completedValues);
+                      const bestMonth = SESSIONS_DATA.find(item => item.completed === maxCompleted)?.month || '';
 
-                    // Calculate month-over-month trend (comparing last month to previous)
-                    const lastMonth = SESSIONS_DATA[SESSIONS_DATA.length - 1]?.completed || 0;
-                    const prevMonth = SESSIONS_DATA[SESSIONS_DATA.length - 2]?.completed || 0;
-                    const momChange = prevMonth > 0 ? ((lastMonth - prevMonth) / prevMonth * 100) : 0;
+                      // Calculate month-over-month trend (comparing last month to previous)
+                      const lastMonth = SESSIONS_DATA[SESSIONS_DATA.length - 1]?.completed || 0;
+                      const prevMonth = SESSIONS_DATA[SESSIONS_DATA.length - 2]?.completed || 0;
+                      const momChange = prevMonth > 0 ? ((lastMonth - prevMonth) / prevMonth * 100) : 0;
 
-                    return (
-                      <div className="flex items-center gap-8 w-full">
-                        <div className="flex items-center gap-2">
-                          <span className="text-stone-500 text-sm">Best Month:</span>
-                          <span className="text-emerald-600 font-bold text-sm">
-                            {bestMonth} ({maxCompleted})
-                          </span>
+                      return (
+                        <div className="flex items-center gap-8 w-full">
+                          <div className="flex items-center gap-2">
+                            <span className="text-stone-500 text-base">Best Month:</span>
+                            <span className="text-emerald-600 font-bold text-base">
+                              {bestMonth} ({maxCompleted})
+                            </span>
+                          </div>
+                          <div className="w-px h-5 bg-stone-200" />
+                          <div className="flex items-center gap-2">
+                            <span className="text-stone-500 text-base">MoM Trend:</span>
+                            <span className={`font-bold text-base ${momChange >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                              {momChange >= 0 ? '+' : ''}{momChange.toFixed(1)}%
+                            </span>
+                          </div>
+                          <div className="w-px h-5 bg-stone-200" />
+                          <div className="flex items-center gap-2">
+                            <span className="text-stone-500 text-base">Range:</span>
+                            <span className="text-stone-700 font-bold text-base">
+                              {minCompleted} – {maxCompleted}
+                            </span>
+                          </div>
                         </div>
-                        <div className="w-px h-4 bg-stone-200" />
-                        <div className="flex items-center gap-2">
-                          <span className="text-stone-500 text-sm">MoM Trend:</span>
-                          <span className={`font-bold text-sm ${momChange >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                            {momChange >= 0 ? '+' : ''}{momChange.toFixed(1)}%
-                          </span>
-                        </div>
-                        <div className="w-px h-4 bg-stone-200" />
-                        <div className="flex items-center gap-2">
-                          <span className="text-stone-500 text-sm">Range:</span>
-                          <span className="text-stone-700 font-bold text-sm">
-                            {minCompleted} – {maxCompleted}
-                          </span>
-                          <span className="text-stone-400 text-xs">
-                            ({lowestMonth} to {bestMonth})
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })()}
+                      );
+                    })()
+                  )}
                 </div>
               </div>
 
               {/* Attendance Breakdown - Donut Chart */}
               <div
-                className="rounded-3xl p-8"
+                className="rounded-3xl p-8 overflow-hidden"
                 style={{
                   background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
                   boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)',
-                  minHeight: '520px'
+                  height: '750px'
                 }}
               >
                 <div className="mb-6">
@@ -1924,9 +2115,9 @@ export const PracticeAnalysis: React.FC = () => {
                   const total = segments.reduce((sum, s) => sum + s.value, 0);
 
                   // SVG donut chart calculations using arc paths
-                  const size = 280;
-                  const outerRadius = 130;
-                  const innerRadius = 82;
+                  const size = 520;
+                  const outerRadius = 240;
+                  const innerRadius = 155;
                   const centerX = size / 2;
                   const centerY = size / 2;
 
@@ -1953,15 +2144,15 @@ export const PracticeAnalysis: React.FC = () => {
                   let currentAngle = -Math.PI / 2; // Start from top
 
                   return (
-                    <div className="flex flex-col items-center">
+                    <div className="flex items-center justify-center gap-12 h-full">
                       {/* SVG Donut */}
-                      <div className="relative" style={{ width: size, height: size }}>
+                      <div className="relative flex-shrink-0" style={{ width: size, height: size }}>
                         <svg width={size} height={size} className="overflow-visible">
                           {segments.map((segment) => {
                             const percent = segment.value / total;
                             const angleSize = percent * 2 * Math.PI;
                             const startAngle = currentAngle;
-                            const endAngle = currentAngle + angleSize - 0.02; // Small gap between segments
+                            const endAngle = currentAngle + angleSize - 0.02;
                             currentAngle += angleSize;
 
                             const path = createArcPath(startAngle, endAngle, outerRadius, innerRadius);
@@ -1982,35 +2173,62 @@ export const PracticeAnalysis: React.FC = () => {
 
                         {/* Center content */}
                         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                          <span className="text-stone-500 text-sm font-medium mb-1">Show Rate</span>
+                          <span className="text-stone-500 text-xl font-medium mb-2">Show Rate</span>
                           <span
                             className="text-emerald-600 font-bold"
-                            style={{ fontSize: '2.25rem', fontFamily: "'DM Serif Display', Georgia, serif" }}
+                            style={{ fontSize: '4.5rem', fontFamily: "'DM Serif Display', Georgia, serif" }}
                           >
                             {((segments[0].value / total) * 100).toFixed(1)}%
                           </span>
                         </div>
                       </div>
 
-                      {/* Legend with values */}
-                      <div className="grid grid-cols-2 gap-x-8 gap-y-4 mt-8 w-full max-w-sm">
-                        {segments.map((segment) => (
-                          <div key={segment.label} className="flex items-center gap-3">
+                      {/* Legend - Vertical stack on the right */}
+                      <div className="flex flex-col gap-6">
+                        {segments.map((segment) => {
+                          const percent = ((segment.value / total) * 100).toFixed(1);
+                          return (
                             <div
-                              className="w-4 h-4 rounded-full flex-shrink-0"
-                              style={{ backgroundColor: segment.color }}
-                            />
-                            <div className="flex flex-col">
-                              <span className="text-stone-600 text-sm">{segment.label}</span>
-                              <div className="flex items-baseline gap-2">
-                                <span className="text-stone-900 font-bold">{segment.value.toLocaleString()}</span>
-                                <span className="text-stone-400 text-xs">
-                                  {((segment.value / total) * 100).toFixed(0)}%
+                              key={segment.label}
+                              className="flex items-center gap-5 py-4 px-5 rounded-2xl transition-all duration-200 hover:bg-stone-50"
+                              style={{ minWidth: '340px' }}
+                            >
+                              {/* Color indicator with glow */}
+                              <div
+                                className="w-7 h-7 rounded-full flex-shrink-0"
+                                style={{
+                                  backgroundColor: segment.color,
+                                  boxShadow: `0 0 16px ${segment.color}50`
+                                }}
+                              />
+
+                              {/* Label and stats */}
+                              <div className="flex-1 flex items-center justify-between gap-8">
+                                <span
+                                  className="text-stone-700 font-semibold text-xl"
+                                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                                >
+                                  {segment.label}
                                 </span>
+
+                                <div className="flex items-baseline gap-4">
+                                  <span
+                                    className="text-stone-900 font-bold text-3xl tabular-nums"
+                                    style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                                  >
+                                    {segment.value.toLocaleString()}
+                                  </span>
+                                  <span
+                                    className="text-stone-400 font-semibold text-lg tabular-nums"
+                                    style={{ minWidth: '60px', textAlign: 'right' }}
+                                  >
+                                    {percent}%
+                                  </span>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   );
@@ -2045,32 +2263,30 @@ export const PracticeAnalysis: React.FC = () => {
                 </p>
               </div>
 
-              {/* Avg Non-Billable Rate */}
+              {/* Avg Sessions */}
               <div
                 className="rounded-3xl p-6 relative overflow-hidden"
                 style={{
-                  background: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
-                  boxShadow: '0 4px 24px -4px rgba(239, 68, 68, 0.15), 0 0 0 1px rgba(239, 68, 68, 0.1)'
+                  background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
+                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
                 }}
               >
                 <h3
-                  className="text-rose-800 text-2xl font-semibold mb-4"
+                  className="text-stone-800 text-2xl font-semibold mb-4"
                   style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
-                  Avg Non-Billable Rate
+                  Avg Sessions
                 </h3>
                 <span
-                  className="text-rose-700 font-bold block"
+                  className="text-stone-900 font-bold block"
                   style={{ fontSize: '2.5rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
-                  {(
-                    ((SESSIONS_DATA.reduce((sum, item) => sum + item.clinicianCancelled + item.cancelled, 0)) /
-                    SESSIONS_DATA.reduce((sum, item) =>
-                      sum + item.show + item.cancelled + item.clinicianCancelled + item.lateCancelled + item.noShow, 0
-                    )) * 100
-                  ).toFixed(1)}%
+                  {Math.round(SESSIONS_DATA.reduce((sum, item) => sum + item.completed, 0) / SESSIONS_DATA.length).toLocaleString()}
+                  <span className="text-stone-400 text-xl font-medium" style={{ fontFamily: "system-ui, sans-serif" }}>/mo</span>
                 </span>
-                <p className="text-rose-600 text-lg mt-3">cancellations & clinician cancellations</p>
+                <p className="text-stone-500 text-lg mt-3">
+                  {Math.round(SESSIONS_DATA.reduce((sum, item) => sum + item.completed, 0) / SESSIONS_DATA.length / 4.33)}/week
+                </p>
               </div>
             </div>
 
