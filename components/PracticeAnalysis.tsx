@@ -720,10 +720,10 @@ export const PracticeAnalysis: React.FC = () => {
               >
                 <div className="flex items-start justify-between mb-6">
                   <div>
-                    <h3 className="text-stone-900 text-2xl font-semibold mb-1" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                    <h3 className="text-stone-800 text-2xl font-semibold mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
                       Revenue Performance
                     </h3>
-                    <p className="text-stone-400 text-sm">Monthly breakdown</p>
+                    <p className="text-stone-500 text-lg">Monthly breakdown</p>
                   </div>
                   <div className="flex items-center gap-3">
                     {/* Hover tooltip for clinician breakdown - positioned within header area */}
@@ -786,7 +786,7 @@ export const PracticeAnalysis: React.FC = () => {
                 {/* Vertical Bar Chart */}
                 <div className="flex">
                   {/* Y-axis labels */}
-                  <div className="flex flex-col justify-between text-xs text-stone-400 font-medium pr-3" style={{ height: '320px' }}>
+                  <div className="flex flex-col justify-between text-sm text-stone-500 font-medium pr-3" style={{ height: '320px' }}>
                     <span>$160k</span>
                     <span>$120k</span>
                     <span>$80k</span>
@@ -827,7 +827,7 @@ export const PracticeAnalysis: React.FC = () => {
                             >
                               {/* Value label - always visible */}
                               <div className="mb-2 z-20">
-                                <span className={`text-xs font-bold ${isAboveGoal ? 'text-emerald-600' : 'text-blue-600'}`}>
+                                <span className={`text-sm font-bold ${isAboveGoal ? 'text-emerald-600' : 'text-blue-600'}`}>
                                   ${(item.value / 1000).toFixed(0)}k
                                 </span>
                               </div>
@@ -878,7 +878,7 @@ export const PracticeAnalysis: React.FC = () => {
                               >
                                 {/* Total value label */}
                                 <div className="mb-2 z-20">
-                                  <span className="text-xs font-bold text-indigo-600">
+                                  <span className="text-sm font-bold text-indigo-600">
                                     ${(total / 1000).toFixed(0)}k
                                   </span>
                                 </div>
@@ -937,7 +937,7 @@ export const PracticeAnalysis: React.FC = () => {
                           className="flex-1 text-center"
                           style={{ maxWidth: '50px' }}
                         >
-                          <span className={`text-xs font-semibold ${isCurrentMonth ? 'text-stone-900' : 'text-stone-500'}`}>
+                          <span className={`text-sm font-semibold ${isCurrentMonth ? 'text-stone-900' : 'text-stone-500'}`}>
                             {item.month}
                           </span>
                         </div>
@@ -957,24 +957,24 @@ export const PracticeAnalysis: React.FC = () => {
                         { name: 'Kim', color: '#db2777' },
                         { name: 'Johnson', color: '#059669' }
                       ].map((clinician) => (
-                        <div key={clinician.name} className="flex items-center gap-1.5">
+                        <div key={clinician.name} className="flex items-center gap-2">
                           <div
-                            className="w-3 h-3 rounded-full"
+                            className="w-4 h-4 rounded-full"
                             style={{ backgroundColor: clinician.color }}
                           />
-                          <span className="text-stone-600 text-xs font-medium">{clinician.name}</span>
+                          <span className="text-stone-600 text-sm font-medium">{clinician.name}</span>
                         </div>
                       ))}
                     </>
                   ) : (
                     <>
                       <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-sm bg-gradient-to-b from-blue-500 to-blue-700" />
-                        <span className="text-stone-600 text-sm">Below Goal</span>
+                        <div className="w-4 h-4 rounded-sm bg-gradient-to-b from-blue-500 to-blue-700" />
+                        <span className="text-stone-600 text-base">Below Goal</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-sm bg-gradient-to-b from-emerald-400 to-emerald-600" />
-                        <span className="text-stone-600 text-sm">Goal Met</span>
+                        <div className="w-4 h-4 rounded-sm bg-gradient-to-b from-emerald-400 to-emerald-600" />
+                        <span className="text-stone-600 text-base">Goal Met</span>
                       </div>
                     </>
                   )}
@@ -991,21 +991,21 @@ export const PracticeAnalysis: React.FC = () => {
                 }}
               >
                 <div className="mb-6">
-                  <h3 className="text-stone-900 text-2xl font-semibold mb-1" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                  <h3 className="text-stone-800 text-2xl font-semibold mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
                     Revenue Distribution
                   </h3>
-                  <p className="text-stone-400 text-sm">Where the money goes</p>
+                  <p className="text-stone-500 text-lg">Total across all {REVENUE_BREAKDOWN_DATA.length} selected month{REVENUE_BREAKDOWN_DATA.length !== 1 ? 's' : ''}</p>
                 </div>
 
                 {/* Donut Chart */}
                 {(() => {
-                  const lastMonth = REVENUE_BREAKDOWN_DATA[REVENUE_BREAKDOWN_DATA.length - 1];
-                  const gross = lastMonth?.grossRevenue || 1;
+                  // Sum all months in the selected period
+                  const gross = REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.grossRevenue, 0) || 1;
                   const segments = [
-                    { label: 'Clinician Costs', value: lastMonth?.clinicianCosts || 0, color: '#3b82f6' },
-                    { label: 'Supervisor Costs', value: lastMonth?.supervisorCosts || 0, color: '#f59e0b' },
-                    { label: 'CC Fees', value: lastMonth?.creditCardFees || 0, color: '#f43f5e' },
-                    { label: 'Net Revenue', value: lastMonth?.netRevenue || 0, color: '#10b981' }
+                    { label: 'Clinician Costs', value: REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.clinicianCosts, 0), color: '#3b82f6' },
+                    { label: 'Supervisor Costs', value: REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.supervisorCosts, 0), color: '#f59e0b' },
+                    { label: 'CC Fees', value: REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.creditCardFees, 0), color: '#f43f5e' },
+                    { label: 'Net Revenue', value: REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.netRevenue, 0), color: '#10b981' }
                   ];
 
                   const total = segments.reduce((sum, s) => sum + s.value, 0);
@@ -1090,7 +1090,7 @@ export const PracticeAnalysis: React.FC = () => {
                                 className="text-stone-900 font-bold"
                                 style={{ fontSize: '2rem', fontFamily: "'DM Serif Display', Georgia, serif" }}
                               >
-                                ${(hoveredDonutSegment.value / 1000).toFixed(1)}k
+                                {hoveredDonutSegment.value >= 1000000 ? `$${(hoveredDonutSegment.value / 1000000).toFixed(2)}M` : `$${(hoveredDonutSegment.value / 1000).toFixed(1)}k`}
                               </span>
                               <span className="text-stone-500 text-sm font-semibold mt-1">
                                 {hoveredDonutSegment.percent.toFixed(1)}%
@@ -1103,7 +1103,7 @@ export const PracticeAnalysis: React.FC = () => {
                                 className="text-stone-900 font-bold"
                                 style={{ fontSize: '2.25rem', fontFamily: "'DM Serif Display', Georgia, serif" }}
                               >
-                                ${(gross / 1000).toFixed(0)}k
+                                {gross >= 1000000 ? `$${(gross / 1000000).toFixed(2)}M` : `$${(gross / 1000).toFixed(0)}k`}
                               </span>
                             </>
                           )}
@@ -1128,16 +1128,16 @@ export const PracticeAnalysis: React.FC = () => {
                               }}
                             >
                               <div
-                                className={`w-4 h-4 rounded-full flex-shrink-0 transition-transform duration-200 ${isHovered ? 'scale-125' : ''}`}
+                                className={`w-5 h-5 rounded-full flex-shrink-0 transition-transform duration-200 ${isHovered ? 'scale-125' : ''}`}
                                 style={{ backgroundColor: segment.color }}
                               />
                               <div className="flex flex-col">
-                                <span className={`text-sm transition-colors duration-200 ${isHovered ? 'text-stone-900 font-semibold' : 'text-stone-600'}`}>
+                                <span className={`text-base transition-colors duration-200 ${isHovered ? 'text-stone-900 font-semibold' : 'text-stone-600'}`}>
                                   {segment.label}
                                 </span>
                                 <div className="flex items-baseline gap-2">
-                                  <span className="text-stone-900 font-bold">${(segment.value / 1000).toFixed(1)}k</span>
-                                  <span className="text-stone-400 text-xs">
+                                  <span className="text-stone-900 font-bold text-lg">{segment.value >= 1000000 ? `$${(segment.value / 1000000).toFixed(2)}M` : `$${(segment.value / 1000).toFixed(1)}k`}</span>
+                                  <span className="text-stone-400 text-sm">
                                     {((segment.value / total) * 100).toFixed(0)}%
                                   </span>
                                 </div>
@@ -1160,19 +1160,23 @@ export const PracticeAnalysis: React.FC = () => {
                 boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
               }}
             >
-              <h3 className="text-stone-900 text-2xl font-semibold mb-6" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
-                Team Performance
-              </h3>
+              <div className="mb-6">
+                <h3 className="text-stone-800 text-2xl font-semibold mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                  Team Performance
+                </h3>
+                <p className="text-stone-500 text-lg">Total across all {CLINICIAN_REVENUE_DATA.length} selected month{CLINICIAN_REVENUE_DATA.length !== 1 ? 's' : ''}</p>
+              </div>
 
               <div className="grid grid-cols-5 gap-4">
                 {(() => {
-                  const lastMonth = CLINICIAN_REVENUE_DATA[CLINICIAN_REVENUE_DATA.length - 1];
+                  // Sum all months in the selected period
+                  const totalRevenue = REVENUE_DATA.reduce((sum, item) => sum + item.value, 0);
                   const clinicians = [
-                    { name: 'Chen', value: lastMonth?.Chen || 0, color: '#7c3aed' },
-                    { name: 'Rodriguez', value: lastMonth?.Rodriguez || 0, color: '#0891b2' },
-                    { name: 'Patel', value: lastMonth?.Patel || 0, color: '#d97706' },
-                    { name: 'Kim', value: lastMonth?.Kim || 0, color: '#db2777' },
-                    { name: 'Johnson', value: lastMonth?.Johnson || 0, color: '#059669' }
+                    { name: 'Chen', value: CLINICIAN_REVENUE_DATA.reduce((sum, item) => sum + (item.Chen || 0), 0), color: '#7c3aed' },
+                    { name: 'Rodriguez', value: CLINICIAN_REVENUE_DATA.reduce((sum, item) => sum + (item.Rodriguez || 0), 0), color: '#0891b2' },
+                    { name: 'Patel', value: CLINICIAN_REVENUE_DATA.reduce((sum, item) => sum + (item.Patel || 0), 0), color: '#d97706' },
+                    { name: 'Kim', value: CLINICIAN_REVENUE_DATA.reduce((sum, item) => sum + (item.Kim || 0), 0), color: '#db2777' },
+                    { name: 'Johnson', value: CLINICIAN_REVENUE_DATA.reduce((sum, item) => sum + (item.Johnson || 0), 0), color: '#059669' }
                   ].sort((a, b) => b.value - a.value);
 
                   const maxValue = Math.max(...clinicians.map(c => c.value));
@@ -1188,23 +1192,23 @@ export const PracticeAnalysis: React.FC = () => {
                       }}
                     >
                       {idx === 0 && (
-                        <div className="absolute top-3 right-3 px-2 py-0.5 rounded text-[10px] font-bold uppercase" style={{ background: clinician.color, color: 'white' }}>
+                        <div className="absolute top-3 right-3 px-2.5 py-1 rounded text-xs font-bold uppercase" style={{ background: clinician.color, color: 'white' }}>
                           Top
                         </div>
                       )}
-                      <p className="text-stone-500 text-xs font-bold uppercase tracking-wide mb-1">#{idx + 1}</p>
+                      <p className="text-stone-500 text-sm font-bold uppercase tracking-wide mb-1">#{idx + 1}</p>
                       <h4 className="text-stone-900 text-xl font-bold mb-3">{clinician.name}</h4>
                       <div className="text-2xl font-bold mb-3" style={{ color: clinician.color, fontFamily: "'DM Serif Display', Georgia, serif" }}>
-                        ${(clinician.value / 1000).toFixed(1)}k
+                        {clinician.value >= 1000000 ? `$${(clinician.value / 1000000).toFixed(2)}M` : `$${(clinician.value / 1000).toFixed(1)}k`}
                       </div>
-                      <div className="h-1.5 bg-stone-200 rounded-full overflow-hidden">
+                      <div className="h-2 bg-stone-200 rounded-full overflow-hidden">
                         <div
                           className="h-full rounded-full"
                           style={{ width: `${(clinician.value / maxValue) * 100}%`, background: clinician.color }}
                         />
                       </div>
-                      <p className="text-stone-500 text-xs mt-2">
-                        {((clinician.value / (REVENUE_DATA[REVENUE_DATA.length - 1]?.value || 1)) * 100).toFixed(0)}% of total
+                      <p className="text-stone-600 text-sm font-medium mt-3">
+                        {((clinician.value / (totalRevenue || 1)) * 100).toFixed(0)}% of total
                       </p>
                     </div>
                   ));
@@ -1220,77 +1224,77 @@ export const PracticeAnalysis: React.FC = () => {
                 boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
               }}
             >
-              <h3 className="text-stone-900 text-2xl font-semibold mb-6" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+              <h3 className="text-stone-800 text-2xl font-semibold mb-6" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
                 Full Breakdown
               </h3>
 
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-stone-200">
-                      <th className="text-left py-4 px-3 text-xs font-bold text-stone-500 uppercase tracking-wider"></th>
+                    <tr className="border-b-2 border-stone-200">
+                      <th className="text-left py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider"></th>
                       {REVENUE_BREAKDOWN_DATA.map((item) => (
-                        <th key={item.month} className="text-right py-4 px-3 text-xs font-bold text-stone-500 uppercase tracking-wider">{item.month}</th>
+                        <th key={item.month} className="text-right py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">{item.month}</th>
                       ))}
-                      <th className="text-right py-4 px-3 text-xs font-bold text-stone-900 uppercase tracking-wider">Total</th>
+                      <th className="text-right py-5 px-4 text-sm font-bold text-stone-900 uppercase tracking-wider">Total</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr className="border-b border-stone-100 hover:bg-stone-50 transition-colors">
-                      <td className="py-4 px-3 text-sm font-semibold text-stone-900">Gross Revenue</td>
+                      <td className="py-5 px-4 text-base font-semibold text-stone-900">Gross Revenue</td>
                       {REVENUE_BREAKDOWN_DATA.map((item) => (
-                        <td key={item.month} className="py-4 px-3 text-sm text-stone-600 text-right">${(item.grossRevenue / 1000).toFixed(1)}k</td>
+                        <td key={item.month} className="py-5 px-4 text-base text-stone-600 text-right">${(item.grossRevenue / 1000).toFixed(1)}k</td>
                       ))}
-                      <td className="py-4 px-3 text-sm font-bold text-stone-900 text-right">
-                        ${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.grossRevenue, 0) / 1000).toFixed(1)}k
+                      <td className="py-5 px-4 text-base font-bold text-stone-900 text-right">
+                        {REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.grossRevenue, 0) >= 1000000 ? `$${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.grossRevenue, 0) / 1000000).toFixed(2)}M` : `$${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.grossRevenue, 0) / 1000).toFixed(1)}k`}
                       </td>
                     </tr>
                     <tr className="border-b border-stone-100 hover:bg-stone-50 transition-colors">
-                      <td className="py-4 px-3 text-sm font-semibold text-stone-900 flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-blue-500" />
+                      <td className="py-5 px-4 text-base font-semibold text-stone-900 flex items-center gap-3">
+                        <div className="w-3 h-3 rounded-full bg-blue-500" />
                         Clinician Cost
                       </td>
                       {REVENUE_BREAKDOWN_DATA.map((item) => (
-                        <td key={item.month} className="py-4 px-3 text-sm text-blue-600 text-right">${(item.clinicianCosts / 1000).toFixed(1)}k</td>
+                        <td key={item.month} className="py-5 px-4 text-base text-blue-600 text-right">${(item.clinicianCosts / 1000).toFixed(1)}k</td>
                       ))}
-                      <td className="py-4 px-3 text-sm font-bold text-blue-600 text-right">
-                        ${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.clinicianCosts, 0) / 1000).toFixed(1)}k
+                      <td className="py-5 px-4 text-base font-bold text-blue-600 text-right">
+                        {REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.clinicianCosts, 0) >= 1000000 ? `$${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.clinicianCosts, 0) / 1000000).toFixed(2)}M` : `$${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.clinicianCosts, 0) / 1000).toFixed(1)}k`}
                       </td>
                     </tr>
                     <tr className="border-b border-stone-100 hover:bg-stone-50 transition-colors">
-                      <td className="py-4 px-3 text-sm font-semibold text-stone-900 flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-amber-500" />
+                      <td className="py-5 px-4 text-base font-semibold text-stone-900 flex items-center gap-3">
+                        <div className="w-3 h-3 rounded-full bg-amber-500" />
                         Supervisor Cost
                       </td>
                       {REVENUE_BREAKDOWN_DATA.map((item) => (
-                        <td key={item.month} className="py-4 px-3 text-sm text-amber-600 text-right">${(item.supervisorCosts / 1000).toFixed(1)}k</td>
+                        <td key={item.month} className="py-5 px-4 text-base text-amber-600 text-right">${(item.supervisorCosts / 1000).toFixed(1)}k</td>
                       ))}
-                      <td className="py-4 px-3 text-sm font-bold text-amber-600 text-right">
-                        ${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.supervisorCosts, 0) / 1000).toFixed(1)}k
+                      <td className="py-5 px-4 text-base font-bold text-amber-600 text-right">
+                        {REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.supervisorCosts, 0) >= 1000000 ? `$${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.supervisorCosts, 0) / 1000000).toFixed(2)}M` : `$${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.supervisorCosts, 0) / 1000).toFixed(1)}k`}
                       </td>
                     </tr>
                     <tr className="border-b border-stone-100 hover:bg-stone-50 transition-colors">
-                      <td className="py-4 px-3 text-sm font-semibold text-stone-900 flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-rose-500" />
+                      <td className="py-5 px-4 text-base font-semibold text-stone-900 flex items-center gap-3">
+                        <div className="w-3 h-3 rounded-full bg-rose-500" />
                         Credit Card Fees
                       </td>
                       {REVENUE_BREAKDOWN_DATA.map((item) => (
-                        <td key={item.month} className="py-4 px-3 text-sm text-rose-600 text-right">${(item.creditCardFees / 1000).toFixed(1)}k</td>
+                        <td key={item.month} className="py-5 px-4 text-base text-rose-600 text-right">${(item.creditCardFees / 1000).toFixed(1)}k</td>
                       ))}
-                      <td className="py-4 px-3 text-sm font-bold text-rose-600 text-right">
-                        ${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.creditCardFees, 0) / 1000).toFixed(1)}k
+                      <td className="py-5 px-4 text-base font-bold text-rose-600 text-right">
+                        {REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.creditCardFees, 0) >= 1000000 ? `$${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.creditCardFees, 0) / 1000000).toFixed(2)}M` : `$${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.creditCardFees, 0) / 1000).toFixed(1)}k`}
                       </td>
                     </tr>
                     <tr className="hover:bg-emerald-50 transition-colors">
-                      <td className="py-4 px-3 text-sm font-bold text-emerald-700 flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                      <td className="py-5 px-4 text-base font-bold text-emerald-700 flex items-center gap-3">
+                        <div className="w-3 h-3 rounded-full bg-emerald-500" />
                         Net Revenue
                       </td>
                       {REVENUE_BREAKDOWN_DATA.map((item) => (
-                        <td key={item.month} className="py-4 px-3 text-sm font-bold text-emerald-600 text-right">${(item.netRevenue / 1000).toFixed(1)}k</td>
+                        <td key={item.month} className="py-5 px-4 text-base font-bold text-emerald-600 text-right">${(item.netRevenue / 1000).toFixed(1)}k</td>
                       ))}
-                      <td className="py-4 px-3 text-base font-bold text-emerald-700 text-right">
-                        ${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.netRevenue, 0) / 1000).toFixed(1)}k
+                      <td className="py-5 px-4 text-lg font-bold text-emerald-700 text-right">
+                        {REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.netRevenue, 0) >= 1000000 ? `$${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.netRevenue, 0) / 1000000).toFixed(2)}M` : `$${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.netRevenue, 0) / 1000).toFixed(1)}k`}
                       </td>
                     </tr>
                   </tbody>
