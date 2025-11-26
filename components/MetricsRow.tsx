@@ -88,24 +88,24 @@ const StatusIndicator: React.FC<{ status: MetricDetail['status'] }> = ({ status 
 const getMetricTooltip = (label: string): { title: string; description: string } => {
   const tooltips: Record<string, { title: string; description: string }> = {
     'Revenue': {
-      title: 'Total Money Earned',
-      description: 'The total amount of money your practice has collected this month. The goal is what you\'re aiming to earn. Green means you\'re on track, yellow means you might fall short, red means you need to take action now.'
+      title: 'Revenue',
+      description: 'Total money collected this month toward your monthly goal.'
     },
     'Sessions': {
-      title: 'Appointments Completed',
-      description: 'The number of therapy appointments that actually happened (clients showed up). "Capacity" means how much of your available schedule is being used — 100% would mean every possible slot is booked and completed.'
+      title: 'Completed Sessions',
+      description: 'Sessions completed this month. Utilization is the percentage of your session goal achieved.'
     },
     'Clients': {
-      title: 'Your Client Base',
-      description: 'The total number of people currently receiving care at your practice. "New" means clients who started this month. "Churned" means clients who stopped coming. "Open slots" shows how many new clients you could take on right now.'
+      title: 'Active Clients',
+      description: 'Clients active in SimplePractice. Discharged clients are no longer active. Openings shows how many new clients you can take on.'
     },
     'Attendance': {
-      title: 'Client Follow-Through',
-      description: 'The "rebook rate" shows what percentage of clients schedule their next appointment after a visit — higher is better (aim for 80%+). "Canceled" means they called ahead to cancel. "No-show" means they missed without telling you, which is worse because you can\'t fill that slot.'
+      title: 'Rebook Rate',
+      description: 'Percentage of active clients with their next session scheduled. Non-billable cancel rate is client and clinician cancellations combined.'
     },
-    'Compliance': {
-      title: 'Paperwork Status',
-      description: 'After each session, clinicians must sign their notes for legal and billing purposes. This shows how many notes are still unsigned. The goal is always zero — unsigned notes can delay insurance payments and create legal risk.'
+    'Outstanding Notes': {
+      title: 'Outstanding Notes',
+      description: 'Sessions with overdue notes. Overdue notes delay billing and create compliance risk.'
     }
   };
 

@@ -3,7 +3,7 @@ import { MetricChart } from './MetricChart';
 import { ResponsiveContainer, LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, LabelList, Legend, CartesianGrid, ReferenceLine } from 'recharts';
 import { Info, X, ArrowRight, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 
-type TabType = 'financial' | 'sessions' | 'capacity-client' | 'retention' | 'insurance' | 'admin';
+type TabType = 'financial' | 'sessions' | 'capacity-client' | 'retention' | 'insurance' | 'admin' | 'team-comparison';
 
 // Full data set for all time periods
 const ALL_REVENUE_DATA = [
@@ -226,6 +226,67 @@ const ALL_REMINDER_DELIVERY_DATA = [
 
 type TimePeriod = 'last-12-months' | 'this-year' | 'this-quarter' | 'last-quarter' | 'this-month' | 'last-month' | '2024' | '2023' | 'custom';
 
+// Team Comparison Data - By Location
+type LocationData = {
+  location: string;
+  avgWeeklySessions: number | string;
+  completedSessions: number;
+  utilizationPercent: number;
+  clientsSeen: number;
+  cancelRate: number;
+  churnRate: number;
+  retentionRate: number;
+  outstandingNotes: number;
+};
+
+const LOCATION_DATA: LocationData[] = [
+  { location: 'Durham', avgWeeklySessions: 51.4, completedSessions: 2547, utilizationPercent: 96, clientsSeen: 173, cancelRate: 18, churnRate: 17, retentionRate: 76, outstandingNotes: 3 },
+  { location: 'Chapel Hill', avgWeeklySessions: '31.1 / 37', completedSessions: 1542, utilizationPercent: 84, clientsSeen: 84, cancelRate: 24, churnRate: 11, retentionRate: 74, outstandingNotes: 5 },
+  { location: 'Remote', avgWeeklySessions: 35.7, completedSessions: 1768, utilizationPercent: 79, clientsSeen: 108, cancelRate: 21, churnRate: 16, retentionRate: 72, outstandingNotes: 2 },
+  { location: 'Chicago', avgWeeklySessions: '15.6 / 16', completedSessions: 637, utilizationPercent: 97, clientsSeen: 53, cancelRate: 27, churnRate: 25, retentionRate: 40, outstandingNotes: 4 }
+];
+
+// Team Comparison Data - By Supervisor
+type SupervisorData = {
+  supervisor: string;
+  avgWeeklySessions: number;
+  completedSessions: number;
+  utilizationPercent: number;
+  clientsSeen: number;
+  cancelRate: number;
+  churnRate: number;
+  retentionRate: number;
+  outstandingNotes: number;
+};
+
+const SUPERVISOR_DATA: SupervisorData[] = [
+  { supervisor: 'Barbara Downs', avgWeeklySessions: 48.5, completedSessions: 2404, utilizationPercent: 96, clientsSeen: 142, cancelRate: 22, churnRate: 19, retentionRate: 75, outstandingNotes: 4 },
+  { supervisor: 'Eugene Miller', avgWeeklySessions: 45.4, completedSessions: 2249, utilizationPercent: 78, clientsSeen: 146, cancelRate: 20, churnRate: 14, retentionRate: 70, outstandingNotes: 6 }
+];
+
+// Team Comparison Data - By Clinician (detailed view)
+type ClinicianComparisonData = {
+  clinician: string;
+  location: string;
+  supervisor: string;
+  avgWeeklySessions: number;
+  completedSessions: number;
+  utilizationPercent: number;
+  clientsSeen: number;
+  cancelRate: number;
+  churnRate: number;
+  retentionRate: number;
+  outstandingNotes: number;
+};
+
+const CLINICIAN_COMPARISON_DATA: ClinicianComparisonData[] = [
+  { clinician: 'Dr. Sarah Chen', location: 'Durham', supervisor: 'Barbara Downs', avgWeeklySessions: 38.2, completedSessions: 1854, utilizationPercent: 98, clientsSeen: 45, cancelRate: 15, churnRate: 12, retentionRate: 82, outstandingNotes: 0 },
+  { clinician: 'Dr. Maria Rodriguez', location: 'Durham', supervisor: 'Barbara Downs', avgWeeklySessions: 35.8, completedSessions: 1693, utilizationPercent: 94, clientsSeen: 42, cancelRate: 19, churnRate: 15, retentionRate: 78, outstandingNotes: 1 },
+  { clinician: 'Dr. Raj Patel', location: 'Chapel Hill', supervisor: 'Eugene Miller', avgWeeklySessions: 31.1, completedSessions: 1542, utilizationPercent: 84, clientsSeen: 38, cancelRate: 24, churnRate: 11, retentionRate: 74, outstandingNotes: 2 },
+  { clinician: 'Dr. Jessica Kim', location: 'Remote', supervisor: 'Eugene Miller', avgWeeklySessions: 35.7, completedSessions: 1768, utilizationPercent: 79, clientsSeen: 52, cancelRate: 21, churnRate: 16, retentionRate: 72, outstandingNotes: 1 },
+  { clinician: 'Dr. Michael Johnson', location: 'Chicago', supervisor: 'Barbara Downs', avgWeeklySessions: 15.6, completedSessions: 637, utilizationPercent: 97, clientsSeen: 28, cancelRate: 27, churnRate: 25, retentionRate: 40, outstandingNotes: 3 }
+];
+
 // Month name to index mapping for date comparison
 const MONTH_MAP: { [key: string]: number } = {
   'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5,
@@ -249,6 +310,13 @@ export const PracticeAnalysis: React.FC = () => {
   const [hoveredSessionsClinicianBar, setHoveredSessionsClinicianBar] = useState<{ month: string; clinician: string; value: number; color: string } | null>(null);
   const [showClientBreakdown, setShowClientBreakdown] = useState(false);
 
+  // Team Comparison tab state
+  const [locationSortColumn, setLocationSortColumn] = useState<string | null>(null);
+  const [locationSortDirection, setLocationSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [supervisorSortColumn, setSupervisorSortColumn] = useState<string | null>(null);
+  const [supervisorSortDirection, setSupervisorSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [showClinicianDetails, setShowClinicianDetails] = useState<string | null>(null);
+
   // Custom Date Picker State - Simplified
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [customStartMonth, setCustomStartMonth] = useState<number>(0);
@@ -263,7 +331,8 @@ export const PracticeAnalysis: React.FC = () => {
     { id: 'capacity-client', label: 'Capacity & Client Analysis', shortLabel: 'Capacity & Client' },
     { id: 'retention', label: 'Retention Analysis', shortLabel: 'Retention' },
     { id: 'insurance', label: 'Insurance Analysis', shortLabel: 'Insurance' },
-    { id: 'admin', label: 'Admin Analysis', shortLabel: 'Admin' }
+    { id: 'admin', label: 'Admin Analysis', shortLabel: 'Admin' },
+    { id: 'team-comparison', label: 'Team Comparison', shortLabel: 'Team' }
   ];
 
   const timePeriods: { id: TimePeriod; label: string }[] = [
@@ -465,13 +534,14 @@ export const PracticeAnalysis: React.FC = () => {
   // Render Financial and Sessions tabs with new design
   const isFinancialTab = activeTab === 'financial';
   const isSessionsTab = activeTab === 'sessions';
+  const isTeamComparisonTab = activeTab === 'team-comparison';
 
   return (
     <div
-      className={`flex-1 overflow-y-auto h-[calc(100vh-80px)] ${(isFinancialTab || isSessionsTab) ? 'bg-gradient-to-br from-stone-50 via-orange-50/20 to-stone-100/50' : 'p-8 pt-2'}`}
+      className={`flex-1 overflow-y-auto h-[calc(100vh-80px)] ${(isFinancialTab || isSessionsTab || isTeamComparisonTab) ? 'bg-gradient-to-br from-stone-50 via-orange-50/20 to-stone-100/50' : 'p-8 pt-2'}`}
     >
       {/* Warm gradient overlay - same as Practice Overview */}
-      {(isFinancialTab || isSessionsTab) && (
+      {(isFinancialTab || isSessionsTab || isTeamComparisonTab) && (
         <div
           className="fixed inset-0 pointer-events-none"
           style={{
@@ -1443,8 +1513,8 @@ export const PracticeAnalysis: React.FC = () => {
         </div>
       )}
 
-      {/* Original Header for other tabs (not Financial or Sessions) */}
-      {!isFinancialTab && !isSessionsTab && (
+      {/* Original Header for other tabs (not Financial, Sessions, or Team Comparison) */}
+      {!isFinancialTab && !isSessionsTab && !isTeamComparisonTab && (
         <>
           <div className="mb-6">
             <h2 className="text-gray-500 text-sm font-medium mb-1">DETAILED INSIGHTS</h2>
@@ -4001,6 +4071,614 @@ export const PracticeAnalysis: React.FC = () => {
                 );
               })()}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Team Comparison Tab - Premium Design matching Financial Tab */}
+      {isTeamComparisonTab && (
+        <div className="min-h-full relative">
+          {/* Integrated Header */}
+          <div className="sticky top-0 z-50 px-10 pt-8 pb-6" style={{ background: 'linear-gradient(180deg, rgba(250,250,249,0.97) 0%, rgba(250,250,249,0.95) 80%, transparent 100%)' }}>
+            <div className="flex items-end justify-between">
+              {/* Title & Breadcrumb */}
+              <div>
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="text-stone-400 text-sm font-medium uppercase tracking-widest">Detailed Analysis</span>
+                  <span className="text-stone-300">/</span>
+                  <span className="text-indigo-600 text-sm font-bold uppercase tracking-widest">Team</span>
+                </div>
+                <div className="flex items-baseline gap-4">
+                  <h1
+                    className="text-5xl text-stone-900 font-bold tracking-tight"
+                    style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                  >
+                    Team Comparison
+                  </h1>
+                  <span className="text-stone-400 text-base font-medium">
+                    {getDateRangeLabel()}
+                  </span>
+                </div>
+              </div>
+
+              {/* Time Period Selector - Same as Financial */}
+              <div className="flex items-center gap-4 relative">
+                <div
+                  className="flex items-center gap-1 p-1.5 rounded-2xl bg-white/80 backdrop-blur-sm"
+                  style={{
+                    boxShadow: '0 4px 20px -4px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.03)'
+                  }}
+                >
+                  {timePeriods.map((period) => (
+                    <button
+                      key={period.id}
+                      onClick={() => setTimePeriod(period.id)}
+                      className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${
+                        timePeriod === period.id
+                          ? 'bg-stone-900 text-white shadow-lg'
+                          : 'text-stone-500 hover:text-stone-900 hover:bg-stone-100'
+                      }`}
+                    >
+                      {period.label}
+                    </button>
+                  ))}
+                  {/* Custom Range Button */}
+                  <button
+                    onClick={() => setShowDatePicker(!showDatePicker)}
+                    className={`group px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-500 flex items-center gap-2.5 relative overflow-hidden ${
+                      timePeriod === 'custom'
+                        ? 'text-white shadow-lg'
+                        : 'text-stone-500 hover:text-stone-900'
+                    }`}
+                    style={{
+                      background: timePeriod === 'custom'
+                        ? 'linear-gradient(135deg, #1c1917 0%, #292524 50%, #1c1917 100%)'
+                        : 'transparent'
+                    }}
+                  >
+                    <Calendar
+                      size={16}
+                      className={`transition-transform duration-500 ${showDatePicker ? 'rotate-12' : 'group-hover:rotate-6'}`}
+                    />
+                    <span>{timePeriod === 'custom' ? formatCustomRange() : 'Custom'}</span>
+                  </button>
+                </div>
+
+                {/* Date Picker Dropdown - Same as Financial */}
+                {showDatePicker && (
+                  <div
+                    className="absolute top-full right-0 mt-3 z-[100000] rounded-2xl bg-white p-6"
+                    style={{
+                      width: '340px',
+                      boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05)',
+                      animation: 'fadeIn 0.2s ease-out'
+                    }}
+                  >
+                    {/* Header */}
+                    <div className="flex items-center justify-between mb-5">
+                      <h3 className="text-stone-900 text-lg font-semibold">Custom Range</h3>
+                      <button
+                        onClick={() => setShowDatePicker(false)}
+                        className="w-8 h-8 rounded-full flex items-center justify-center text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-colors"
+                      >
+                        <X size={18} />
+                      </button>
+                    </div>
+
+                    {/* Year Selector */}
+                    <div className="flex items-center justify-center gap-4 mb-5 pb-5 border-b border-stone-100">
+                      <button
+                        onClick={() => setCustomYear(prev => prev - 1)}
+                        className="w-9 h-9 rounded-full flex items-center justify-center text-stone-400 hover:text-stone-900 hover:bg-stone-100 transition-all"
+                      >
+                        <ChevronLeft size={20} />
+                      </button>
+                      <span
+                        className="text-stone-900 text-2xl font-bold tabular-nums w-20 text-center"
+                        style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                      >
+                        {customYear}
+                      </span>
+                      <button
+                        onClick={() => setCustomYear(prev => prev + 1)}
+                        className="w-9 h-9 rounded-full flex items-center justify-center text-stone-400 hover:text-stone-900 hover:bg-stone-100 transition-all"
+                      >
+                        <ChevronRight size={20} />
+                      </button>
+                    </div>
+
+                    {/* Month Grid */}
+                    <div className="grid grid-cols-4 gap-2 mb-5">
+                      {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((month, idx) => {
+                        const isStart = idx === customStartMonth;
+                        const isEnd = idx === customEndMonth;
+                        const isInRange = idx > customStartMonth && idx < customEndMonth;
+                        const isSelected = isStart || isEnd;
+
+                        return (
+                          <button
+                            key={month}
+                            onClick={() => {
+                              if (customStartMonth === customEndMonth) {
+                                if (idx < customStartMonth) {
+                                  setCustomStartMonth(idx);
+                                } else if (idx > customStartMonth) {
+                                  setCustomEndMonth(idx);
+                                }
+                              } else {
+                                setCustomStartMonth(idx);
+                                setCustomEndMonth(idx);
+                              }
+                            }}
+                            className={`py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                              isSelected
+                                ? 'bg-stone-900 text-white shadow-md'
+                                : isInRange
+                                  ? 'bg-stone-200 text-stone-700'
+                                  : 'text-stone-600 hover:bg-stone-100'
+                            }`}
+                          >
+                            {month}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Apply Button */}
+                    <button
+                      onClick={() => {
+                        setTimePeriod('custom');
+                        setShowDatePicker(false);
+                      }}
+                      className="w-full py-3 rounded-xl text-white font-semibold transition-all duration-300"
+                      style={{
+                        background: 'linear-gradient(135deg, #1c1917 0%, #292524 50%, #1c1917 100%)',
+                        boxShadow: '0 4px 12px -2px rgba(0, 0, 0, 0.3)'
+                      }}
+                    >
+                      Apply Range
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Tab Navigation - Minimal Pills */}
+            <div className="flex items-center gap-3 mt-8">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`px-6 py-3 rounded-full text-base font-semibold transition-all duration-300 ${
+                    activeTab === tab.id
+                      ? 'bg-stone-900 text-white shadow-md'
+                      : 'text-stone-500 hover:text-stone-800 border border-stone-300 hover:border-stone-400 bg-white/50'
+                  }`}
+                >
+                  {tab.shortLabel}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Main Content */}
+          <div className="px-10 pb-10 space-y-8">
+            {/* Summary Stats Row */}
+            <div className="grid grid-cols-4 gap-6">
+              {/* Total Clinicians */}
+              <div
+                className="rounded-3xl p-6 relative overflow-hidden"
+                style={{
+                  background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
+                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
+                }}
+              >
+                <h3
+                  className="text-stone-800 text-2xl font-semibold mb-4"
+                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  Total Clinicians
+                </h3>
+                <span
+                  className="text-stone-900 font-bold block"
+                  style={{ fontSize: '2.5rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  {CLINICIAN_COMPARISON_DATA.length}
+                </span>
+                <p className="text-stone-500 text-lg mt-3">
+                  across {LOCATION_DATA.length} locations
+                </p>
+              </div>
+
+              {/* Total Sessions */}
+              <div
+                className="rounded-3xl p-6 relative overflow-hidden"
+                style={{
+                  background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
+                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
+                }}
+              >
+                <h3
+                  className="text-stone-800 text-2xl font-semibold mb-4"
+                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  Total Sessions
+                </h3>
+                <span
+                  className="text-stone-900 font-bold block"
+                  style={{ fontSize: '2.5rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  {LOCATION_DATA.reduce((sum, loc) => sum + loc.completedSessions, 0).toLocaleString()}
+                </span>
+                <p className="text-stone-500 text-lg mt-3">
+                  completed this period
+                </p>
+              </div>
+
+              {/* Avg Utilization */}
+              <div
+                className="rounded-3xl p-6 relative overflow-hidden"
+                style={{
+                  background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
+                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
+                }}
+              >
+                <h3
+                  className="text-stone-800 text-2xl font-semibold mb-4"
+                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  Avg Utilization
+                </h3>
+                <span
+                  className="text-stone-900 font-bold block"
+                  style={{ fontSize: '2.5rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  {(LOCATION_DATA.reduce((sum, loc) => sum + loc.utilizationPercent, 0) / LOCATION_DATA.length).toFixed(0)}%
+                </span>
+                <p className="text-stone-500 text-lg mt-3">
+                  of goal achieved
+                </p>
+              </div>
+
+              {/* Avg Retention */}
+              <div
+                className="rounded-3xl p-6 relative overflow-hidden"
+                style={{
+                  background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
+                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
+                }}
+              >
+                <h3
+                  className="text-stone-800 text-2xl font-semibold mb-4"
+                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  Avg Retention
+                </h3>
+                <span
+                  className="text-stone-900 font-bold block"
+                  style={{ fontSize: '2.5rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  {(LOCATION_DATA.reduce((sum, loc) => sum + loc.retentionRate, 0) / LOCATION_DATA.length).toFixed(0)}%
+                </span>
+                <p className="text-stone-500 text-lg mt-3">
+                  client retention rate
+                </p>
+              </div>
+            </div>
+
+            {/* Group by Primary Location Table */}
+            <div
+              className="rounded-3xl p-8"
+              style={{
+                background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
+                boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
+              }}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-stone-800 text-2xl font-semibold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                  Group by Primary Location
+                </h3>
+                <button
+                  className="text-indigo-600 text-sm font-semibold hover:text-indigo-800 transition-colors flex items-center gap-2"
+                  onClick={() => setShowClinicianDetails(showClinicianDetails === 'location' ? null : 'location')}
+                >
+                  See Clinicians by Primary Location
+                  <ArrowRight size={16} />
+                </button>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b-2 border-stone-200">
+                      <th className="text-left py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">
+                        <button
+                          className="flex items-center gap-2 hover:text-stone-900 transition-colors"
+                          onClick={() => {
+                            if (locationSortColumn === 'location') {
+                              setLocationSortDirection(locationSortDirection === 'asc' ? 'desc' : 'asc');
+                            } else {
+                              setLocationSortColumn('location');
+                              setLocationSortDirection('asc');
+                            }
+                          }}
+                        >
+                          Group by Primary Location
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                          </svg>
+                        </button>
+                      </th>
+                      {['Avg Weekly Sessions', 'Completed Sessions', 'Utilization (% of Goal)', 'Clients Seen', 'Cancel Rate', 'Churn Rate', 'Retention Rate', 'Outstanding Notes'].map((header, idx) => (
+                        <th key={header} className="text-center py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">
+                          <button
+                            className="flex items-center justify-center gap-1 hover:text-stone-900 transition-colors w-full"
+                            onClick={() => {
+                              const columnKey = ['avgWeeklySessions', 'completedSessions', 'utilizationPercent', 'clientsSeen', 'cancelRate', 'churnRate', 'retentionRate', 'outstandingNotes'][idx];
+                              if (locationSortColumn === columnKey) {
+                                setLocationSortDirection(locationSortDirection === 'asc' ? 'desc' : 'asc');
+                              } else {
+                                setLocationSortColumn(columnKey);
+                                setLocationSortDirection('desc');
+                              }
+                            }}
+                          >
+                            {header}
+                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                            </svg>
+                          </button>
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[...LOCATION_DATA].sort((a, b) => {
+                      if (!locationSortColumn) return 0;
+                      const aVal = a[locationSortColumn as keyof LocationData];
+                      const bVal = b[locationSortColumn as keyof LocationData];
+                      const aNum = typeof aVal === 'string' ? parseFloat(aVal.split('/')[0]) : aVal;
+                      const bNum = typeof bVal === 'string' ? parseFloat(bVal.split('/')[0]) : bVal;
+                      return locationSortDirection === 'asc' ? (aNum as number) - (bNum as number) : (bNum as number) - (aNum as number);
+                    }).map((row, idx) => (
+                      <tr key={row.location} className="border-b border-stone-100 hover:bg-stone-50 transition-colors">
+                        <td className="py-5 px-4 text-base font-semibold text-stone-900 uppercase tracking-wide">{row.location}</td>
+                        <td className="py-5 px-4 text-center">
+                          <div className="flex items-center justify-center gap-2">
+                            <span className={`w-2.5 h-2.5 rounded-full ${typeof row.avgWeeklySessions === 'string' ? 'bg-amber-500' : 'bg-transparent'}`}></span>
+                            <span className="text-base text-stone-700 font-medium">{row.avgWeeklySessions}</span>
+                          </div>
+                        </td>
+                        <td className="py-5 px-4 text-base text-stone-700 text-center font-medium">{row.completedSessions.toLocaleString()}</td>
+                        <td className="py-5 px-4 text-center">
+                          <div className="flex items-center justify-center gap-2">
+                            <span className={`w-2.5 h-2.5 rounded-full ${row.utilizationPercent >= 90 ? 'bg-emerald-500' : row.utilizationPercent >= 80 ? 'bg-amber-500' : 'bg-rose-500'}`}></span>
+                            <span className="text-base text-stone-700 font-medium">{row.utilizationPercent}%</span>
+                          </div>
+                        </td>
+                        <td className="py-5 px-4 text-base text-stone-700 text-center font-medium">{row.clientsSeen}</td>
+                        <td className="py-5 px-4 text-center">
+                          <div className="flex items-center justify-center gap-2">
+                            <span className={`w-2.5 h-2.5 rounded-full ${row.cancelRate <= 20 ? 'bg-emerald-500' : row.cancelRate <= 25 ? 'bg-amber-500' : 'bg-rose-500'}`}></span>
+                            <span className="text-base text-stone-700 font-medium">{row.cancelRate}%</span>
+                          </div>
+                        </td>
+                        <td className="py-5 px-4 text-center">
+                          <div className="flex items-center justify-center gap-2">
+                            <span className={`w-2.5 h-2.5 rounded-full ${row.churnRate <= 15 ? 'bg-emerald-500' : row.churnRate <= 20 ? 'bg-amber-500' : 'bg-rose-500'}`}></span>
+                            <span className="text-base text-stone-700 font-medium">{row.churnRate}%</span>
+                          </div>
+                        </td>
+                        <td className="py-5 px-4 text-center">
+                          <div className="flex items-center justify-center gap-2">
+                            <span className={`w-2.5 h-2.5 rounded-full ${row.retentionRate >= 75 ? 'bg-emerald-500' : row.retentionRate >= 60 ? 'bg-amber-500' : 'bg-rose-500'}`}></span>
+                            <span className="text-base text-stone-700 font-medium">{row.retentionRate}%</span>
+                          </div>
+                        </td>
+                        <td className="py-5 px-4 text-base text-stone-700 text-center font-medium">{row.outstandingNotes}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Group by Supervisor Table */}
+            <div
+              className="rounded-3xl p-8"
+              style={{
+                background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
+                boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
+              }}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-stone-800 text-2xl font-semibold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                  Group by Supervisor
+                </h3>
+                <button
+                  className="text-indigo-600 text-sm font-semibold hover:text-indigo-800 transition-colors flex items-center gap-2"
+                  onClick={() => setShowClinicianDetails(showClinicianDetails === 'supervisor' ? null : 'supervisor')}
+                >
+                  See Clinicians by Supervisor
+                  <ArrowRight size={16} />
+                </button>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b-2 border-stone-200">
+                      <th className="text-left py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">
+                        <button
+                          className="flex items-center gap-2 hover:text-stone-900 transition-colors"
+                          onClick={() => {
+                            if (supervisorSortColumn === 'supervisor') {
+                              setSupervisorSortDirection(supervisorSortDirection === 'asc' ? 'desc' : 'asc');
+                            } else {
+                              setSupervisorSortColumn('supervisor');
+                              setSupervisorSortDirection('asc');
+                            }
+                          }}
+                        >
+                          Group by Supervisor
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                          </svg>
+                        </button>
+                      </th>
+                      {['Avg Weekly Sessions', 'Completed Sessions', 'Utilization (% of Goal)', 'Clients Seen', 'Cancel Rate', 'Churn Rate', 'Retention Rate', 'Outstanding Notes'].map((header, idx) => (
+                        <th key={header} className="text-center py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">
+                          <button
+                            className="flex items-center justify-center gap-1 hover:text-stone-900 transition-colors w-full"
+                            onClick={() => {
+                              const columnKey = ['avgWeeklySessions', 'completedSessions', 'utilizationPercent', 'clientsSeen', 'cancelRate', 'churnRate', 'retentionRate', 'outstandingNotes'][idx];
+                              if (supervisorSortColumn === columnKey) {
+                                setSupervisorSortDirection(supervisorSortDirection === 'asc' ? 'desc' : 'asc');
+                              } else {
+                                setSupervisorSortColumn(columnKey);
+                                setSupervisorSortDirection('desc');
+                              }
+                            }}
+                          >
+                            {header}
+                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                            </svg>
+                          </button>
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[...SUPERVISOR_DATA].sort((a, b) => {
+                      if (!supervisorSortColumn) return 0;
+                      const aVal = a[supervisorSortColumn as keyof SupervisorData];
+                      const bVal = b[supervisorSortColumn as keyof SupervisorData];
+                      if (typeof aVal === 'string' && typeof bVal === 'string') {
+                        return supervisorSortDirection === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+                      }
+                      return supervisorSortDirection === 'asc' ? (aVal as number) - (bVal as number) : (bVal as number) - (aVal as number);
+                    }).map((row, idx) => (
+                      <tr key={row.supervisor} className="border-b border-stone-100 hover:bg-stone-50 transition-colors">
+                        <td className="py-5 px-4 text-base font-semibold text-stone-900 uppercase tracking-wide">{row.supervisor}</td>
+                        <td className="py-5 px-4 text-base text-stone-700 text-center font-medium">{row.avgWeeklySessions}</td>
+                        <td className="py-5 px-4 text-base text-stone-700 text-center font-medium">{row.completedSessions.toLocaleString()}</td>
+                        <td className="py-5 px-4 text-center">
+                          <div className="flex items-center justify-center gap-2">
+                            <span className={`w-2.5 h-2.5 rounded-full ${row.utilizationPercent >= 90 ? 'bg-emerald-500' : row.utilizationPercent >= 80 ? 'bg-amber-500' : 'bg-rose-500'}`}></span>
+                            <span className="text-base text-stone-700 font-medium">{row.utilizationPercent}%</span>
+                          </div>
+                        </td>
+                        <td className="py-5 px-4 text-base text-stone-700 text-center font-medium">{row.clientsSeen}</td>
+                        <td className="py-5 px-4 text-center">
+                          <div className="flex items-center justify-center gap-2">
+                            <span className={`w-2.5 h-2.5 rounded-full ${row.cancelRate <= 20 ? 'bg-emerald-500' : row.cancelRate <= 25 ? 'bg-amber-500' : 'bg-rose-500'}`}></span>
+                            <span className="text-base text-stone-700 font-medium">{row.cancelRate}%</span>
+                          </div>
+                        </td>
+                        <td className="py-5 px-4 text-center">
+                          <div className="flex items-center justify-center gap-2">
+                            <span className={`w-2.5 h-2.5 rounded-full ${row.churnRate <= 15 ? 'bg-emerald-500' : row.churnRate <= 20 ? 'bg-amber-500' : 'bg-rose-500'}`}></span>
+                            <span className="text-base text-stone-700 font-medium">{row.churnRate}%</span>
+                          </div>
+                        </td>
+                        <td className="py-5 px-4 text-center">
+                          <div className="flex items-center justify-center gap-2">
+                            <span className={`w-2.5 h-2.5 rounded-full ${row.retentionRate >= 75 ? 'bg-emerald-500' : row.retentionRate >= 60 ? 'bg-amber-500' : 'bg-rose-500'}`}></span>
+                            <span className="text-base text-stone-700 font-medium">{row.retentionRate}%</span>
+                          </div>
+                        </td>
+                        <td className="py-5 px-4 text-base text-stone-700 text-center font-medium">{row.outstandingNotes}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Clinician Details Table - Expandable */}
+            {showClinicianDetails && (
+              <div
+                className="rounded-3xl p-8"
+                style={{
+                  background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
+                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)',
+                  borderLeft: '4px solid #6366f1'
+                }}
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-stone-800 text-2xl font-semibold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                    Clinicians by {showClinicianDetails === 'location' ? 'Primary Location' : 'Supervisor'}
+                  </h3>
+                  <button
+                    onClick={() => setShowClinicianDetails(null)}
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-colors"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b-2 border-stone-200">
+                        <th className="text-left py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">Clinician</th>
+                        <th className="text-left py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">{showClinicianDetails === 'location' ? 'Location' : 'Supervisor'}</th>
+                        <th className="text-center py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">Avg Weekly Sessions</th>
+                        <th className="text-center py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">Completed Sessions</th>
+                        <th className="text-center py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">Utilization</th>
+                        <th className="text-center py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">Clients Seen</th>
+                        <th className="text-center py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">Cancel Rate</th>
+                        <th className="text-center py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">Churn Rate</th>
+                        <th className="text-center py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">Retention Rate</th>
+                        <th className="text-center py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">Notes</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[...CLINICIAN_COMPARISON_DATA]
+                        .sort((a, b) => showClinicianDetails === 'location'
+                          ? a.location.localeCompare(b.location)
+                          : a.supervisor.localeCompare(b.supervisor)
+                        )
+                        .map((row) => (
+                        <tr key={row.clinician} className="border-b border-stone-100 hover:bg-stone-50 transition-colors">
+                          <td className="py-5 px-4 text-base font-semibold text-stone-900">{row.clinician}</td>
+                          <td className="py-5 px-4 text-base text-stone-600">{showClinicianDetails === 'location' ? row.location : row.supervisor}</td>
+                          <td className="py-5 px-4 text-base text-stone-700 text-center font-medium">{row.avgWeeklySessions}</td>
+                          <td className="py-5 px-4 text-base text-stone-700 text-center font-medium">{row.completedSessions.toLocaleString()}</td>
+                          <td className="py-5 px-4 text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              <span className={`w-2.5 h-2.5 rounded-full ${row.utilizationPercent >= 90 ? 'bg-emerald-500' : row.utilizationPercent >= 80 ? 'bg-amber-500' : 'bg-rose-500'}`}></span>
+                              <span className="text-base text-stone-700 font-medium">{row.utilizationPercent}%</span>
+                            </div>
+                          </td>
+                          <td className="py-5 px-4 text-base text-stone-700 text-center font-medium">{row.clientsSeen}</td>
+                          <td className="py-5 px-4 text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              <span className={`w-2.5 h-2.5 rounded-full ${row.cancelRate <= 20 ? 'bg-emerald-500' : row.cancelRate <= 25 ? 'bg-amber-500' : 'bg-rose-500'}`}></span>
+                              <span className="text-base text-stone-700 font-medium">{row.cancelRate}%</span>
+                            </div>
+                          </td>
+                          <td className="py-5 px-4 text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              <span className={`w-2.5 h-2.5 rounded-full ${row.churnRate <= 15 ? 'bg-emerald-500' : row.churnRate <= 20 ? 'bg-amber-500' : 'bg-rose-500'}`}></span>
+                              <span className="text-base text-stone-700 font-medium">{row.churnRate}%</span>
+                            </div>
+                          </td>
+                          <td className="py-5 px-4 text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              <span className={`w-2.5 h-2.5 rounded-full ${row.retentionRate >= 75 ? 'bg-emerald-500' : row.retentionRate >= 60 ? 'bg-amber-500' : 'bg-rose-500'}`}></span>
+                              <span className="text-base text-stone-700 font-medium">{row.retentionRate}%</span>
+                            </div>
+                          </td>
+                          <td className="py-5 px-4 text-base text-stone-700 text-center font-medium">{row.outstandingNotes}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

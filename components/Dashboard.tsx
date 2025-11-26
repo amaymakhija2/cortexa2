@@ -24,28 +24,28 @@ const LIVE_METRICS: PracticeMetrics = {
     label: "Sessions",
     value: "698",
     valueLabel: "completed",
-    subtext: "82% capacity utilized",
+    subtext: "82% utilization",
     status: "Healthy"
   },
   clientGrowth: {
     label: "Clients",
     value: "156",
     valueLabel: "active",
-    subtext: "17 new, 5 churned · 18 open slots",
+    subtext: "17 new, 5 discharged · 18 openings",
     status: "Healthy"
   },
   attendance: {
     label: "Attendance",
     value: "68%",
     valueLabel: "rebook rate",
-    subtext: "8.9% canceled · 2% no-show",
+    subtext: "10.9% non-billable cancel rate",
     status: "Needs attention"
   },
   compliance: {
-    label: "Compliance",
+    label: "Outstanding Notes",
     value: "12",
-    valueLabel: "unsigned notes",
-    subtext: "3 clinicians with overdue paperwork",
+    valueLabel: "overdue notes",
+    subtext: "3 clinicians with overdue notes",
     status: "Critical"
   }
 };
@@ -54,52 +54,52 @@ const LIVE_METRICS: PracticeMetrics = {
 const HISTORICAL_METRICS: Record<string, PracticeMetrics> = {
   '2025-10': { // October 2025
     revenue: { label: "Revenue", value: "$148.2k", valueLabel: "", subtext: "$155.0k goal, 96% achieved", status: "Needs attention" },
-    sessions: { label: "Sessions", value: "672", valueLabel: "completed sessions", subtext: "79% capacity utilized", status: "Healthy" },
-    clientGrowth: { label: "Clients", value: "149", valueLabel: "active clients", subtext: "+12 new · -4 churned", status: "Healthy" },
-    attendance: { label: "Attendance", value: "71%", valueLabel: "rebook rate", subtext: "7.8% cancel · 1.8% no show", status: "Healthy" },
-    compliance: { label: "Compliance", value: "0", valueLabel: "unsigned notes", subtext: "Goal achieved", status: "Healthy" }
+    sessions: { label: "Sessions", value: "672", valueLabel: "completed", subtext: "79% utilization", status: "Healthy" },
+    clientGrowth: { label: "Clients", value: "149", valueLabel: "active", subtext: "+12 new · -4 discharged", status: "Healthy" },
+    attendance: { label: "Attendance", value: "71%", valueLabel: "rebook rate", subtext: "9.6% non-billable cancel rate", status: "Healthy" },
+    compliance: { label: "Outstanding Notes", value: "0", valueLabel: "overdue notes", subtext: "Goal achieved", status: "Healthy" }
   },
   '2025-9': { // September 2025
     revenue: { label: "Revenue", value: "$142.8k", valueLabel: "", subtext: "$150.0k goal, 95% achieved", status: "Needs attention" },
-    sessions: { label: "Sessions", value: "645", valueLabel: "completed sessions", subtext: "76% capacity utilized", status: "Healthy" },
-    clientGrowth: { label: "Clients", value: "141", valueLabel: "active clients", subtext: "+8 new · -6 churned", status: "Needs attention" },
-    attendance: { label: "Attendance", value: "74%", valueLabel: "rebook rate", subtext: "6.5% cancel · 1.5% no show", status: "Healthy" },
-    compliance: { label: "Compliance", value: "3", valueLabel: "unsigned notes", subtext: "Goal: 0 · 2 clinicians affected", status: "Needs attention" }
+    sessions: { label: "Sessions", value: "645", valueLabel: "completed", subtext: "76% utilization", status: "Healthy" },
+    clientGrowth: { label: "Clients", value: "141", valueLabel: "active", subtext: "+8 new · -6 discharged", status: "Needs attention" },
+    attendance: { label: "Attendance", value: "74%", valueLabel: "rebook rate", subtext: "8.0% non-billable cancel rate", status: "Healthy" },
+    compliance: { label: "Outstanding Notes", value: "3", valueLabel: "overdue notes", subtext: "Goal: 0 · 2 clinicians affected", status: "Needs attention" }
   },
   '2025-8': { // August 2025
     revenue: { label: "Revenue", value: "$138.5k", valueLabel: "", subtext: "$145.0k goal, 96% achieved", status: "Needs attention" },
-    sessions: { label: "Sessions", value: "628", valueLabel: "completed sessions", subtext: "74% capacity utilized", status: "Healthy" },
-    clientGrowth: { label: "Clients", value: "139", valueLabel: "active clients", subtext: "+15 new · -3 churned", status: "Healthy" },
-    attendance: { label: "Attendance", value: "69%", valueLabel: "rebook rate", subtext: "9.2% cancel · 2.1% no show", status: "Needs attention" },
-    compliance: { label: "Compliance", value: "5", valueLabel: "unsigned notes", subtext: "Goal: 0 · 2 clinicians affected", status: "Needs attention" }
+    sessions: { label: "Sessions", value: "628", valueLabel: "completed", subtext: "74% utilization", status: "Healthy" },
+    clientGrowth: { label: "Clients", value: "139", valueLabel: "active", subtext: "+15 new · -3 discharged", status: "Healthy" },
+    attendance: { label: "Attendance", value: "69%", valueLabel: "rebook rate", subtext: "11.3% non-billable cancel rate", status: "Needs attention" },
+    compliance: { label: "Outstanding Notes", value: "5", valueLabel: "overdue notes", subtext: "Goal: 0 · 2 clinicians affected", status: "Needs attention" }
   },
   '2025-7': { // July 2025
     revenue: { label: "Revenue", value: "$125.3k", valueLabel: "", subtext: "$140.0k goal, 90% achieved", status: "Critical" },
-    sessions: { label: "Sessions", value: "584", valueLabel: "completed sessions", subtext: "69% capacity utilized", status: "Needs attention" },
-    clientGrowth: { label: "Clients", value: "127", valueLabel: "active clients", subtext: "+6 new · -8 churned", status: "Critical" },
-    attendance: { label: "Attendance", value: "65%", valueLabel: "rebook rate", subtext: "11.4% cancel · 3.2% no show", status: "Critical" },
-    compliance: { label: "Compliance", value: "8", valueLabel: "unsigned notes", subtext: "Goal: 0 · 4 clinicians affected", status: "Critical" }
+    sessions: { label: "Sessions", value: "584", valueLabel: "completed", subtext: "69% utilization", status: "Needs attention" },
+    clientGrowth: { label: "Clients", value: "127", valueLabel: "active", subtext: "+6 new · -8 discharged", status: "Critical" },
+    attendance: { label: "Attendance", value: "65%", valueLabel: "rebook rate", subtext: "14.6% non-billable cancel rate", status: "Critical" },
+    compliance: { label: "Outstanding Notes", value: "8", valueLabel: "overdue notes", subtext: "Goal: 0 · 4 clinicians affected", status: "Critical" }
   },
   '2025-6': { // June 2025
     revenue: { label: "Revenue", value: "$132.1k", valueLabel: "", subtext: "$135.0k goal, 98% achieved", status: "Healthy" },
-    sessions: { label: "Sessions", value: "612", valueLabel: "completed sessions", subtext: "72% capacity utilized", status: "Healthy" },
-    clientGrowth: { label: "Clients", value: "129", valueLabel: "active clients", subtext: "+11 new · -5 churned", status: "Healthy" },
-    attendance: { label: "Attendance", value: "72%", valueLabel: "rebook rate", subtext: "7.1% cancel · 1.9% no show", status: "Healthy" },
-    compliance: { label: "Compliance", value: "2", valueLabel: "unsigned notes", subtext: "Goal: 0 · 1 clinician affected", status: "Needs attention" }
+    sessions: { label: "Sessions", value: "612", valueLabel: "completed", subtext: "72% utilization", status: "Healthy" },
+    clientGrowth: { label: "Clients", value: "129", valueLabel: "active", subtext: "+11 new · -5 discharged", status: "Healthy" },
+    attendance: { label: "Attendance", value: "72%", valueLabel: "rebook rate", subtext: "9.0% non-billable cancel rate", status: "Healthy" },
+    compliance: { label: "Outstanding Notes", value: "2", valueLabel: "overdue notes", subtext: "Goal: 0 · 1 clinician affected", status: "Needs attention" }
   },
   '2024-11': { // November 2024
     revenue: { label: "Revenue", value: "$118.7k", valueLabel: "", subtext: "$125.0k goal, 95% achieved", status: "Needs attention" },
-    sessions: { label: "Sessions", value: "548", valueLabel: "completed sessions", subtext: "65% capacity utilized", status: "Needs attention" },
-    clientGrowth: { label: "Clients", value: "112", valueLabel: "active clients", subtext: "+9 new · -7 churned", status: "Needs attention" },
-    attendance: { label: "Attendance", value: "70%", valueLabel: "rebook rate", subtext: "8.5% cancel · 2.5% no show", status: "Healthy" },
-    compliance: { label: "Compliance", value: "6", valueLabel: "unsigned notes", subtext: "Goal: 0 · 3 clinicians affected", status: "Critical" }
+    sessions: { label: "Sessions", value: "548", valueLabel: "completed", subtext: "65% utilization", status: "Needs attention" },
+    clientGrowth: { label: "Clients", value: "112", valueLabel: "active", subtext: "+9 new · -7 discharged", status: "Needs attention" },
+    attendance: { label: "Attendance", value: "70%", valueLabel: "rebook rate", subtext: "11.0% non-billable cancel rate", status: "Healthy" },
+    compliance: { label: "Outstanding Notes", value: "6", valueLabel: "overdue notes", subtext: "Goal: 0 · 3 clinicians affected", status: "Critical" }
   },
   '2024-10': { // October 2024
     revenue: { label: "Revenue", value: "$115.2k", valueLabel: "", subtext: "$120.0k goal, 96% achieved", status: "Needs attention" },
-    sessions: { label: "Sessions", value: "532", valueLabel: "completed sessions", subtext: "63% capacity utilized", status: "Needs attention" },
-    clientGrowth: { label: "Clients", value: "110", valueLabel: "active clients", subtext: "+7 new · -4 churned", status: "Healthy" },
-    attendance: { label: "Attendance", value: "73%", valueLabel: "rebook rate", subtext: "7.2% cancel · 1.8% no show", status: "Healthy" },
-    compliance: { label: "Compliance", value: "4", valueLabel: "unsigned notes", subtext: "Goal: 0 · 2 clinicians affected", status: "Needs attention" }
+    sessions: { label: "Sessions", value: "532", valueLabel: "completed", subtext: "63% utilization", status: "Needs attention" },
+    clientGrowth: { label: "Clients", value: "110", valueLabel: "active", subtext: "+7 new · -4 discharged", status: "Healthy" },
+    attendance: { label: "Attendance", value: "73%", valueLabel: "rebook rate", subtext: "9.0% non-billable cancel rate", status: "Healthy" },
+    compliance: { label: "Outstanding Notes", value: "4", valueLabel: "overdue notes", subtext: "Goal: 0 · 2 clinicians affected", status: "Needs attention" }
   }
 };
 
@@ -115,6 +115,8 @@ const getMetricsForMonth = (month: number, year: number): PracticeMetrics => {
   const baseSessions = 400 + (year - 2020) * 50 + month * 10;
   const baseClients = 80 + (year - 2020) * 15 + month * 3;
 
+  const cancelRate = (6 + Math.random() * 6).toFixed(1);
+
   return {
     revenue: {
       label: "Revenue",
@@ -126,28 +128,28 @@ const getMetricsForMonth = (month: number, year: number): PracticeMetrics => {
     sessions: {
       label: "Sessions",
       value: `${baseSessions}`,
-      valueLabel: "completed sessions",
-      subtext: `${Math.floor(60 + Math.random() * 25)}% capacity utilized`,
+      valueLabel: "completed",
+      subtext: `${Math.floor(60 + Math.random() * 25)}% utilization`,
       status: "Healthy"
     },
     clientGrowth: {
       label: "Clients",
       value: `${baseClients}`,
-      valueLabel: "active clients",
-      subtext: `+${Math.floor(5 + Math.random() * 10)} new · -${Math.floor(2 + Math.random() * 5)} churned`,
+      valueLabel: "active",
+      subtext: `+${Math.floor(5 + Math.random() * 10)} new · -${Math.floor(2 + Math.random() * 5)} discharged`,
       status: "Healthy"
     },
     attendance: {
       label: "Attendance",
       value: `${Math.floor(65 + Math.random() * 15)}%`,
       valueLabel: "rebook rate",
-      subtext: `${(6 + Math.random() * 4).toFixed(1)}% cancel · ${(1 + Math.random() * 2).toFixed(1)}% no show`,
+      subtext: `${cancelRate}% non-billable cancel rate`,
       status: Math.random() > 0.6 ? "Healthy" : "Needs attention"
     },
     compliance: {
-      label: "Compliance",
+      label: "Outstanding Notes",
       value: `${Math.floor(Math.random() * 10)}`,
-      valueLabel: "unsigned notes",
+      valueLabel: "overdue notes",
       subtext: "Historical data",
       status: Math.random() > 0.7 ? "Healthy" : "Needs attention"
     }
@@ -284,7 +286,7 @@ export const Dashboard: React.FC = () => {
   ];
 
   return (
-    <div className="flex-1 p-8 pt-6 flex flex-col h-[calc(100vh-80px)] overflow-hidden bg-gradient-to-br from-stone-50 via-orange-50/20 to-stone-100/50">
+    <div className="flex-1 flex flex-col h-[calc(100vh-80px)] overflow-hidden bg-gradient-to-br from-stone-50 via-orange-50/20 to-stone-100/50">
 
       {/* Warm gradient overlay */}
       <div
@@ -294,12 +296,24 @@ export const Dashboard: React.FC = () => {
         }}
       />
 
-      {/* Header Section - Simplified */}
-      <div className="mb-8 flex-shrink-0 relative">
-        <div className="flex items-start justify-between">
-          <h1 className="text-4xl font-light text-stone-900 tracking-tight" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
-            {getTitle()}
-          </h1>
+      {/* Header Section */}
+      <div className="px-10 pt-8 pb-6 flex-shrink-0 relative">
+        <div className="flex items-end justify-between">
+          <div>
+            <div className="flex items-center gap-3 mb-3">
+              <span className="text-stone-400 text-sm font-medium uppercase tracking-widest">Practice</span>
+              <span className="text-stone-300">/</span>
+              <span className="text-amber-600 text-sm font-bold uppercase tracking-widest">Overview</span>
+            </div>
+            <div className="flex items-baseline gap-4">
+              <h1
+                className="text-5xl text-stone-900 font-bold tracking-tight"
+                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+              >
+                {getTitle()}
+              </h1>
+            </div>
+          </div>
 
           {/* Mode Toggle */}
           <div className="flex items-center gap-3">
@@ -341,18 +355,21 @@ export const Dashboard: React.FC = () => {
       </div>
 
       {/* Main Layout */}
-      <div className="flex flex-col gap-8 flex-1 min-h-0 justify-between">
+      <div className="flex flex-col gap-8 flex-1 min-h-0 justify-between px-10">
         {/* Metrics Row */}
         <div className="flex-shrink-0">
           <MetricsRow metrics={metrics} />
         </div>
 
         {/* Priority Tasks Section - pushed to bottom */}
-        <div className="flex flex-col gap-4 mt-auto">
+        <div className="flex flex-col gap-4 mt-auto pb-6">
           <div className="flex items-center justify-between flex-shrink-0">
-            <h2 className="text-2xl font-semibold text-stone-800 tracking-tight">
+            <h2
+              className="text-3xl text-stone-900 font-bold tracking-tight"
+              style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+            >
               Priority Tasks
-              <span className="ml-3 text-base font-normal text-stone-400">
+              <span className="ml-3 text-base font-medium text-stone-400">
                 {totalCards} items
               </span>
             </h2>
