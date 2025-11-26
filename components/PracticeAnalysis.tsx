@@ -1,9 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { MetricChart } from './MetricChart';
 import { ResponsiveContainer, LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, LabelList, Legend, CartesianGrid, ReferenceLine } from 'recharts';
-import { Info, Calendar, X, ArrowRight } from 'lucide-react';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
+import { Info, X, ArrowRight, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 
 type TabType = 'financial' | 'sessions' | 'capacity-client' | 'retention' | 'insurance' | 'admin';
 
@@ -244,15 +242,20 @@ export const PracticeAnalysis: React.FC = () => {
   const [hoveredOpenSlots, setHoveredOpenSlots] = useState<number | null>(null);
   const [hoveredHoursUtilization, setHoveredHoursUtilization] = useState<number | null>(null);
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('last-12-months');
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const [hoveredDonutSegment, setHoveredDonutSegment] = useState<{ label: string; value: number; percent: number; color: string } | null>(null);
   const [showClinicianBreakdown, setShowClinicianBreakdown] = useState(false);
   const [showSessionsClinicianBreakdown, setShowSessionsClinicianBreakdown] = useState(false);
   const [hoveredClinicianBar, setHoveredClinicianBar] = useState<{ month: string; clinician: string; value: number; color: string } | null>(null);
   const [hoveredSessionsClinicianBar, setHoveredSessionsClinicianBar] = useState<{ month: string; clinician: string; value: number; color: string } | null>(null);
-  const [customStartDate, setCustomStartDate] = useState<Date | null>(new Date(2025, 0, 1)); // Jan 1, 2025
-  const [customEndDate, setCustomEndDate] = useState<Date | null>(new Date(2025, 11, 31)); // Dec 31, 2025
   const [showClientBreakdown, setShowClientBreakdown] = useState(false);
+
+  // Custom Date Picker State - Simplified
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [customStartMonth, setCustomStartMonth] = useState<number>(0);
+  const [customEndMonth, setCustomEndMonth] = useState<number>(11);
+  const [customYear, setCustomYear] = useState<number>(2024);
+  const [customStartYear] = useState<number>(2024); // For compatibility
+  const [customEndYear] = useState<number>(2024); // For compatibility
 
   const tabs: { id: TabType; label: string; shortLabel: string }[] = [
     { id: 'financial', label: 'Financial Analysis', shortLabel: 'Financial' },
@@ -310,12 +313,11 @@ export const PracticeAnalysis: React.FC = () => {
         // For demo, return same data as placeholder for 2023
         return data;
       case 'custom':
-        if (!customStartDate || !customEndDate) return data;
-        const startMonth = customStartDate.getMonth();
-        const endMonth = customEndDate.getMonth();
+        // Filter based on custom start/end months
         return data.filter((item) => {
           const itemIndex = MONTH_MAP[item.month];
-          return itemIndex >= startMonth && itemIndex <= endMonth;
+          // For simplicity, just filter by month index within the same year
+          return itemIndex >= customStartMonth && itemIndex <= customEndMonth;
         });
       default:
         return data.slice(-12);
@@ -357,39 +359,42 @@ export const PracticeAnalysis: React.FC = () => {
       case '2023':
         return 'Jan – Dec 2023';
       case 'custom':
-        if (!customStartDate || !customEndDate) return 'Custom Range';
-        return `${months[customStartDate.getMonth()]} ${customStartDate.getFullYear()} – ${months[customEndDate.getMonth()]} ${customEndDate.getFullYear()}`;
+        return `${months[customStartMonth]} ${customStartYear} – ${months[customEndMonth]} ${customEndYear}`;
       default:
         return '';
     }
   };
 
+  // Format custom date range for display
+  const formatCustomRange = () => {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    if (customStartMonth === customEndMonth) {
+      return `${months[customStartMonth]} ${customYear}`;
+    }
+    return `${months[customStartMonth]} – ${months[customEndMonth]} ${customYear}`;
+  };
+
+  // Apply custom range
   const applyCustomRange = () => {
     setTimePeriod('custom');
     setShowDatePicker(false);
   };
 
-  const formatDateRange = () => {
-    if (!customStartDate || !customEndDate) return 'Custom Range';
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return `${months[customStartDate.getMonth()]} ${customStartDate.getFullYear()} – ${months[customEndDate.getMonth()]} ${customEndDate.getFullYear()}`;
-  };
-
   // Memoized filtered data
-  const REVENUE_DATA = useMemo(() => getDataForPeriod(ALL_REVENUE_DATA, timePeriod), [timePeriod, customStartDate, customEndDate]);
-  const SESSIONS_DATA = useMemo(() => getDataForPeriod(ALL_SESSIONS_DATA, timePeriod), [timePeriod, customStartDate, customEndDate]);
-  const CLINICIAN_REVENUE_DATA = useMemo(() => getDataForPeriod(ALL_CLINICIAN_REVENUE_DATA, timePeriod), [timePeriod, customStartDate, customEndDate]);
-  const CLINICIAN_SESSIONS_DATA = useMemo(() => getDataForPeriod(ALL_CLINICIAN_SESSIONS_DATA, timePeriod), [timePeriod, customStartDate, customEndDate]);
-  const REVENUE_BREAKDOWN_DATA = useMemo(() => getDataForPeriod(ALL_REVENUE_BREAKDOWN_DATA, timePeriod), [timePeriod, customStartDate, customEndDate]);
-  const CLIENT_GROWTH_DATA = useMemo(() => getDataForPeriod(ALL_CLIENT_GROWTH_DATA, timePeriod), [timePeriod, customStartDate, customEndDate]);
-  const CHURN_BY_CLINICIAN_DATA = useMemo(() => getDataForPeriod(ALL_CHURN_BY_CLINICIAN_DATA, timePeriod), [timePeriod, customStartDate, customEndDate]);
-  const CHURN_TIMING_DATA = useMemo(() => getDataForPeriod(ALL_CHURN_TIMING_DATA, timePeriod), [timePeriod, customStartDate, customEndDate]);
+  const REVENUE_DATA = useMemo(() => getDataForPeriod(ALL_REVENUE_DATA, timePeriod), [timePeriod, customStartMonth, customEndMonth, customStartYear, customEndYear]);
+  const SESSIONS_DATA = useMemo(() => getDataForPeriod(ALL_SESSIONS_DATA, timePeriod), [timePeriod, customStartMonth, customEndMonth, customStartYear, customEndYear]);
+  const CLINICIAN_REVENUE_DATA = useMemo(() => getDataForPeriod(ALL_CLINICIAN_REVENUE_DATA, timePeriod), [timePeriod, customStartMonth, customEndMonth, customStartYear, customEndYear]);
+  const CLINICIAN_SESSIONS_DATA = useMemo(() => getDataForPeriod(ALL_CLINICIAN_SESSIONS_DATA, timePeriod), [timePeriod, customStartMonth, customEndMonth, customStartYear, customEndYear]);
+  const REVENUE_BREAKDOWN_DATA = useMemo(() => getDataForPeriod(ALL_REVENUE_BREAKDOWN_DATA, timePeriod), [timePeriod, customStartMonth, customEndMonth, customStartYear, customEndYear]);
+  const CLIENT_GROWTH_DATA = useMemo(() => getDataForPeriod(ALL_CLIENT_GROWTH_DATA, timePeriod), [timePeriod, customStartMonth, customEndMonth, customStartYear, customEndYear]);
+  const CHURN_BY_CLINICIAN_DATA = useMemo(() => getDataForPeriod(ALL_CHURN_BY_CLINICIAN_DATA, timePeriod), [timePeriod, customStartMonth, customEndMonth, customStartYear, customEndYear]);
+  const CHURN_TIMING_DATA = useMemo(() => getDataForPeriod(ALL_CHURN_TIMING_DATA, timePeriod), [timePeriod, customStartMonth, customEndMonth, customStartYear, customEndYear]);
 
   // Admin Analytics memoized data
-  const CLIENT_BALANCE_AGING_DATA = useMemo(() => getDataForPeriod(ALL_CLIENT_BALANCE_AGING_DATA, timePeriod), [timePeriod, customStartDate, customEndDate]);
-  const CLAIMS_STATUS_DATA = useMemo(() => getDataForPeriod(ALL_CLAIMS_STATUS_DATA, timePeriod), [timePeriod, customStartDate, customEndDate]);
-  const NOTES_STATUS_DATA = useMemo(() => getDataForPeriod(ALL_NOTES_STATUS_DATA, timePeriod), [timePeriod, customStartDate, customEndDate]);
-  const REMINDER_DELIVERY_DATA = useMemo(() => getDataForPeriod(ALL_REMINDER_DELIVERY_DATA, timePeriod), [timePeriod, customStartDate, customEndDate]);
+  const CLIENT_BALANCE_AGING_DATA = useMemo(() => getDataForPeriod(ALL_CLIENT_BALANCE_AGING_DATA, timePeriod), [timePeriod, customStartMonth, customEndMonth, customStartYear, customEndYear]);
+  const CLAIMS_STATUS_DATA = useMemo(() => getDataForPeriod(ALL_CLAIMS_STATUS_DATA, timePeriod), [timePeriod, customStartMonth, customEndMonth, customStartYear, customEndYear]);
+  const NOTES_STATUS_DATA = useMemo(() => getDataForPeriod(ALL_NOTES_STATUS_DATA, timePeriod), [timePeriod, customStartMonth, customEndMonth, customStartYear, customEndYear]);
+  const REMINDER_DELIVERY_DATA = useMemo(() => getDataForPeriod(ALL_REMINDER_DELIVERY_DATA, timePeriod), [timePeriod, customStartMonth, customEndMonth, customStartYear, customEndYear]);
 
   // Calculate session value and cumulative revenue for charts
   const SESSION_VALUE_DATA = useMemo(() =>
@@ -502,7 +507,7 @@ export const PracticeAnalysis: React.FC = () => {
               </div>
 
               {/* Time Period Selector - Redesigned */}
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 relative">
                 <div
                   className="flex items-center gap-1 p-1.5 rounded-2xl bg-white/80 backdrop-blur-sm"
                   style={{
@@ -522,18 +527,143 @@ export const PracticeAnalysis: React.FC = () => {
                       {period.label}
                     </button>
                   ))}
+                  {/* Custom Range Button */}
                   <button
                     onClick={() => setShowDatePicker(!showDatePicker)}
-                    className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-2 ${
+                    className={`group px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-500 flex items-center gap-2.5 relative overflow-hidden ${
                       timePeriod === 'custom'
-                        ? 'bg-stone-900 text-white shadow-lg'
-                        : 'text-stone-500 hover:text-stone-900 hover:bg-stone-100'
+                        ? 'text-white shadow-lg'
+                        : 'text-stone-500 hover:text-stone-900'
                     }`}
+                    style={{
+                      background: timePeriod === 'custom'
+                        ? 'linear-gradient(135deg, #1c1917 0%, #292524 50%, #1c1917 100%)'
+                        : 'transparent'
+                    }}
                   >
-                    <Calendar size={16} />
-                    {timePeriod === 'custom' ? formatDateRange() : 'Custom'}
+                    <Calendar
+                      size={16}
+                      className={`transition-transform duration-500 ${showDatePicker ? 'rotate-12' : 'group-hover:rotate-6'}`}
+                    />
+                    <span>{timePeriod === 'custom' ? formatCustomRange() : 'Custom'}</span>
                   </button>
                 </div>
+
+                {/* Simple & Elegant Date Picker */}
+                {showDatePicker && (
+                  <div
+                    className="absolute top-full right-0 mt-3 z-[100000] rounded-2xl bg-white p-6"
+                    style={{
+                      width: '340px',
+                      boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05)',
+                      animation: 'fadeIn 0.2s ease-out'
+                    }}
+                  >
+                    <style>{`
+                      @keyframes fadeIn {
+                        from { opacity: 0; transform: translateY(-8px); }
+                        to { opacity: 1; transform: translateY(0); }
+                      }
+                    `}</style>
+
+                    {/* Header */}
+                    <div className="flex items-center justify-between mb-5">
+                      <h3 className="text-stone-900 text-lg font-semibold">Custom Range</h3>
+                      <button
+                        onClick={() => setShowDatePicker(false)}
+                        className="w-8 h-8 rounded-full flex items-center justify-center text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-colors"
+                      >
+                        <X size={18} />
+                      </button>
+                    </div>
+
+                    {/* Year Selector */}
+                    <div className="flex items-center justify-center gap-4 mb-5 pb-5 border-b border-stone-100">
+                      <button
+                        onClick={() => setCustomYear(prev => prev - 1)}
+                        className="w-9 h-9 rounded-full flex items-center justify-center text-stone-400 hover:text-stone-900 hover:bg-stone-100 transition-all"
+                      >
+                        <ChevronLeft size={20} />
+                      </button>
+                      <span
+                        className="text-stone-900 text-2xl font-bold tabular-nums w-20 text-center"
+                        style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                      >
+                        {customYear}
+                      </span>
+                      <button
+                        onClick={() => setCustomYear(prev => prev + 1)}
+                        className="w-9 h-9 rounded-full flex items-center justify-center text-stone-400 hover:text-stone-900 hover:bg-stone-100 transition-all"
+                      >
+                        <ChevronRight size={20} />
+                      </button>
+                    </div>
+
+                    {/* Month Grid - Click to set start, click again to set end */}
+                    <div className="grid grid-cols-4 gap-2 mb-5">
+                      {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((month, idx) => {
+                        const isStart = idx === customStartMonth;
+                        const isEnd = idx === customEndMonth;
+                        const isInRange = idx > customStartMonth && idx < customEndMonth;
+                        const isSelected = isStart || isEnd;
+
+                        return (
+                          <button
+                            key={month}
+                            onClick={() => {
+                              // Intuitive: clicking any month sets it as start, then click another for end
+                              if (customStartMonth === customEndMonth) {
+                                // Currently single month selected - extend range
+                                if (idx < customStartMonth) {
+                                  setCustomStartMonth(idx);
+                                } else if (idx > customStartMonth) {
+                                  setCustomEndMonth(idx);
+                                }
+                              } else {
+                                // Range exists - clicking resets to single month
+                                setCustomStartMonth(idx);
+                                setCustomEndMonth(idx);
+                              }
+                            }}
+                            className={`h-10 rounded-lg text-sm font-medium transition-all duration-200 ${
+                              isSelected
+                                ? 'bg-stone-900 text-white'
+                                : isInRange
+                                  ? 'bg-stone-100 text-stone-700'
+                                  : 'text-stone-600 hover:bg-stone-50'
+                            }`}
+                          >
+                            {month}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Selected Range Display */}
+                    <div className="flex items-center justify-center gap-3 mb-5 py-3 px-4 rounded-xl bg-stone-50">
+                      <span className="text-stone-900 font-semibold">
+                        {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][customStartMonth]}
+                      </span>
+                      {customStartMonth !== customEndMonth && (
+                        <>
+                          <span className="text-stone-400">→</span>
+                          <span className="text-stone-900 font-semibold">
+                            {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][customEndMonth]}
+                          </span>
+                        </>
+                      )}
+                      <span className="text-stone-500">{customYear}</span>
+                    </div>
+
+                    {/* Apply Button */}
+                    <button
+                      onClick={applyCustomRange}
+                      className="w-full py-3 rounded-xl bg-stone-900 text-white font-semibold transition-all hover:bg-stone-800 active:scale-[0.98]"
+                    >
+                      Apply
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -554,62 +684,6 @@ export const PracticeAnalysis: React.FC = () => {
               ))}
             </div>
           </div>
-
-          {/* Custom Date Picker Modal */}
-          {showDatePicker && (
-            <div className="fixed top-32 right-10 z-[100000] rounded-3xl p-8 bg-white"
-              style={{
-                boxShadow: '0 25px 80px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05)'
-              }}
-            >
-              <div className="flex items-center justify-between mb-6">
-                <h4 className="text-xl font-bold text-stone-900">Select Date Range</h4>
-                <button
-                  onClick={() => setShowDatePicker(false)}
-                  className="text-stone-400 hover:text-stone-600 transition-colors p-2 rounded-lg hover:bg-stone-100"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-
-              <div className="flex gap-6 mb-6">
-                <div>
-                  <label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-3">Start Date</label>
-                  <DatePicker
-                    selected={customStartDate}
-                    onChange={(date) => setCustomStartDate(date)}
-                    selectsStart
-                    startDate={customStartDate}
-                    endDate={customEndDate}
-                    dateFormat="MMM yyyy"
-                    showMonthYearPicker
-                    inline
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-3">End Date</label>
-                  <DatePicker
-                    selected={customEndDate}
-                    onChange={(date) => setCustomEndDate(date)}
-                    selectsEnd
-                    startDate={customStartDate}
-                    endDate={customEndDate}
-                    minDate={customStartDate}
-                    dateFormat="MMM yyyy"
-                    showMonthYearPicker
-                    inline
-                  />
-                </div>
-              </div>
-
-              <button
-                onClick={applyCustomRange}
-                className="w-full px-6 py-4 bg-stone-900 text-white rounded-xl font-bold text-base hover:bg-stone-800 transition-all duration-200"
-              >
-                Apply Range
-              </button>
-            </div>
-          )}
 
           {/* Main Content */}
           <div className="px-10 pb-10 space-y-8">
@@ -1402,7 +1476,7 @@ export const PracticeAnalysis: React.FC = () => {
                   {period.label}
                 </button>
               ))}
-
+              {/* Custom Range Button */}
               <button
                 onClick={() => setShowDatePicker(!showDatePicker)}
                 className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-200 flex items-center gap-2 ${
@@ -1415,67 +1489,9 @@ export const PracticeAnalysis: React.FC = () => {
                 } : undefined}
               >
                 <Calendar size={16} />
-                {timePeriod === 'custom' ? formatDateRange() : 'Custom Range'}
+                {timePeriod === 'custom' ? formatCustomRange() : 'Custom'}
               </button>
             </div>
-
-            {showDatePicker && (
-              <div className="absolute top-14 left-28 z-[100000] bg-white rounded-2xl shadow-2xl border-2 border-[#2d6e7e] p-6"
-                style={{
-                  boxShadow: '0 20px 60px -10px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.02)'
-                }}
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <h4 className="text-lg font-semibold text-gray-900">Select Date Range</h4>
-                  <button
-                    onClick={() => setShowDatePicker(false)}
-                    className="text-gray-400 hover:text-gray-600 transition-colors"
-                  >
-                    <X size={20} />
-                  </button>
-                </div>
-
-                <div className="flex gap-4 mb-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">Start Date</label>
-                    <DatePicker
-                      selected={customStartDate}
-                      onChange={(date) => setCustomStartDate(date)}
-                      selectsStart
-                      startDate={customStartDate}
-                      endDate={customEndDate}
-                      dateFormat="MMM yyyy"
-                      showMonthYearPicker
-                      inline
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">End Date</label>
-                    <DatePicker
-                      selected={customEndDate}
-                      onChange={(date) => setCustomEndDate(date)}
-                      selectsEnd
-                      startDate={customStartDate}
-                      endDate={customEndDate}
-                      minDate={customStartDate}
-                      dateFormat="MMM yyyy"
-                      showMonthYearPicker
-                      inline
-                    />
-                  </div>
-                </div>
-
-                <button
-                  onClick={applyCustomRange}
-                  className="w-full px-5 py-3 bg-gradient-to-br from-[#2d6e7e] to-[#245563] text-white rounded-lg font-semibold shadow-md hover:shadow-xl transition-all duration-200"
-                  style={{
-                    boxShadow: '0 8px 30px -8px rgba(45, 110, 126, 0.4)'
-                  }}
-                >
-                  Apply Range
-                </button>
-              </div>
-            )}
           </div>
 
           {/* Original Tabs for other tabs */}
@@ -1526,7 +1542,7 @@ export const PracticeAnalysis: React.FC = () => {
               </div>
 
               {/* Time Period Selector - Redesigned */}
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 relative">
                 <div
                   className="flex items-center gap-1 p-1.5 rounded-2xl bg-white/80 backdrop-blur-sm"
                   style={{
@@ -1546,18 +1562,143 @@ export const PracticeAnalysis: React.FC = () => {
                       {period.label}
                     </button>
                   ))}
+                  {/* Custom Range Button */}
                   <button
                     onClick={() => setShowDatePicker(!showDatePicker)}
-                    className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-2 ${
+                    className={`group px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-500 flex items-center gap-2.5 relative overflow-hidden ${
                       timePeriod === 'custom'
-                        ? 'bg-stone-900 text-white shadow-lg'
-                        : 'text-stone-500 hover:text-stone-900 hover:bg-stone-100'
+                        ? 'text-white shadow-lg'
+                        : 'text-stone-500 hover:text-stone-900'
                     }`}
+                    style={{
+                      background: timePeriod === 'custom'
+                        ? 'linear-gradient(135deg, #1c1917 0%, #292524 50%, #1c1917 100%)'
+                        : 'transparent'
+                    }}
                   >
-                    <Calendar size={16} />
-                    {timePeriod === 'custom' ? formatDateRange() : 'Custom'}
+                    <Calendar
+                      size={16}
+                      className={`transition-transform duration-500 ${showDatePicker ? 'rotate-12' : 'group-hover:rotate-6'}`}
+                    />
+                    <span>{timePeriod === 'custom' ? formatCustomRange() : 'Custom'}</span>
                   </button>
                 </div>
+
+                {/* Simple & Elegant Date Picker */}
+                {showDatePicker && (
+                  <div
+                    className="absolute top-full right-0 mt-3 z-[100000] rounded-2xl bg-white p-6"
+                    style={{
+                      width: '340px',
+                      boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05)',
+                      animation: 'fadeIn 0.2s ease-out'
+                    }}
+                  >
+                    <style>{`
+                      @keyframes fadeIn {
+                        from { opacity: 0; transform: translateY(-8px); }
+                        to { opacity: 1; transform: translateY(0); }
+                      }
+                    `}</style>
+
+                    {/* Header */}
+                    <div className="flex items-center justify-between mb-5">
+                      <h3 className="text-stone-900 text-lg font-semibold">Custom Range</h3>
+                      <button
+                        onClick={() => setShowDatePicker(false)}
+                        className="w-8 h-8 rounded-full flex items-center justify-center text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-colors"
+                      >
+                        <X size={18} />
+                      </button>
+                    </div>
+
+                    {/* Year Selector */}
+                    <div className="flex items-center justify-center gap-4 mb-5 pb-5 border-b border-stone-100">
+                      <button
+                        onClick={() => setCustomYear(prev => prev - 1)}
+                        className="w-9 h-9 rounded-full flex items-center justify-center text-stone-400 hover:text-stone-900 hover:bg-stone-100 transition-all"
+                      >
+                        <ChevronLeft size={20} />
+                      </button>
+                      <span
+                        className="text-stone-900 text-2xl font-bold tabular-nums w-20 text-center"
+                        style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                      >
+                        {customYear}
+                      </span>
+                      <button
+                        onClick={() => setCustomYear(prev => prev + 1)}
+                        className="w-9 h-9 rounded-full flex items-center justify-center text-stone-400 hover:text-stone-900 hover:bg-stone-100 transition-all"
+                      >
+                        <ChevronRight size={20} />
+                      </button>
+                    </div>
+
+                    {/* Month Grid - Click to set start, click again to set end */}
+                    <div className="grid grid-cols-4 gap-2 mb-5">
+                      {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((month, idx) => {
+                        const isStart = idx === customStartMonth;
+                        const isEnd = idx === customEndMonth;
+                        const isInRange = idx > customStartMonth && idx < customEndMonth;
+                        const isSelected = isStart || isEnd;
+
+                        return (
+                          <button
+                            key={month}
+                            onClick={() => {
+                              // Intuitive: clicking any month sets it as start, then click another for end
+                              if (customStartMonth === customEndMonth) {
+                                // Currently single month selected - extend range
+                                if (idx < customStartMonth) {
+                                  setCustomStartMonth(idx);
+                                } else if (idx > customStartMonth) {
+                                  setCustomEndMonth(idx);
+                                }
+                              } else {
+                                // Range exists - clicking resets to single month
+                                setCustomStartMonth(idx);
+                                setCustomEndMonth(idx);
+                              }
+                            }}
+                            className={`h-10 rounded-lg text-sm font-medium transition-all duration-200 ${
+                              isSelected
+                                ? 'bg-stone-900 text-white'
+                                : isInRange
+                                  ? 'bg-stone-100 text-stone-700'
+                                  : 'text-stone-600 hover:bg-stone-50'
+                            }`}
+                          >
+                            {month}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Selected Range Display */}
+                    <div className="flex items-center justify-center gap-3 mb-5 py-3 px-4 rounded-xl bg-stone-50">
+                      <span className="text-stone-900 font-semibold">
+                        {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][customStartMonth]}
+                      </span>
+                      {customStartMonth !== customEndMonth && (
+                        <>
+                          <span className="text-stone-400">→</span>
+                          <span className="text-stone-900 font-semibold">
+                            {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][customEndMonth]}
+                          </span>
+                        </>
+                      )}
+                      <span className="text-stone-500">{customYear}</span>
+                    </div>
+
+                    {/* Apply Button */}
+                    <button
+                      onClick={applyCustomRange}
+                      className="w-full py-3 rounded-xl bg-stone-900 text-white font-semibold transition-all hover:bg-stone-800 active:scale-[0.98]"
+                    >
+                      Apply
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -1578,62 +1719,6 @@ export const PracticeAnalysis: React.FC = () => {
               ))}
             </div>
           </div>
-
-          {/* Custom Date Picker Modal */}
-          {showDatePicker && (
-            <div className="fixed top-32 right-10 z-[100000] rounded-3xl p-8 bg-white"
-              style={{
-                boxShadow: '0 25px 80px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05)'
-              }}
-            >
-              <div className="flex items-center justify-between mb-6">
-                <h4 className="text-xl font-bold text-stone-900">Select Date Range</h4>
-                <button
-                  onClick={() => setShowDatePicker(false)}
-                  className="text-stone-400 hover:text-stone-600 transition-colors p-2 rounded-lg hover:bg-stone-100"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-
-              <div className="flex gap-6 mb-6">
-                <div>
-                  <label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-3">Start Date</label>
-                  <DatePicker
-                    selected={customStartDate}
-                    onChange={(date) => setCustomStartDate(date)}
-                    selectsStart
-                    startDate={customStartDate}
-                    endDate={customEndDate}
-                    dateFormat="MMM yyyy"
-                    showMonthYearPicker
-                    inline
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-3">End Date</label>
-                  <DatePicker
-                    selected={customEndDate}
-                    onChange={(date) => setCustomEndDate(date)}
-                    selectsEnd
-                    startDate={customStartDate}
-                    endDate={customEndDate}
-                    minDate={customStartDate}
-                    dateFormat="MMM yyyy"
-                    showMonthYearPicker
-                    inline
-                  />
-                </div>
-              </div>
-
-              <button
-                onClick={applyCustomRange}
-                className="w-full px-6 py-4 bg-stone-900 text-white rounded-xl font-bold text-base hover:bg-stone-800 transition-all duration-200"
-              >
-                Apply Range
-              </button>
-            </div>
-          )}
 
           {/* Main Content */}
           <div className="px-10 pb-10 space-y-8">
