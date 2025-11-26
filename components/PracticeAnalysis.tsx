@@ -519,12 +519,12 @@ export const PracticeAnalysis: React.FC = () => {
             </div>
 
             {/* Tab Navigation - Minimal Pills */}
-            <div className="flex items-center gap-2 mt-8">
+            <div className="flex items-center gap-3 mt-8">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 ${
+                  className={`px-6 py-3 rounded-full text-base font-semibold transition-all duration-300 ${
                     activeTab === tab.id
                       ? 'bg-stone-900 text-white shadow-md'
                       : 'text-stone-500 hover:text-stone-800 border border-stone-300 hover:border-stone-400 bg-white/50'
@@ -1448,12 +1448,17 @@ export const PracticeAnalysis: React.FC = () => {
                   <span className="text-stone-300">/</span>
                   <span className="text-cyan-600 text-sm font-bold uppercase tracking-widest">Sessions</span>
                 </div>
-                <h1
-                  className="text-5xl text-stone-900 font-bold tracking-tight"
-                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-                >
-                  Sessions Performance
-                </h1>
+                <div className="flex items-baseline gap-4">
+                  <h1
+                    className="text-5xl text-stone-900 font-bold tracking-tight"
+                    style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                  >
+                    Sessions Performance
+                  </h1>
+                  <span className="text-stone-400 text-base font-medium">
+                    {getDateRangeLabel()}
+                  </span>
+                </div>
               </div>
 
               {/* Time Period Selector - Redesigned */}
@@ -1493,12 +1498,12 @@ export const PracticeAnalysis: React.FC = () => {
             </div>
 
             {/* Tab Navigation - Minimal Pills */}
-            <div className="flex items-center gap-2 mt-8">
+            <div className="flex items-center gap-3 mt-8">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 ${
+                  className={`px-6 py-3 rounded-full text-base font-semibold transition-all duration-300 ${
                     activeTab === tab.id
                       ? 'bg-stone-900 text-white shadow-md'
                       : 'text-stone-500 hover:text-stone-800 border border-stone-300 hover:border-stone-400 bg-white/50'
@@ -1571,105 +1576,105 @@ export const PracticeAnalysis: React.FC = () => {
 
             {/* Hero Stats Row */}
             <div className="grid grid-cols-4 gap-6">
-              {/* This Month's Sessions - Hero Card */}
+              {/* Total Completed Sessions */}
               <div
-                className="rounded-3xl p-8 relative overflow-hidden"
+                className="rounded-3xl p-6 relative overflow-hidden"
                 style={{
-                  background: 'linear-gradient(145deg, #ffffff 0%, #fafaf9 50%, #f5f5f4 100%)',
-                  boxShadow: '0 8px 32px -4px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.03)'
-                }}
-              >
-                {/* Decorative accent */}
-                <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-emerald-400 via-cyan-500 to-emerald-500 rounded-l-3xl" />
-
-                <div className="pl-3">
-                  <p className="text-stone-400 text-xs font-bold uppercase tracking-[0.2em] mb-4">This Month · {SESSIONS_DATA[SESSIONS_DATA.length - 1]?.month}</p>
-
-                  <div className="flex items-baseline gap-2">
-                    <span
-                      className="text-stone-900 font-bold tracking-tight"
-                      style={{ fontSize: '3.5rem', lineHeight: 0.9, fontFamily: "'DM Serif Display', Georgia, serif" }}
-                    >
-                      {SESSIONS_DATA[SESSIONS_DATA.length - 1]?.completed}
-                    </span>
-                    <span className="text-emerald-600 text-sm font-bold uppercase">Completed</span>
-                  </div>
-                  <p className="text-stone-400 text-sm mt-2">of {SESSIONS_DATA[SESSIONS_DATA.length - 1]?.booked} booked</p>
-
-                  {/* Month over Month Change */}
-                  <div className="mt-4">
-                    {(() => {
-                      const current = SESSIONS_DATA[SESSIONS_DATA.length - 1]?.completed;
-                      const previous = SESSIONS_DATA[SESSIONS_DATA.length - 2]?.completed;
-                      const change = ((current - previous) / previous * 100);
-                      const isPositive = change >= 0;
-                      return (
-                        <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full ${isPositive ? 'bg-emerald-50 border border-emerald-200' : 'bg-rose-50 border border-rose-200'}`}>
-                          <svg className={`w-3.5 h-3.5 ${isPositive ? 'text-emerald-500' : 'text-rose-500 rotate-180'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                          </svg>
-                          <span className={`font-bold text-sm ${isPositive ? 'text-emerald-700' : 'text-rose-700'}`}>
-                            {isPositive ? '+' : ''}{change.toFixed(1)}%
-                          </span>
-                        </div>
-                      );
-                    })()}
-                  </div>
-                </div>
-              </div>
-
-              {/* Avg Monthly Sessions */}
-              <div
-                className="rounded-3xl p-8 relative overflow-hidden"
-                style={{
-                  background: 'linear-gradient(145deg, #ffffff 0%, #fafaf9 100%)',
+                  background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
                   boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
                 }}
               >
-                <p className="text-stone-400 text-xs font-bold uppercase tracking-[0.2em] mb-4">Avg Monthly</p>
+                <h3
+                  className="text-stone-800 text-2xl font-semibold mb-4"
+                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  Total Completed
+                </h3>
                 <span
-                  className="text-stone-900 font-bold block tracking-tight"
-                  style={{ fontSize: '3rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
+                  className="text-stone-900 font-bold block"
+                  style={{ fontSize: '2.5rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  {SESSIONS_DATA.reduce((sum, item) => sum + item.completed, 0).toLocaleString()}
+                </span>
+                <p className="text-stone-500 text-lg mt-3">
+                  across {SESSIONS_DATA.length} months
+                </p>
+              </div>
+
+              {/* Total Booked Sessions */}
+              <div
+                className="rounded-3xl p-6 relative overflow-hidden"
+                style={{
+                  background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
+                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
+                }}
+              >
+                <h3
+                  className="text-stone-800 text-2xl font-semibold mb-4"
+                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  Total Booked
+                </h3>
+                <span
+                  className="text-stone-900 font-bold block"
+                  style={{ fontSize: '2.5rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  {SESSIONS_DATA.reduce((sum, item) => sum + item.booked, 0).toLocaleString()}
+                </span>
+                <p className="text-stone-500 text-lg mt-3">
+                  {((SESSIONS_DATA.reduce((sum, item) => sum + item.show, 0) / SESSIONS_DATA.reduce((sum, item) => sum + item.booked, 0)) * 100).toFixed(1)}% show rate
+                </p>
+              </div>
+
+              {/* Goal Achievement */}
+              <div
+                className="rounded-3xl p-6 relative overflow-hidden"
+                style={{
+                  background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
+                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
+                }}
+              >
+                <h3
+                  className="text-stone-800 text-2xl font-semibold mb-4"
+                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  Goal Achievement
+                </h3>
+                <span
+                  className="text-stone-900 font-bold block"
+                  style={{ fontSize: '2.5rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  {SESSIONS_DATA.filter(item => item.completed >= 700).length}/{SESSIONS_DATA.length}
+                </span>
+                <p className="text-stone-500 text-lg mt-3">
+                  months hit 700 goal
+                </p>
+              </div>
+
+              {/* Avg Sessions */}
+              <div
+                className="rounded-3xl p-6 relative overflow-hidden"
+                style={{
+                  background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
+                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
+                }}
+              >
+                <h3
+                  className="text-stone-800 text-2xl font-semibold mb-4"
+                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  Avg Sessions
+                </h3>
+                <span
+                  className="text-stone-900 font-bold block"
+                  style={{ fontSize: '2.5rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
                   {Math.round(SESSIONS_DATA.reduce((sum, item) => sum + item.completed, 0) / SESSIONS_DATA.length).toLocaleString()}
+                  <span className="text-stone-400 text-xl font-medium" style={{ fontFamily: "system-ui, sans-serif" }}>/mo</span>
                 </span>
-                <p className="text-stone-500 text-sm mt-3">completed sessions</p>
-              </div>
-
-              {/* Avg Weekly Sessions */}
-              <div
-                className="rounded-3xl p-8 relative overflow-hidden"
-                style={{
-                  background: 'linear-gradient(145deg, #ffffff 0%, #fafaf9 100%)',
-                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
-                }}
-              >
-                <p className="text-stone-400 text-xs font-bold uppercase tracking-[0.2em] mb-4">Avg Weekly</p>
-                <span
-                  className="text-stone-900 font-bold block tracking-tight"
-                  style={{ fontSize: '3rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
-                >
-                  {Math.round(SESSIONS_DATA.reduce((sum, item) => sum + item.completed, 0) / SESSIONS_DATA.length / 4.33)}
-                </span>
-                <p className="text-stone-500 text-sm mt-3">sessions per week</p>
-              </div>
-
-              {/* Avg Sessions per Client */}
-              <div
-                className="rounded-3xl p-8 relative overflow-hidden"
-                style={{
-                  background: 'linear-gradient(145deg, #ffffff 0%, #fafaf9 100%)',
-                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
-                }}
-              >
-                <p className="text-stone-400 text-xs font-bold uppercase tracking-[0.2em] mb-4">Per Client</p>
-                <span
-                  className="text-stone-900 font-bold block tracking-tight"
-                  style={{ fontSize: '3rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
-                >
-                  {(SESSIONS_DATA.reduce((sum, item) => sum + item.completed, 0) / SESSIONS_DATA.reduce((sum, item) => sum + item.clients, 0)).toFixed(1)}
-                </span>
-                <p className="text-stone-500 text-sm mt-3">avg sessions/client</p>
+                <p className="text-stone-500 text-lg mt-3">
+                  {Math.round(SESSIONS_DATA.reduce((sum, item) => sum + item.completed, 0) / SESSIONS_DATA.length / 4.33)}/week
+                </p>
               </div>
             </div>
 
@@ -1691,12 +1696,12 @@ export const PracticeAnalysis: React.FC = () => {
                   }}
                 />
 
-                <div className="flex items-start justify-between mb-8">
+                <div className="flex items-start justify-between mb-6">
                   <div>
-                    <p className="text-stone-400 text-xs font-bold uppercase tracking-[0.2em] mb-2">Monthly Trend</p>
-                    <h3 className="text-stone-900 text-2xl font-semibold tracking-tight" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
-                      Session Volume
+                    <h3 className="text-stone-800 text-2xl font-semibold mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                      Session Performance
                     </h3>
+                    <p className="text-stone-500 text-lg">Monthly breakdown</p>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="flex items-center gap-2.5 px-4 py-2 rounded-full bg-stone-900/5 backdrop-blur-sm">
@@ -1907,17 +1912,17 @@ export const PracticeAnalysis: React.FC = () => {
                 }}
               >
                 <div className="mb-6">
-                  <p className="text-stone-500 text-sm font-bold uppercase tracking-widest mb-2">This Period</p>
-                  <h3 className="text-stone-900 text-2xl font-semibold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                  <h3 className="text-stone-800 text-2xl font-semibold mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
                     Attendance Breakdown
                   </h3>
+                  <p className="text-stone-500 text-lg">Session outcomes</p>
                 </div>
 
                 {/* Donut Chart */}
                 {(() => {
                   const segments = [
                     { label: 'Attended', value: SESSIONS_DATA.reduce((sum, item) => sum + item.show, 0), color: '#10b981' },
-                    { label: 'Cancelled', value: SESSIONS_DATA.reduce((sum, item) => sum + item.cancelled, 0), color: '#ef4444' },
+                    { label: 'Client Cancelled', value: SESSIONS_DATA.reduce((sum, item) => sum + item.cancelled, 0), color: '#ef4444' },
                     { label: 'Clinician Cancelled', value: SESSIONS_DATA.reduce((sum, item) => sum + item.clinicianCancelled, 0), color: '#3b82f6' },
                     { label: 'Late Cancelled', value: SESSIONS_DATA.reduce((sum, item) => sum + item.lateCancelled, 0), color: '#f59e0b' },
                     { label: 'No Show', value: SESSIONS_DATA.reduce((sum, item) => sum + item.noShow, 0), color: '#6b7280' }
@@ -2024,23 +2029,25 @@ export const PracticeAnalysis: React.FC = () => {
             <div className="grid grid-cols-3 gap-6">
               {/* Sessions per Client */}
               <div
-                className="rounded-3xl p-8"
+                className="rounded-3xl p-6"
                 style={{
                   background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
                   boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
                 }}
               >
-                <p className="text-stone-500 text-sm font-bold uppercase tracking-widest mb-4">Sessions per Client</p>
-                <div className="flex items-baseline gap-3">
-                  <span
-                    className="text-stone-900 font-bold"
-                    style={{ fontSize: '3rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
-                  >
-                    {(SESSIONS_DATA.reduce((sum, item) => sum + item.completed, 0) / SESSIONS_DATA.reduce((sum, item) => sum + item.clients, 0)).toFixed(1)}
-                  </span>
-                  <span className="text-stone-500 text-lg">avg</span>
-                </div>
-                <div className="mt-6 h-20">
+                <h3
+                  className="text-stone-800 text-2xl font-semibold mb-4"
+                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  Avg Sessions per Client
+                </h3>
+                <span
+                  className="text-stone-900 font-bold block"
+                  style={{ fontSize: '2.5rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  {(SESSIONS_DATA.reduce((sum, item) => sum + item.completed, 0) / SESSIONS_DATA.reduce((sum, item) => sum + item.clients, 0)).toFixed(1)}
+                </span>
+                <div className="mt-4 h-16">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={AVG_SESSIONS_PER_CLIENT_DATA} margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
                       <Line
@@ -2055,24 +2062,27 @@ export const PracticeAnalysis: React.FC = () => {
                 </div>
               </div>
 
-              {/* Utilization Rate */}
+              {/* Avg Utilization Rate */}
               <div
-                className="rounded-3xl p-8"
+                className="rounded-3xl p-6"
                 style={{
                   background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
                   boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
                 }}
               >
-                <p className="text-stone-500 text-sm font-bold uppercase tracking-widest mb-4">Utilization Rate</p>
-                <div className="flex items-baseline gap-3">
-                  <span
-                    className="text-cyan-600 font-bold"
-                    style={{ fontSize: '3rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
-                  >
-                    {UTILIZATION_DATA[UTILIZATION_DATA.length - 1]?.value}%
-                  </span>
-                </div>
-                <div className="mt-6 h-20">
+                <h3
+                  className="text-stone-800 text-2xl font-semibold mb-4"
+                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  Avg Utilization Rate
+                </h3>
+                <span
+                  className="text-stone-900 font-bold block"
+                  style={{ fontSize: '2.5rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  {(UTILIZATION_DATA.reduce((sum, item) => sum + item.value, 0) / UTILIZATION_DATA.length).toFixed(1)}%
+                </span>
+                <div className="mt-4 h-16">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={UTILIZATION_DATA} margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
                       <Line
@@ -2087,36 +2097,32 @@ export const PracticeAnalysis: React.FC = () => {
                 </div>
               </div>
 
-              {/* Non-Billable Rate Alert */}
+              {/* Avg Non-Billable Rate */}
               <div
-                className="rounded-3xl p-8 relative overflow-hidden"
+                className="rounded-3xl p-6 relative overflow-hidden"
                 style={{
                   background: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
                   boxShadow: '0 4px 24px -4px rgba(239, 68, 68, 0.15), 0 0 0 1px rgba(239, 68, 68, 0.1)'
                 }}
               >
-                <div className="absolute top-4 right-4">
-                  <div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center">
-                    <svg className="w-5 h-5 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                  </div>
-                </div>
-                <p className="text-rose-700 text-sm font-bold uppercase tracking-widest mb-4">Non-Billable Rate</p>
-                <div className="flex items-baseline gap-3">
-                  <span
-                    className="text-rose-700 font-bold"
-                    style={{ fontSize: '3rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
-                  >
-                    {(
-                      ((SESSIONS_DATA.reduce((sum, item) => sum + item.clinicianCancelled + item.cancelled, 0)) /
-                      SESSIONS_DATA.reduce((sum, item) =>
-                        sum + item.show + item.cancelled + item.clinicianCancelled + item.lateCancelled + item.noShow, 0
-                      )) * 100
-                    ).toFixed(1)}%
-                  </span>
-                </div>
-                <p className="text-rose-600 text-sm mt-3">Cancellations & clinician cancellations</p>
+                <h3
+                  className="text-rose-800 text-2xl font-semibold mb-4"
+                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  Avg Non-Billable Rate
+                </h3>
+                <span
+                  className="text-rose-700 font-bold block"
+                  style={{ fontSize: '2.5rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  {(
+                    ((SESSIONS_DATA.reduce((sum, item) => sum + item.clinicianCancelled + item.cancelled, 0)) /
+                    SESSIONS_DATA.reduce((sum, item) =>
+                      sum + item.show + item.cancelled + item.clinicianCancelled + item.lateCancelled + item.noShow, 0
+                    )) * 100
+                  ).toFixed(1)}%
+                </span>
+                <p className="text-rose-600 text-lg mt-3">cancellations & clinician cancellations</p>
               </div>
             </div>
 
@@ -2128,7 +2134,12 @@ export const PracticeAnalysis: React.FC = () => {
                 boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
               }}
             >
-              <p className="text-stone-500 text-sm font-bold uppercase tracking-widest mb-6">Full Breakdown</p>
+              <h3
+                className="text-stone-800 text-2xl font-semibold mb-6"
+                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+              >
+                Monthly Breakdown
+              </h3>
 
               <div className="overflow-x-auto">
                 <table className="w-full">
