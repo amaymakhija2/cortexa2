@@ -120,6 +120,137 @@ const BOOKING_FORECAST = [
   { week: 'Week of Dec 16', booked: 18 },
 ];
 
+// Weekly revenue data for current month
+const WEEKLY_REVENUE = [
+  { week: 'Oct 28 – Nov 3', revenue: 38200 },
+  { week: 'Nov 4 – Nov 10', revenue: 41500 },
+  { week: 'Nov 11 – Nov 17', revenue: 36800 },
+  { week: 'Nov 18 – Nov 24', revenue: 36900 },
+];
+
+// Format currency
+const formatCurrency = (amount: number) => {
+  if (amount >= 1000) {
+    return `$${(amount / 1000).toFixed(1)}k`;
+  }
+  return `$${amount}`;
+};
+
+// Revenue card with expandable weekly breakdown
+const RevenueCard: React.FC<{ data: MetricDetail }> = ({ data }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const tooltip = getMetricTooltip(data.label);
+
+  const statusColors = {
+    'Healthy': 'bg-emerald-500',
+    'Needs attention': 'bg-amber-500',
+    'Critical': 'bg-rose-500'
+  };
+
+  const maxRevenue = Math.max(...WEEKLY_REVENUE.map(w => w.revenue));
+  const totalRevenue = WEEKLY_REVENUE.reduce((sum, w) => sum + w.revenue, 0);
+
+  return (
+    <div className="relative">
+      {/* Main Card */}
+      <div
+        className={`group relative bg-white rounded-2xl flex flex-col transition-all duration-300 hover:shadow-xl overflow-hidden ${isExpanded ? 'rounded-b-none' : ''}`}
+        style={{
+          boxShadow: '0 2px 8px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.04)',
+        }}
+      >
+        <div className={`h-1.5 ${statusColors[data.status]}`} />
+
+        <div className="p-6 flex flex-col">
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-lg font-bold text-stone-700 uppercase tracking-wide">
+              {data.label}
+            </span>
+            <Tooltip title={tooltip.title} description={tooltip.description} />
+          </div>
+
+          <div className="mb-3">
+            <span className="text-5xl font-black text-stone-900 tracking-tight">
+              {data.value}
+            </span>
+            {data.valueLabel && (
+              <span className="text-xl font-medium text-stone-400 ml-2">
+                {data.valueLabel}
+              </span>
+            )}
+          </div>
+
+          <p className="text-lg text-stone-500 leading-snug mb-5">
+            {data.subtext}
+          </p>
+
+          <div className="pt-4 border-t border-stone-100 flex items-center justify-between">
+            <StatusIndicator status={data.status} />
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-300 ${
+                isExpanded
+                  ? 'bg-stone-900 text-white'
+                  : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+              }`}
+            >
+              <span>{isExpanded ? 'Close' : 'Weekly Breakdown'}</span>
+              <ChevronRight
+                size={14}
+                className={`transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`}
+              />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Expandable Weekly Revenue Panel */}
+      <div
+        className={`overflow-hidden transition-all duration-500 ease-out ${
+          isExpanded ? 'max-h-64 opacity-100' : 'max-h-0 opacity-0'
+        }`}
+      >
+        <div
+          className="bg-white border-t border-stone-100 rounded-b-2xl p-5"
+          style={{
+            boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
+          }}
+        >
+          {/* Simple bar chart */}
+          <div className="space-y-3">
+            {WEEKLY_REVENUE.map((week, index) => {
+              const barWidth = (week.revenue / maxRevenue) * 100;
+
+              return (
+                <div key={week.week} className="flex items-center gap-3">
+                  <span className="text-sm text-stone-500 w-28 shrink-0">{week.week}</span>
+                  <div className="flex-1 h-8 bg-stone-100 rounded-lg overflow-hidden">
+                    <div
+                      className="h-full bg-stone-800 rounded-lg transition-all duration-700 ease-out"
+                      style={{
+                        width: isExpanded ? `${barWidth}%` : '0%',
+                        transitionDelay: `${index * 100}ms`
+                      }}
+                    />
+                  </div>
+                  <span className="text-sm font-bold text-stone-800 w-12 text-right">{formatCurrency(week.revenue)}</span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Total */}
+          <div className="mt-4 pt-3 border-t border-stone-100">
+            <p className="text-sm text-stone-500">
+              <span className="font-bold text-stone-800">{formatCurrency(totalRevenue)}</span> total this month
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Sessions card with expandable 4-week forecast
 const SessionsCard: React.FC<{ data: MetricDetail }> = ({ data }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -293,7 +424,11 @@ const MetricCard: React.FC<{ data: MetricDetail; index: number }> = ({ data, ind
 export const MetricsRow: React.FC<{ metrics: PracticeMetrics; isLive?: boolean }> = ({ metrics, isLive = true }) => {
   return (
     <div className="grid grid-cols-5 gap-5 items-start">
-      <MetricCard data={metrics.revenue} index={0} />
+      {isLive ? (
+        <RevenueCard data={metrics.revenue} />
+      ) : (
+        <MetricCard data={metrics.revenue} index={0} />
+      )}
       {isLive ? (
         <SessionsCard data={metrics.sessions} />
       ) : (
