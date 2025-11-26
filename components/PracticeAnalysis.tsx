@@ -1579,7 +1579,7 @@ export const PracticeAnalysis: React.FC = () => {
                 <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-emerald-400 via-cyan-500 to-emerald-500 rounded-l-3xl" />
 
                 <div className="pl-3">
-                  <p className="text-stone-400 text-xs font-bold uppercase tracking-[0.2em] mb-4">{getDateRangeLabel()}</p>
+                  <p className="text-stone-400 text-xs font-bold uppercase tracking-[0.2em] mb-4">This Month · {SESSIONS_DATA[SESSIONS_DATA.length - 1]?.month}</p>
 
                   <div className="flex items-baseline gap-2">
                     <span
