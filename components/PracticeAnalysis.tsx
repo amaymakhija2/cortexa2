@@ -2405,7 +2405,7 @@ export const PracticeAnalysis: React.FC = () => {
                   className="text-stone-800 text-2xl font-semibold mb-4"
                   style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
-                  Avg Sessions per Client
+                  Avg Sessions per Client per Month
                 </h3>
                 <span
                   className="text-stone-900 font-bold block"
@@ -2414,7 +2414,7 @@ export const PracticeAnalysis: React.FC = () => {
                   {(SESSIONS_DATA.reduce((sum, item) => sum + item.completed, 0) / SESSIONS_DATA.reduce((sum, item) => sum + item.clients, 0)).toFixed(1)}
                 </span>
                 <p className="text-stone-500 text-lg mt-3">
-                  sessions per active client
+                  sessions per active client per month
                 </p>
               </div>
 
