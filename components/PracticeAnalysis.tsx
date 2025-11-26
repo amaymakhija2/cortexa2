@@ -22,18 +22,18 @@ const ALL_REVENUE_DATA = [
 ];
 
 const ALL_SESSIONS_DATA = [
-  { month: 'Jan', completed: 628, booked: 658, clients: 142, cancelled: 113, clinicianCancelled: 23, lateCancelled: 24, noShow: 7, show: 493 },
-  { month: 'Feb', completed: 641, booked: 672, clients: 145, cancelled: 115, clinicianCancelled: 23, lateCancelled: 25, noShow: 8, show: 501 },
-  { month: 'Mar', completed: 635, booked: 668, clients: 143, cancelled: 115, clinicianCancelled: 23, lateCancelled: 24, noShow: 8, show: 498 },
-  { month: 'Apr', completed: 658, booked: 695, clients: 148, cancelled: 119, clinicianCancelled: 24, lateCancelled: 25, noShow: 8, show: 519 },
-  { month: 'May', completed: 651, booked: 685, clients: 146, cancelled: 117, clinicianCancelled: 24, lateCancelled: 25, noShow: 8, show: 511 },
-  { month: 'Jun', completed: 672, booked: 708, clients: 151, cancelled: 121, clinicianCancelled: 25, lateCancelled: 26, noShow: 8, show: 528 },
-  { month: 'Jul', completed: 665, booked: 698, clients: 149, cancelled: 120, clinicianCancelled: 24, lateCancelled: 25, noShow: 8, show: 521 },
-  { month: 'Aug', completed: 689, booked: 725, clients: 154, cancelled: 124, clinicianCancelled: 25, lateCancelled: 27, noShow: 8, show: 541 },
-  { month: 'Sep', completed: 645, booked: 678, clients: 147, cancelled: 116, clinicianCancelled: 23, lateCancelled: 24, noShow: 8, show: 507 },
-  { month: 'Oct', completed: 712, booked: 748, clients: 158, cancelled: 128, clinicianCancelled: 26, lateCancelled: 27, noShow: 8, show: 559 },
-  { month: 'Nov', completed: 683, booked: 718, clients: 152, cancelled: 123, clinicianCancelled: 25, lateCancelled: 26, noShow: 8, show: 536 },
-  { month: 'Dec', completed: 698, booked: 732, clients: 155, cancelled: 125, clinicianCancelled: 25, lateCancelled: 26, noShow: 8, show: 548 }
+  { month: 'Jan', completed: 628, booked: 658, clients: 142, cancelled: 113, clinicianCancelled: 23, lateCancelled: 24, noShow: 7, show: 493, telehealth: 245, inPerson: 383 },
+  { month: 'Feb', completed: 641, booked: 672, clients: 145, cancelled: 115, clinicianCancelled: 23, lateCancelled: 25, noShow: 8, show: 501, telehealth: 256, inPerson: 385 },
+  { month: 'Mar', completed: 635, booked: 668, clients: 143, cancelled: 115, clinicianCancelled: 23, lateCancelled: 24, noShow: 8, show: 498, telehealth: 260, inPerson: 375 },
+  { month: 'Apr', completed: 658, booked: 695, clients: 148, cancelled: 119, clinicianCancelled: 24, lateCancelled: 25, noShow: 8, show: 519, telehealth: 276, inPerson: 382 },
+  { month: 'May', completed: 651, booked: 685, clients: 146, cancelled: 117, clinicianCancelled: 24, lateCancelled: 25, noShow: 8, show: 511, telehealth: 280, inPerson: 371 },
+  { month: 'Jun', completed: 672, booked: 708, clients: 151, cancelled: 121, clinicianCancelled: 25, lateCancelled: 26, noShow: 8, show: 528, telehealth: 295, inPerson: 377 },
+  { month: 'Jul', completed: 665, booked: 698, clients: 149, cancelled: 120, clinicianCancelled: 24, lateCancelled: 25, noShow: 8, show: 521, telehealth: 299, inPerson: 366 },
+  { month: 'Aug', completed: 689, booked: 725, clients: 154, cancelled: 124, clinicianCancelled: 25, lateCancelled: 27, noShow: 8, show: 541, telehealth: 317, inPerson: 372 },
+  { month: 'Sep', completed: 645, booked: 678, clients: 147, cancelled: 116, clinicianCancelled: 23, lateCancelled: 24, noShow: 8, show: 507, telehealth: 303, inPerson: 342 },
+  { month: 'Oct', completed: 712, booked: 748, clients: 158, cancelled: 128, clinicianCancelled: 26, lateCancelled: 27, noShow: 8, show: 559, telehealth: 342, inPerson: 370 },
+  { month: 'Nov', completed: 683, booked: 718, clients: 152, cancelled: 123, clinicianCancelled: 25, lateCancelled: 26, noShow: 8, show: 536, telehealth: 335, inPerson: 348 },
+  { month: 'Dec', completed: 698, booked: 732, clients: 155, cancelled: 125, clinicianCancelled: 25, lateCancelled: 26, noShow: 8, show: 548, telehealth: 349, inPerson: 349 }
 ];
 
 // Full clinician sessions breakdown data
@@ -2392,7 +2392,7 @@ export const PracticeAnalysis: React.FC = () => {
             </div>
 
             {/* Secondary Metrics Row */}
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-3 gap-6">
               {/* Sessions per Client */}
               <div
                 className="rounded-3xl p-6 relative overflow-hidden"
@@ -2443,6 +2443,107 @@ export const PracticeAnalysis: React.FC = () => {
                   {Math.round(SESSIONS_DATA.reduce((sum, item) => sum + item.completed, 0) / SESSIONS_DATA.length / 4.33)}/week
                 </p>
               </div>
+
+              {/* Session Modality - Telehealth vs In-Person */}
+              {(() => {
+                const totalTelehealth = SESSIONS_DATA.reduce((sum, item) => sum + item.telehealth, 0);
+                const totalInPerson = SESSIONS_DATA.reduce((sum, item) => sum + item.inPerson, 0);
+                const total = totalTelehealth + totalInPerson;
+                const telehealthPercent = ((totalTelehealth / total) * 100).toFixed(1);
+                const inPersonPercent = ((totalInPerson / total) * 100).toFixed(1);
+
+                return (
+                  <div
+                    className="rounded-3xl p-6 relative overflow-hidden"
+                    style={{
+                      background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
+                      boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
+                    }}
+                  >
+                    <h3
+                      className="text-stone-800 text-2xl font-semibold mb-5"
+                      style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                    >
+                      Session Modality
+                    </h3>
+
+                    {/* Elegant Split Bar Visualization */}
+                    <div className="relative">
+                      {/* The split bar */}
+                      <div className="relative h-14 rounded-2xl overflow-hidden flex" style={{ boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.06)' }}>
+                        {/* Telehealth segment */}
+                        <div
+                          className="relative flex items-center justify-center transition-all duration-500 group cursor-default"
+                          style={{
+                            width: `${telehealthPercent}%`,
+                            background: 'linear-gradient(135deg, #0891b2 0%, #0e7490 100%)',
+                          }}
+                        >
+                          {/* Subtle pattern overlay */}
+                          <div
+                            className="absolute inset-0 opacity-10"
+                            style={{
+                              backgroundImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='1' fill-rule='evenodd'%3E%3Ccircle cx='3' cy='3' r='1'/%3E%3C/g%3E%3C/svg%3E")`,
+                            }}
+                          />
+                          {/* Icon and label */}
+                          <div className="relative z-10 flex items-center gap-2">
+                            <svg className="w-5 h-5 text-white/90" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                            <span className="text-white font-bold text-lg tracking-tight">{telehealthPercent}%</span>
+                          </div>
+                          {/* Shine effect */}
+                          <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent h-1/2" />
+                        </div>
+
+                        {/* Divider line */}
+                        <div className="w-px bg-white/30 relative z-20" />
+
+                        {/* In-Person segment */}
+                        <div
+                          className="relative flex items-center justify-center transition-all duration-500 group cursor-default"
+                          style={{
+                            width: `${inPersonPercent}%`,
+                            background: 'linear-gradient(135deg, #d97706 0%, #b45309 100%)',
+                          }}
+                        >
+                          {/* Subtle pattern overlay */}
+                          <div
+                            className="absolute inset-0 opacity-10"
+                            style={{
+                              backgroundImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='1' fill-rule='evenodd'%3E%3Ccircle cx='3' cy='3' r='1'/%3E%3C/g%3E%3C/svg%3E")`,
+                            }}
+                          />
+                          {/* Icon and label */}
+                          <div className="relative z-10 flex items-center gap-2">
+                            <svg className="w-5 h-5 text-white/90" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                            </svg>
+                            <span className="text-white font-bold text-lg tracking-tight">{inPersonPercent}%</span>
+                          </div>
+                          {/* Shine effect */}
+                          <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent h-1/2" />
+                        </div>
+                      </div>
+
+                      {/* Labels below */}
+                      <div className="flex justify-between mt-4">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-3 h-3 rounded-full" style={{ background: 'linear-gradient(135deg, #0891b2 0%, #0e7490 100%)', boxShadow: '0 2px 4px rgba(8, 145, 178, 0.3)' }} />
+                          <span className="text-stone-600 font-medium">Telehealth</span>
+                          <span className="text-stone-400 text-sm">({totalTelehealth.toLocaleString()})</span>
+                        </div>
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-3 h-3 rounded-full" style={{ background: 'linear-gradient(135deg, #d97706 0%, #b45309 100%)', boxShadow: '0 2px 4px rgba(217, 119, 6, 0.3)' }} />
+                          <span className="text-stone-600 font-medium">In-Person</span>
+                          <span className="text-stone-400 text-sm">({totalInPerson.toLocaleString()})</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
 
             {/* Detailed Table */}
