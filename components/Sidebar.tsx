@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutGrid, Users, Calculator, Banknote, SlidersHorizontal, X, BarChart3, UserCircle } from 'lucide-react';
+import { LayoutGrid, Users, Calculator, Banknote, SlidersHorizontal, X, BarChart3, UserCircle, Layers } from 'lucide-react';
 
 interface SidebarProps {
   mobileMenuOpen?: boolean;
@@ -23,6 +23,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen = false, setMob
     { icon: LayoutGrid, label: 'Practice Overview', to: '/dashboard' },
     { icon: BarChart3, label: 'Practice Analysis', to: '/practice-analysis' },
     { icon: UserCircle, label: 'Clinician Overview', to: '/clinician-overview' },
+    { icon: Layers, label: 'Components', to: '/components' },
   ];
 
   // On mobile, always show expanded (labels visible)
