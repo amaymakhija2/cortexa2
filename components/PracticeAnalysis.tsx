@@ -798,12 +798,12 @@ export const PracticeAnalysis: React.FC = () => {
             </div>
 
             {/* Tab Navigation - Dark theme pills */}
-            <div className="flex items-center gap-2 sm:gap-3 mt-6 overflow-x-auto scrollbar-hide pb-2">
+            <div className="flex items-center gap-3 sm:gap-4 mt-6 overflow-x-auto scrollbar-hide pb-2">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 whitespace-nowrap flex-shrink-0 ${
+                  className={`px-5 py-3 rounded-xl text-base font-semibold transition-all duration-300 whitespace-nowrap flex-shrink-0 ${
                     activeTab === tab.id
                       ? 'bg-white text-stone-900 shadow-lg'
                       : 'text-white/70 hover:text-white hover:bg-white/10 border border-white/10'
@@ -1430,141 +1430,6 @@ export const PracticeAnalysis: React.FC = () => {
                       </div>
                     </div>
                   );
-                })()}
-              </div>
-            </div>
-
-            {/* Team Performance */}
-            <div
-              className="rounded-2xl sm:rounded-3xl p-4 sm:p-6 xl:p-8"
-              style={{
-                background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
-                boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
-              }}
-            >
-              <div className="mb-6">
-                <h3 className="text-stone-800 text-lg sm:text-xl xl:text-2xl font-semibold mb-1 sm:mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
-                  Team Performance
-                </h3>
-                <p className="text-stone-500 text-sm sm:text-base xl:text-lg">Total across all {CLINICIAN_REVENUE_DATA.length} selected month{CLINICIAN_REVENUE_DATA.length !== 1 ? 's' : ''}</p>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 xl:gap-4">
-                {(() => {
-                  // Sum all months in the selected period - Luxury editorial style
-                  const totalRevenue = REVENUE_DATA.reduce((sum, item) => sum + item.value, 0);
-                  const clinicians = [
-                    { name: 'Chen', value: CLINICIAN_REVENUE_DATA.reduce((sum, item) => sum + (item.Chen || 0), 0) },
-                    { name: 'Rodriguez', value: CLINICIAN_REVENUE_DATA.reduce((sum, item) => sum + (item.Rodriguez || 0), 0) },
-                    { name: 'Patel', value: CLINICIAN_REVENUE_DATA.reduce((sum, item) => sum + (item.Patel || 0), 0) },
-                    { name: 'Kim', value: CLINICIAN_REVENUE_DATA.reduce((sum, item) => sum + (item.Kim || 0), 0) },
-                    { name: 'Johnson', value: CLINICIAN_REVENUE_DATA.reduce((sum, item) => sum + (item.Johnson || 0), 0) }
-                  ].sort((a, b) => b.value - a.value);
-
-                  return clinicians.map((clinician, idx) => {
-                    const isTop = idx === 0;
-                    const isBottom = idx === clinicians.length - 1;
-                    const shareOfTotal = ((clinician.value / (totalRevenue || 1)) * 100).toFixed(0);
-                    const formattedValue = clinician.value >= 1000000
-                      ? `$${(clinician.value / 1000000).toFixed(2)}M`
-                      : `$${(clinician.value / 1000).toFixed(0)}k`;
-
-                    return (
-                      <div
-                        key={clinician.name}
-                        className="rounded-2xl sm:rounded-3xl overflow-hidden transition-all duration-500 hover:scale-[1.02]"
-                        style={{
-                          background: '#ffffff',
-                          boxShadow: isTop
-                            ? '0 20px 40px -12px rgba(16, 185, 129, 0.25), 0 0 0 1px rgba(16, 185, 129, 0.1)'
-                            : isBottom
-                              ? '0 20px 40px -12px rgba(239, 68, 68, 0.15), 0 0 0 1px rgba(239, 68, 68, 0.1)'
-                              : '0 8px 32px -8px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04)'
-                        }}
-                      >
-                        {/* Top accent bar */}
-                        <div
-                          className="h-1.5"
-                          style={{
-                            background: isTop
-                              ? 'linear-gradient(90deg, #10b981 0%, #34d399 50%, #6ee7b7 100%)'
-                              : isBottom
-                                ? 'linear-gradient(90deg, #ef4444 0%, #f87171 50%, #fca5a5 100%)'
-                                : 'linear-gradient(90deg, #d6d3d1 0%, #e7e5e4 50%, #f5f5f4 100%)'
-                          }}
-                        />
-
-                        <div className="p-5 sm:p-6 xl:p-8">
-                          {/* Header: Rank + Name + Badge */}
-                          <div className="flex items-start justify-between mb-6">
-                            <div>
-                              <span className="text-stone-300 text-lg sm:text-xl font-black tracking-tight">
-                                {String(idx + 1).padStart(2, '0')}
-                              </span>
-                              <h4
-                                className="text-stone-800 text-2xl sm:text-3xl xl:text-4xl font-bold -mt-1"
-                                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-                              >
-                                {clinician.name}
-                              </h4>
-                            </div>
-                            {isTop && (
-                              <span
-                                className="px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wider"
-                                style={{
-                                  background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)',
-                                  color: '#059669',
-                                  border: '1px solid #a7f3d0'
-                                }}
-                              >
-                                Top
-                              </span>
-                            )}
-                            {isBottom && (
-                              <span
-                                className="px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wider"
-                                style={{
-                                  background: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
-                                  color: '#dc2626',
-                                  border: '1px solid #fecaca'
-                                }}
-                              >
-                                Low
-                              </span>
-                            )}
-                          </div>
-
-                          {/* HERO: Total Revenue - Absolutely massive */}
-                          <div className="mb-8">
-                            <p className="text-stone-400 text-base sm:text-lg font-semibold uppercase tracking-widest mb-2">
-                              Total Revenue
-                            </p>
-                            <div className="flex items-baseline">
-                              <span
-                                className="text-5xl sm:text-6xl xl:text-7xl font-black tracking-tighter leading-none"
-                                style={{
-                                  fontFamily: "'DM Serif Display', Georgia, serif",
-                                  color: isTop ? '#059669' : isBottom ? '#dc2626' : '#292524'
-                                }}
-                              >
-                                {formattedValue}
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Secondary metric - Share of total */}
-                          <div className="text-center py-5 px-4 rounded-2xl bg-stone-50 border border-stone-100">
-                            <p className="text-stone-800 text-4xl sm:text-5xl xl:text-6xl font-bold mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
-                              {shareOfTotal}%
-                            </p>
-                            <p className="text-stone-500 text-sm sm:text-base font-semibold uppercase tracking-wider">
-                              Share of Total
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  });
                 })()}
               </div>
             </div>
@@ -2792,351 +2657,6 @@ export const PracticeAnalysis: React.FC = () => {
               })()}
             </div>
 
-            {/* Team Performance */}
-            <div
-              className="rounded-2xl sm:rounded-3xl p-4 sm:p-6 xl:p-8"
-              style={{
-                background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
-                boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
-              }}
-            >
-              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
-                <div>
-                  <h3 className="text-stone-800 text-lg sm:text-xl xl:text-2xl font-semibold mb-1 sm:mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
-                    Team Performance
-                  </h3>
-                  <p className="text-stone-500 text-sm sm:text-base xl:text-lg">
-                    {teamPerformanceView === 'sessions'
-                      ? `Total sessions across all ${CLINICIAN_SESSIONS_DATA.length} selected month${CLINICIAN_SESSIONS_DATA.length !== 1 ? 's' : ''}`
-                      : 'Attendance rate by clinician (higher is better)'}
-                  </p>
-                </div>
-                {/* Toggle Button Group */}
-                <div
-                  className="flex items-center gap-1 p-1 rounded-full flex-shrink-0"
-                  style={{
-                    background: 'linear-gradient(135deg, #f5f5f4 0%, #e7e5e4 100%)',
-                    boxShadow: '0 2px 8px -2px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.8)'
-                  }}
-                >
-                  <button
-                    onClick={() => setTeamPerformanceView('sessions')}
-                    className="relative flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300"
-                    style={{
-                      background: teamPerformanceView === 'sessions'
-                        ? 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)'
-                        : 'transparent',
-                      boxShadow: teamPerformanceView === 'sessions'
-                        ? '0 4px 12px -2px rgba(30, 27, 75, 0.4), inset 0 1px 0 rgba(255,255,255,0.1)'
-                        : 'none'
-                    }}
-                  >
-                    <svg
-                      className={`w-4 h-4 transition-colors duration-300 ${teamPerformanceView === 'sessions' ? 'text-indigo-300' : 'text-stone-500'}`}
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
-                    <span className={`text-sm font-semibold transition-colors duration-300 ${teamPerformanceView === 'sessions' ? 'text-white' : 'text-stone-600'}`}>
-                      Sessions
-                    </span>
-                    {teamPerformanceView === 'sessions' && (
-                      <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-lg shadow-emerald-400/50" />
-                    )}
-                  </button>
-                  <button
-                    onClick={() => setTeamPerformanceView('attendance')}
-                    className="relative flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300"
-                    style={{
-                      background: teamPerformanceView === 'attendance'
-                        ? 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)'
-                        : 'transparent',
-                      boxShadow: teamPerformanceView === 'attendance'
-                        ? '0 4px 12px -2px rgba(30, 27, 75, 0.4), inset 0 1px 0 rgba(255,255,255,0.1)'
-                        : 'none'
-                    }}
-                  >
-                    <svg
-                      className={`w-4 h-4 transition-colors duration-300 ${teamPerformanceView === 'attendance' ? 'text-indigo-300' : 'text-stone-500'}`}
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span className={`text-sm font-semibold transition-colors duration-300 ${teamPerformanceView === 'attendance' ? 'text-white' : 'text-stone-600'}`}>
-                      Attendance
-                    </span>
-                    {teamPerformanceView === 'attendance' && (
-                      <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-lg shadow-emerald-400/50" />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 xl:gap-4">
-                {(() => {
-                  // Clinician attendance rates (derived from sessions data patterns)
-                  // These represent show rate, with breakdown of cancellation types
-                  const clinicianAttendance = {
-                    Chen: { showRate: 0.91, clientCancel: 0.03, clinicianCancel: 0.02, lateCancel: 0.025, noShow: 0.015 },
-                    Rodriguez: { showRate: 0.89, clientCancel: 0.04, clinicianCancel: 0.025, lateCancel: 0.03, noShow: 0.015 },
-                    Patel: { showRate: 0.86, clientCancel: 0.05, clinicianCancel: 0.03, lateCancel: 0.035, noShow: 0.025 },
-                    Kim: { showRate: 0.88, clientCancel: 0.045, clinicianCancel: 0.025, lateCancel: 0.03, noShow: 0.02 },
-                    Johnson: { showRate: 0.87, clientCancel: 0.045, clinicianCancel: 0.03, lateCancel: 0.035, noShow: 0.02 }
-                  };
-
-                  if (teamPerformanceView === 'sessions') {
-                    // Sessions view - Luxury editorial: massive typography, sophisticated, elite
-                    const totalSessions = CLINICIAN_SESSIONS_DATA.reduce((sum, item) =>
-                      sum + (item.Chen || 0) + (item.Rodriguez || 0) + (item.Patel || 0) + (item.Kim || 0) + (item.Johnson || 0), 0
-                    );
-                    const clinicians = [
-                      { name: 'Chen', value: CLINICIAN_SESSIONS_DATA.reduce((sum, item) => sum + (item.Chen || 0), 0) },
-                      { name: 'Rodriguez', value: CLINICIAN_SESSIONS_DATA.reduce((sum, item) => sum + (item.Rodriguez || 0), 0) },
-                      { name: 'Patel', value: CLINICIAN_SESSIONS_DATA.reduce((sum, item) => sum + (item.Patel || 0), 0) },
-                      { name: 'Kim', value: CLINICIAN_SESSIONS_DATA.reduce((sum, item) => sum + (item.Kim || 0), 0) },
-                      { name: 'Johnson', value: CLINICIAN_SESSIONS_DATA.reduce((sum, item) => sum + (item.Johnson || 0), 0) }
-                    ].sort((a, b) => b.value - a.value);
-
-                    return clinicians.map((clinician, idx) => {
-                      const isTop = idx === 0;
-                      const isBottom = idx === clinicians.length - 1;
-                      const shareOfTotal = ((clinician.value / (totalSessions || 1)) * 100).toFixed(0);
-
-                      return (
-                        <div
-                          key={clinician.name}
-                          className="rounded-2xl sm:rounded-3xl overflow-hidden transition-all duration-500 hover:scale-[1.02]"
-                          style={{
-                            background: '#ffffff',
-                            boxShadow: isTop
-                              ? '0 20px 40px -12px rgba(16, 185, 129, 0.25), 0 0 0 1px rgba(16, 185, 129, 0.1)'
-                              : isBottom
-                                ? '0 20px 40px -12px rgba(239, 68, 68, 0.15), 0 0 0 1px rgba(239, 68, 68, 0.1)'
-                                : '0 8px 32px -8px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04)'
-                          }}
-                        >
-                          {/* Top accent bar */}
-                          <div
-                            className="h-1.5"
-                            style={{
-                              background: isTop
-                                ? 'linear-gradient(90deg, #10b981 0%, #34d399 50%, #6ee7b7 100%)'
-                                : isBottom
-                                  ? 'linear-gradient(90deg, #ef4444 0%, #f87171 50%, #fca5a5 100%)'
-                                  : 'linear-gradient(90deg, #d6d3d1 0%, #e7e5e4 50%, #f5f5f4 100%)'
-                            }}
-                          />
-
-                          <div className="p-5 sm:p-6 xl:p-8">
-                            {/* Header: Rank + Name + Badge */}
-                            <div className="flex items-start justify-between mb-6">
-                              <div>
-                                <span className="text-stone-300 text-lg sm:text-xl font-black tracking-tight">
-                                  {String(idx + 1).padStart(2, '0')}
-                                </span>
-                                <h4
-                                  className="text-stone-800 text-2xl sm:text-3xl xl:text-4xl font-bold -mt-1"
-                                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-                                >
-                                  {clinician.name}
-                                </h4>
-                              </div>
-                              {isTop && (
-                                <span
-                                  className="px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wider"
-                                  style={{
-                                    background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)',
-                                    color: '#059669',
-                                    border: '1px solid #a7f3d0'
-                                  }}
-                                >
-                                  Top
-                                </span>
-                              )}
-                              {isBottom && (
-                                <span
-                                  className="px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wider"
-                                  style={{
-                                    background: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
-                                    color: '#dc2626',
-                                    border: '1px solid #fecaca'
-                                  }}
-                                >
-                                  Low
-                                </span>
-                              )}
-                            </div>
-
-                            {/* HERO: Total Sessions - Absolutely massive */}
-                            <div className="mb-8">
-                              <p className="text-stone-400 text-base sm:text-lg font-semibold uppercase tracking-widest mb-2">
-                                Total Sessions
-                              </p>
-                              <div className="flex items-baseline">
-                                <span
-                                  className="text-6xl sm:text-7xl xl:text-8xl font-black tracking-tighter leading-none"
-                                  style={{
-                                    fontFamily: "'DM Serif Display', Georgia, serif",
-                                    color: isTop ? '#059669' : isBottom ? '#dc2626' : '#292524'
-                                  }}
-                                >
-                                  {clinician.value.toLocaleString()}
-                                </span>
-                              </div>
-                            </div>
-
-                            {/* Secondary metric - Share of total */}
-                            <div className="text-center py-5 px-4 rounded-2xl bg-stone-50 border border-stone-100">
-                              <p className="text-stone-800 text-4xl sm:text-5xl xl:text-6xl font-bold mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
-                                {shareOfTotal}%
-                              </p>
-                              <p className="text-stone-500 text-sm sm:text-base font-semibold uppercase tracking-wider">
-                                Share of Total
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    });
-                  } else {
-                    // Attendance view - Luxury editorial: massive typography, sophisticated, elite
-                    const clinicians = [
-                      { name: 'Chen', ...clinicianAttendance.Chen },
-                      { name: 'Rodriguez', ...clinicianAttendance.Rodriguez },
-                      { name: 'Patel', ...clinicianAttendance.Patel },
-                      { name: 'Kim', ...clinicianAttendance.Kim },
-                      { name: 'Johnson', ...clinicianAttendance.Johnson }
-                    ].sort((a, b) => b.showRate - a.showRate);
-
-                    return clinicians.map((clinician, idx) => {
-                      const isTop = idx === 0;
-                      const isBottom = idx === clinicians.length - 1;
-                      const nonBillableRate = clinician.clientCancel + clinician.clinicianCancel;
-                      const lateNoShowRate = clinician.lateCancel + clinician.noShow;
-
-                      return (
-                        <div
-                          key={clinician.name}
-                          className="rounded-2xl sm:rounded-3xl overflow-hidden transition-all duration-500 hover:scale-[1.02]"
-                          style={{
-                            background: '#ffffff',
-                            boxShadow: isTop
-                              ? '0 20px 40px -12px rgba(16, 185, 129, 0.25), 0 0 0 1px rgba(16, 185, 129, 0.1)'
-                              : isBottom
-                                ? '0 20px 40px -12px rgba(239, 68, 68, 0.15), 0 0 0 1px rgba(239, 68, 68, 0.1)'
-                                : '0 8px 32px -8px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04)'
-                          }}
-                        >
-                          {/* Top accent bar */}
-                          <div
-                            className="h-1.5"
-                            style={{
-                              background: isTop
-                                ? 'linear-gradient(90deg, #10b981 0%, #34d399 50%, #6ee7b7 100%)'
-                                : isBottom
-                                  ? 'linear-gradient(90deg, #ef4444 0%, #f87171 50%, #fca5a5 100%)'
-                                  : 'linear-gradient(90deg, #d6d3d1 0%, #e7e5e4 50%, #f5f5f4 100%)'
-                            }}
-                          />
-
-                          <div className="p-5 sm:p-6 xl:p-8">
-                            {/* Header: Rank + Name + Badge */}
-                            <div className="flex items-start justify-between mb-6">
-                              <div>
-                                <span className="text-stone-300 text-lg sm:text-xl font-black tracking-tight">
-                                  {String(idx + 1).padStart(2, '0')}
-                                </span>
-                                <h4
-                                  className="text-stone-800 text-2xl sm:text-3xl xl:text-4xl font-bold -mt-1"
-                                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-                                >
-                                  {clinician.name}
-                                </h4>
-                              </div>
-                              {isTop && (
-                                <span
-                                  className="px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wider"
-                                  style={{
-                                    background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)',
-                                    color: '#059669',
-                                    border: '1px solid #a7f3d0'
-                                  }}
-                                >
-                                  Best
-                                </span>
-                              )}
-                              {isBottom && (
-                                <span
-                                  className="px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wider"
-                                  style={{
-                                    background: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
-                                    color: '#dc2626',
-                                    border: '1px solid #fecaca'
-                                  }}
-                                >
-                                  Low
-                                </span>
-                              )}
-                            </div>
-
-                          {/* HERO: Show Rate - Absolutely massive */}
-                            <div className="mb-8">
-                              <p className="text-stone-400 text-base sm:text-lg font-semibold uppercase tracking-widest mb-2">
-                                Show Rate
-                              </p>
-                              <div className="flex items-baseline">
-                                <span
-                                  className="text-6xl sm:text-7xl xl:text-8xl font-black tracking-tighter leading-none"
-                                  style={{
-                                    fontFamily: "'DM Serif Display', Georgia, serif",
-                                    color: isTop ? '#059669' : isBottom ? '#dc2626' : '#292524'
-                                  }}
-                                >
-                                  {(clinician.showRate * 100).toFixed(0)}
-                                </span>
-                                <span
-                                  className="text-3xl sm:text-4xl xl:text-5xl font-bold ml-1"
-                                  style={{ color: isTop ? '#10b981' : isBottom ? '#ef4444' : '#a8a29e' }}
-                                >
-                                  %
-                                </span>
-                              </div>
-                            </div>
-
-                            {/* Secondary metrics - Large, crystal clear */}
-                            <div className="grid grid-cols-2 gap-4">
-                              {/* Non-Billable */}
-                              <div className="text-center py-5 px-4 rounded-2xl bg-stone-50 border border-stone-100">
-                                <p className="text-stone-800 text-4xl sm:text-5xl xl:text-6xl font-bold mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
-                                  {(nonBillableRate * 100).toFixed(0)}%
-                                </p>
-                                <p className="text-stone-500 text-sm sm:text-base font-semibold uppercase tracking-wider">
-                                  Non-Billable
-                                </p>
-                              </div>
-                              {/* Late / No-Show */}
-                              <div className="text-center py-5 px-4 rounded-2xl bg-stone-50 border border-stone-100">
-                                <p className="text-stone-800 text-4xl sm:text-5xl xl:text-6xl font-bold mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
-                                  {(lateNoShowRate * 100).toFixed(0)}%
-                                </p>
-                                <p className="text-stone-500 text-sm sm:text-base font-semibold uppercase tracking-wider">
-                                  Late / No-Show
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    });
-                  }
-                })()}
-              </div>
-            </div>
-
             {/* Detailed Table */}
             <div
               className="rounded-2xl sm:rounded-3xl p-4 sm:p-6 xl:p-8"
@@ -3589,80 +3109,67 @@ export const PracticeAnalysis: React.FC = () => {
               style={{ background: 'radial-gradient(circle, #fbbf24 0%, transparent 70%)' }}
             />
 
-            {/* Header content */}
-            <div className="relative z-10 px-4 sm:px-6 lg:px-8 xl:px-10 pt-6 sm:pt-8 pb-6">
-              <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 lg:gap-0">
-                {/* Title & Breadcrumb */}
+            <div className="relative px-6 sm:px-8 lg:px-12 py-8 lg:py-10">
+              {/* Header row */}
+              <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
                 <div>
-                  <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
-                    <span className="text-stone-500 text-xs sm:text-sm font-medium uppercase tracking-widest">Detailed Analysis</span>
-                    <span className="text-stone-600">/</span>
-                    <span className="text-amber-400 text-xs sm:text-sm font-bold uppercase tracking-widest">Capacity & Clients</span>
-                  </div>
-                  <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-4">
-                    <h1
-                      className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl text-white font-bold tracking-tight"
-                      style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-                    >
-                      Capacity & Client Analysis
-                    </h1>
-                    <span className="text-stone-400 text-sm sm:text-base font-medium">
-                      {getDateRangeLabel()}
-                    </span>
-                  </div>
+                  <p className="text-amber-500/80 text-sm font-semibold tracking-widest uppercase mb-2">
+                    Detailed Analysis
+                  </p>
+                  <h1
+                    className="text-4xl sm:text-5xl lg:text-6xl text-white tracking-tight"
+                    style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                  >
+                    Capacity & Client Analysis
+                  </h1>
+                  <p className="text-stone-400 text-sm mt-2">{getDateRangeLabel()}</p>
                 </div>
 
-              {/* Time Period Selector - Dark Theme */}
-              <div className="flex items-center gap-2 sm:gap-4 relative">
-                {/* Mobile: Select dropdown */}
-                <select
-                  value={timePeriod}
-                  onChange={(e) => setTimePeriod(e.target.value as TimePeriod)}
-                  className="lg:hidden px-3 py-2 rounded-xl border border-stone-600 bg-stone-800 text-sm font-medium text-white"
-                >
-                  {timePeriods.map((period) => (
-                    <option key={period.id} value={period.id}>{period.label}</option>
-                  ))}
-                  <option value="custom">Custom Range</option>
-                </select>
+                {/* Time Period Selector */}
+                <div className="flex items-center gap-3 relative">
+                  {/* Mobile: Select dropdown */}
+                  <select
+                    value={timePeriod}
+                    onChange={(e) => setTimePeriod(e.target.value as TimePeriod)}
+                    className="lg:hidden px-3 py-2 rounded-xl border border-white/20 bg-white/10 text-sm font-medium text-white"
+                  >
+                    {timePeriods.map((period) => (
+                      <option key={period.id} value={period.id} className="text-stone-900">{period.label}</option>
+                    ))}
+                    <option value="custom" className="text-stone-900">Custom Range</option>
+                  </select>
 
-                {/* Desktop: Button group */}
-                <div
-                  className="hidden lg:flex items-center gap-1 p-1 xl:p-1.5 rounded-xl xl:rounded-2xl bg-stone-800/60 backdrop-blur-sm"
-                  style={{
-                    boxShadow: '0 4px 20px -4px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.05)'
-                  }}
-                >
-                  {timePeriods.map((period) => (
+                  {/* Desktop: Button group */}
+                  <div className="hidden lg:flex items-center gap-1 p-1 rounded-xl bg-white/10 backdrop-blur-sm">
+                    {timePeriods.map((period) => (
+                      <button
+                        key={period.id}
+                        onClick={() => setTimePeriod(period.id)}
+                        className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
+                          timePeriod === period.id
+                            ? 'bg-white text-stone-900 shadow-lg'
+                            : 'text-white/70 hover:text-white hover:bg-white/10'
+                        }`}
+                      >
+                        {period.label}
+                      </button>
+                    ))}
+                    {/* Custom Range Button */}
                     <button
-                      key={period.id}
-                      onClick={() => setTimePeriod(period.id)}
-                      className={`px-3 lg:px-5 py-2 lg:py-2.5 rounded-lg lg:rounded-xl text-xs lg:text-sm font-semibold transition-all duration-300 ${
-                        timePeriod === period.id
+                      onClick={() => setShowDatePicker(!showDatePicker)}
+                      className={`group px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 flex items-center gap-2 ${
+                        timePeriod === 'custom'
                           ? 'bg-white text-stone-900 shadow-lg'
-                          : 'text-stone-400 hover:text-white hover:bg-stone-700/50'
+                          : 'text-white/70 hover:text-white hover:bg-white/10'
                       }`}
                     >
-                      {period.label}
+                      <Calendar
+                        size={16}
+                        className={`transition-transform duration-500 ${showDatePicker ? 'rotate-12' : 'group-hover:rotate-6'}`}
+                      />
+                      <span>{timePeriod === 'custom' ? formatCustomRange() : 'Custom'}</span>
                     </button>
-                  ))}
-                  {/* Custom Range Button */}
-                  <button
-                    onClick={() => setShowDatePicker(!showDatePicker)}
-                    className={`group px-3 lg:px-5 py-2 lg:py-2.5 rounded-lg lg:rounded-xl text-xs lg:text-sm font-semibold transition-all duration-500 flex items-center gap-1.5 lg:gap-2.5 relative overflow-hidden ${
-                      timePeriod === 'custom'
-                        ? 'bg-white text-stone-900 shadow-lg'
-                        : 'text-stone-400 hover:text-white'
-                    }`}
-                  >
-                    <Calendar
-                      size={16}
-                      className={`transition-transform duration-500 ${showDatePicker ? 'rotate-12' : 'group-hover:rotate-6'}`}
-                    />
-                    <span className="hidden lg:inline">{timePeriod === 'custom' ? formatCustomRange() : 'Custom'}</span>
-                    <span className="lg:hidden">Custom</span>
-                  </button>
-                </div>
+                  </div>
 
                 {/* Custom Date Picker */}
                 {showDatePicker && (
@@ -3904,304 +3411,6 @@ export const PracticeAnalysis: React.FC = () => {
                 <p className="text-stone-500 text-base sm:text-lg xl:text-xl mt-3 xl:mt-4 font-medium">
                   avg across {HOURS_UTILIZATION_DATA.length} months
                 </p>
-              </div>
-            </div>
-
-            {/* Team Performance - Luxury Editorial Style with Toggle */}
-            <div
-              className="rounded-2xl sm:rounded-3xl p-4 sm:p-6 xl:p-8"
-              style={{
-                background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
-                boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
-              }}
-            >
-              {/* Header with Toggle - Matching Sessions Tab Style */}
-              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
-                <div>
-                  <h3 className="text-stone-800 text-lg sm:text-xl xl:text-2xl font-semibold mb-1 sm:mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
-                    Team Performance
-                  </h3>
-                  <p className="text-stone-500 text-sm sm:text-base xl:text-lg">
-                    {capacityTeamView === 'activeClients'
-                      ? 'Currently active clients per clinician'
-                      : capacityTeamView === 'clientUtil'
-                        ? 'Client capacity utilization rate'
-                        : capacityTeamView === 'openSlots'
-                          ? 'Available appointment slots (fewer is better)'
-                          : 'Session time utilization rate'}
-                  </p>
-                </div>
-
-                {/* Toggle Button Group - Matching Sessions Tab */}
-                <div
-                  className="flex items-center gap-1 p-1 rounded-full flex-shrink-0"
-                  style={{
-                    background: 'linear-gradient(135deg, #f5f5f4 0%, #e7e5e4 100%)',
-                    boxShadow: '0 2px 8px -2px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.8)'
-                  }}
-                >
-                  <button
-                    onClick={() => setCapacityTeamView('activeClients')}
-                    className="relative flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300"
-                    style={{
-                      background: capacityTeamView === 'activeClients'
-                        ? 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)'
-                        : 'transparent',
-                      boxShadow: capacityTeamView === 'activeClients'
-                        ? '0 4px 12px -2px rgba(30, 27, 75, 0.4), inset 0 1px 0 rgba(255,255,255,0.1)'
-                        : 'none'
-                    }}
-                  >
-                    <svg
-                      className={`w-4 h-4 transition-colors duration-300 ${capacityTeamView === 'activeClients' ? 'text-indigo-300' : 'text-stone-500'}`}
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                    <span className={`text-sm font-semibold transition-colors duration-300 ${capacityTeamView === 'activeClients' ? 'text-white' : 'text-stone-600'}`}>
-                      Clients
-                    </span>
-                    {capacityTeamView === 'activeClients' && (
-                      <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-lg shadow-emerald-400/50" />
-                    )}
-                  </button>
-                  <button
-                    onClick={() => setCapacityTeamView('clientUtil')}
-                    className="relative flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300"
-                    style={{
-                      background: capacityTeamView === 'clientUtil'
-                        ? 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)'
-                        : 'transparent',
-                      boxShadow: capacityTeamView === 'clientUtil'
-                        ? '0 4px 12px -2px rgba(30, 27, 75, 0.4), inset 0 1px 0 rgba(255,255,255,0.1)'
-                        : 'none'
-                    }}
-                  >
-                    <svg
-                      className={`w-4 h-4 transition-colors duration-300 ${capacityTeamView === 'clientUtil' ? 'text-indigo-300' : 'text-stone-500'}`}
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
-                    <span className={`text-sm font-semibold transition-colors duration-300 ${capacityTeamView === 'clientUtil' ? 'text-white' : 'text-stone-600'}`}>
-                      Utilization
-                    </span>
-                    {capacityTeamView === 'clientUtil' && (
-                      <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-lg shadow-emerald-400/50" />
-                    )}
-                  </button>
-                  <button
-                    onClick={() => setCapacityTeamView('openSlots')}
-                    className="relative flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300"
-                    style={{
-                      background: capacityTeamView === 'openSlots'
-                        ? 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)'
-                        : 'transparent',
-                      boxShadow: capacityTeamView === 'openSlots'
-                        ? '0 4px 12px -2px rgba(30, 27, 75, 0.4), inset 0 1px 0 rgba(255,255,255,0.1)'
-                        : 'none'
-                    }}
-                  >
-                    <svg
-                      className={`w-4 h-4 transition-colors duration-300 ${capacityTeamView === 'openSlots' ? 'text-indigo-300' : 'text-stone-500'}`}
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    <span className={`text-sm font-semibold transition-colors duration-300 ${capacityTeamView === 'openSlots' ? 'text-white' : 'text-stone-600'}`}>
-                      Open Slots
-                    </span>
-                    {capacityTeamView === 'openSlots' && (
-                      <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-lg shadow-emerald-400/50" />
-                    )}
-                  </button>
-                  <button
-                    onClick={() => setCapacityTeamView('sessionUtil')}
-                    className="relative flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300"
-                    style={{
-                      background: capacityTeamView === 'sessionUtil'
-                        ? 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)'
-                        : 'transparent',
-                      boxShadow: capacityTeamView === 'sessionUtil'
-                        ? '0 4px 12px -2px rgba(30, 27, 75, 0.4), inset 0 1px 0 rgba(255,255,255,0.1)'
-                        : 'none'
-                    }}
-                  >
-                    <svg
-                      className={`w-4 h-4 transition-colors duration-300 ${capacityTeamView === 'sessionUtil' ? 'text-indigo-300' : 'text-stone-500'}`}
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
-                    <span className={`text-sm font-semibold transition-colors duration-300 ${capacityTeamView === 'sessionUtil' ? 'text-white' : 'text-stone-600'}`}>
-                      Sessions
-                    </span>
-                    {capacityTeamView === 'sessionUtil' && (
-                      <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-lg shadow-emerald-400/50" />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 xl:gap-4">
-                {(() => {
-                  // Clinician data
-                  const cliniciansData = [
-                    { name: 'Chen', activeClients: 34, capacity: 38, clientUtil: 89, sessionUtil: 92, openSlots: 6 },
-                    { name: 'Rodriguez', activeClients: 32, capacity: 36, clientUtil: 89, sessionUtil: 89, openSlots: 8 },
-                    { name: 'Patel', activeClients: 30, capacity: 36, clientUtil: 83, sessionUtil: 85, openSlots: 11 },
-                    { name: 'Kim', activeClients: 31, capacity: 35, clientUtil: 89, sessionUtil: 88, openSlots: 9 },
-                    { name: 'Johnson', activeClients: 29, capacity: 35, clientUtil: 83, sessionUtil: 83, openSlots: 12 }
-                  ];
-
-                  // Sort based on current view
-                  const clinicians = [...cliniciansData].sort((a, b) => {
-                    if (capacityTeamView === 'activeClients') {
-                      return b.activeClients - a.activeClients; // More clients = better
-                    } else if (capacityTeamView === 'clientUtil') {
-                      return b.clientUtil - a.clientUtil; // Higher utilization = better
-                    } else if (capacityTeamView === 'openSlots') {
-                      return a.openSlots - b.openSlots; // Fewer open slots = better
-                    } else {
-                      return b.sessionUtil - a.sessionUtil;
-                    }
-                  });
-
-                  return clinicians.map((clinician, idx) => {
-                    const isTop = idx === 0;
-                    const isBottom = idx === clinicians.length - 1;
-
-                    // Determine hero value and label based on view
-                    let heroValue: string;
-                    let heroLabel: string;
-                    let heroSubtext: string;
-
-                    if (capacityTeamView === 'activeClients') {
-                      heroValue = String(clinician.activeClients);
-                      heroLabel = 'Active Clients';
-                      heroSubtext = `of ${clinician.capacity} capacity`;
-                    } else if (capacityTeamView === 'clientUtil') {
-                      heroValue = String(clinician.clientUtil);
-                      heroLabel = 'Client Utilization';
-                      heroSubtext = `of ${clinician.capacity} capacity`;
-                    } else if (capacityTeamView === 'openSlots') {
-                      heroValue = String(clinician.openSlots);
-                      heroLabel = 'Open Slots';
-                      heroSubtext = 'available this month';
-                    } else {
-                      heroValue = String(clinician.sessionUtil);
-                      heroLabel = 'Session Utilization';
-                      heroSubtext = 'of available hours';
-                    }
-
-                    const showPercent = capacityTeamView === 'sessionUtil' || capacityTeamView === 'clientUtil';
-
-                    return (
-                      <div
-                        key={clinician.name}
-                        className="rounded-2xl sm:rounded-3xl overflow-hidden transition-all duration-500 hover:scale-[1.02]"
-                        style={{
-                          background: '#ffffff',
-                          boxShadow: isTop
-                            ? '0 20px 40px -12px rgba(16, 185, 129, 0.25), 0 0 0 1px rgba(16, 185, 129, 0.1)'
-                            : isBottom
-                              ? '0 20px 40px -12px rgba(239, 68, 68, 0.15), 0 0 0 1px rgba(239, 68, 68, 0.1)'
-                              : '0 8px 32px -8px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04)'
-                        }}
-                      >
-                        {/* Top accent bar */}
-                        <div
-                          className="h-1.5"
-                          style={{
-                            background: isTop
-                              ? 'linear-gradient(90deg, #10b981 0%, #34d399 50%, #6ee7b7 100%)'
-                              : isBottom
-                                ? 'linear-gradient(90deg, #ef4444 0%, #f87171 50%, #fca5a5 100%)'
-                                : 'linear-gradient(90deg, #d6d3d1 0%, #e7e5e4 50%, #f5f5f4 100%)'
-                          }}
-                        />
-
-                        <div className="p-5 sm:p-6 xl:p-8">
-                          {/* Header: Rank + Name + Badge */}
-                          <div className="flex items-start justify-between mb-6">
-                            <div>
-                              <span className="text-stone-300 text-lg sm:text-xl font-black tracking-tight">
-                                {String(idx + 1).padStart(2, '0')}
-                              </span>
-                              <h4
-                                className="text-stone-800 text-2xl sm:text-3xl xl:text-4xl font-bold -mt-1"
-                                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-                              >
-                                {clinician.name}
-                              </h4>
-                            </div>
-                            {isTop && (
-                              <span
-                                className="px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wider"
-                                style={{
-                                  background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)',
-                                  color: '#059669',
-                                  border: '1px solid #a7f3d0'
-                                }}
-                              >
-                                {capacityTeamView === 'openSlots' ? 'Best' : 'Top'}
-                              </span>
-                            )}
-                            {isBottom && (
-                              <span
-                                className="px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wider"
-                                style={{
-                                  background: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
-                                  color: '#dc2626',
-                                  border: '1px solid #fecaca'
-                                }}
-                              >
-                                Low
-                              </span>
-                            )}
-                          </div>
-
-                          {/* HERO: Single focused metric */}
-                          <div className="mb-4">
-                            <p className="text-stone-400 text-base sm:text-lg font-semibold uppercase tracking-widest mb-2">
-                              {heroLabel}
-                            </p>
-                            <div className="flex items-baseline">
-                              <span
-                                className="text-6xl sm:text-7xl xl:text-8xl font-black tracking-tighter leading-none"
-                                style={{
-                                  fontFamily: "'DM Serif Display', Georgia, serif",
-                                  color: isTop ? '#059669' : isBottom ? '#dc2626' : '#292524'
-                                }}
-                              >
-                                {heroValue}
-                              </span>
-                              {showPercent && (
-                                <span
-                                  className="text-3xl sm:text-4xl xl:text-5xl font-bold ml-1"
-                                  style={{ color: isTop ? '#10b981' : isBottom ? '#ef4444' : '#a8a29e' }}
-                                >
-                                  %
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-stone-500 text-sm sm:text-base font-medium mt-2">
-                              {heroSubtext}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  });
-                })()}
               </div>
             </div>
 
