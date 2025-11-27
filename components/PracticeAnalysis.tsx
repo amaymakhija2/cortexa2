@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { MetricChart } from './MetricChart';
 import { ResponsiveContainer, LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, LabelList, Legend, CartesianGrid, ReferenceLine, ComposedChart } from 'recharts';
-import { Info, X, ArrowRight, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Info, X, ArrowRight, Calendar, ChevronLeft, ChevronRight, Maximize2, Minimize2 } from 'lucide-react';
 import { useIsMobile } from '../hooks/useIsMobile';
 
 type TabType = 'financial' | 'sessions' | 'capacity-client' | 'retention' | 'insurance' | 'admin' | 'team-comparison';
@@ -352,6 +352,8 @@ export const PracticeAnalysis: React.FC = () => {
   const [showSessionsClinicianBreakdown, setShowSessionsClinicianBreakdown] = useState(false);
   const [hoveredClinicianBar, setHoveredClinicianBar] = useState<{ month: string; clinician: string; value: number; color: string } | null>(null);
   const [hoveredSessionsClinicianBar, setHoveredSessionsClinicianBar] = useState<{ month: string; clinician: string; value: number; color: string } | null>(null);
+  const [teamPerformanceView, setTeamPerformanceView] = useState<'sessions' | 'attendance'>('sessions');
+  const [capacityTeamView, setCapacityTeamView] = useState<'activeClients' | 'clientUtil' | 'openSlots' | 'sessionUtil'>('activeClients');
   const [showClientBreakdown, setShowClientBreakdown] = useState(false);
 
   // Team Comparison tab state
@@ -360,6 +362,9 @@ export const PracticeAnalysis: React.FC = () => {
   const [supervisorSortColumn, setSupervisorSortColumn] = useState<string | null>(null);
   const [supervisorSortDirection, setSupervisorSortDirection] = useState<'asc' | 'desc'>('desc');
   const [showClinicianDetails, setShowClinicianDetails] = useState<string | null>(null);
+
+  // Expanded chart card state
+  const [expandedCard, setExpandedCard] = useState<string | null>(null);
 
   // Custom Date Picker State - Simplified
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -1028,6 +1033,15 @@ export const PracticeAnalysis: React.FC = () => {
                         />
                       </span>
                     </button>
+
+                    {/* Expand Button */}
+                    <button
+                      onClick={() => setExpandedCard('revenue-performance')}
+                      className="p-2.5 rounded-xl bg-stone-100/80 hover:bg-stone-200 text-stone-500 hover:text-stone-700 transition-all duration-200 hover:scale-105 active:scale-95"
+                      title="Expand chart"
+                    >
+                      <Maximize2 size={18} strokeWidth={2} />
+                    </button>
                   </div>
                 </div>
 
@@ -1276,11 +1290,21 @@ export const PracticeAnalysis: React.FC = () => {
                   boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
                 }}
               >
-                <div className="mb-6">
-                  <h3 className="text-stone-800 text-lg sm:text-xl xl:text-2xl font-semibold mb-1 sm:mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
-                    Revenue Distribution
-                  </h3>
-                  <p className="text-stone-500 text-sm sm:text-base xl:text-lg">Total across all {REVENUE_BREAKDOWN_DATA.length} selected month{REVENUE_BREAKDOWN_DATA.length !== 1 ? 's' : ''}</p>
+                <div className="flex items-start justify-between mb-6">
+                  <div>
+                    <h3 className="text-stone-800 text-lg sm:text-xl xl:text-2xl font-semibold mb-1 sm:mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                      Revenue Distribution
+                    </h3>
+                    <p className="text-stone-500 text-sm sm:text-base xl:text-lg">Total across all {REVENUE_BREAKDOWN_DATA.length} selected month{REVENUE_BREAKDOWN_DATA.length !== 1 ? 's' : ''}</p>
+                  </div>
+                  {/* Expand Button */}
+                  <button
+                    onClick={() => setExpandedCard('revenue-distribution')}
+                    className="p-2.5 rounded-xl bg-stone-100/80 hover:bg-stone-200 text-stone-500 hover:text-stone-700 transition-all duration-200 hover:scale-105 active:scale-95"
+                    title="Expand chart"
+                  >
+                    <Maximize2 size={18} strokeWidth={2} />
+                  </button>
                 </div>
 
                 {/* Donut Chart */}
@@ -1431,49 +1455,120 @@ export const PracticeAnalysis: React.FC = () => {
 
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 xl:gap-4">
                 {(() => {
-                  // Sum all months in the selected period
+                  // Sum all months in the selected period - Luxury editorial style
                   const totalRevenue = REVENUE_DATA.reduce((sum, item) => sum + item.value, 0);
                   const clinicians = [
-                    { name: 'Chen', value: CLINICIAN_REVENUE_DATA.reduce((sum, item) => sum + (item.Chen || 0), 0), color: '#7c3aed' },
-                    { name: 'Rodriguez', value: CLINICIAN_REVENUE_DATA.reduce((sum, item) => sum + (item.Rodriguez || 0), 0), color: '#0891b2' },
-                    { name: 'Patel', value: CLINICIAN_REVENUE_DATA.reduce((sum, item) => sum + (item.Patel || 0), 0), color: '#d97706' },
-                    { name: 'Kim', value: CLINICIAN_REVENUE_DATA.reduce((sum, item) => sum + (item.Kim || 0), 0), color: '#db2777' },
-                    { name: 'Johnson', value: CLINICIAN_REVENUE_DATA.reduce((sum, item) => sum + (item.Johnson || 0), 0), color: '#059669' }
+                    { name: 'Chen', value: CLINICIAN_REVENUE_DATA.reduce((sum, item) => sum + (item.Chen || 0), 0) },
+                    { name: 'Rodriguez', value: CLINICIAN_REVENUE_DATA.reduce((sum, item) => sum + (item.Rodriguez || 0), 0) },
+                    { name: 'Patel', value: CLINICIAN_REVENUE_DATA.reduce((sum, item) => sum + (item.Patel || 0), 0) },
+                    { name: 'Kim', value: CLINICIAN_REVENUE_DATA.reduce((sum, item) => sum + (item.Kim || 0), 0) },
+                    { name: 'Johnson', value: CLINICIAN_REVENUE_DATA.reduce((sum, item) => sum + (item.Johnson || 0), 0) }
                   ].sort((a, b) => b.value - a.value);
 
-                  const maxValue = Math.max(...clinicians.map(c => c.value));
+                  return clinicians.map((clinician, idx) => {
+                    const isTop = idx === 0;
+                    const isBottom = idx === clinicians.length - 1;
+                    const shareOfTotal = ((clinician.value / (totalRevenue || 1)) * 100).toFixed(0);
+                    const formattedValue = clinician.value >= 1000000
+                      ? `$${(clinician.value / 1000000).toFixed(2)}M`
+                      : `$${(clinician.value / 1000).toFixed(0)}k`;
 
-                  return clinicians.map((clinician, idx) => (
-                    <div
-                      key={clinician.name}
-                      className="rounded-xl sm:rounded-2xl p-3 sm:p-4 xl:p-5 relative transition-all duration-300 hover:scale-[1.02]"
-                      style={{
-                        background: idx === 0 ? `linear-gradient(135deg, ${clinician.color}15 0%, ${clinician.color}08 100%)` : '#fafaf9',
-                        border: idx === 0 ? `1px solid ${clinician.color}40` : '1px solid #e7e5e4',
-                        boxShadow: idx === 0 ? `0 4px 16px -4px ${clinician.color}30` : 'none'
-                      }}
-                    >
-                      {idx === 0 && (
-                        <div className="absolute top-3 right-3 px-2.5 py-1 rounded text-xs font-bold uppercase" style={{ background: clinician.color, color: 'white' }}>
-                          Top
-                        </div>
-                      )}
-                      <p className="text-stone-500 text-sm font-bold uppercase tracking-wide mb-1">#{idx + 1}</p>
-                      <h4 className="text-stone-900 text-xl font-bold mb-3">{clinician.name}</h4>
-                      <div className="text-lg sm:text-xl xl:text-2xl font-bold mb-2 sm:mb-3" style={{ color: clinician.color, fontFamily: "'DM Serif Display', Georgia, serif" }}>
-                        {clinician.value >= 1000000 ? `$${(clinician.value / 1000000).toFixed(2)}M` : `$${(clinician.value / 1000).toFixed(1)}k`}
-                      </div>
-                      <div className="h-2 bg-stone-200 rounded-full overflow-hidden">
+                    return (
+                      <div
+                        key={clinician.name}
+                        className="rounded-2xl sm:rounded-3xl overflow-hidden transition-all duration-500 hover:scale-[1.02]"
+                        style={{
+                          background: '#ffffff',
+                          boxShadow: isTop
+                            ? '0 20px 40px -12px rgba(16, 185, 129, 0.25), 0 0 0 1px rgba(16, 185, 129, 0.1)'
+                            : isBottom
+                              ? '0 20px 40px -12px rgba(239, 68, 68, 0.15), 0 0 0 1px rgba(239, 68, 68, 0.1)'
+                              : '0 8px 32px -8px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04)'
+                        }}
+                      >
+                        {/* Top accent bar */}
                         <div
-                          className="h-full rounded-full"
-                          style={{ width: `${(clinician.value / maxValue) * 100}%`, background: clinician.color }}
+                          className="h-1.5"
+                          style={{
+                            background: isTop
+                              ? 'linear-gradient(90deg, #10b981 0%, #34d399 50%, #6ee7b7 100%)'
+                              : isBottom
+                                ? 'linear-gradient(90deg, #ef4444 0%, #f87171 50%, #fca5a5 100%)'
+                                : 'linear-gradient(90deg, #d6d3d1 0%, #e7e5e4 50%, #f5f5f4 100%)'
+                          }}
                         />
+
+                        <div className="p-5 sm:p-6 xl:p-8">
+                          {/* Header: Rank + Name + Badge */}
+                          <div className="flex items-start justify-between mb-6">
+                            <div>
+                              <span className="text-stone-300 text-lg sm:text-xl font-black tracking-tight">
+                                {String(idx + 1).padStart(2, '0')}
+                              </span>
+                              <h4
+                                className="text-stone-800 text-2xl sm:text-3xl xl:text-4xl font-bold -mt-1"
+                                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                              >
+                                {clinician.name}
+                              </h4>
+                            </div>
+                            {isTop && (
+                              <span
+                                className="px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wider"
+                                style={{
+                                  background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)',
+                                  color: '#059669',
+                                  border: '1px solid #a7f3d0'
+                                }}
+                              >
+                                Top
+                              </span>
+                            )}
+                            {isBottom && (
+                              <span
+                                className="px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wider"
+                                style={{
+                                  background: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
+                                  color: '#dc2626',
+                                  border: '1px solid #fecaca'
+                                }}
+                              >
+                                Low
+                              </span>
+                            )}
+                          </div>
+
+                          {/* HERO: Total Revenue - Absolutely massive */}
+                          <div className="mb-8">
+                            <p className="text-stone-400 text-base sm:text-lg font-semibold uppercase tracking-widest mb-2">
+                              Total Revenue
+                            </p>
+                            <div className="flex items-baseline">
+                              <span
+                                className="text-5xl sm:text-6xl xl:text-7xl font-black tracking-tighter leading-none"
+                                style={{
+                                  fontFamily: "'DM Serif Display', Georgia, serif",
+                                  color: isTop ? '#059669' : isBottom ? '#dc2626' : '#292524'
+                                }}
+                              >
+                                {formattedValue}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Secondary metric - Share of total */}
+                          <div className="text-center py-5 px-4 rounded-2xl bg-stone-50 border border-stone-100">
+                            <p className="text-stone-800 text-4xl sm:text-5xl xl:text-6xl font-bold mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                              {shareOfTotal}%
+                            </p>
+                            <p className="text-stone-500 text-sm sm:text-base font-semibold uppercase tracking-wider">
+                              Share of Total
+                            </p>
+                          </div>
+                        </div>
                       </div>
-                      <p className="text-stone-600 text-sm font-medium mt-3">
-                        {((clinician.value / (totalRevenue || 1)) * 100).toFixed(0)}% of total
-                      </p>
-                    </div>
-                  ));
+                    );
+                  });
                 })()}
               </div>
             </div>
@@ -2124,6 +2219,15 @@ export const PracticeAnalysis: React.FC = () => {
                         />
                       </span>
                     </button>
+
+                    {/* Expand Button */}
+                    <button
+                      onClick={() => setExpandedCard('session-performance')}
+                      className="p-2.5 rounded-xl bg-stone-100/80 hover:bg-stone-200 text-stone-500 hover:text-stone-700 transition-all duration-200 hover:scale-105 active:scale-95"
+                      title="Expand chart"
+                    >
+                      <Maximize2 size={18} strokeWidth={2} />
+                    </button>
                   </div>
                 </div>
 
@@ -2374,11 +2478,21 @@ export const PracticeAnalysis: React.FC = () => {
                   boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
                 }}
               >
-                <div className="mb-6">
-                  <h3 className="text-stone-800 text-lg sm:text-xl xl:text-2xl font-semibold mb-1 sm:mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
-                    Attendance Breakdown
-                  </h3>
-                  <p className="text-stone-500 text-sm sm:text-base xl:text-lg">Session outcomes</p>
+                <div className="flex items-start justify-between mb-6">
+                  <div>
+                    <h3 className="text-stone-800 text-lg sm:text-xl xl:text-2xl font-semibold mb-1 sm:mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                      Attendance Breakdown
+                    </h3>
+                    <p className="text-stone-500 text-sm sm:text-base xl:text-lg">Session outcomes</p>
+                  </div>
+                  {/* Expand Button */}
+                  <button
+                    onClick={() => setExpandedCard('attendance-breakdown')}
+                    className="p-2.5 rounded-xl bg-stone-100/80 hover:bg-stone-200 text-stone-500 hover:text-stone-700 transition-all duration-200 hover:scale-105 active:scale-95"
+                    title="Expand chart"
+                  >
+                    <Maximize2 size={18} strokeWidth={2} />
+                  </button>
                 </div>
 
                 {/* Donut Chart */}
@@ -2580,12 +2694,22 @@ export const PracticeAnalysis: React.FC = () => {
                       boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
                     }}
                   >
-                    <h3
-                      className="text-stone-800 text-2xl font-semibold mb-5"
-                      style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-                    >
-                      Session Modality
-                    </h3>
+                    <div className="flex items-start justify-between mb-5">
+                      <h3
+                        className="text-stone-800 text-2xl font-semibold"
+                        style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                      >
+                        Session Modality
+                      </h3>
+                      {/* Expand Button */}
+                      <button
+                        onClick={() => setExpandedCard('session-modality')}
+                        className="p-2.5 rounded-xl bg-stone-100/80 hover:bg-stone-200 text-stone-500 hover:text-stone-700 transition-all duration-200 hover:scale-105 active:scale-95"
+                        title="Expand chart"
+                      >
+                        <Maximize2 size={18} strokeWidth={2} />
+                      </button>
+                    </div>
 
                     {/* Elegant Split Bar Visualization */}
                     <div className="relative">
@@ -2664,6 +2788,351 @@ export const PracticeAnalysis: React.FC = () => {
                   </div>
                 );
               })()}
+            </div>
+
+            {/* Team Performance */}
+            <div
+              className="rounded-2xl sm:rounded-3xl p-4 sm:p-6 xl:p-8"
+              style={{
+                background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
+                boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
+              }}
+            >
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+                <div>
+                  <h3 className="text-stone-800 text-lg sm:text-xl xl:text-2xl font-semibold mb-1 sm:mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                    Team Performance
+                  </h3>
+                  <p className="text-stone-500 text-sm sm:text-base xl:text-lg">
+                    {teamPerformanceView === 'sessions'
+                      ? `Total sessions across all ${CLINICIAN_SESSIONS_DATA.length} selected month${CLINICIAN_SESSIONS_DATA.length !== 1 ? 's' : ''}`
+                      : 'Attendance rate by clinician (higher is better)'}
+                  </p>
+                </div>
+                {/* Toggle Button Group */}
+                <div
+                  className="flex items-center gap-1 p-1 rounded-full flex-shrink-0"
+                  style={{
+                    background: 'linear-gradient(135deg, #f5f5f4 0%, #e7e5e4 100%)',
+                    boxShadow: '0 2px 8px -2px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.8)'
+                  }}
+                >
+                  <button
+                    onClick={() => setTeamPerformanceView('sessions')}
+                    className="relative flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300"
+                    style={{
+                      background: teamPerformanceView === 'sessions'
+                        ? 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)'
+                        : 'transparent',
+                      boxShadow: teamPerformanceView === 'sessions'
+                        ? '0 4px 12px -2px rgba(30, 27, 75, 0.4), inset 0 1px 0 rgba(255,255,255,0.1)'
+                        : 'none'
+                    }}
+                  >
+                    <svg
+                      className={`w-4 h-4 transition-colors duration-300 ${teamPerformanceView === 'sessions' ? 'text-indigo-300' : 'text-stone-500'}`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    <span className={`text-sm font-semibold transition-colors duration-300 ${teamPerformanceView === 'sessions' ? 'text-white' : 'text-stone-600'}`}>
+                      Sessions
+                    </span>
+                    {teamPerformanceView === 'sessions' && (
+                      <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-lg shadow-emerald-400/50" />
+                    )}
+                  </button>
+                  <button
+                    onClick={() => setTeamPerformanceView('attendance')}
+                    className="relative flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300"
+                    style={{
+                      background: teamPerformanceView === 'attendance'
+                        ? 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)'
+                        : 'transparent',
+                      boxShadow: teamPerformanceView === 'attendance'
+                        ? '0 4px 12px -2px rgba(30, 27, 75, 0.4), inset 0 1px 0 rgba(255,255,255,0.1)'
+                        : 'none'
+                    }}
+                  >
+                    <svg
+                      className={`w-4 h-4 transition-colors duration-300 ${teamPerformanceView === 'attendance' ? 'text-indigo-300' : 'text-stone-500'}`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className={`text-sm font-semibold transition-colors duration-300 ${teamPerformanceView === 'attendance' ? 'text-white' : 'text-stone-600'}`}>
+                      Attendance
+                    </span>
+                    {teamPerformanceView === 'attendance' && (
+                      <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-lg shadow-emerald-400/50" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 xl:gap-4">
+                {(() => {
+                  // Clinician attendance rates (derived from sessions data patterns)
+                  // These represent show rate, with breakdown of cancellation types
+                  const clinicianAttendance = {
+                    Chen: { showRate: 0.91, clientCancel: 0.03, clinicianCancel: 0.02, lateCancel: 0.025, noShow: 0.015 },
+                    Rodriguez: { showRate: 0.89, clientCancel: 0.04, clinicianCancel: 0.025, lateCancel: 0.03, noShow: 0.015 },
+                    Patel: { showRate: 0.86, clientCancel: 0.05, clinicianCancel: 0.03, lateCancel: 0.035, noShow: 0.025 },
+                    Kim: { showRate: 0.88, clientCancel: 0.045, clinicianCancel: 0.025, lateCancel: 0.03, noShow: 0.02 },
+                    Johnson: { showRate: 0.87, clientCancel: 0.045, clinicianCancel: 0.03, lateCancel: 0.035, noShow: 0.02 }
+                  };
+
+                  if (teamPerformanceView === 'sessions') {
+                    // Sessions view - Luxury editorial: massive typography, sophisticated, elite
+                    const totalSessions = CLINICIAN_SESSIONS_DATA.reduce((sum, item) =>
+                      sum + (item.Chen || 0) + (item.Rodriguez || 0) + (item.Patel || 0) + (item.Kim || 0) + (item.Johnson || 0), 0
+                    );
+                    const clinicians = [
+                      { name: 'Chen', value: CLINICIAN_SESSIONS_DATA.reduce((sum, item) => sum + (item.Chen || 0), 0) },
+                      { name: 'Rodriguez', value: CLINICIAN_SESSIONS_DATA.reduce((sum, item) => sum + (item.Rodriguez || 0), 0) },
+                      { name: 'Patel', value: CLINICIAN_SESSIONS_DATA.reduce((sum, item) => sum + (item.Patel || 0), 0) },
+                      { name: 'Kim', value: CLINICIAN_SESSIONS_DATA.reduce((sum, item) => sum + (item.Kim || 0), 0) },
+                      { name: 'Johnson', value: CLINICIAN_SESSIONS_DATA.reduce((sum, item) => sum + (item.Johnson || 0), 0) }
+                    ].sort((a, b) => b.value - a.value);
+
+                    return clinicians.map((clinician, idx) => {
+                      const isTop = idx === 0;
+                      const isBottom = idx === clinicians.length - 1;
+                      const shareOfTotal = ((clinician.value / (totalSessions || 1)) * 100).toFixed(0);
+
+                      return (
+                        <div
+                          key={clinician.name}
+                          className="rounded-2xl sm:rounded-3xl overflow-hidden transition-all duration-500 hover:scale-[1.02]"
+                          style={{
+                            background: '#ffffff',
+                            boxShadow: isTop
+                              ? '0 20px 40px -12px rgba(16, 185, 129, 0.25), 0 0 0 1px rgba(16, 185, 129, 0.1)'
+                              : isBottom
+                                ? '0 20px 40px -12px rgba(239, 68, 68, 0.15), 0 0 0 1px rgba(239, 68, 68, 0.1)'
+                                : '0 8px 32px -8px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04)'
+                          }}
+                        >
+                          {/* Top accent bar */}
+                          <div
+                            className="h-1.5"
+                            style={{
+                              background: isTop
+                                ? 'linear-gradient(90deg, #10b981 0%, #34d399 50%, #6ee7b7 100%)'
+                                : isBottom
+                                  ? 'linear-gradient(90deg, #ef4444 0%, #f87171 50%, #fca5a5 100%)'
+                                  : 'linear-gradient(90deg, #d6d3d1 0%, #e7e5e4 50%, #f5f5f4 100%)'
+                            }}
+                          />
+
+                          <div className="p-5 sm:p-6 xl:p-8">
+                            {/* Header: Rank + Name + Badge */}
+                            <div className="flex items-start justify-between mb-6">
+                              <div>
+                                <span className="text-stone-300 text-lg sm:text-xl font-black tracking-tight">
+                                  {String(idx + 1).padStart(2, '0')}
+                                </span>
+                                <h4
+                                  className="text-stone-800 text-2xl sm:text-3xl xl:text-4xl font-bold -mt-1"
+                                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                                >
+                                  {clinician.name}
+                                </h4>
+                              </div>
+                              {isTop && (
+                                <span
+                                  className="px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wider"
+                                  style={{
+                                    background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)',
+                                    color: '#059669',
+                                    border: '1px solid #a7f3d0'
+                                  }}
+                                >
+                                  Top
+                                </span>
+                              )}
+                              {isBottom && (
+                                <span
+                                  className="px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wider"
+                                  style={{
+                                    background: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
+                                    color: '#dc2626',
+                                    border: '1px solid #fecaca'
+                                  }}
+                                >
+                                  Low
+                                </span>
+                              )}
+                            </div>
+
+                            {/* HERO: Total Sessions - Absolutely massive */}
+                            <div className="mb-8">
+                              <p className="text-stone-400 text-base sm:text-lg font-semibold uppercase tracking-widest mb-2">
+                                Total Sessions
+                              </p>
+                              <div className="flex items-baseline">
+                                <span
+                                  className="text-6xl sm:text-7xl xl:text-8xl font-black tracking-tighter leading-none"
+                                  style={{
+                                    fontFamily: "'DM Serif Display', Georgia, serif",
+                                    color: isTop ? '#059669' : isBottom ? '#dc2626' : '#292524'
+                                  }}
+                                >
+                                  {clinician.value.toLocaleString()}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Secondary metric - Share of total */}
+                            <div className="text-center py-5 px-4 rounded-2xl bg-stone-50 border border-stone-100">
+                              <p className="text-stone-800 text-4xl sm:text-5xl xl:text-6xl font-bold mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                                {shareOfTotal}%
+                              </p>
+                              <p className="text-stone-500 text-sm sm:text-base font-semibold uppercase tracking-wider">
+                                Share of Total
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    });
+                  } else {
+                    // Attendance view - Luxury editorial: massive typography, sophisticated, elite
+                    const clinicians = [
+                      { name: 'Chen', ...clinicianAttendance.Chen },
+                      { name: 'Rodriguez', ...clinicianAttendance.Rodriguez },
+                      { name: 'Patel', ...clinicianAttendance.Patel },
+                      { name: 'Kim', ...clinicianAttendance.Kim },
+                      { name: 'Johnson', ...clinicianAttendance.Johnson }
+                    ].sort((a, b) => b.showRate - a.showRate);
+
+                    return clinicians.map((clinician, idx) => {
+                      const isTop = idx === 0;
+                      const isBottom = idx === clinicians.length - 1;
+                      const nonBillableRate = clinician.clientCancel + clinician.clinicianCancel;
+                      const lateNoShowRate = clinician.lateCancel + clinician.noShow;
+
+                      return (
+                        <div
+                          key={clinician.name}
+                          className="rounded-2xl sm:rounded-3xl overflow-hidden transition-all duration-500 hover:scale-[1.02]"
+                          style={{
+                            background: '#ffffff',
+                            boxShadow: isTop
+                              ? '0 20px 40px -12px rgba(16, 185, 129, 0.25), 0 0 0 1px rgba(16, 185, 129, 0.1)'
+                              : isBottom
+                                ? '0 20px 40px -12px rgba(239, 68, 68, 0.15), 0 0 0 1px rgba(239, 68, 68, 0.1)'
+                                : '0 8px 32px -8px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04)'
+                          }}
+                        >
+                          {/* Top accent bar */}
+                          <div
+                            className="h-1.5"
+                            style={{
+                              background: isTop
+                                ? 'linear-gradient(90deg, #10b981 0%, #34d399 50%, #6ee7b7 100%)'
+                                : isBottom
+                                  ? 'linear-gradient(90deg, #ef4444 0%, #f87171 50%, #fca5a5 100%)'
+                                  : 'linear-gradient(90deg, #d6d3d1 0%, #e7e5e4 50%, #f5f5f4 100%)'
+                            }}
+                          />
+
+                          <div className="p-5 sm:p-6 xl:p-8">
+                            {/* Header: Rank + Name + Badge */}
+                            <div className="flex items-start justify-between mb-6">
+                              <div>
+                                <span className="text-stone-300 text-lg sm:text-xl font-black tracking-tight">
+                                  {String(idx + 1).padStart(2, '0')}
+                                </span>
+                                <h4
+                                  className="text-stone-800 text-2xl sm:text-3xl xl:text-4xl font-bold -mt-1"
+                                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                                >
+                                  {clinician.name}
+                                </h4>
+                              </div>
+                              {isTop && (
+                                <span
+                                  className="px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wider"
+                                  style={{
+                                    background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)',
+                                    color: '#059669',
+                                    border: '1px solid #a7f3d0'
+                                  }}
+                                >
+                                  Best
+                                </span>
+                              )}
+                              {isBottom && (
+                                <span
+                                  className="px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wider"
+                                  style={{
+                                    background: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
+                                    color: '#dc2626',
+                                    border: '1px solid #fecaca'
+                                  }}
+                                >
+                                  Low
+                                </span>
+                              )}
+                            </div>
+
+                          {/* HERO: Show Rate - Absolutely massive */}
+                            <div className="mb-8">
+                              <p className="text-stone-400 text-base sm:text-lg font-semibold uppercase tracking-widest mb-2">
+                                Show Rate
+                              </p>
+                              <div className="flex items-baseline">
+                                <span
+                                  className="text-6xl sm:text-7xl xl:text-8xl font-black tracking-tighter leading-none"
+                                  style={{
+                                    fontFamily: "'DM Serif Display', Georgia, serif",
+                                    color: isTop ? '#059669' : isBottom ? '#dc2626' : '#292524'
+                                  }}
+                                >
+                                  {(clinician.showRate * 100).toFixed(0)}
+                                </span>
+                                <span
+                                  className="text-3xl sm:text-4xl xl:text-5xl font-bold ml-1"
+                                  style={{ color: isTop ? '#10b981' : isBottom ? '#ef4444' : '#a8a29e' }}
+                                >
+                                  %
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Secondary metrics - Large, crystal clear */}
+                            <div className="grid grid-cols-2 gap-4">
+                              {/* Non-Billable */}
+                              <div className="text-center py-5 px-4 rounded-2xl bg-stone-50 border border-stone-100">
+                                <p className="text-stone-800 text-4xl sm:text-5xl xl:text-6xl font-bold mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                                  {(nonBillableRate * 100).toFixed(0)}%
+                                </p>
+                                <p className="text-stone-500 text-sm sm:text-base font-semibold uppercase tracking-wider">
+                                  Non-Billable
+                                </p>
+                              </div>
+                              {/* Late / No-Show */}
+                              <div className="text-center py-5 px-4 rounded-2xl bg-stone-50 border border-stone-100">
+                                <p className="text-stone-800 text-4xl sm:text-5xl xl:text-6xl font-bold mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                                  {(lateNoShowRate * 100).toFixed(0)}%
+                                </p>
+                                <p className="text-stone-500 text-sm sm:text-base font-semibold uppercase tracking-wider">
+                                  Late / No-Show
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    });
+                  }
+                })()}
+              </div>
             </div>
 
             {/* Detailed Table */}
@@ -3308,49 +3777,24 @@ export const PracticeAnalysis: React.FC = () => {
               <div
                 className="rounded-2xl xl:rounded-3xl p-6 sm:p-7 xl:p-8 relative overflow-hidden"
                 style={{
-                  background: 'linear-gradient(145deg, #fffbeb 0%, #fef3c7 100%)',
-                  boxShadow: '0 4px 24px -4px rgba(245, 158, 11, 0.15), 0 0 0 1px rgba(245, 158, 11, 0.1)'
+                  background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
+                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
                 }}
               >
                 <h3
-                  className="text-amber-800 text-xl sm:text-2xl xl:text-2xl font-bold mb-3 xl:mb-4"
+                  className="text-stone-800 text-xl sm:text-2xl xl:text-2xl font-bold mb-3 xl:mb-4"
                   style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
                   Active Clients
                 </h3>
                 <span
-                  className="text-amber-900 font-bold block text-4xl sm:text-5xl xl:text-6xl"
+                  className="text-stone-900 font-bold block text-4xl sm:text-5xl xl:text-6xl"
                   style={{ lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
                   {CLIENT_GROWTH_DATA[CLIENT_GROWTH_DATA.length - 1]?.activeClients || 0}
                 </span>
-                <p className="text-amber-700 text-base sm:text-lg xl:text-xl mt-3 xl:mt-4 font-medium">
+                <p className="text-stone-500 text-base sm:text-lg xl:text-xl mt-3 xl:mt-4 font-medium">
                   of {CLIENT_GROWTH_DATA[CLIENT_GROWTH_DATA.length - 1]?.capacity || 0} capacity
-                </p>
-              </div>
-
-              {/* Client Utilization Rate Card */}
-              <div
-                className="rounded-2xl xl:rounded-3xl p-6 sm:p-7 xl:p-8 relative overflow-hidden"
-                style={{
-                  background: 'linear-gradient(145deg, #ecfdf5 0%, #d1fae5 100%)',
-                  boxShadow: '0 4px 24px -4px rgba(16, 185, 129, 0.15), 0 0 0 1px rgba(16, 185, 129, 0.1)'
-                }}
-              >
-                <h3
-                  className="text-emerald-800 text-xl sm:text-2xl xl:text-2xl font-bold mb-3 xl:mb-4"
-                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-                >
-                  Client Utilization
-                </h3>
-                <span
-                  className="text-emerald-700 font-bold block text-4xl sm:text-5xl xl:text-6xl"
-                  style={{ lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
-                >
-                  {((CLIENT_GROWTH_DATA[CLIENT_GROWTH_DATA.length - 1]?.activeClients / CLIENT_GROWTH_DATA[CLIENT_GROWTH_DATA.length - 1]?.capacity) * 100).toFixed(0)}%
-                </span>
-                <p className="text-emerald-600 text-base sm:text-lg xl:text-xl mt-3 xl:mt-4 font-medium">
-                  of client capacity filled
                 </p>
               </div>
 
@@ -3358,12 +3802,12 @@ export const PracticeAnalysis: React.FC = () => {
               <div
                 className="rounded-2xl xl:rounded-3xl p-6 sm:p-7 xl:p-8 relative overflow-hidden"
                 style={{
-                  background: 'linear-gradient(145deg, #ffffff 0%, #f5f5f4 100%)',
+                  background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
                   boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
                 }}
               >
                 <h3
-                  className="text-stone-700 text-xl sm:text-2xl xl:text-2xl font-bold mb-3 xl:mb-4"
+                  className="text-stone-800 text-xl sm:text-2xl xl:text-2xl font-bold mb-3 xl:mb-4"
                   style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
                   Net Growth
@@ -3388,29 +3832,352 @@ export const PracticeAnalysis: React.FC = () => {
                 })()}
               </div>
 
+              {/* Client Utilization Rate Card */}
+              <div
+                className="rounded-2xl xl:rounded-3xl p-6 sm:p-7 xl:p-8 relative overflow-hidden"
+                style={{
+                  background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
+                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
+                }}
+              >
+                <h3
+                  className="text-stone-800 text-xl sm:text-2xl xl:text-2xl font-bold mb-3 xl:mb-4"
+                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  Client Utilization
+                </h3>
+                <span
+                  className="text-stone-900 font-bold block text-4xl sm:text-5xl xl:text-6xl"
+                  style={{ lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  {((CLIENT_GROWTH_DATA[CLIENT_GROWTH_DATA.length - 1]?.activeClients / CLIENT_GROWTH_DATA[CLIENT_GROWTH_DATA.length - 1]?.capacity) * 100).toFixed(0)}%
+                </span>
+                <p className="text-stone-500 text-base sm:text-lg xl:text-xl mt-3 xl:mt-4 font-medium">
+                  of client capacity filled
+                </p>
+              </div>
+
               {/* Session Utilization Card */}
               <div
                 className="rounded-2xl xl:rounded-3xl p-6 sm:p-7 xl:p-8 relative overflow-hidden"
                 style={{
-                  background: 'linear-gradient(145deg, #eff6ff 0%, #dbeafe 100%)',
-                  boxShadow: '0 4px 24px -4px rgba(59, 130, 246, 0.15), 0 0 0 1px rgba(59, 130, 246, 0.1)'
+                  background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
+                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
                 }}
               >
                 <h3
-                  className="text-blue-800 text-xl sm:text-2xl xl:text-2xl font-bold mb-3 xl:mb-4"
+                  className="text-stone-800 text-xl sm:text-2xl xl:text-2xl font-bold mb-3 xl:mb-4"
                   style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
                   Session Utilization
                 </h3>
                 <span
-                  className="text-blue-700 font-bold block text-4xl sm:text-5xl xl:text-6xl"
+                  className="text-stone-900 font-bold block text-4xl sm:text-5xl xl:text-6xl"
                   style={{ lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
                   {(HOURS_UTILIZATION_DATA.reduce((sum, item) => sum + item.percentage, 0) / HOURS_UTILIZATION_DATA.length).toFixed(0)}%
                 </span>
-                <p className="text-blue-600 text-base sm:text-lg xl:text-xl mt-3 xl:mt-4 font-medium">
+                <p className="text-stone-500 text-base sm:text-lg xl:text-xl mt-3 xl:mt-4 font-medium">
                   avg across {HOURS_UTILIZATION_DATA.length} months
                 </p>
+              </div>
+            </div>
+
+            {/* Team Performance - Luxury Editorial Style with Toggle */}
+            <div
+              className="rounded-2xl sm:rounded-3xl p-4 sm:p-6 xl:p-8"
+              style={{
+                background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
+                boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
+              }}
+            >
+              {/* Header with Toggle - Matching Sessions Tab Style */}
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+                <div>
+                  <h3 className="text-stone-800 text-lg sm:text-xl xl:text-2xl font-semibold mb-1 sm:mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                    Team Performance
+                  </h3>
+                  <p className="text-stone-500 text-sm sm:text-base xl:text-lg">
+                    {capacityTeamView === 'activeClients'
+                      ? 'Currently active clients per clinician'
+                      : capacityTeamView === 'clientUtil'
+                        ? 'Client capacity utilization rate'
+                        : capacityTeamView === 'openSlots'
+                          ? 'Available appointment slots (fewer is better)'
+                          : 'Session time utilization rate'}
+                  </p>
+                </div>
+
+                {/* Toggle Button Group - Matching Sessions Tab */}
+                <div
+                  className="flex items-center gap-1 p-1 rounded-full flex-shrink-0"
+                  style={{
+                    background: 'linear-gradient(135deg, #f5f5f4 0%, #e7e5e4 100%)',
+                    boxShadow: '0 2px 8px -2px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.8)'
+                  }}
+                >
+                  <button
+                    onClick={() => setCapacityTeamView('activeClients')}
+                    className="relative flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300"
+                    style={{
+                      background: capacityTeamView === 'activeClients'
+                        ? 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)'
+                        : 'transparent',
+                      boxShadow: capacityTeamView === 'activeClients'
+                        ? '0 4px 12px -2px rgba(30, 27, 75, 0.4), inset 0 1px 0 rgba(255,255,255,0.1)'
+                        : 'none'
+                    }}
+                  >
+                    <svg
+                      className={`w-4 h-4 transition-colors duration-300 ${capacityTeamView === 'activeClients' ? 'text-indigo-300' : 'text-stone-500'}`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    <span className={`text-sm font-semibold transition-colors duration-300 ${capacityTeamView === 'activeClients' ? 'text-white' : 'text-stone-600'}`}>
+                      Clients
+                    </span>
+                    {capacityTeamView === 'activeClients' && (
+                      <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-lg shadow-emerald-400/50" />
+                    )}
+                  </button>
+                  <button
+                    onClick={() => setCapacityTeamView('clientUtil')}
+                    className="relative flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300"
+                    style={{
+                      background: capacityTeamView === 'clientUtil'
+                        ? 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)'
+                        : 'transparent',
+                      boxShadow: capacityTeamView === 'clientUtil'
+                        ? '0 4px 12px -2px rgba(30, 27, 75, 0.4), inset 0 1px 0 rgba(255,255,255,0.1)'
+                        : 'none'
+                    }}
+                  >
+                    <svg
+                      className={`w-4 h-4 transition-colors duration-300 ${capacityTeamView === 'clientUtil' ? 'text-indigo-300' : 'text-stone-500'}`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    <span className={`text-sm font-semibold transition-colors duration-300 ${capacityTeamView === 'clientUtil' ? 'text-white' : 'text-stone-600'}`}>
+                      Utilization
+                    </span>
+                    {capacityTeamView === 'clientUtil' && (
+                      <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-lg shadow-emerald-400/50" />
+                    )}
+                  </button>
+                  <button
+                    onClick={() => setCapacityTeamView('openSlots')}
+                    className="relative flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300"
+                    style={{
+                      background: capacityTeamView === 'openSlots'
+                        ? 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)'
+                        : 'transparent',
+                      boxShadow: capacityTeamView === 'openSlots'
+                        ? '0 4px 12px -2px rgba(30, 27, 75, 0.4), inset 0 1px 0 rgba(255,255,255,0.1)'
+                        : 'none'
+                    }}
+                  >
+                    <svg
+                      className={`w-4 h-4 transition-colors duration-300 ${capacityTeamView === 'openSlots' ? 'text-indigo-300' : 'text-stone-500'}`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span className={`text-sm font-semibold transition-colors duration-300 ${capacityTeamView === 'openSlots' ? 'text-white' : 'text-stone-600'}`}>
+                      Open Slots
+                    </span>
+                    {capacityTeamView === 'openSlots' && (
+                      <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-lg shadow-emerald-400/50" />
+                    )}
+                  </button>
+                  <button
+                    onClick={() => setCapacityTeamView('sessionUtil')}
+                    className="relative flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300"
+                    style={{
+                      background: capacityTeamView === 'sessionUtil'
+                        ? 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)'
+                        : 'transparent',
+                      boxShadow: capacityTeamView === 'sessionUtil'
+                        ? '0 4px 12px -2px rgba(30, 27, 75, 0.4), inset 0 1px 0 rgba(255,255,255,0.1)'
+                        : 'none'
+                    }}
+                  >
+                    <svg
+                      className={`w-4 h-4 transition-colors duration-300 ${capacityTeamView === 'sessionUtil' ? 'text-indigo-300' : 'text-stone-500'}`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    <span className={`text-sm font-semibold transition-colors duration-300 ${capacityTeamView === 'sessionUtil' ? 'text-white' : 'text-stone-600'}`}>
+                      Sessions
+                    </span>
+                    {capacityTeamView === 'sessionUtil' && (
+                      <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-lg shadow-emerald-400/50" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 xl:gap-4">
+                {(() => {
+                  // Clinician data
+                  const cliniciansData = [
+                    { name: 'Chen', activeClients: 34, capacity: 38, clientUtil: 89, sessionUtil: 92, openSlots: 6 },
+                    { name: 'Rodriguez', activeClients: 32, capacity: 36, clientUtil: 89, sessionUtil: 89, openSlots: 8 },
+                    { name: 'Patel', activeClients: 30, capacity: 36, clientUtil: 83, sessionUtil: 85, openSlots: 11 },
+                    { name: 'Kim', activeClients: 31, capacity: 35, clientUtil: 89, sessionUtil: 88, openSlots: 9 },
+                    { name: 'Johnson', activeClients: 29, capacity: 35, clientUtil: 83, sessionUtil: 83, openSlots: 12 }
+                  ];
+
+                  // Sort based on current view
+                  const clinicians = [...cliniciansData].sort((a, b) => {
+                    if (capacityTeamView === 'activeClients') {
+                      return b.activeClients - a.activeClients; // More clients = better
+                    } else if (capacityTeamView === 'clientUtil') {
+                      return b.clientUtil - a.clientUtil; // Higher utilization = better
+                    } else if (capacityTeamView === 'openSlots') {
+                      return a.openSlots - b.openSlots; // Fewer open slots = better
+                    } else {
+                      return b.sessionUtil - a.sessionUtil;
+                    }
+                  });
+
+                  return clinicians.map((clinician, idx) => {
+                    const isTop = idx === 0;
+                    const isBottom = idx === clinicians.length - 1;
+
+                    // Determine hero value and label based on view
+                    let heroValue: string;
+                    let heroLabel: string;
+                    let heroSubtext: string;
+
+                    if (capacityTeamView === 'activeClients') {
+                      heroValue = String(clinician.activeClients);
+                      heroLabel = 'Active Clients';
+                      heroSubtext = `of ${clinician.capacity} capacity`;
+                    } else if (capacityTeamView === 'clientUtil') {
+                      heroValue = String(clinician.clientUtil);
+                      heroLabel = 'Client Utilization';
+                      heroSubtext = `of ${clinician.capacity} capacity`;
+                    } else if (capacityTeamView === 'openSlots') {
+                      heroValue = String(clinician.openSlots);
+                      heroLabel = 'Open Slots';
+                      heroSubtext = 'available this month';
+                    } else {
+                      heroValue = String(clinician.sessionUtil);
+                      heroLabel = 'Session Utilization';
+                      heroSubtext = 'of available hours';
+                    }
+
+                    const showPercent = capacityTeamView === 'sessionUtil' || capacityTeamView === 'clientUtil';
+
+                    return (
+                      <div
+                        key={clinician.name}
+                        className="rounded-2xl sm:rounded-3xl overflow-hidden transition-all duration-500 hover:scale-[1.02]"
+                        style={{
+                          background: '#ffffff',
+                          boxShadow: isTop
+                            ? '0 20px 40px -12px rgba(16, 185, 129, 0.25), 0 0 0 1px rgba(16, 185, 129, 0.1)'
+                            : isBottom
+                              ? '0 20px 40px -12px rgba(239, 68, 68, 0.15), 0 0 0 1px rgba(239, 68, 68, 0.1)'
+                              : '0 8px 32px -8px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04)'
+                        }}
+                      >
+                        {/* Top accent bar */}
+                        <div
+                          className="h-1.5"
+                          style={{
+                            background: isTop
+                              ? 'linear-gradient(90deg, #10b981 0%, #34d399 50%, #6ee7b7 100%)'
+                              : isBottom
+                                ? 'linear-gradient(90deg, #ef4444 0%, #f87171 50%, #fca5a5 100%)'
+                                : 'linear-gradient(90deg, #d6d3d1 0%, #e7e5e4 50%, #f5f5f4 100%)'
+                          }}
+                        />
+
+                        <div className="p-5 sm:p-6 xl:p-8">
+                          {/* Header: Rank + Name + Badge */}
+                          <div className="flex items-start justify-between mb-6">
+                            <div>
+                              <span className="text-stone-300 text-lg sm:text-xl font-black tracking-tight">
+                                {String(idx + 1).padStart(2, '0')}
+                              </span>
+                              <h4
+                                className="text-stone-800 text-2xl sm:text-3xl xl:text-4xl font-bold -mt-1"
+                                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                              >
+                                {clinician.name}
+                              </h4>
+                            </div>
+                            {isTop && (
+                              <span
+                                className="px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wider"
+                                style={{
+                                  background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)',
+                                  color: '#059669',
+                                  border: '1px solid #a7f3d0'
+                                }}
+                              >
+                                {capacityTeamView === 'openSlots' ? 'Best' : 'Top'}
+                              </span>
+                            )}
+                            {isBottom && (
+                              <span
+                                className="px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wider"
+                                style={{
+                                  background: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
+                                  color: '#dc2626',
+                                  border: '1px solid #fecaca'
+                                }}
+                              >
+                                Low
+                              </span>
+                            )}
+                          </div>
+
+                          {/* HERO: Single focused metric */}
+                          <div className="mb-4">
+                            <p className="text-stone-400 text-base sm:text-lg font-semibold uppercase tracking-widest mb-2">
+                              {heroLabel}
+                            </p>
+                            <div className="flex items-baseline">
+                              <span
+                                className="text-6xl sm:text-7xl xl:text-8xl font-black tracking-tighter leading-none"
+                                style={{
+                                  fontFamily: "'DM Serif Display', Georgia, serif",
+                                  color: isTop ? '#059669' : isBottom ? '#dc2626' : '#292524'
+                                }}
+                              >
+                                {heroValue}
+                              </span>
+                              {showPercent && (
+                                <span
+                                  className="text-3xl sm:text-4xl xl:text-5xl font-bold ml-1"
+                                  style={{ color: isTop ? '#10b981' : isBottom ? '#ef4444' : '#a8a29e' }}
+                                >
+                                  %
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-stone-500 text-sm sm:text-base font-medium mt-2">
+                              {heroSubtext}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  });
+                })()}
               </div>
             </div>
 
@@ -3437,17 +4204,28 @@ export const PracticeAnalysis: React.FC = () => {
                     <p className="text-stone-500 text-base sm:text-lg xl:text-xl">Active clients & utilization rate over time</p>
                   </div>
 
-                  {/* Legend - Large & Clear */}
-                  <div className="flex items-center gap-6 bg-stone-50 rounded-xl px-5 py-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-5 h-5 rounded-md bg-gradient-to-b from-amber-400 to-amber-500 shadow-sm"></div>
-                      <span className="text-stone-700 text-base font-semibold">Active Clients</span>
+                  <div className="flex items-center gap-3">
+                    {/* Legend - Large & Clear */}
+                    <div className="flex items-center gap-6 bg-stone-50 rounded-xl px-5 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-5 h-5 rounded-md bg-gradient-to-b from-amber-400 to-amber-500 shadow-sm"></div>
+                        <span className="text-stone-700 text-base font-semibold">Active Clients</span>
+                      </div>
+                      <div className="w-px h-6 bg-stone-200" />
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-1 bg-emerald-500 rounded-full"></div>
+                        <span className="text-stone-700 text-base font-semibold">Utilization %</span>
+                      </div>
                     </div>
-                    <div className="w-px h-6 bg-stone-200" />
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-1 bg-emerald-500 rounded-full"></div>
-                      <span className="text-stone-700 text-base font-semibold">Utilization %</span>
-                    </div>
+
+                    {/* Expand Button */}
+                    <button
+                      onClick={() => setExpandedCard('client-utilization')}
+                      className="p-2.5 rounded-xl bg-stone-100/80 hover:bg-stone-200 text-stone-500 hover:text-stone-700 transition-all duration-200 hover:scale-105 active:scale-95"
+                      title="Expand chart"
+                    >
+                      <Maximize2 size={18} strokeWidth={2} />
+                    </button>
                   </div>
                 </div>
 
@@ -3459,7 +4237,7 @@ export const PracticeAnalysis: React.FC = () => {
                         ...item,
                         utilizationRate: parseFloat(((item.activeClients / item.capacity) * 100).toFixed(1))
                       }))}
-                      margin={{ top: 30, right: 80, bottom: 30, left: 20 }}
+                      margin={{ top: 30, right: 80, bottom: 10, left: 20 }}
                     >
                       <defs>
                         <linearGradient id="activeClientsBarGradient" x1="0" y1="0" x2="0" y2="1">
@@ -3476,8 +4254,8 @@ export const PracticeAnalysis: React.FC = () => {
                         axisLine={false}
                         tickLine={false}
                         tick={{ fill: '#57534e', fontSize: 15, fontWeight: 600 }}
-                        dy={12}
-                        height={50}
+                        dy={8}
+                        height={30}
                       />
                       <YAxis
                         yAxisId="left"
@@ -3525,9 +4303,9 @@ export const PracticeAnalysis: React.FC = () => {
                       >
                         <LabelList
                           dataKey="activeClients"
-                          position="top"
-                          style={{ fill: '#44403c', fontSize: '14px', fontWeight: 700 }}
-                          offset={10}
+                          position="insideTop"
+                          style={{ fill: '#ffffff', fontSize: '15px', fontWeight: 800, textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}
+                          offset={8}
                         />
                       </Bar>
                       <Line
@@ -3539,13 +4317,36 @@ export const PracticeAnalysis: React.FC = () => {
                         dot={{ fill: '#059669', strokeWidth: 4, stroke: '#fff', r: 7 }}
                         activeDot={{ r: 10, strokeWidth: 4, stroke: '#fff', fill: '#059669' }}
                         name="Utilization Rate"
+                        label={({ x, y, value }: { x: number; y: number; value: number }) => (
+                          <g>
+                            <rect
+                              x={x - 22}
+                              y={y - 32}
+                              width={44}
+                              height={22}
+                              rx={11}
+                              fill="#059669"
+                              style={{ filter: 'drop-shadow(0 2px 4px rgba(5, 150, 105, 0.4))' }}
+                            />
+                            <text
+                              x={x}
+                              y={y - 17}
+                              textAnchor="middle"
+                              fill="#ffffff"
+                              fontSize={12}
+                              fontWeight={700}
+                            >
+                              {value}%
+                            </text>
+                          </g>
+                        )}
                       />
                     </ComposedChart>
                   </ResponsiveContainer>
                 </div>
 
                 {/* Insights Row - Large Stats Cards */}
-                <div className="grid grid-cols-3 gap-4 pt-6 mt-6 border-t-2 border-stone-100">
+                <div className="grid grid-cols-3 gap-4 pt-4 mt-2 border-t-2 border-stone-100">
                   {(() => {
                     const utilizationValues = CLIENT_GROWTH_DATA.map(item => (item.activeClients / item.capacity) * 100);
                     const avgUtilization = utilizationValues.reduce((sum, v) => sum + v, 0) / utilizationValues.length;
@@ -3601,17 +4402,28 @@ export const PracticeAnalysis: React.FC = () => {
                     <p className="text-stone-500 text-base sm:text-lg xl:text-xl">New acquisitions vs churned clients</p>
                   </div>
 
-                  {/* Legend - Large & Clear */}
-                  <div className="flex items-center gap-6 bg-stone-50 rounded-xl px-5 py-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-5 h-5 rounded-md bg-gradient-to-b from-emerald-400 to-emerald-500 shadow-sm"></div>
-                      <span className="text-stone-700 text-base font-semibold">New Clients</span>
+                  <div className="flex items-center gap-3">
+                    {/* Legend - Large & Clear */}
+                    <div className="flex items-center gap-6 bg-stone-50 rounded-xl px-5 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-5 h-5 rounded-md bg-gradient-to-b from-emerald-400 to-emerald-500 shadow-sm"></div>
+                        <span className="text-stone-700 text-base font-semibold">New Clients</span>
+                      </div>
+                      <div className="w-px h-6 bg-stone-200" />
+                      <div className="flex items-center gap-3">
+                        <div className="w-5 h-5 rounded-md bg-gradient-to-b from-rose-400 to-rose-500 shadow-sm"></div>
+                        <span className="text-stone-700 text-base font-semibold">Churned</span>
+                      </div>
                     </div>
-                    <div className="w-px h-6 bg-stone-200" />
-                    <div className="flex items-center gap-3">
-                      <div className="w-5 h-5 rounded-md bg-gradient-to-b from-rose-400 to-rose-500 shadow-sm"></div>
-                      <span className="text-stone-700 text-base font-semibold">Churned</span>
-                    </div>
+
+                    {/* Expand Button */}
+                    <button
+                      onClick={() => setExpandedCard('client-movement')}
+                      className="p-2.5 rounded-xl bg-stone-100/80 hover:bg-stone-200 text-stone-500 hover:text-stone-700 transition-all duration-200 hover:scale-105 active:scale-95"
+                      title="Expand chart"
+                    >
+                      <Maximize2 size={18} strokeWidth={2} />
+                    </button>
                   </div>
                 </div>
 
@@ -3624,7 +4436,7 @@ export const PracticeAnalysis: React.FC = () => {
                         new: item.new,
                         churned: -item.churned
                       }))}
-                      margin={{ top: 30, right: 30, bottom: 30, left: 30 }}
+                      margin={{ top: 30, right: 30, bottom: 10, left: 30 }}
                     >
                       <defs>
                         <linearGradient id="newClientsGradientNew" x1="0" y1="0" x2="0" y2="1">
@@ -3645,8 +4457,8 @@ export const PracticeAnalysis: React.FC = () => {
                         axisLine={false}
                         tickLine={false}
                         tick={{ fill: '#57534e', fontSize: 15, fontWeight: 600 }}
-                        dy={12}
-                        height={50}
+                        dy={8}
+                        height={30}
                       />
                       <YAxis
                         axisLine={false}
@@ -3707,7 +4519,7 @@ export const PracticeAnalysis: React.FC = () => {
                 </div>
 
                 {/* Insights Row - Large Stats Cards */}
-                <div className="grid grid-cols-3 gap-4 pt-6 mt-6 border-t-2 border-stone-100">
+                <div className="grid grid-cols-3 gap-4 pt-4 mt-2 border-t-2 border-stone-100">
                   {(() => {
                     const totalNew = CLIENT_GROWTH_DATA.reduce((sum, item) => sum + item.new, 0);
                     const totalChurned = CLIENT_GROWTH_DATA.reduce((sum, item) => sum + item.churned, 0);
@@ -3766,16 +4578,27 @@ export const PracticeAnalysis: React.FC = () => {
                     </h3>
                     <p className="text-stone-500 text-base sm:text-lg xl:text-xl">Percentage of session capacity utilized</p>
                   </div>
-                  <div className="bg-blue-50 rounded-xl px-5 py-3 text-center">
-                    <div className="text-blue-600 text-2xl sm:text-3xl font-bold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
-                      {hoveredHoursUtilization !== null
-                        ? `${hoveredHoursUtilization.toFixed(0)}%`
-                        : `${(HOURS_UTILIZATION_DATA.reduce((sum, item) => sum + item.percentage, 0) / HOURS_UTILIZATION_DATA.length).toFixed(0)}%`
-                      }
+                  <div className="flex items-center gap-3">
+                    <div className="bg-blue-50 rounded-xl px-5 py-3 text-center">
+                      <div className="text-blue-600 text-2xl sm:text-3xl font-bold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                        {hoveredHoursUtilization !== null
+                          ? `${hoveredHoursUtilization.toFixed(0)}%`
+                          : `${(HOURS_UTILIZATION_DATA.reduce((sum, item) => sum + item.percentage, 0) / HOURS_UTILIZATION_DATA.length).toFixed(0)}%`
+                        }
+                      </div>
+                      <div className="text-stone-500 text-sm font-medium">
+                        {hoveredHoursUtilization !== null ? 'Selected' : 'Average'}
+                      </div>
                     </div>
-                    <div className="text-stone-500 text-sm font-medium">
-                      {hoveredHoursUtilization !== null ? 'Selected' : 'Average'}
-                    </div>
+
+                    {/* Expand Button */}
+                    <button
+                      onClick={() => setExpandedCard('session-utilization')}
+                      className="p-2.5 rounded-xl bg-stone-100/80 hover:bg-stone-200 text-stone-500 hover:text-stone-700 transition-all duration-200 hover:scale-105 active:scale-95"
+                      title="Expand chart"
+                    >
+                      <Maximize2 size={18} strokeWidth={2} />
+                    </button>
                   </div>
                 </div>
 
@@ -3859,16 +4682,27 @@ export const PracticeAnalysis: React.FC = () => {
                     </h3>
                     <p className="text-stone-500 text-base sm:text-lg xl:text-xl">Unfilled appointment slots per month</p>
                   </div>
-                  <div className="bg-rose-50 rounded-xl px-5 py-3 text-center">
-                    <div className="text-rose-600 text-2xl sm:text-3xl font-bold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
-                      {hoveredOpenSlots !== null
-                        ? hoveredOpenSlots
-                        : Math.round(OPEN_SLOTS_DATA.reduce((sum, item) => sum + item.value, 0) / OPEN_SLOTS_DATA.length)
-                      }
+                  <div className="flex items-center gap-3">
+                    <div className="bg-rose-50 rounded-xl px-5 py-3 text-center">
+                      <div className="text-rose-600 text-2xl sm:text-3xl font-bold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                        {hoveredOpenSlots !== null
+                          ? hoveredOpenSlots
+                          : Math.round(OPEN_SLOTS_DATA.reduce((sum, item) => sum + item.value, 0) / OPEN_SLOTS_DATA.length)
+                        }
+                      </div>
+                      <div className="text-stone-500 text-sm font-medium">
+                        {hoveredOpenSlots !== null ? 'Selected' : 'Average'}
+                      </div>
                     </div>
-                    <div className="text-stone-500 text-sm font-medium">
-                      {hoveredOpenSlots !== null ? 'Selected' : 'Average'}
-                    </div>
+
+                    {/* Expand Button */}
+                    <button
+                      onClick={() => setExpandedCard('open-slots')}
+                      className="p-2.5 rounded-xl bg-stone-100/80 hover:bg-stone-200 text-stone-500 hover:text-stone-700 transition-all duration-200 hover:scale-105 active:scale-95"
+                      title="Expand chart"
+                    >
+                      <Maximize2 size={18} strokeWidth={2} />
+                    </button>
                   </div>
                 </div>
 
@@ -3932,6 +4766,426 @@ export const PracticeAnalysis: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            {/* Fullscreen Modal for Expanded Charts (Capacity & Client Tab) */}
+            {expandedCard && (expandedCard === 'client-utilization' || expandedCard === 'client-movement' || expandedCard === 'session-utilization' || expandedCard === 'open-slots') && (
+              <div
+                className="fixed inset-0 z-[99999] flex items-center justify-center p-4 sm:p-8"
+                style={{
+                  backgroundColor: 'rgba(28, 25, 23, 0.6)',
+                  backdropFilter: 'blur(8px)',
+                  WebkitBackdropFilter: 'blur(8px)'
+                }}
+                onClick={() => setExpandedCard(null)}
+              >
+                <div
+                  className="relative w-full max-w-[95vw] h-[90vh] rounded-3xl overflow-hidden"
+                  style={{
+                    background: 'linear-gradient(145deg, #ffffff 0%, #fafaf9 100%)',
+                    boxShadow: '0 50px 100px -20px rgba(0, 0, 0, 0.25), 0 30px 60px -30px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.05)'
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {/* Close Button */}
+                  <button
+                    onClick={() => setExpandedCard(null)}
+                    className="absolute top-6 right-6 z-10 p-3 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-600 hover:text-stone-800 transition-all duration-200 hover:scale-105 active:scale-95 group"
+                    title="Close"
+                  >
+                    <Minimize2 size={22} strokeWidth={2} className="group-hover:rotate-180 transition-transform duration-300" />
+                  </button>
+
+                  {/* Expanded Chart Content */}
+                  <div className="p-8 sm:p-12 h-full flex flex-col">
+                    {/* Client Utilization Expanded */}
+                    {expandedCard === 'client-utilization' && (
+                      <>
+                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
+                          <div>
+                            <h3
+                              className="text-stone-900 text-3xl sm:text-4xl xl:text-5xl font-bold mb-3 tracking-tight"
+                              style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                            >
+                              Client Utilization
+                            </h3>
+                            <p className="text-stone-500 text-lg sm:text-xl xl:text-2xl">Active clients & utilization rate over time</p>
+                          </div>
+                          <div className="flex items-center gap-8 bg-stone-50 rounded-2xl px-8 py-5">
+                            <div className="flex items-center gap-4">
+                              <div className="w-6 h-6 rounded-lg bg-gradient-to-b from-amber-400 to-amber-500 shadow-sm"></div>
+                              <span className="text-stone-700 text-lg font-semibold">Active Clients</span>
+                            </div>
+                            <div className="w-px h-8 bg-stone-200" />
+                            <div className="flex items-center gap-4">
+                              <div className="w-10 h-1.5 bg-emerald-500 rounded-full"></div>
+                              <span className="text-stone-700 text-lg font-semibold">Utilization %</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex-1 min-h-0">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <ComposedChart
+                              data={CLIENT_GROWTH_DATA.map(item => ({
+                                ...item,
+                                utilizationRate: parseFloat(((item.activeClients / item.capacity) * 100).toFixed(1))
+                              }))}
+                              margin={{ top: 40, right: 100, bottom: 40, left: 40 }}
+                            >
+                              <defs>
+                                <linearGradient id="activeClientsBarGradientExpanded" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="0%" stopColor="#fbbf24" stopOpacity={1}/>
+                                  <stop offset="100%" stopColor="#f59e0b" stopOpacity={1}/>
+                                </linearGradient>
+                              </defs>
+                              <CartesianGrid strokeDasharray="4 4" stroke="#e7e5e4" vertical={false} />
+                              <XAxis
+                                dataKey="month"
+                                axisLine={false}
+                                tickLine={false}
+                                tick={{ fill: '#57534e', fontSize: 18, fontWeight: 600 }}
+                                dy={16}
+                                height={60}
+                              />
+                              <YAxis
+                                yAxisId="left"
+                                axisLine={false}
+                                tickLine={false}
+                                tick={{ fill: '#78716c', fontSize: 16, fontWeight: 600 }}
+                                domain={[0, 200]}
+                                width={60}
+                                tickCount={5}
+                              />
+                              <YAxis
+                                yAxisId="right"
+                                orientation="right"
+                                axisLine={false}
+                                tickLine={false}
+                                tick={{ fill: '#059669', fontSize: 16, fontWeight: 700 }}
+                                domain={[0, 100]}
+                                tickFormatter={(value) => `${value}%`}
+                                width={80}
+                                tickCount={5}
+                              />
+                              <Tooltip
+                                contentStyle={{
+                                  backgroundColor: '#1c1917',
+                                  border: 'none',
+                                  borderRadius: '20px',
+                                  padding: '20px 28px',
+                                  boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+                                }}
+                                labelStyle={{ color: '#a8a29e', fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}
+                                itemStyle={{ color: '#fff', fontSize: '22px', fontWeight: 700, padding: '6px 0' }}
+                                formatter={(value: number, name: string) => {
+                                  if (name === 'utilizationRate') return [`${value}%`, 'Utilization Rate'];
+                                  return [value, 'Active Clients'];
+                                }}
+                              />
+                              <Bar
+                                yAxisId="left"
+                                dataKey="activeClients"
+                                fill="url(#activeClientsBarGradientExpanded)"
+                                radius={[10, 10, 0, 0]}
+                                name="Active Clients"
+                                maxBarSize={80}
+                              >
+                                <LabelList
+                                  dataKey="activeClients"
+                                  position="insideTop"
+                                  style={{ fill: '#ffffff', fontSize: '18px', fontWeight: 800 }}
+                                  offset={12}
+                                />
+                              </Bar>
+                              <Line
+                                yAxisId="right"
+                                type="monotone"
+                                dataKey="utilizationRate"
+                                stroke="#059669"
+                                strokeWidth={5}
+                                dot={{ fill: '#059669', strokeWidth: 5, stroke: '#fff', r: 10 }}
+                                activeDot={{ r: 14, strokeWidth: 5, stroke: '#fff', fill: '#059669' }}
+                                name="Utilization Rate"
+                                label={({ x, y, value }: { x: number; y: number; value: number }) => (
+                                  <g>
+                                    <rect x={x - 28} y={y - 40} width={56} height={28} rx={14} fill="#059669" />
+                                    <text x={x} y={y - 21} textAnchor="middle" fill="#ffffff" fontSize={14} fontWeight={700}>
+                                      {value}%
+                                    </text>
+                                  </g>
+                                )}
+                              />
+                            </ComposedChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </>
+                    )}
+
+                    {/* Client Movement Expanded */}
+                    {expandedCard === 'client-movement' && (
+                      <>
+                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
+                          <div>
+                            <h3
+                              className="text-stone-900 text-3xl sm:text-4xl xl:text-5xl font-bold mb-3 tracking-tight"
+                              style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                            >
+                              Client Movement
+                            </h3>
+                            <p className="text-stone-500 text-lg sm:text-xl xl:text-2xl">New acquisitions vs churned clients</p>
+                          </div>
+                          <div className="flex items-center gap-8 bg-stone-50 rounded-2xl px-8 py-5">
+                            <div className="flex items-center gap-4">
+                              <div className="w-6 h-6 rounded-lg bg-gradient-to-b from-emerald-400 to-emerald-500 shadow-sm"></div>
+                              <span className="text-stone-700 text-lg font-semibold">New Clients</span>
+                            </div>
+                            <div className="w-px h-8 bg-stone-200" />
+                            <div className="flex items-center gap-4">
+                              <div className="w-6 h-6 rounded-lg bg-gradient-to-b from-rose-400 to-rose-500 shadow-sm"></div>
+                              <span className="text-stone-700 text-lg font-semibold">Churned</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex-1 min-h-0">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart
+                              data={CLIENT_GROWTH_DATA.map(item => ({
+                                month: item.month,
+                                new: item.new,
+                                churned: -item.churned
+                              }))}
+                              margin={{ top: 40, right: 50, bottom: 40, left: 50 }}
+                            >
+                              <defs>
+                                <linearGradient id="newClientsGradientExpanded" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="0%" stopColor="#34d399" stopOpacity={1}/>
+                                  <stop offset="100%" stopColor="#10b981" stopOpacity={1}/>
+                                </linearGradient>
+                                <linearGradient id="churnedClientsGradientExpanded" x1="0" y1="1" x2="0" y2="0">
+                                  <stop offset="0%" stopColor="#fb7185" stopOpacity={1}/>
+                                  <stop offset="100%" stopColor="#f43f5e" stopOpacity={1}/>
+                                </linearGradient>
+                              </defs>
+                              <CartesianGrid strokeDasharray="4 4" stroke="#e7e5e4" vertical={false} />
+                              <XAxis
+                                dataKey="month"
+                                axisLine={false}
+                                tickLine={false}
+                                tick={{ fill: '#57534e', fontSize: 18, fontWeight: 600 }}
+                                dy={16}
+                                height={60}
+                              />
+                              <YAxis
+                                axisLine={false}
+                                tickLine={false}
+                                tick={{ fill: '#78716c', fontSize: 16, fontWeight: 600 }}
+                                tickFormatter={(value) => Math.abs(value).toString()}
+                                width={50}
+                              />
+                              <ReferenceLine y={0} stroke="#78716c" strokeWidth={2} />
+                              <Tooltip
+                                contentStyle={{
+                                  backgroundColor: '#1c1917',
+                                  border: 'none',
+                                  borderRadius: '20px',
+                                  padding: '20px 28px',
+                                  boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+                                }}
+                                labelStyle={{ color: '#a8a29e', fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}
+                                itemStyle={{ color: '#fff', fontSize: '22px', fontWeight: 700, padding: '6px 0' }}
+                                formatter={(value: number, name: string) => {
+                                  const absValue = Math.abs(value);
+                                  const label = name === 'new' ? 'New Clients' : 'Churned Clients';
+                                  return [absValue, label];
+                                }}
+                              />
+                              <Bar
+                                dataKey="new"
+                                fill="url(#newClientsGradientExpanded)"
+                                radius={[10, 10, 0, 0]}
+                                maxBarSize={70}
+                              >
+                                <LabelList
+                                  dataKey="new"
+                                  position="top"
+                                  style={{ fill: '#059669', fontSize: '18px', fontWeight: 700 }}
+                                  offset={14}
+                                  formatter={(value: number) => `+${value}`}
+                                />
+                              </Bar>
+                              <Bar
+                                dataKey="churned"
+                                fill="url(#churnedClientsGradientExpanded)"
+                                radius={[0, 0, 10, 10]}
+                                maxBarSize={70}
+                              >
+                                <LabelList
+                                  dataKey="churned"
+                                  position="bottom"
+                                  style={{ fill: '#e11d48', fontSize: '18px', fontWeight: 700 }}
+                                  offset={14}
+                                  formatter={(value: number) => `-${Math.abs(value)}`}
+                                />
+                              </Bar>
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </>
+                    )}
+
+                    {/* Session Utilization Expanded */}
+                    {expandedCard === 'session-utilization' && (
+                      <>
+                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
+                          <div>
+                            <h3
+                              className="text-stone-900 text-3xl sm:text-4xl xl:text-5xl font-bold mb-3 tracking-tight"
+                              style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                            >
+                              Session Utilization
+                            </h3>
+                            <p className="text-stone-500 text-lg sm:text-xl xl:text-2xl">Percentage of session capacity utilized</p>
+                          </div>
+                          <div className="bg-blue-50 rounded-2xl px-8 py-5 text-center">
+                            <div className="text-blue-600 text-3xl sm:text-4xl font-bold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                              {(HOURS_UTILIZATION_DATA.reduce((sum, item) => sum + item.percentage, 0) / HOURS_UTILIZATION_DATA.length).toFixed(0)}%
+                            </div>
+                            <div className="text-stone-500 text-base font-medium mt-1">Average</div>
+                          </div>
+                        </div>
+                        <div className="flex-1 min-h-0">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <LineChart
+                              data={HOURS_UTILIZATION_DATA}
+                              margin={{ top: 40, right: 50, bottom: 40, left: 50 }}
+                            >
+                              <defs>
+                                <linearGradient id="hoursUtilizationGradientExpanded" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                                  <stop offset="100%" stopColor="#3b82f6" stopOpacity={0.02}/>
+                                </linearGradient>
+                              </defs>
+                              <CartesianGrid strokeDasharray="4 4" stroke="#e7e5e4" vertical={false} />
+                              <XAxis
+                                dataKey="month"
+                                axisLine={false}
+                                tickLine={false}
+                                tick={{ fill: '#57534e', fontSize: 18, fontWeight: 600 }}
+                                dy={16}
+                                height={60}
+                              />
+                              <YAxis
+                                axisLine={false}
+                                tickLine={false}
+                                tick={{ fill: '#3b82f6', fontSize: 16, fontWeight: 700 }}
+                                domain={[70, 100]}
+                                tickFormatter={(value) => `${value}%`}
+                                width={70}
+                              />
+                              <Tooltip
+                                contentStyle={{
+                                  backgroundColor: '#1c1917',
+                                  border: 'none',
+                                  borderRadius: '20px',
+                                  padding: '20px 28px',
+                                  boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+                                }}
+                                labelStyle={{ color: '#a8a29e', fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}
+                                itemStyle={{ color: '#fff', fontSize: '22px', fontWeight: 700 }}
+                                formatter={(value: number) => [`${value.toFixed(1)}%`, 'Utilization']}
+                              />
+                              <Line
+                                type="monotone"
+                                dataKey="percentage"
+                                stroke="#3b82f6"
+                                strokeWidth={5}
+                                dot={{ fill: '#3b82f6', strokeWidth: 5, stroke: '#fff', r: 10 }}
+                                activeDot={{ r: 14, strokeWidth: 5, stroke: '#fff' }}
+                                fill="url(#hoursUtilizationGradientExpanded)"
+                              />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </>
+                    )}
+
+                    {/* Open Slots Expanded */}
+                    {expandedCard === 'open-slots' && (
+                      <>
+                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
+                          <div>
+                            <h3
+                              className="text-stone-900 text-3xl sm:text-4xl xl:text-5xl font-bold mb-3 tracking-tight"
+                              style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                            >
+                              Open Slots
+                            </h3>
+                            <p className="text-stone-500 text-lg sm:text-xl xl:text-2xl">Unfilled appointment slots per month</p>
+                          </div>
+                          <div className="bg-rose-50 rounded-2xl px-8 py-5 text-center">
+                            <div className="text-rose-600 text-3xl sm:text-4xl font-bold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                              {Math.round(OPEN_SLOTS_DATA.reduce((sum, item) => sum + item.value, 0) / OPEN_SLOTS_DATA.length)}
+                            </div>
+                            <div className="text-stone-500 text-base font-medium mt-1">Average</div>
+                          </div>
+                        </div>
+                        <div className="flex-1 min-h-0">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <LineChart
+                              data={OPEN_SLOTS_DATA}
+                              margin={{ top: 40, right: 50, bottom: 40, left: 50 }}
+                            >
+                              <defs>
+                                <linearGradient id="openSlotsGradientExpanded" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="0%" stopColor="#f43f5e" stopOpacity={0.3}/>
+                                  <stop offset="100%" stopColor="#f43f5e" stopOpacity={0.02}/>
+                                </linearGradient>
+                              </defs>
+                              <CartesianGrid strokeDasharray="4 4" stroke="#e7e5e4" vertical={false} />
+                              <XAxis
+                                dataKey="month"
+                                axisLine={false}
+                                tickLine={false}
+                                tick={{ fill: '#57534e', fontSize: 18, fontWeight: 600 }}
+                                dy={16}
+                                height={60}
+                              />
+                              <YAxis
+                                axisLine={false}
+                                tickLine={false}
+                                tick={{ fill: '#e11d48', fontSize: 16, fontWeight: 700 }}
+                                domain={[0, 'dataMax + 10']}
+                                width={50}
+                              />
+                              <Tooltip
+                                contentStyle={{
+                                  backgroundColor: '#1c1917',
+                                  border: 'none',
+                                  borderRadius: '20px',
+                                  padding: '20px 28px',
+                                  boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+                                }}
+                                labelStyle={{ color: '#a8a29e', fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}
+                                itemStyle={{ color: '#fff', fontSize: '22px', fontWeight: 700 }}
+                                formatter={(value: number) => [value, 'Open Slots']}
+                              />
+                              <Line
+                                type="monotone"
+                                dataKey="value"
+                                stroke="#f43f5e"
+                                strokeWidth={5}
+                                dot={{ fill: '#f43f5e', strokeWidth: 5, stroke: '#fff', r: 10 }}
+                                activeDot={{ r: 14, strokeWidth: 5, stroke: '#fff' }}
+                                fill="url(#openSlotsGradientExpanded)"
+                              />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
 
           </div>
         </div>
@@ -5793,6 +7047,995 @@ export const PracticeAnalysis: React.FC = () => {
                 )}
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Global Fullscreen Modal for Expanded Charts (Financial & Sessions) */}
+      {expandedCard && (expandedCard === 'revenue-performance' || expandedCard === 'revenue-distribution' || expandedCard === 'session-performance' || expandedCard === 'session-modality' || expandedCard === 'attendance-breakdown') && (
+        <div
+          className="fixed inset-0 z-[99999] flex items-center justify-center p-4 sm:p-8"
+          style={{
+            backgroundColor: 'rgba(28, 25, 23, 0.6)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)'
+          }}
+          onClick={() => setExpandedCard(null)}
+        >
+          <div
+            className="relative w-full max-w-[95vw] h-[90vh] rounded-3xl overflow-hidden"
+            style={{
+              background: 'linear-gradient(145deg, #ffffff 0%, #fafaf9 100%)',
+              boxShadow: '0 50px 100px -20px rgba(0, 0, 0, 0.25), 0 30px 60px -30px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.05)'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close Button */}
+            <button
+              onClick={() => setExpandedCard(null)}
+              className="absolute top-6 right-6 z-10 p-3 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-600 hover:text-stone-800 transition-all duration-200 hover:scale-105 active:scale-95 group"
+              title="Close"
+            >
+              <Minimize2 size={22} strokeWidth={2} className="group-hover:rotate-180 transition-transform duration-300" />
+            </button>
+
+            {/* Expanded Chart Content */}
+            <div className="p-8 sm:p-12 h-full flex flex-col">
+              {/* Revenue Performance Expanded */}
+              {expandedCard === 'revenue-performance' && (
+                <>
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
+                    <div>
+                      <h3
+                        className="text-stone-900 text-3xl sm:text-4xl xl:text-5xl font-bold mb-3 tracking-tight"
+                        style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                      >
+                        Revenue Performance
+                      </h3>
+                      <p className="text-stone-500 text-lg sm:text-xl xl:text-2xl">Monthly revenue breakdown</p>
+                    </div>
+                    <div className="flex items-center gap-3 sm:gap-4 flex-wrap justify-end">
+                      {/* Hover tooltip for clinician breakdown */}
+                      {hoveredClinicianBar && (
+                        <div
+                          className="px-4 py-2.5 rounded-xl shadow-xl pointer-events-none animate-pulse"
+                          style={{
+                            background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)',
+                          }}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-4 h-4 rounded-full" style={{ backgroundColor: hoveredClinicianBar.color }} />
+                            <span className="text-white font-semibold text-lg">{hoveredClinicianBar.clinician}</span>
+                            <span className="text-indigo-300">•</span>
+                            <span className="text-white font-bold text-lg">${(hoveredClinicianBar.value / 1000).toFixed(1)}k</span>
+                            <span className="text-indigo-300">({hoveredClinicianBar.month})</span>
+                          </div>
+                        </div>
+                      )}
+                      {/* By Clinician Toggle */}
+                      {!hoveredClinicianBar && (
+                        <button
+                          onClick={() => setShowClinicianBreakdown(!showClinicianBreakdown)}
+                          className="relative flex items-center gap-2 px-5 py-2.5 rounded-full transition-all duration-300"
+                          style={{
+                            background: showClinicianBreakdown
+                              ? 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)'
+                              : 'linear-gradient(135deg, #f5f5f4 0%, #e7e5e4 100%)',
+                            boxShadow: showClinicianBreakdown
+                              ? '0 4px 12px -2px rgba(30, 27, 75, 0.4), inset 0 1px 0 rgba(255,255,255,0.1)'
+                              : '0 2px 8px -2px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.8)'
+                          }}
+                        >
+                          <svg
+                            className={`w-5 h-5 transition-colors duration-300 ${showClinicianBreakdown ? 'text-indigo-300' : 'text-stone-500'}`}
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                          </svg>
+                          <span className={`text-base font-semibold transition-colors duration-300 ${showClinicianBreakdown ? 'text-white' : 'text-stone-600'}`}>
+                            By Clinician
+                          </span>
+                          <div
+                            className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${showClinicianBreakdown ? 'bg-emerald-400 shadow-lg shadow-emerald-400/50' : 'bg-stone-400'}`}
+                          />
+                        </button>
+                      )}
+                      {/* Goal Indicator */}
+                      {!showClinicianBreakdown && !hoveredClinicianBar && (
+                        <div className="flex items-center gap-3 px-5 py-2.5 rounded-full bg-amber-500/10 border border-amber-300/50">
+                          <div className="w-5 h-0.5 bg-amber-500" style={{ borderTop: '2px dashed #f59e0b' }} />
+                          <span className="text-amber-700 text-base font-semibold">$150k Goal</span>
+                        </div>
+                      )}
+                      {/* Revenue Report Button */}
+                      <button
+                        className="group relative px-7 py-3 rounded-full text-base font-bold tracking-wide transition-all duration-300 ease-out transform hover:scale-[1.03] active:scale-[0.98]"
+                        style={{
+                          background: 'linear-gradient(135deg, #1c1917 0%, #292524 50%, #1c1917 100%)',
+                          boxShadow: '0 8px 20px -6px rgba(28, 25, 23, 0.4), 0 4px 8px -4px rgba(28, 25, 23, 0.2), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)',
+                          color: '#fafaf9',
+                          letterSpacing: '0.02em'
+                        }}
+                      >
+                        <span className="relative z-10 flex items-center gap-2">
+                          Revenue Report
+                          <ArrowRight size={18} className="transition-transform duration-300 group-hover:translate-x-1" strokeWidth={2.5} />
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Custom Bar Chart - Expanded */}
+                  <div className="flex flex-1 min-h-0">
+                    {/* Y-axis labels */}
+                    <div className="flex flex-col justify-between text-base sm:text-lg text-stone-500 font-semibold pr-6 py-2">
+                      <span>$160k</span>
+                      <span>$120k</span>
+                      <span>$80k</span>
+                      <span>$40k</span>
+                      <span>$0</span>
+                    </div>
+
+                    {/* Chart area */}
+                    <div className="flex-1 relative">
+                      {/* Background grid lines */}
+                      <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
+                        {[0, 1, 2, 3, 4].map((i) => (
+                          <div key={i} className="border-t border-stone-200 w-full" />
+                        ))}
+                      </div>
+
+                      {/* Goal line - horizontal (only in total view) */}
+                      {!showClinicianBreakdown && (
+                        <div
+                          className="absolute left-0 right-0 border-t-[3px] border-dashed border-amber-400 z-10 pointer-events-none"
+                          style={{ top: `${((160000 - 150000) / 160000) * 100}%` }}
+                        />
+                      )}
+
+                      {/* Bars - Total View */}
+                      {!showClinicianBreakdown && (
+                        <div className="absolute inset-0 flex items-end justify-around px-4">
+                          {REVENUE_DATA.map((item, idx) => {
+                            const heightPercent = (item.value / 160000) * 100;
+                            const isAboveGoal = item.value >= 150000;
+                            const isCurrentMonth = idx === REVENUE_DATA.length - 1;
+
+                            return (
+                              <div
+                                key={item.month}
+                                className="group relative flex flex-col items-center justify-end h-full"
+                                style={{ flex: '1', maxWidth: 'clamp(60px, 8vw, 120px)' }}
+                              >
+                                <div className="flex items-end w-full justify-center h-full">
+                                  <div className="relative flex flex-col items-end justify-end h-full" style={{ width: '70%' }}>
+                                    <span className={`text-lg sm:text-xl font-bold mb-2 ${isAboveGoal ? 'text-emerald-600' : 'text-blue-600'}`}>
+                                      ${(item.value / 1000).toFixed(0)}k
+                                    </span>
+                                    <div
+                                      className={`w-full rounded-t-xl transition-all duration-300 cursor-pointer relative overflow-hidden ${
+                                        isCurrentMonth
+                                          ? isAboveGoal
+                                            ? 'ring-2 ring-emerald-400/40 ring-offset-2'
+                                            : 'ring-2 ring-blue-400/40 ring-offset-2'
+                                          : 'hover:brightness-110'
+                                      }`}
+                                      style={{
+                                        height: `${heightPercent}%`,
+                                        background: isAboveGoal
+                                          ? 'linear-gradient(180deg, #34d399 0%, #059669 100%)'
+                                          : 'linear-gradient(180deg, #60a5fa 0%, #2563eb 100%)',
+                                        boxShadow: isAboveGoal
+                                          ? '0 6px 16px -2px rgba(16, 185, 129, 0.4), inset 0 1px 0 rgba(255,255,255,0.2)'
+                                          : '0 6px 16px -2px rgba(37, 99, 235, 0.4), inset 0 1px 0 rgba(255,255,255,0.2)'
+                                      }}
+                                    >
+                                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    </div>
+                                    {/* Month label */}
+                                    <span className="text-stone-600 font-semibold text-base sm:text-lg mt-3">{item.month}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {/* Bars - Clinician Breakdown (Stacked) */}
+                      {showClinicianBreakdown && (
+                        <div className="absolute inset-0 flex items-end justify-around gap-2 px-6">
+                          {(() => {
+                            const clinicianColors = {
+                              Chen: { color: '#7c3aed', gradient: 'linear-gradient(180deg, #a78bfa 0%, #7c3aed 100%)' },
+                              Rodriguez: { color: '#0891b2', gradient: 'linear-gradient(180deg, #22d3ee 0%, #0891b2 100%)' },
+                              Patel: { color: '#d97706', gradient: 'linear-gradient(180deg, #fbbf24 0%, #d97706 100%)' },
+                              Kim: { color: '#db2777', gradient: 'linear-gradient(180deg, #f472b6 0%, #db2777 100%)' },
+                              Johnson: { color: '#059669', gradient: 'linear-gradient(180deg, #34d399 0%, #059669 100%)' }
+                            };
+                            const clinicianOrder = ['Johnson', 'Kim', 'Patel', 'Rodriguez', 'Chen'];
+
+                            return CLINICIAN_REVENUE_DATA.map((item, idx) => {
+                              const total = (item.Chen || 0) + (item.Rodriguez || 0) + (item.Patel || 0) + (item.Kim || 0) + (item.Johnson || 0);
+                              const totalHeightPercent = (total / 160000) * 100;
+                              const isCurrentMonth = idx === CLINICIAN_REVENUE_DATA.length - 1;
+
+                              return (
+                                <div
+                                  key={item.month}
+                                  className="group relative flex-1 flex flex-col items-center justify-end h-full"
+                                  style={{ maxWidth: 'clamp(50px, 7vw, 90px)' }}
+                                >
+                                  {/* Total value label */}
+                                  <div className="mb-2 z-20">
+                                    <span className="text-lg sm:text-xl font-bold text-indigo-600">
+                                      ${(total / 1000).toFixed(0)}k
+                                    </span>
+                                  </div>
+                                  {/* Stacked Bar */}
+                                  <div
+                                    className="relative rounded-t-lg overflow-hidden transition-all duration-300 w-full"
+                                    style={{
+                                      height: `${totalHeightPercent}%`,
+                                      maxWidth: '60px',
+                                      boxShadow: isCurrentMonth ? '0 6px 16px -2px rgba(124, 58, 237, 0.35)' : '0 3px 10px -2px rgba(0,0,0,0.12)'
+                                    }}
+                                  >
+                                    {clinicianOrder.map((clinician) => {
+                                      const value = item[clinician as keyof typeof item] as number || 0;
+                                      const segmentHeightPercent = (value / total) * 100;
+                                      const colorData = clinicianColors[clinician as keyof typeof clinicianColors];
+
+                                      return (
+                                        <div
+                                          key={clinician}
+                                          className="w-full cursor-pointer transition-all duration-200 hover:brightness-110"
+                                          style={{
+                                            height: `${segmentHeightPercent}%`,
+                                            background: colorData.gradient,
+                                            borderBottom: '1px solid rgba(255,255,255,0.2)'
+                                          }}
+                                          onMouseEnter={() => setHoveredClinicianBar({
+                                            month: item.month,
+                                            clinician,
+                                            value,
+                                            color: colorData.color
+                                          })}
+                                          onMouseLeave={() => setHoveredClinicianBar(null)}
+                                        />
+                                      );
+                                    })}
+                                  </div>
+                                  {/* Month label */}
+                                  <span className="text-stone-600 font-semibold text-base sm:text-lg mt-3">{item.month}</span>
+                                </div>
+                              );
+                            });
+                          })()}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Clinician Legend - shown when in clinician view */}
+                  {showClinicianBreakdown && (
+                    <div className="flex items-center justify-center gap-6 mt-6 pt-4 border-t border-stone-100">
+                      {[
+                        { name: 'Chen', color: '#7c3aed' },
+                        { name: 'Rodriguez', color: '#0891b2' },
+                        { name: 'Patel', color: '#d97706' },
+                        { name: 'Kim', color: '#db2777' },
+                        { name: 'Johnson', color: '#059669' }
+                      ].map((c) => (
+                        <div key={c.name} className="flex items-center gap-2">
+                          <div className="w-4 h-4 rounded-full" style={{ backgroundColor: c.color }} />
+                          <span className="text-stone-600 font-medium text-base">{c.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* Revenue Distribution Expanded */}
+              {expandedCard === 'revenue-distribution' && (
+                <>
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
+                    <div>
+                      <h3
+                        className="text-stone-900 text-3xl sm:text-4xl xl:text-5xl font-bold mb-3 tracking-tight"
+                        style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                      >
+                        Revenue Distribution
+                      </h3>
+                      <p className="text-stone-500 text-lg sm:text-xl xl:text-2xl">Total across all {REVENUE_BREAKDOWN_DATA.length} selected month{REVENUE_BREAKDOWN_DATA.length !== 1 ? 's' : ''}</p>
+                    </div>
+                  </div>
+                  <div className="flex-1 min-h-0 flex items-center justify-center">
+                    {(() => {
+                      // Sum all months in the selected period
+                      const gross = REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.grossRevenue, 0) || 1;
+                      const segments = [
+                        { label: 'Clinician Costs', value: REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.clinicianCosts, 0), color: '#3b82f6' },
+                        { label: 'Supervisor Costs', value: REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.supervisorCosts, 0), color: '#f59e0b' },
+                        { label: 'CC Fees', value: REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.creditCardFees, 0), color: '#f43f5e' },
+                        { label: 'Net Revenue', value: REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.netRevenue, 0), color: '#10b981' }
+                      ];
+
+                      const total = segments.reduce((sum, s) => sum + s.value, 0);
+
+                      // SVG donut chart calculations using arc paths - larger size for expanded view
+                      const size = 450;
+                      const outerRadius = 200;
+                      const innerRadius = 130;
+                      const centerX = size / 2;
+                      const centerY = size / 2;
+
+                      // Calculate arc paths
+                      const createArcPath = (startAngle: number, endAngle: number, outerR: number, innerR: number) => {
+                        const startOuterX = centerX + outerR * Math.cos(startAngle);
+                        const startOuterY = centerY + outerR * Math.sin(startAngle);
+                        const endOuterX = centerX + outerR * Math.cos(endAngle);
+                        const endOuterY = centerY + outerR * Math.sin(endAngle);
+                        const startInnerX = centerX + innerR * Math.cos(endAngle);
+                        const startInnerY = centerY + innerR * Math.sin(endAngle);
+                        const endInnerX = centerX + innerR * Math.cos(startAngle);
+                        const endInnerY = centerY + innerR * Math.sin(startAngle);
+
+                        const largeArcFlag = endAngle - startAngle > Math.PI ? 1 : 0;
+
+                        return `M ${startOuterX} ${startOuterY}
+                                A ${outerR} ${outerR} 0 ${largeArcFlag} 1 ${endOuterX} ${endOuterY}
+                                L ${startInnerX} ${startInnerY}
+                                A ${innerR} ${innerR} 0 ${largeArcFlag} 0 ${endInnerX} ${endInnerY}
+                                Z`;
+                      };
+
+                      let currentAngle = -Math.PI / 2; // Start from top
+
+                      return (
+                        <div className="flex items-center justify-center gap-12 lg:gap-20 w-full max-w-5xl px-8">
+                          {/* SVG Donut */}
+                          <div className="relative flex-shrink-0" style={{ width: size, height: size }}>
+                            <svg width={size} height={size} className="overflow-visible">
+                              {segments.map((segment) => {
+                                const percent = segment.value / total;
+                                const angleSize = percent * 2 * Math.PI;
+                                const startAngle = currentAngle;
+                                const endAngle = currentAngle + angleSize - 0.02;
+                                currentAngle += angleSize;
+
+                                const path = createArcPath(startAngle, endAngle, outerRadius, innerRadius);
+
+                                return (
+                                  <path
+                                    key={segment.label}
+                                    d={path}
+                                    fill={segment.color}
+                                    className="cursor-pointer transition-all duration-300"
+                                    style={{
+                                      filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15))',
+                                      transformOrigin: `${centerX}px ${centerY}px`,
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.style.transform = 'scale(1.05)';
+                                      e.currentTarget.style.filter = 'drop-shadow(0 8px 16px rgba(0, 0, 0, 0.25))';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.style.transform = 'scale(1)';
+                                      e.currentTarget.style.filter = 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15))';
+                                    }}
+                                  />
+                                );
+                              })}
+                            </svg>
+
+                            {/* Center content */}
+                            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                              <span className="text-stone-500 text-xl font-medium mb-2">Gross Revenue</span>
+                              <span
+                                className="text-stone-900 font-bold text-5xl lg:text-6xl"
+                                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                              >
+                                {gross >= 1000000 ? `$${(gross / 1000000).toFixed(2)}M` : `$${(gross / 1000).toFixed(0)}k`}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Legend - Vertical stack on the right */}
+                          <div className="flex flex-col gap-6 flex-1 max-w-[380px]">
+                            {segments.map((segment) => {
+                              const percent = ((segment.value / total) * 100).toFixed(1);
+                              return (
+                                <div
+                                  key={segment.label}
+                                  className="flex items-center gap-5 py-4 px-6 rounded-2xl transition-all duration-200 hover:bg-stone-50 hover:scale-[1.02] cursor-default"
+                                >
+                                  {/* Color indicator with glow */}
+                                  <div
+                                    className="w-8 h-8 rounded-full flex-shrink-0"
+                                    style={{
+                                      backgroundColor: segment.color,
+                                      boxShadow: `0 0 16px ${segment.color}50`
+                                    }}
+                                  />
+
+                                  {/* Label and stats */}
+                                  <div className="flex-1 flex items-center justify-between gap-4">
+                                    <span
+                                      className="text-stone-700 font-semibold text-xl lg:text-2xl"
+                                      style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                                    >
+                                      {segment.label}
+                                    </span>
+
+                                    <div className="flex items-baseline gap-3">
+                                      <span
+                                        className="text-stone-900 font-bold text-2xl lg:text-3xl tabular-nums"
+                                        style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                                      >
+                                        {segment.value >= 1000000 ? `$${(segment.value / 1000000).toFixed(2)}M` : `$${(segment.value / 1000).toFixed(1)}k`}
+                                      </span>
+                                      <span className="text-stone-400 font-semibold text-lg tabular-nums">
+                                        {percent}%
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </>
+              )}
+
+              {/* Session Performance Expanded */}
+              {expandedCard === 'session-performance' && (
+                <>
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
+                    <div>
+                      <h3
+                        className="text-stone-900 text-3xl sm:text-4xl xl:text-5xl font-bold mb-3 tracking-tight"
+                        style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                      >
+                        Completed Sessions
+                      </h3>
+                      <p className="text-stone-500 text-lg sm:text-xl xl:text-2xl">Monthly performance</p>
+                    </div>
+                    <div className="flex items-center gap-3 sm:gap-4 flex-wrap justify-end">
+                      {/* Hover tooltip for clinician breakdown */}
+                      {hoveredSessionsClinicianBar && (
+                        <div
+                          className="px-4 py-2.5 rounded-xl shadow-xl pointer-events-none animate-pulse"
+                          style={{
+                            background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)',
+                          }}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-4 h-4 rounded-full" style={{ backgroundColor: hoveredSessionsClinicianBar.color }} />
+                            <span className="text-white font-semibold text-lg">{hoveredSessionsClinicianBar.clinician}</span>
+                            <span className="text-indigo-300">•</span>
+                            <span className="text-white font-bold text-lg">{hoveredSessionsClinicianBar.value}</span>
+                            <span className="text-indigo-300">({hoveredSessionsClinicianBar.month})</span>
+                          </div>
+                        </div>
+                      )}
+                      {/* By Clinician Toggle */}
+                      {!hoveredSessionsClinicianBar && (
+                        <button
+                          onClick={() => setShowSessionsClinicianBreakdown(!showSessionsClinicianBreakdown)}
+                          className="relative flex items-center gap-2 px-5 py-2.5 rounded-full transition-all duration-300"
+                          style={{
+                            background: showSessionsClinicianBreakdown
+                              ? 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)'
+                              : 'linear-gradient(135deg, #f5f5f4 0%, #e7e5e4 100%)',
+                            boxShadow: showSessionsClinicianBreakdown
+                              ? '0 4px 12px -2px rgba(30, 27, 75, 0.4), inset 0 1px 0 rgba(255,255,255,0.1)'
+                              : '0 2px 8px -2px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.8)'
+                          }}
+                        >
+                          <svg
+                            className={`w-5 h-5 transition-colors duration-300 ${showSessionsClinicianBreakdown ? 'text-indigo-300' : 'text-stone-500'}`}
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                          </svg>
+                          <span className={`text-base font-semibold transition-colors duration-300 ${showSessionsClinicianBreakdown ? 'text-white' : 'text-stone-600'}`}>
+                            By Clinician
+                          </span>
+                          <div
+                            className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${showSessionsClinicianBreakdown ? 'bg-emerald-400 shadow-lg shadow-emerald-400/50' : 'bg-stone-400'}`}
+                          />
+                        </button>
+                      )}
+                      {/* Goal Indicator */}
+                      {!showSessionsClinicianBreakdown && !hoveredSessionsClinicianBar && (
+                        <div className="flex items-center gap-3 px-5 py-2.5 rounded-full bg-amber-500/10 border border-amber-300/50">
+                          <div className="w-5 h-0.5 bg-amber-500" style={{ borderTop: '2px dashed #f59e0b' }} />
+                          <span className="text-amber-700 text-base font-semibold">700 Goal</span>
+                        </div>
+                      )}
+                      {/* Sessions Report Button */}
+                      <button
+                        className="group relative px-7 py-3 rounded-full text-base font-bold tracking-wide transition-all duration-300 ease-out transform hover:scale-[1.03] active:scale-[0.98]"
+                        style={{
+                          background: 'linear-gradient(135deg, #1c1917 0%, #292524 50%, #1c1917 100%)',
+                          boxShadow: '0 8px 20px -6px rgba(28, 25, 23, 0.4), 0 4px 8px -4px rgba(28, 25, 23, 0.2), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)',
+                          color: '#fafaf9',
+                          letterSpacing: '0.02em'
+                        }}
+                      >
+                        <span className="relative z-10 flex items-center gap-2">
+                          Sessions Report
+                          <ArrowRight size={18} className="transition-transform duration-300 group-hover:translate-x-1" strokeWidth={2.5} />
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Custom Bar Chart - Expanded */}
+                  <div className="flex flex-1 min-h-0">
+                    {/* Y-axis labels */}
+                    <div className="flex flex-col justify-between text-base sm:text-lg text-stone-500 font-semibold pr-6 py-2">
+                      <span>800</span>
+                      <span>600</span>
+                      <span>400</span>
+                      <span>200</span>
+                      <span>0</span>
+                    </div>
+
+                    {/* Chart area */}
+                    <div className="flex-1 relative">
+                      {/* Background grid lines */}
+                      <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
+                        {[0, 1, 2, 3, 4].map((i) => (
+                          <div key={i} className="border-t border-stone-200 w-full" />
+                        ))}
+                      </div>
+
+                      {/* Goal line - horizontal (only in total view) */}
+                      {!showSessionsClinicianBreakdown && (
+                        <div
+                          className="absolute left-0 right-0 border-t-[3px] border-dashed border-amber-400 z-10 pointer-events-none"
+                          style={{ top: `${((800 - 700) / 800) * 100}%` }}
+                        />
+                      )}
+
+                      {/* Bars - Total View */}
+                      {!showSessionsClinicianBreakdown && (
+                        <div className="absolute inset-0 flex items-end justify-around px-4">
+                          {SESSIONS_DATA.map((item, idx) => {
+                            const heightPercent = (item.completed / 800) * 100;
+                            const isAboveGoal = item.completed >= 700;
+                            const isCurrentMonth = idx === SESSIONS_DATA.length - 1;
+
+                            return (
+                              <div
+                                key={item.month}
+                                className="group relative flex flex-col items-center justify-end h-full"
+                                style={{ flex: '1', maxWidth: 'clamp(60px, 8vw, 120px)' }}
+                              >
+                                <div className="flex items-end w-full justify-center h-full">
+                                  <div className="relative flex flex-col items-end justify-end h-full" style={{ width: '70%' }}>
+                                    <span className={`text-lg sm:text-xl font-bold mb-2 ${isAboveGoal ? 'text-emerald-600' : 'text-blue-600'}`}>
+                                      {item.completed}
+                                    </span>
+                                    <div
+                                      className={`w-full rounded-t-xl transition-all duration-300 cursor-pointer relative overflow-hidden ${
+                                        isCurrentMonth
+                                          ? isAboveGoal
+                                            ? 'ring-2 ring-emerald-400/40 ring-offset-2'
+                                            : 'ring-2 ring-blue-400/40 ring-offset-2'
+                                          : 'hover:brightness-110'
+                                      }`}
+                                      style={{
+                                        height: `${heightPercent}%`,
+                                        background: isAboveGoal
+                                          ? 'linear-gradient(180deg, #34d399 0%, #059669 100%)'
+                                          : 'linear-gradient(180deg, #60a5fa 0%, #2563eb 100%)',
+                                        boxShadow: isAboveGoal
+                                          ? '0 6px 16px -2px rgba(16, 185, 129, 0.4), inset 0 1px 0 rgba(255,255,255,0.2)'
+                                          : '0 6px 16px -2px rgba(37, 99, 235, 0.4), inset 0 1px 0 rgba(255,255,255,0.2)'
+                                      }}
+                                    >
+                                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    </div>
+                                    {/* Month label */}
+                                    <span className="text-stone-600 font-semibold text-base sm:text-lg mt-3">{item.month}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {/* Bars - Clinician Breakdown (Stacked) */}
+                      {showSessionsClinicianBreakdown && (
+                        <div className="absolute inset-0 flex items-end justify-around gap-2 px-6">
+                          {(() => {
+                            const clinicianColors = {
+                              Chen: { color: '#7c3aed', gradient: 'linear-gradient(180deg, #a78bfa 0%, #7c3aed 100%)' },
+                              Rodriguez: { color: '#0891b2', gradient: 'linear-gradient(180deg, #22d3ee 0%, #0891b2 100%)' },
+                              Patel: { color: '#d97706', gradient: 'linear-gradient(180deg, #fbbf24 0%, #d97706 100%)' },
+                              Kim: { color: '#db2777', gradient: 'linear-gradient(180deg, #f472b6 0%, #db2777 100%)' },
+                              Johnson: { color: '#059669', gradient: 'linear-gradient(180deg, #34d399 0%, #059669 100%)' }
+                            };
+                            const clinicianOrder = ['Johnson', 'Kim', 'Patel', 'Rodriguez', 'Chen'];
+
+                            return CLINICIAN_SESSIONS_DATA.map((item, idx) => {
+                              const total = (item.Chen || 0) + (item.Rodriguez || 0) + (item.Patel || 0) + (item.Kim || 0) + (item.Johnson || 0);
+                              const totalHeightPercent = (total / 800) * 100;
+                              const isCurrentMonth = idx === CLINICIAN_SESSIONS_DATA.length - 1;
+
+                              return (
+                                <div
+                                  key={item.month}
+                                  className="group relative flex-1 flex flex-col items-center justify-end h-full"
+                                  style={{ maxWidth: 'clamp(50px, 7vw, 90px)' }}
+                                >
+                                  {/* Total value label */}
+                                  <div className="mb-2 z-20">
+                                    <span className="text-lg sm:text-xl font-bold text-indigo-600">
+                                      {total}
+                                    </span>
+                                  </div>
+                                  {/* Stacked Bar */}
+                                  <div
+                                    className="relative rounded-t-lg overflow-hidden transition-all duration-300 w-full"
+                                    style={{
+                                      height: `${totalHeightPercent}%`,
+                                      maxWidth: '60px',
+                                      boxShadow: isCurrentMonth ? '0 6px 16px -2px rgba(124, 58, 237, 0.35)' : '0 3px 10px -2px rgba(0,0,0,0.12)'
+                                    }}
+                                  >
+                                    {clinicianOrder.map((clinician) => {
+                                      const value = item[clinician as keyof typeof item] as number || 0;
+                                      const segmentHeightPercent = (value / total) * 100;
+                                      const colorData = clinicianColors[clinician as keyof typeof clinicianColors];
+
+                                      return (
+                                        <div
+                                          key={clinician}
+                                          className="w-full cursor-pointer transition-all duration-200 hover:brightness-110"
+                                          style={{
+                                            height: `${segmentHeightPercent}%`,
+                                            background: colorData.gradient,
+                                            borderBottom: '1px solid rgba(255,255,255,0.2)'
+                                          }}
+                                          onMouseEnter={() => setHoveredSessionsClinicianBar({
+                                            month: item.month,
+                                            clinician,
+                                            value,
+                                            color: colorData.color
+                                          })}
+                                          onMouseLeave={() => setHoveredSessionsClinicianBar(null)}
+                                        />
+                                      );
+                                    })}
+                                  </div>
+                                  {/* Month label */}
+                                  <span className="text-stone-600 font-semibold text-base sm:text-lg mt-3">{item.month}</span>
+                                </div>
+                              );
+                            });
+                          })()}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Clinician Legend - shown when in clinician view */}
+                  {showSessionsClinicianBreakdown && (
+                    <div className="flex items-center justify-center gap-6 mt-6 pt-4 border-t border-stone-100">
+                      {[
+                        { name: 'Chen', color: '#7c3aed' },
+                        { name: 'Rodriguez', color: '#0891b2' },
+                        { name: 'Patel', color: '#d97706' },
+                        { name: 'Kim', color: '#db2777' },
+                        { name: 'Johnson', color: '#059669' }
+                      ].map((c) => (
+                        <div key={c.name} className="flex items-center gap-2">
+                          <div className="w-4 h-4 rounded-full" style={{ backgroundColor: c.color }} />
+                          <span className="text-stone-600 font-medium text-base">{c.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* Session Modality Expanded */}
+              {expandedCard === 'session-modality' && (
+                <>
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
+                    <div>
+                      <h3
+                        className="text-stone-900 text-3xl sm:text-4xl xl:text-5xl font-bold mb-3 tracking-tight"
+                        style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                      >
+                        Session Modality
+                      </h3>
+                      <p className="text-stone-500 text-lg sm:text-xl xl:text-2xl">Telehealth vs In-Person breakdown</p>
+                    </div>
+                  </div>
+                  <div className="flex-1 min-h-0 flex items-center justify-center">
+                    {(() => {
+                      const totalTelehealth = SESSIONS_DATA.reduce((sum, item) => sum + item.telehealth, 0);
+                      const totalInPerson = SESSIONS_DATA.reduce((sum, item) => sum + item.inPerson, 0);
+                      const total = totalTelehealth + totalInPerson;
+                      const telehealthPercent = ((totalTelehealth / total) * 100).toFixed(1);
+                      const inPersonPercent = ((totalInPerson / total) * 100).toFixed(1);
+
+                      return (
+                        <div className="w-full max-w-5xl px-4">
+                          {/* Large Split Bar with Icons */}
+                          <div className="relative h-40 rounded-3xl overflow-hidden flex mb-12" style={{ boxShadow: 'inset 0 4px 8px rgba(0,0,0,0.1)' }}>
+                            {/* Telehealth segment */}
+                            <div
+                              className="relative flex items-center justify-center transition-all duration-500 group cursor-default"
+                              style={{ width: `${telehealthPercent}%`, background: 'linear-gradient(135deg, #0891b2 0%, #0e7490 100%)' }}
+                            >
+                              {/* Pattern overlay */}
+                              <div
+                                className="absolute inset-0 opacity-10"
+                                style={{
+                                  backgroundImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='1' fill-rule='evenodd'%3E%3Ccircle cx='3' cy='3' r='1'/%3E%3C/g%3E%3C/svg%3E")`,
+                                }}
+                              />
+                              {/* Icon and label */}
+                              <div className="relative z-10 flex items-center gap-4">
+                                <svg className="w-10 h-10 text-white/90" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                </svg>
+                                <div className="text-white text-center">
+                                  <div className="text-5xl font-bold tracking-tight" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>{telehealthPercent}%</div>
+                                  <div className="text-xl opacity-90 mt-1 font-medium">Telehealth</div>
+                                </div>
+                              </div>
+                              {/* Shine effect */}
+                              <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent h-1/2" />
+                            </div>
+
+                            {/* Divider line */}
+                            <div className="w-1 bg-white/30 relative z-20" />
+
+                            {/* In-Person segment */}
+                            <div
+                              className="relative flex items-center justify-center transition-all duration-500 group cursor-default"
+                              style={{ width: `${inPersonPercent}%`, background: 'linear-gradient(135deg, #d97706 0%, #b45309 100%)' }}
+                            >
+                              {/* Pattern overlay */}
+                              <div
+                                className="absolute inset-0 opacity-10"
+                                style={{
+                                  backgroundImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='1' fill-rule='evenodd'%3E%3Ccircle cx='3' cy='3' r='1'/%3E%3C/g%3E%3C/svg%3E")`,
+                                }}
+                              />
+                              {/* Icon and label */}
+                              <div className="relative z-10 flex items-center gap-4">
+                                <svg className="w-10 h-10 text-white/90" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                </svg>
+                                <div className="text-white text-center">
+                                  <div className="text-5xl font-bold tracking-tight" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>{inPersonPercent}%</div>
+                                  <div className="text-xl opacity-90 mt-1 font-medium">In-Person</div>
+                                </div>
+                              </div>
+                              {/* Shine effect */}
+                              <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent h-1/2" />
+                            </div>
+                          </div>
+
+                          {/* Labels below */}
+                          <div className="flex justify-between mb-10 px-4">
+                            <div className="flex items-center gap-4">
+                              <div className="w-5 h-5 rounded-full" style={{ background: 'linear-gradient(135deg, #0891b2 0%, #0e7490 100%)', boxShadow: '0 3px 6px rgba(8, 145, 178, 0.35)' }} />
+                              <span className="text-stone-700 font-semibold text-xl">Telehealth</span>
+                              <span className="text-stone-400 text-lg">({totalTelehealth.toLocaleString()} sessions)</span>
+                            </div>
+                            <div className="flex items-center gap-4">
+                              <div className="w-5 h-5 rounded-full" style={{ background: 'linear-gradient(135deg, #d97706 0%, #b45309 100%)', boxShadow: '0 3px 6px rgba(217, 119, 6, 0.35)' }} />
+                              <span className="text-stone-700 font-semibold text-xl">In-Person</span>
+                              <span className="text-stone-400 text-lg">({totalInPerson.toLocaleString()} sessions)</span>
+                            </div>
+                          </div>
+
+                          {/* Stats Cards */}
+                          <div className="grid grid-cols-2 gap-8">
+                            <div className="p-10 rounded-3xl relative overflow-hidden group hover:scale-[1.02] transition-transform duration-300" style={{ background: 'linear-gradient(135deg, rgba(8, 145, 178, 0.1) 0%, rgba(14, 116, 144, 0.05) 100%)' }}>
+                              <div className="absolute top-6 right-6">
+                                <svg className="w-12 h-12 text-cyan-500/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                </svg>
+                              </div>
+                              <div className="text-cyan-600 text-6xl font-bold mb-3" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                                {totalTelehealth.toLocaleString()}
+                              </div>
+                              <div className="text-stone-600 text-2xl font-medium">Telehealth Sessions</div>
+                              <div className="text-stone-400 text-lg mt-2">across {SESSIONS_DATA.length} months</div>
+                            </div>
+                            <div className="p-10 rounded-3xl relative overflow-hidden group hover:scale-[1.02] transition-transform duration-300" style={{ background: 'linear-gradient(135deg, rgba(217, 119, 6, 0.1) 0%, rgba(180, 83, 9, 0.05) 100%)' }}>
+                              <div className="absolute top-6 right-6">
+                                <svg className="w-12 h-12 text-amber-500/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                </svg>
+                              </div>
+                              <div className="text-amber-600 text-6xl font-bold mb-3" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                                {totalInPerson.toLocaleString()}
+                              </div>
+                              <div className="text-stone-600 text-2xl font-medium">In-Person Sessions</div>
+                              <div className="text-stone-400 text-lg mt-2">across {SESSIONS_DATA.length} months</div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </>
+              )}
+
+              {/* Attendance Breakdown Expanded */}
+              {expandedCard === 'attendance-breakdown' && (
+                <>
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
+                    <div>
+                      <h3
+                        className="text-stone-900 text-3xl sm:text-4xl xl:text-5xl font-bold mb-3 tracking-tight"
+                        style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                      >
+                        Attendance Breakdown
+                      </h3>
+                      <p className="text-stone-500 text-lg sm:text-xl xl:text-2xl">Session outcomes across {SESSIONS_DATA.length} months</p>
+                    </div>
+                  </div>
+                  <div className="flex-1 min-h-0 flex items-center justify-center">
+                    {(() => {
+                      const segments = [
+                        { label: 'Attended', value: SESSIONS_DATA.reduce((sum, item) => sum + item.show, 0), color: '#10b981' },
+                        { label: 'Client Cancelled', value: SESSIONS_DATA.reduce((sum, item) => sum + item.cancelled, 0), color: '#ef4444' },
+                        { label: 'Clinician Cancelled', value: SESSIONS_DATA.reduce((sum, item) => sum + item.clinicianCancelled, 0), color: '#3b82f6' },
+                        { label: 'Late Cancelled', value: SESSIONS_DATA.reduce((sum, item) => sum + item.lateCancelled, 0), color: '#f59e0b' },
+                        { label: 'No Show', value: SESSIONS_DATA.reduce((sum, item) => sum + item.noShow, 0), color: '#6b7280' }
+                      ];
+
+                      const total = segments.reduce((sum, s) => sum + s.value, 0);
+
+                      // SVG donut chart calculations - larger size for expanded view
+                      const size = 450;
+                      const outerRadius = 200;
+                      const innerRadius = 130;
+                      const centerX = size / 2;
+                      const centerY = size / 2;
+
+                      // Calculate arc paths
+                      const createArcPath = (startAngle: number, endAngle: number, outerR: number, innerR: number) => {
+                        const startOuterX = centerX + outerR * Math.cos(startAngle);
+                        const startOuterY = centerY + outerR * Math.sin(startAngle);
+                        const endOuterX = centerX + outerR * Math.cos(endAngle);
+                        const endOuterY = centerY + outerR * Math.sin(endAngle);
+                        const startInnerX = centerX + innerR * Math.cos(endAngle);
+                        const startInnerY = centerY + innerR * Math.sin(endAngle);
+                        const endInnerX = centerX + innerR * Math.cos(startAngle);
+                        const endInnerY = centerY + innerR * Math.sin(startAngle);
+
+                        const largeArcFlag = endAngle - startAngle > Math.PI ? 1 : 0;
+
+                        return `M ${startOuterX} ${startOuterY}
+                                A ${outerR} ${outerR} 0 ${largeArcFlag} 1 ${endOuterX} ${endOuterY}
+                                L ${startInnerX} ${startInnerY}
+                                A ${innerR} ${innerR} 0 ${largeArcFlag} 0 ${endInnerX} ${endInnerY}
+                                Z`;
+                      };
+
+                      let currentAngle = -Math.PI / 2; // Start from top
+
+                      return (
+                        <div className="flex items-center justify-center gap-12 lg:gap-20 w-full max-w-5xl px-8">
+                          {/* SVG Donut */}
+                          <div className="relative flex-shrink-0" style={{ width: size, height: size }}>
+                            <svg width={size} height={size} className="overflow-visible">
+                              {segments.map((segment, idx) => {
+                                const percent = segment.value / total;
+                                const angleSize = percent * 2 * Math.PI;
+                                const startAngle = currentAngle;
+                                const endAngle = currentAngle + angleSize - 0.02;
+                                currentAngle += angleSize;
+
+                                const path = createArcPath(startAngle, endAngle, outerRadius, innerRadius);
+
+                                return (
+                                  <path
+                                    key={segment.label}
+                                    d={path}
+                                    fill={segment.color}
+                                    className="cursor-pointer transition-all duration-300"
+                                    style={{
+                                      filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15))',
+                                      transformOrigin: `${centerX}px ${centerY}px`,
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.style.transform = 'scale(1.05)';
+                                      e.currentTarget.style.filter = 'drop-shadow(0 8px 16px rgba(0, 0, 0, 0.25))';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.style.transform = 'scale(1)';
+                                      e.currentTarget.style.filter = 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15))';
+                                    }}
+                                  />
+                                );
+                              })}
+                            </svg>
+
+                            {/* Center content */}
+                            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                              <span className="text-stone-500 text-xl font-medium mb-2">Show Rate</span>
+                              <span
+                                className="text-emerald-600 font-bold text-5xl lg:text-6xl"
+                                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                              >
+                                {((segments[0].value / total) * 100).toFixed(1)}%
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Legend - Vertical stack on the right */}
+                          <div className="flex flex-col gap-6 flex-1 max-w-[380px]">
+                            {segments.map((segment) => {
+                              const percent = ((segment.value / total) * 100).toFixed(1);
+                              return (
+                                <div
+                                  key={segment.label}
+                                  className="flex items-center gap-5 py-4 px-6 rounded-2xl transition-all duration-200 hover:bg-stone-50 hover:scale-[1.02] cursor-default"
+                                >
+                                  {/* Color indicator with glow */}
+                                  <div
+                                    className="w-8 h-8 rounded-full flex-shrink-0"
+                                    style={{
+                                      backgroundColor: segment.color,
+                                      boxShadow: `0 0 16px ${segment.color}50`
+                                    }}
+                                  />
+
+                                  {/* Label and stats */}
+                                  <div className="flex-1 flex items-center justify-between gap-4">
+                                    <span
+                                      className="text-stone-700 font-semibold text-xl lg:text-2xl"
+                                      style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                                    >
+                                      {segment.label}
+                                    </span>
+
+                                    <div className="flex items-baseline gap-3">
+                                      <span
+                                        className="text-stone-900 font-bold text-2xl lg:text-3xl tabular-nums"
+                                        style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                                      >
+                                        {segment.value.toLocaleString()}
+                                      </span>
+                                      <span className="text-stone-400 font-semibold text-lg tabular-nums">
+                                        {percent}%
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}

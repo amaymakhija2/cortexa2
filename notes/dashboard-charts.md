@@ -327,16 +327,16 @@
 
 ---
 
-### Open Slots Chart (Top Right Small)
+### Unfilled Client Slots Chart (Top Right Small)
 | Element | Content |
 |---------|---------|
 | **Category Label** | "ANALYTICS" |
-| **Title** | "Open Slots" |
-| **Info Tooltip Title** | "Open Slots Available" |
-| **Info Tooltip Text** | "Shows the number of unfilled appointment slots available each month across the practice (booked minus completed sessions). Lower numbers indicate better utilization and fewer cancellations/no-shows." |
+| **Title** | "Unfilled Client Slots" |
+| **Info Tooltip Title** | "Unfilled Client Slots" |
+| **Info Tooltip Text** | "Shows how many more clients clinicians can take on based on their capacity goals. If a clinician's goal is 25 clients and they have 20, they have 5 unfilled slots. Higher numbers indicate more room for growth." |
 | **Header Value** | "{XX}" (avg or hovered value) |
 | **Chart Type** | Line chart with area fill |
-| **Line Color** | Red (#ef4444) |
+| **Line Color** | Teal (#2d6e7e) |
 
 ---
 
