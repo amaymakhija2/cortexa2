@@ -3,158 +3,158 @@ import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // ============================================================================
-// FALLING LINES ANIMATION COMPONENT
+// FALLING LINES ANIMATION COMPONENT (Optimized)
 // ============================================================================
 
 interface Line {
-  id: number;
   x: number;
   y: number;
   length: number;
   speed: number;
   opacity: number;
-  angle: number;
+  angleRad: number; // Pre-computed radian
+  sinAngle: number; // Pre-computed sin
   thickness: number;
-  glowIntensity: number;
-  delay: number;
+  hasGlow: boolean; // Pre-determined, not computed per frame
 }
 
 const FallingLinesCanvas: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const linesRef = useRef<Line[]>([]);
   const animationRef = useRef<number>();
-  const mouseRef = useRef({ x: 0, y: 0 });
-  const timeRef = useRef(0);
+  const dimensionsRef = useRef({ width: 0, height: 0 });
 
-  const createLine = useCallback((canvasWidth: number, canvasHeight: number, id: number, isInitial: boolean = false): Line => {
-    const baseAngle = -15 + Math.random() * 30; // Slight angle variation
+  const createLine = useCallback((width: number, height: number, isInitial: boolean = false): Line => {
+    const baseAngle = -15 + Math.random() * 30;
+    const angleRad = (baseAngle * Math.PI) / 180;
     return {
-      id,
-      x: Math.random() * canvasWidth * 1.5 - canvasWidth * 0.25,
-      // If initial render, spread lines across the screen; otherwise start from top
-      y: isInitial ? Math.random() * canvasHeight : -Math.random() * canvasHeight * 0.5,
+      x: Math.random() * width * 1.5 - width * 0.25,
+      y: isInitial ? Math.random() * height : -Math.random() * height * 0.5,
       length: 20 + Math.random() * 60,
-      speed: 2 + Math.random() * 4,
+      speed: 0.8 + Math.random() * 1.5,
       opacity: 0.15 + Math.random() * 0.5,
-      angle: baseAngle,
+      angleRad,
+      sinAngle: Math.sin(angleRad) * 0.3,
       thickness: 1 + Math.random() * 2,
-      glowIntensity: Math.random(),
-      delay: 0, // No delay - start immediately
+      hasGlow: Math.random() > 0.85,
     };
   }, []);
-
-  const initLines = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const lineCount = Math.floor((canvas.width * canvas.height) / 8000);
-    linesRef.current = Array.from({ length: lineCount }, (_, i) =>
-      createLine(canvas.width, canvas.height, i, true) // true = initial render, spread across screen
-    );
-  }, [createLine]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { alpha: false });
     if (!ctx) return;
 
-    const resizeCanvas = () => {
-      const dpr = window.devicePixelRatio || 1;
-      const rect = canvas.getBoundingClientRect();
-      canvas.width = rect.width * dpr;
-      canvas.height = rect.height * dpr;
-      ctx.scale(dpr, dpr);
-      canvas.style.width = `${rect.width}px`;
-      canvas.style.height = `${rect.height}px`;
-      initLines();
-    };
+    // Cache gradients
+    let bgGradient: CanvasGradient | null = null;
+    let glowGradient: CanvasGradient | null = null;
 
-    const handleMouseMove = (e: MouseEvent) => {
+    const resizeCanvas = () => {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2); // Cap DPR at 2
       const rect = canvas.getBoundingClientRect();
-      mouseRef.current = {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top,
-      };
+      const width = rect.width;
+      const height = rect.height;
+
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      ctx.scale(dpr, dpr);
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+
+      dimensionsRef.current = { width, height };
+
+      // Create cached gradients
+      bgGradient = ctx.createLinearGradient(0, 0, width, height);
+      bgGradient.addColorStop(0, '#0a0a0a');
+      bgGradient.addColorStop(0.5, '#111111');
+      bgGradient.addColorStop(1, '#0d0d0d');
+
+      glowGradient = ctx.createRadialGradient(
+        width * 0.4, height * 0.5, 0,
+        width * 0.4, height * 0.5, width * 0.6
+      );
+      glowGradient.addColorStop(0, 'rgba(180, 120, 60, 0.03)');
+      glowGradient.addColorStop(1, 'transparent');
+
+      // Original line density
+      const lineCount = Math.floor((width * height) / 8000);
+      linesRef.current = Array.from({ length: lineCount }, () =>
+        createLine(width, height, true)
+      );
     };
 
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
-    canvas.addEventListener('mousemove', handleMouseMove);
 
-    const animate = (timestamp: number) => {
-      timeRef.current = timestamp;
-      const rect = canvas.getBoundingClientRect();
+    const animate = () => {
+      const { width, height } = dimensionsRef.current;
+      const lines = linesRef.current;
 
-      // Create gradient background
-      const gradient = ctx.createLinearGradient(0, 0, rect.width, rect.height);
-      gradient.addColorStop(0, '#0a0a0a');
-      gradient.addColorStop(0.5, '#111111');
-      gradient.addColorStop(1, '#0d0d0d');
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, rect.width, rect.height);
+      // Draw background (use cached gradient)
+      if (bgGradient) {
+        ctx.fillStyle = bgGradient;
+        ctx.fillRect(0, 0, width, height);
+      }
 
-      // Subtle radial glow in center
-      const centerGlow = ctx.createRadialGradient(
-        rect.width * 0.4, rect.height * 0.5, 0,
-        rect.width * 0.4, rect.height * 0.5, rect.width * 0.6
-      );
-      centerGlow.addColorStop(0, 'rgba(180, 120, 60, 0.03)');
-      centerGlow.addColorStop(1, 'transparent');
-      ctx.fillStyle = centerGlow;
-      ctx.fillRect(0, 0, rect.width, rect.height);
+      // Draw center glow (use cached gradient)
+      if (glowGradient) {
+        ctx.fillStyle = glowGradient;
+        ctx.fillRect(0, 0, width, height);
+      }
 
-      linesRef.current.forEach((line) => {
-        if (timestamp < line.delay) return;
+      // Batch non-glow lines together
+      ctx.lineCap = 'round';
+
+      // Draw non-glow lines first (no shadow = faster)
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
 
         // Update position
-        const angleRad = (line.angle * Math.PI) / 180;
         line.y += line.speed;
-        line.x += Math.sin(angleRad) * line.speed * 0.3;
+        line.x += line.sinAngle * line.speed;
 
-        // Subtle mouse influence
-        const dx = mouseRef.current.x - line.x;
-        const dy = mouseRef.current.y - line.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        const influence = Math.max(0, 1 - dist / 200) * 0.5;
-        const pushX = influence * (dx > 0 ? -1 : 1) * 2;
-
-        // Pulsing glow effect
-        const glowPulse = Math.sin(timestamp / 1000 + line.glowIntensity * 10) * 0.5 + 0.5;
-        const hasGlow = line.glowIntensity > 0.7 && glowPulse > 0.8;
-
-        // Draw line
-        ctx.save();
-        ctx.translate(line.x + pushX, line.y);
-        ctx.rotate(angleRad);
-
-        // Glow effect for some lines
-        if (hasGlow) {
-          ctx.shadowColor = 'rgba(245, 158, 11, 0.6)';
-          ctx.shadowBlur = 15;
-          ctx.strokeStyle = `rgba(245, 180, 100, ${line.opacity * 1.5})`;
-        } else {
-          ctx.shadowColor = 'rgba(255, 255, 255, 0.1)';
-          ctx.shadowBlur = 3;
-          ctx.strokeStyle = `rgba(255, 255, 255, ${line.opacity})`;
-        }
-
-        ctx.lineWidth = line.thickness;
-        ctx.lineCap = 'round';
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.lineTo(0, line.length);
-        ctx.stroke();
-        ctx.restore();
-
-        // Reset line when it goes off screen
-        if (line.y > rect.height + line.length) {
-          Object.assign(line, createLine(rect.width, rect.height, line.id));
+        // Reset if off screen
+        if (line.y > height + line.length) {
+          line.x = Math.random() * width * 1.5 - width * 0.25;
           line.y = -line.length;
-          line.delay = 0;
         }
-      });
+
+        if (line.hasGlow) continue; // Skip glow lines for now
+
+        ctx.strokeStyle = `rgba(255, 255, 255, ${line.opacity})`;
+        ctx.lineWidth = line.thickness;
+        ctx.beginPath();
+        ctx.moveTo(line.x, line.y);
+        ctx.lineTo(
+          line.x + Math.sin(line.angleRad) * line.length,
+          line.y + Math.cos(line.angleRad) * line.length
+        );
+        ctx.stroke();
+      }
+
+      // Draw glow lines separately (fewer of them, with shadow)
+      ctx.shadowColor = 'rgba(245, 158, 11, 0.5)';
+      ctx.shadowBlur = 10;
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (!line.hasGlow) continue;
+
+        ctx.strokeStyle = `rgba(245, 180, 100, ${line.opacity * 1.3})`;
+        ctx.lineWidth = line.thickness;
+        ctx.beginPath();
+        ctx.moveTo(line.x, line.y);
+        ctx.lineTo(
+          line.x + Math.sin(line.angleRad) * line.length,
+          line.y + Math.cos(line.angleRad) * line.length
+        );
+        ctx.stroke();
+      }
+
+      // Reset shadow for next frame
+      ctx.shadowBlur = 0;
 
       animationRef.current = requestAnimationFrame(animate);
     };
@@ -163,12 +163,11 @@ const FallingLinesCanvas: React.FC = () => {
 
     return () => {
       window.removeEventListener('resize', resizeCanvas);
-      canvas.removeEventListener('mousemove', handleMouseMove);
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [initLines, createLine]);
+  }, [createLine]);
 
   return (
     <canvas
