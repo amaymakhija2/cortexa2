@@ -6,7 +6,7 @@ const NavPill: React.FC<{ label: string; to: string }> = ({ label, to }) => (
   <NavLink
     to={to}
     className={({ isActive }) =>
-      `px-3 lg:px-6 py-2 lg:py-3 rounded-xl text-sm lg:text-base font-semibold transition-all duration-200 whitespace-nowrap ${
+      `px-4 lg:px-7 py-2.5 lg:py-3.5 rounded-xl text-base lg:text-lg font-semibold transition-all duration-200 whitespace-nowrap ${
         isActive
           ? 'bg-gradient-to-r from-amber-100/90 to-orange-100/80 text-stone-900 shadow-md'
           : 'text-stone-400 hover:text-stone-200 hover:bg-white/10'
@@ -57,7 +57,7 @@ export const Header: React.FC<HeaderProps> = ({ onMobileMenuOpen }) => {
         </button>
 
         {/* Mobile/Tablet Page Title */}
-        <h1 className="lg:hidden text-white font-semibold text-base truncate max-w-[180px] sm:max-w-none">
+        <h1 className="lg:hidden text-white font-semibold text-lg truncate max-w-[180px] sm:max-w-none">
           {getPageTitle()}
         </h1>
 

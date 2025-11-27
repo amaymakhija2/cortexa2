@@ -1,12 +1,13 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutGrid, BarChart3, Users } from 'lucide-react';
+import { LayoutGrid, BarChart3, Users, SlidersHorizontal } from 'lucide-react';
 
 export const BottomNav: React.FC = () => {
   const navItems = [
     { icon: LayoutGrid, label: 'Overview', to: '/dashboard' },
     { icon: BarChart3, label: 'Analysis', to: '/practice-analysis' },
     { icon: Users, label: 'Clinicians', to: '/clinician-overview' },
+    { icon: SlidersHorizontal, label: 'Settings', to: '/settings' },
   ];
 
   return (

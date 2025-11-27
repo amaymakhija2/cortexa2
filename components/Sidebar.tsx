@@ -44,7 +44,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen = false, setMob
           fixed inset-y-0 left-0 z-50
           ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0
           transform transition-all duration-300 ease-out
-          w-72 lg:w-[72px]
+          w-72 ${isExpanded ? 'lg:w-64' : 'lg:w-[72px]'}
           flex flex-col py-5 pt-safe pb-safe
         `}
         onMouseEnter={() => setIsExpanded(true)}
@@ -79,13 +79,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen = false, setMob
             </svg>
           </div>
           <div className={`overflow-hidden transition-all duration-300 ${showLabels ? 'w-auto opacity-100' : 'lg:w-0 lg:opacity-0'}`}>
-            <h1 className="text-lg font-semibold text-stone-100 whitespace-nowrap tracking-tight">Cortexa</h1>
+            <h1 className="text-xl font-semibold text-stone-100 whitespace-nowrap tracking-tight">Cortexa</h1>
           </div>
         </div>
 
         {/* Mobile/Tablet Page Navigation - Only on drawer */}
         <div className="lg:hidden px-3 mb-4">
-          <p className="text-xs font-semibold text-stone-500 uppercase tracking-wider px-3 mb-2">Pages</p>
+          <p className="text-sm font-semibold text-stone-500 uppercase tracking-wider px-3 mb-2">Pages</p>
           <nav className="flex flex-col gap-1">
             {pageNavItems.map((item) => {
               const Icon = item.icon;
@@ -102,8 +102,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen = false, setMob
                     }`
                   }
                 >
-                  <Icon size={20} className="flex-shrink-0" strokeWidth={1.5} />
-                  <span className="text-sm font-medium">{item.label}</span>
+                  <Icon size={22} className="flex-shrink-0" strokeWidth={1.5} />
+                  <span className="text-base font-medium">{item.label}</span>
                 </NavLink>
               );
             })}
@@ -115,7 +115,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen = false, setMob
 
         {/* App Sections */}
         <div className="px-3 flex-1">
-          <p className="lg:hidden text-xs font-semibold text-stone-500 uppercase tracking-wider px-3 mb-2">Modules</p>
+          <p className="lg:hidden text-sm font-semibold text-stone-500 uppercase tracking-wider px-3 mb-2">Modules</p>
           <nav className="flex flex-col gap-1.5">
             {appSections.map((item) => {
               const Icon = item.icon;
@@ -129,8 +129,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen = false, setMob
                   } justify-start ${isExpanded ? 'lg:justify-start' : 'lg:justify-center'}`}
                   title={!showLabels ? item.label : undefined}
                 >
-                  <Icon size={20} className="flex-shrink-0" strokeWidth={item.active ? 2 : 1.5} />
-                  <span className={`text-sm font-medium whitespace-nowrap transition-all duration-300 ${showLabels ? 'opacity-100' : 'lg:opacity-0 lg:w-0 lg:overflow-hidden'}`}>
+                  <Icon size={22} className="flex-shrink-0" strokeWidth={item.active ? 2 : 1.5} />
+                  <span className={`text-base font-medium whitespace-nowrap transition-all duration-300 ${showLabels ? 'opacity-100' : 'lg:opacity-0 lg:w-0 lg:overflow-hidden'}`}>
                     {item.label}
                   </span>
                 </button>
@@ -141,15 +141,23 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen = false, setMob
 
         {/* Settings */}
         <div className="px-3 mb-3">
-          <button
-            className={`flex items-center gap-3 px-3 py-3 min-h-[44px] rounded-xl transition-all duration-200 text-stone-400 hover:text-stone-200 hover:bg-white/5 active:bg-white/10 w-full justify-start ${isExpanded ? 'lg:justify-start' : 'lg:justify-center'}`}
+          <NavLink
+            to="/settings"
+            onClick={() => setMobileMenuOpen?.(false)}
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-3 py-3 min-h-[44px] rounded-xl transition-all duration-200 w-full justify-start ${isExpanded ? 'lg:justify-start' : 'lg:justify-center'} ${
+                isActive
+                  ? 'bg-gradient-to-r from-amber-100/90 to-orange-100/80 text-stone-900 shadow-md'
+                  : 'text-stone-400 hover:text-stone-200 hover:bg-white/5 active:bg-white/10'
+              }`
+            }
             title={!showLabels ? 'Settings' : undefined}
           >
-            <SlidersHorizontal size={20} className="flex-shrink-0" strokeWidth={1.5} />
-            <span className={`text-sm font-medium whitespace-nowrap transition-all duration-300 ${showLabels ? 'opacity-100' : 'lg:opacity-0 lg:w-0 lg:overflow-hidden'}`}>
+            <SlidersHorizontal size={22} className="flex-shrink-0" strokeWidth={1.5} />
+            <span className={`text-base font-medium whitespace-nowrap transition-all duration-300 ${showLabels ? 'opacity-100' : 'lg:opacity-0 lg:w-0 lg:overflow-hidden'}`}>
               Settings
             </span>
-          </button>
+          </NavLink>
         </div>
 
         {/* Account Section */}
@@ -165,8 +173,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen = false, setMob
               />
             </div>
             <div className={`flex-1 min-w-0 transition-all duration-300 ${showLabels ? 'opacity-100' : 'lg:opacity-0 lg:w-0 lg:overflow-hidden'}`}>
-              <p className="text-sm font-medium text-stone-100 truncate">Dr. Sarah Chen</p>
-              <p className="text-xs text-stone-500 truncate">Admin</p>
+              <p className="text-base font-medium text-stone-100 truncate">Dr. Sarah Chen</p>
+              <p className="text-sm text-stone-500 truncate">Admin</p>
             </div>
           </div>
         </div>

@@ -7,6 +7,8 @@ import { Header } from './components/Header';
 import { BottomNav } from './components/BottomNav';
 import { Dashboard } from './components/Dashboard';
 import { PracticeAnalysis } from './components/PracticeAnalysis';
+import { ClinicianOverview } from './components/ClinicianOverview';
+import { SettingsPage } from './components/SettingsPage';
 
 const ProtectedApp: React.FC = () => {
   const { isAuthenticated } = useAuth();
@@ -38,7 +40,8 @@ const ProtectedApp: React.FC = () => {
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/practice-analysis" element={<PracticeAnalysis />} />
-                <Route path="/clinician-overview" element={<div className="flex-1 p-4 sm:p-6 xl:p-8"><h1 className="text-2xl sm:text-3xl">Clinician Overview (Coming Soon)</h1></div>} />
+                <Route path="/clinician-overview" element={<ClinicianOverview />} />
+                <Route path="/settings" element={<SettingsPage />} />
               </Routes>
             </div>
             {/* Mobile Bottom Navigation */}
