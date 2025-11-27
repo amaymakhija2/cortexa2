@@ -588,100 +588,95 @@ export const PracticeAnalysis: React.FC = () => {
 
   return (
     <div
-      className={`flex-1 overflow-y-auto h-[calc(100vh-80px)] ${(isFinancialTab || isSessionsTab || isTeamComparisonTab || isCapacityClientTab) ? 'bg-gradient-to-br from-stone-50 via-orange-50/20 to-stone-100/50' : 'p-8 pt-2'}`}
+      className={`flex-1 overflow-y-auto h-[calc(100vh-80px)] ${(isFinancialTab || isSessionsTab || isTeamComparisonTab || isCapacityClientTab) ? 'bg-gradient-to-b from-stone-100 to-stone-50' : 'p-8 pt-2'}`}
     >
-      {/* Warm gradient overlay - same as Practice Overview */}
-      {(isFinancialTab || isSessionsTab || isTeamComparisonTab || isCapacityClientTab) && (
-        <div
-          className="fixed inset-0 pointer-events-none"
-          style={{
-            background: 'radial-gradient(ellipse at top, rgba(251, 191, 36, 0.03) 0%, transparent 50%)',
-          }}
-        />
-      )}
-
       {/* Financial Tab - Fully Redesigned */}
       {isFinancialTab && (
-        <div className="min-h-full relative">
-          {/* Integrated Header */}
-          <div className="sticky top-0 z-50 px-4 sm:px-6 lg:px-8 xl:px-10 pt-4 sm:pt-6 xl:pt-8 pb-4 xl:pb-6" style={{ background: 'linear-gradient(180deg, rgba(250,250,249,0.97) 0%, rgba(250,250,249,0.95) 80%, transparent 100%)' }}>
-            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 lg:gap-0">
-              {/* Title & Breadcrumb */}
-              <div>
-                <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
-                  <span className="text-stone-400 text-xs sm:text-sm font-medium uppercase tracking-widest">Detailed Analysis</span>
-                  <span className="text-stone-300">/</span>
-                  <span className="text-emerald-600 text-xs sm:text-sm font-bold uppercase tracking-widest">Financial</span>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-4">
+        <div className="min-h-full">
+          {/* Dark Header Section */}
+          <div
+            className="relative overflow-hidden"
+            style={{
+              background: 'linear-gradient(135deg, #1c1917 0%, #292524 50%, #1c1917 100%)'
+            }}
+          >
+            {/* Subtle grid pattern */}
+            <div
+              className="absolute inset-0 opacity-10"
+              style={{
+                backgroundImage: `linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
+                                 linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px)`,
+                backgroundSize: '32px 32px'
+              }}
+            />
+
+            {/* Warm glow accent */}
+            <div
+              className="absolute top-0 left-1/4 w-96 h-96 rounded-full opacity-20 blur-3xl"
+              style={{ background: 'radial-gradient(circle, #10b981 0%, transparent 70%)' }}
+            />
+
+            <div className="relative px-6 sm:px-8 lg:px-12 py-8 lg:py-10">
+              {/* Header row */}
+              <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
+                <div>
+                  <p className="text-emerald-500/80 text-sm font-semibold tracking-widest uppercase mb-2">
+                    Detailed Analysis
+                  </p>
                   <h1
-                    className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl text-stone-900 font-bold tracking-tight"
+                    className="text-4xl sm:text-5xl lg:text-6xl text-white tracking-tight"
                     style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                   >
                     Financial Performance
                   </h1>
-                  <span className="text-stone-400 text-sm sm:text-base font-medium">
-                    {getDateRangeLabel()}
-                  </span>
+                  <p className="text-stone-400 text-sm mt-2">{getDateRangeLabel()}</p>
                 </div>
-              </div>
 
-              {/* Time Period Selector - Redesigned */}
-              <div className="flex items-center gap-2 sm:gap-4 relative">
-                {/* Mobile: Select dropdown */}
-                <select
-                  value={timePeriod}
-                  onChange={(e) => setTimePeriod(e.target.value as any)}
-                  className="lg:hidden px-3 py-2 rounded-xl border border-stone-200 bg-white text-sm font-medium text-stone-700"
-                >
-                  {timePeriods.map((period) => (
-                    <option key={period.id} value={period.id}>{period.label}</option>
-                  ))}
-                  <option value="custom">Custom Range</option>
-                </select>
+                {/* Time Period Selector */}
+                <div className="flex items-center gap-3 relative">
+                  {/* Mobile: Select dropdown */}
+                  <select
+                    value={timePeriod}
+                    onChange={(e) => setTimePeriod(e.target.value as any)}
+                    className="lg:hidden px-3 py-2 rounded-xl border border-white/20 bg-white/10 text-sm font-medium text-white"
+                  >
+                    {timePeriods.map((period) => (
+                      <option key={period.id} value={period.id} className="text-stone-900">{period.label}</option>
+                    ))}
+                    <option value="custom" className="text-stone-900">Custom Range</option>
+                  </select>
 
-                {/* Desktop: Button group */}
-                <div
-                  className="hidden lg:flex items-center gap-1 p-1 xl:p-1.5 rounded-xl xl:rounded-2xl bg-white/80 backdrop-blur-sm"
-                  style={{
-                    boxShadow: '0 4px 20px -4px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.03)'
-                  }}
-                >
-                  {timePeriods.map((period) => (
+                  {/* Desktop: Button group */}
+                  <div className="hidden lg:flex items-center gap-1 p-1 rounded-xl bg-white/10 backdrop-blur-sm">
+                    {timePeriods.map((period) => (
+                      <button
+                        key={period.id}
+                        onClick={() => setTimePeriod(period.id)}
+                        className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
+                          timePeriod === period.id
+                            ? 'bg-white text-stone-900 shadow-lg'
+                            : 'text-white/70 hover:text-white hover:bg-white/10'
+                        }`}
+                      >
+                        {period.label}
+                      </button>
+                    ))}
+                    {/* Custom Range Button */}
                     <button
-                      key={period.id}
-                      onClick={() => setTimePeriod(period.id)}
-                      className={`px-3 lg:px-5 py-2 lg:py-2.5 rounded-lg lg:rounded-xl text-xs lg:text-sm font-semibold transition-all duration-300 ${
-                        timePeriod === period.id
-                          ? 'bg-stone-900 text-white shadow-lg'
-                          : 'text-stone-500 hover:text-stone-900 hover:bg-stone-100'
+                      onClick={() => setShowDatePicker(!showDatePicker)}
+                      className={`group px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 flex items-center gap-2 ${
+                        timePeriod === 'custom'
+                          ? 'bg-white text-stone-900 shadow-lg'
+                          : 'text-white/70 hover:text-white hover:bg-white/10'
                       }`}
                     >
-                      {period.label}
+                      <Calendar
+                        size={16}
+                        className={`transition-transform duration-500 ${showDatePicker ? 'rotate-12' : 'group-hover:rotate-6'}`}
+                      />
+                      <span>{timePeriod === 'custom' ? formatCustomRange() : 'Custom'}</span>
                     </button>
-                  ))}
-                  {/* Custom Range Button */}
-                  <button
-                    onClick={() => setShowDatePicker(!showDatePicker)}
-                    className={`group px-3 lg:px-5 py-2 lg:py-2.5 rounded-lg lg:rounded-xl text-xs lg:text-sm font-semibold transition-all duration-500 flex items-center gap-1.5 lg:gap-2.5 relative overflow-hidden ${
-                      timePeriod === 'custom'
-                        ? 'text-white shadow-lg'
-                        : 'text-stone-500 hover:text-stone-900'
-                    }`}
-                    style={{
-                      background: timePeriod === 'custom'
-                        ? 'linear-gradient(135deg, #1c1917 0%, #292524 50%, #1c1917 100%)'
-                        : 'transparent'
-                    }}
-                  >
-                    <Calendar
-                      size={16}
-                      className={`transition-transform duration-500 ${showDatePicker ? 'rotate-12' : 'group-hover:rotate-6'}`}
-                    />
-                    <span className="hidden lg:inline">{timePeriod === 'custom' ? formatCustomRange() : 'Custom'}</span>
-                    <span className="lg:hidden">{timePeriod === 'custom' ? 'Custom' : 'Custom'}</span>
-                  </button>
-                </div>
+                  </div>
 
                 {/* Simple & Elegant Date Picker */}
                 {showDatePicker && (
@@ -802,16 +797,16 @@ export const PracticeAnalysis: React.FC = () => {
               </div>
             </div>
 
-            {/* Tab Navigation - Minimal Pills */}
-            <div className="flex items-center gap-2 sm:gap-3 mt-4 sm:mt-6 xl:mt-8 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
+            {/* Tab Navigation - Dark theme pills */}
+            <div className="flex items-center gap-2 sm:gap-3 mt-6 overflow-x-auto scrollbar-hide pb-2">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`px-3 sm:px-4 xl:px-6 py-2 sm:py-2.5 xl:py-3 rounded-full text-xs sm:text-sm xl:text-base font-semibold transition-all duration-300 whitespace-nowrap flex-shrink-0 ${
+                  className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 whitespace-nowrap flex-shrink-0 ${
                     activeTab === tab.id
-                      ? 'bg-stone-900 text-white shadow-md'
-                      : 'text-stone-500 hover:text-stone-800 border border-stone-300 hover:border-stone-400 bg-white/50'
+                      ? 'bg-white text-stone-900 shadow-lg'
+                      : 'text-white/70 hover:text-white hover:bg-white/10 border border-white/10'
                   }`}
                 >
                   {tab.shortLabel}
@@ -819,9 +814,10 @@ export const PracticeAnalysis: React.FC = () => {
               ))}
             </div>
           </div>
+          </div>
 
           {/* Main Content */}
-          <div className="px-4 sm:px-6 lg:px-8 xl:px-10 pb-6 xl:pb-10 space-y-6 xl:space-y-8">
+          <div className="px-6 sm:px-8 lg:px-12 py-6 lg:py-8 space-y-6 xl:space-y-8">
 
             {/* Hero Stats Row */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-5 xl:gap-6">
@@ -1793,86 +1789,91 @@ export const PracticeAnalysis: React.FC = () => {
 
       {/* Sessions Tab - Fully Redesigned */}
       {isSessionsTab && (
-        <div className="min-h-full relative">
-          {/* Integrated Header */}
-          <div className="sticky top-0 z-50 px-4 sm:px-6 lg:px-8 xl:px-10 pt-4 sm:pt-6 xl:pt-8 pb-4 xl:pb-6" style={{ background: 'linear-gradient(180deg, rgba(250,250,249,0.97) 0%, rgba(250,250,249,0.95) 80%, transparent 100%)' }}>
-            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 lg:gap-0">
-              {/* Title & Breadcrumb */}
-              <div>
-                <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
-                  <span className="text-stone-400 text-xs sm:text-sm font-medium uppercase tracking-widest">Detailed Analysis</span>
-                  <span className="text-stone-300">/</span>
-                  <span className="text-cyan-600 text-xs sm:text-sm font-bold uppercase tracking-widest">Sessions</span>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-4">
+        <div className="min-h-full">
+          {/* Dark Header Section */}
+          <div
+            className="relative overflow-hidden"
+            style={{
+              background: 'linear-gradient(135deg, #1c1917 0%, #292524 50%, #1c1917 100%)'
+            }}
+          >
+            {/* Subtle grid pattern */}
+            <div
+              className="absolute inset-0 opacity-10"
+              style={{
+                backgroundImage: `linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
+                                 linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px)`,
+                backgroundSize: '32px 32px'
+              }}
+            />
+
+            {/* Warm glow accent */}
+            <div
+              className="absolute top-0 left-1/4 w-96 h-96 rounded-full opacity-20 blur-3xl"
+              style={{ background: 'radial-gradient(circle, #06b6d4 0%, transparent 70%)' }}
+            />
+
+            <div className="relative px-6 sm:px-8 lg:px-12 py-8 lg:py-10">
+              {/* Header row */}
+              <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
+                <div>
+                  <p className="text-cyan-500/80 text-sm font-semibold tracking-widest uppercase mb-2">
+                    Detailed Analysis
+                  </p>
                   <h1
-                    className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl text-stone-900 font-bold tracking-tight"
+                    className="text-4xl sm:text-5xl lg:text-6xl text-white tracking-tight"
                     style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                   >
                     Sessions Performance
                   </h1>
-                  <span className="text-stone-400 text-sm sm:text-base font-medium">
-                    {getDateRangeLabel()}
-                  </span>
+                  <p className="text-stone-400 text-sm mt-2">{getDateRangeLabel()}</p>
                 </div>
-              </div>
 
-              {/* Time Period Selector - Redesigned */}
-              <div className="flex items-center gap-2 sm:gap-4 relative">
-                {/* Mobile: Select dropdown */}
-                <select
-                  value={timePeriod}
-                  onChange={(e) => setTimePeriod(e.target.value as any)}
-                  className="lg:hidden px-3 py-2 rounded-xl border border-stone-200 bg-white text-sm font-medium text-stone-700"
-                >
-                  {timePeriods.map((period) => (
-                    <option key={period.id} value={period.id}>{period.label}</option>
-                  ))}
-                  <option value="custom">Custom Range</option>
-                </select>
+                {/* Time Period Selector */}
+                <div className="flex items-center gap-3 relative">
+                  {/* Mobile: Select dropdown */}
+                  <select
+                    value={timePeriod}
+                    onChange={(e) => setTimePeriod(e.target.value as any)}
+                    className="lg:hidden px-3 py-2 rounded-xl border border-white/20 bg-white/10 text-sm font-medium text-white"
+                  >
+                    {timePeriods.map((period) => (
+                      <option key={period.id} value={period.id} className="text-stone-900">{period.label}</option>
+                    ))}
+                    <option value="custom" className="text-stone-900">Custom Range</option>
+                  </select>
 
-                {/* Desktop: Button group */}
-                <div
-                  className="hidden lg:flex items-center gap-1 p-1 xl:p-1.5 rounded-xl xl:rounded-2xl bg-white/80 backdrop-blur-sm"
-                  style={{
-                    boxShadow: '0 4px 20px -4px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.03)'
-                  }}
-                >
-                  {timePeriods.map((period) => (
+                  {/* Desktop: Button group */}
+                  <div className="hidden lg:flex items-center gap-1 p-1 rounded-xl bg-white/10 backdrop-blur-sm">
+                    {timePeriods.map((period) => (
+                      <button
+                        key={period.id}
+                        onClick={() => setTimePeriod(period.id)}
+                        className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
+                          timePeriod === period.id
+                            ? 'bg-white text-stone-900 shadow-lg'
+                            : 'text-white/70 hover:text-white hover:bg-white/10'
+                        }`}
+                      >
+                        {period.label}
+                      </button>
+                    ))}
+                    {/* Custom Range Button */}
                     <button
-                      key={period.id}
-                      onClick={() => setTimePeriod(period.id)}
-                      className={`px-3 lg:px-5 py-2 lg:py-2.5 rounded-lg lg:rounded-xl text-xs lg:text-sm font-semibold transition-all duration-300 ${
-                        timePeriod === period.id
-                          ? 'bg-stone-900 text-white shadow-lg'
-                          : 'text-stone-500 hover:text-stone-900 hover:bg-stone-100'
+                      onClick={() => setShowDatePicker(!showDatePicker)}
+                      className={`group px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 flex items-center gap-2 ${
+                        timePeriod === 'custom'
+                          ? 'bg-white text-stone-900 shadow-lg'
+                          : 'text-white/70 hover:text-white hover:bg-white/10'
                       }`}
                     >
-                      {period.label}
+                      <Calendar
+                        size={16}
+                        className={`transition-transform duration-500 ${showDatePicker ? 'rotate-12' : 'group-hover:rotate-6'}`}
+                      />
+                      <span>{timePeriod === 'custom' ? formatCustomRange() : 'Custom'}</span>
                     </button>
-                  ))}
-                  {/* Custom Range Button */}
-                  <button
-                    onClick={() => setShowDatePicker(!showDatePicker)}
-                    className={`group px-3 lg:px-5 py-2 lg:py-2.5 rounded-lg lg:rounded-xl text-xs lg:text-sm font-semibold transition-all duration-500 flex items-center gap-1.5 lg:gap-2.5 relative overflow-hidden ${
-                      timePeriod === 'custom'
-                        ? 'text-white shadow-lg'
-                        : 'text-stone-500 hover:text-stone-900'
-                    }`}
-                    style={{
-                      background: timePeriod === 'custom'
-                        ? 'linear-gradient(135deg, #1c1917 0%, #292524 50%, #1c1917 100%)'
-                        : 'transparent'
-                    }}
-                  >
-                    <Calendar
-                      size={16}
-                      className={`transition-transform duration-500 ${showDatePicker ? 'rotate-12' : 'group-hover:rotate-6'}`}
-                    />
-                    <span className="hidden lg:inline">{timePeriod === 'custom' ? formatCustomRange() : 'Custom'}</span>
-                    <span className="lg:hidden">{timePeriod === 'custom' ? 'Custom' : 'Custom'}</span>
-                  </button>
-                </div>
+                  </div>
 
                 {/* Simple & Elegant Date Picker */}
                 {showDatePicker && (
@@ -1984,7 +1985,7 @@ export const PracticeAnalysis: React.FC = () => {
                     {/* Apply Button */}
                     <button
                       onClick={applyCustomRange}
-                      className="w-full py-3 rounded-xl bg-stone-900 text-white font-semibold transition-all hover:bg-stone-800 active:scale-[0.98]"
+                      className="w-full py-3 rounded-xl bg-white text-stone-900 font-semibold transition-all hover:bg-stone-100 active:scale-[0.98]"
                     >
                       Apply
                     </button>
@@ -1993,16 +1994,16 @@ export const PracticeAnalysis: React.FC = () => {
               </div>
             </div>
 
-            {/* Tab Navigation - Minimal Pills */}
-            <div className="flex items-center gap-2 sm:gap-3 mt-4 sm:mt-6 xl:mt-8 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
+            {/* Tab Navigation - Dark theme pills */}
+            <div className="flex items-center gap-2 sm:gap-3 mt-6 overflow-x-auto scrollbar-hide pb-2">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`px-3 sm:px-4 xl:px-6 py-2 sm:py-2.5 xl:py-3 rounded-full text-xs sm:text-sm xl:text-base font-semibold transition-all duration-300 whitespace-nowrap flex-shrink-0 ${
+                  className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-sm font-medium transition-all duration-300 whitespace-nowrap flex-shrink-0 ${
                     activeTab === tab.id
-                      ? 'bg-stone-900 text-white shadow-md'
-                      : 'text-stone-500 hover:text-stone-800 border border-stone-300 hover:border-stone-400 bg-white/50'
+                      ? 'bg-white text-stone-900 shadow-lg'
+                      : 'text-stone-400 hover:text-white border border-stone-600 hover:border-stone-500 bg-transparent'
                   }`}
                 >
                   {tab.shortLabel}
@@ -2010,9 +2011,10 @@ export const PracticeAnalysis: React.FC = () => {
               ))}
             </div>
           </div>
+        </div>
 
           {/* Main Content */}
-          <div className="px-4 sm:px-6 lg:px-8 xl:px-10 pb-6 xl:pb-10 space-y-6 xl:space-y-8">
+          <div className="px-4 sm:px-6 lg:px-8 xl:px-10 py-6 xl:py-10 space-y-6 xl:space-y-8">
 
             {/* Hero Stats Row */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-5 xl:gap-6">
@@ -3561,36 +3563,62 @@ export const PracticeAnalysis: React.FC = () => {
 
       {activeTab === 'capacity-client' && (
         <div className="min-h-full relative">
-          {/* Integrated Header - Matching Financial Tab */}
-          <div className="sticky top-0 z-50 px-4 sm:px-6 lg:px-8 xl:px-10 pt-4 sm:pt-6 xl:pt-8 pb-4 xl:pb-6" style={{ background: 'linear-gradient(180deg, rgba(250,250,249,0.97) 0%, rgba(250,250,249,0.95) 80%, transparent 100%)' }}>
-            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 lg:gap-0">
-              {/* Title & Breadcrumb */}
-              <div>
-                <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
-                  <span className="text-stone-400 text-xs sm:text-sm font-medium uppercase tracking-widest">Detailed Analysis</span>
-                  <span className="text-stone-300">/</span>
-                  <span className="text-amber-600 text-xs sm:text-sm font-bold uppercase tracking-widest">Capacity & Clients</span>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-4">
-                  <h1
-                    className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl text-stone-900 font-bold tracking-tight"
-                    style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-                  >
-                    Capacity & Client Analysis
-                  </h1>
-                  <span className="text-stone-400 text-sm sm:text-base font-medium">
-                    {getDateRangeLabel()}
-                  </span>
-                </div>
-              </div>
+          {/* Dark Header with Amber accent for Capacity */}
+          <div
+            className="relative overflow-hidden"
+            style={{
+              background: 'linear-gradient(135deg, #1c1917 0%, #292524 50%, #1c1917 100%)'
+            }}
+          >
+            {/* Subtle grid pattern */}
+            <div
+              className="absolute inset-0 opacity-10"
+              style={{
+                backgroundImage: `linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
+                                 linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px)`,
+                backgroundSize: '32px 32px'
+              }}
+            />
+            {/* Amber glow accent for Capacity */}
+            <div
+              className="absolute top-0 left-1/4 w-96 h-96 rounded-full opacity-20 blur-3xl"
+              style={{ background: 'radial-gradient(circle, #f59e0b 0%, transparent 70%)' }}
+            />
+            <div
+              className="absolute bottom-0 right-1/4 w-64 h-64 rounded-full opacity-15 blur-2xl"
+              style={{ background: 'radial-gradient(circle, #fbbf24 0%, transparent 70%)' }}
+            />
 
-              {/* Time Period Selector */}
+            {/* Header content */}
+            <div className="relative z-10 px-4 sm:px-6 lg:px-8 xl:px-10 pt-6 sm:pt-8 pb-6">
+              <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 lg:gap-0">
+                {/* Title & Breadcrumb */}
+                <div>
+                  <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                    <span className="text-stone-500 text-xs sm:text-sm font-medium uppercase tracking-widest">Detailed Analysis</span>
+                    <span className="text-stone-600">/</span>
+                    <span className="text-amber-400 text-xs sm:text-sm font-bold uppercase tracking-widest">Capacity & Clients</span>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-4">
+                    <h1
+                      className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl text-white font-bold tracking-tight"
+                      style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                    >
+                      Capacity & Client Analysis
+                    </h1>
+                    <span className="text-stone-400 text-sm sm:text-base font-medium">
+                      {getDateRangeLabel()}
+                    </span>
+                  </div>
+                </div>
+
+              {/* Time Period Selector - Dark Theme */}
               <div className="flex items-center gap-2 sm:gap-4 relative">
                 {/* Mobile: Select dropdown */}
                 <select
                   value={timePeriod}
                   onChange={(e) => setTimePeriod(e.target.value as TimePeriod)}
-                  className="lg:hidden px-3 py-2 rounded-xl border border-stone-200 bg-white text-sm font-medium text-stone-700"
+                  className="lg:hidden px-3 py-2 rounded-xl border border-stone-600 bg-stone-800 text-sm font-medium text-white"
                 >
                   {timePeriods.map((period) => (
                     <option key={period.id} value={period.id}>{period.label}</option>
@@ -3600,9 +3628,9 @@ export const PracticeAnalysis: React.FC = () => {
 
                 {/* Desktop: Button group */}
                 <div
-                  className="hidden lg:flex items-center gap-1 p-1 xl:p-1.5 rounded-xl xl:rounded-2xl bg-white/80 backdrop-blur-sm"
+                  className="hidden lg:flex items-center gap-1 p-1 xl:p-1.5 rounded-xl xl:rounded-2xl bg-stone-800/60 backdrop-blur-sm"
                   style={{
-                    boxShadow: '0 4px 20px -4px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.03)'
+                    boxShadow: '0 4px 20px -4px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.05)'
                   }}
                 >
                   {timePeriods.map((period) => (
@@ -3611,8 +3639,8 @@ export const PracticeAnalysis: React.FC = () => {
                       onClick={() => setTimePeriod(period.id)}
                       className={`px-3 lg:px-5 py-2 lg:py-2.5 rounded-lg lg:rounded-xl text-xs lg:text-sm font-semibold transition-all duration-300 ${
                         timePeriod === period.id
-                          ? 'bg-stone-900 text-white shadow-lg'
-                          : 'text-stone-500 hover:text-stone-900 hover:bg-stone-100'
+                          ? 'bg-white text-stone-900 shadow-lg'
+                          : 'text-stone-400 hover:text-white hover:bg-stone-700/50'
                       }`}
                     >
                       {period.label}
@@ -3623,14 +3651,9 @@ export const PracticeAnalysis: React.FC = () => {
                     onClick={() => setShowDatePicker(!showDatePicker)}
                     className={`group px-3 lg:px-5 py-2 lg:py-2.5 rounded-lg lg:rounded-xl text-xs lg:text-sm font-semibold transition-all duration-500 flex items-center gap-1.5 lg:gap-2.5 relative overflow-hidden ${
                       timePeriod === 'custom'
-                        ? 'text-white shadow-lg'
-                        : 'text-stone-500 hover:text-stone-900'
+                        ? 'bg-white text-stone-900 shadow-lg'
+                        : 'text-stone-400 hover:text-white'
                     }`}
-                    style={{
-                      background: timePeriod === 'custom'
-                        ? 'linear-gradient(135deg, #1c1917 0%, #292524 50%, #1c1917 100%)'
-                        : 'transparent'
-                    }}
                   >
                     <Calendar
                       size={16}
@@ -3641,7 +3664,7 @@ export const PracticeAnalysis: React.FC = () => {
                   </button>
                 </div>
 
-                {/* Custom Date Picker - Same as Financial Tab */}
+                {/* Custom Date Picker */}
                 {showDatePicker && (
                   <div
                     className="absolute top-full right-0 mt-3 z-[100000] rounded-2xl bg-white p-4 sm:p-6"
@@ -3741,7 +3764,7 @@ export const PracticeAnalysis: React.FC = () => {
                     {/* Apply Button */}
                     <button
                       onClick={applyCustomRange}
-                      className="w-full py-3 rounded-xl bg-stone-900 text-white font-semibold transition-all hover:bg-stone-800 active:scale-[0.98]"
+                      className="w-full py-3 rounded-xl bg-white text-stone-900 font-semibold transition-all hover:bg-stone-100 active:scale-[0.98]"
                     >
                       Apply
                     </button>
@@ -3750,16 +3773,16 @@ export const PracticeAnalysis: React.FC = () => {
               </div>
             </div>
 
-            {/* Tab Navigation - Minimal Pills */}
-            <div className="flex items-center gap-2 sm:gap-3 mt-4 sm:mt-6 xl:mt-8 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
+            {/* Tab Navigation - Dark theme pills */}
+            <div className="flex items-center gap-2 sm:gap-3 mt-6 overflow-x-auto scrollbar-hide pb-2">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`px-3 sm:px-4 xl:px-6 py-2 sm:py-2.5 xl:py-3 rounded-full text-xs sm:text-sm xl:text-base font-semibold transition-all duration-300 whitespace-nowrap flex-shrink-0 ${
+                  className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-sm font-medium transition-all duration-300 whitespace-nowrap flex-shrink-0 ${
                     activeTab === tab.id
-                      ? 'bg-stone-900 text-white shadow-md'
-                      : 'text-stone-500 hover:text-stone-800 border border-stone-300 hover:border-stone-400 bg-white/50'
+                      ? 'bg-white text-stone-900 shadow-lg'
+                      : 'text-stone-400 hover:text-white border border-stone-600 hover:border-stone-500 bg-transparent'
                   }`}
                 >
                   {tab.shortLabel}
@@ -3767,9 +3790,10 @@ export const PracticeAnalysis: React.FC = () => {
               ))}
             </div>
           </div>
+        </div>
 
           {/* Main Content */}
-          <div className="px-4 sm:px-6 lg:px-8 xl:px-10 pb-6 xl:pb-10 space-y-6 xl:space-y-8">
+          <div className="px-4 sm:px-6 lg:px-8 xl:px-10 py-6 xl:py-10 space-y-6 xl:space-y-8">
 
             {/* Hero Stats Row - Large & Impactful */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 xl:gap-6">
@@ -6256,39 +6280,65 @@ export const PracticeAnalysis: React.FC = () => {
         </div>
       )}
 
-      {/* Team Comparison Tab - Premium Design matching Financial Tab */}
+      {/* Team Comparison Tab - Premium Dark Header Design */}
       {isTeamComparisonTab && (
         <div className="min-h-full relative">
-          {/* Integrated Header */}
-          <div className="sticky top-0 z-50 px-4 sm:px-6 lg:px-8 xl:px-10 pt-4 sm:pt-6 xl:pt-8 pb-4 xl:pb-6" style={{ background: 'linear-gradient(180deg, rgba(250,250,249,0.97) 0%, rgba(250,250,249,0.95) 80%, transparent 100%)' }}>
-            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 lg:gap-0">
-              {/* Title & Breadcrumb */}
-              <div>
-                <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
-                  <span className="text-stone-400 text-xs sm:text-sm font-medium uppercase tracking-widest">Detailed Analysis</span>
-                  <span className="text-stone-300">/</span>
-                  <span className="text-indigo-600 text-xs sm:text-sm font-bold uppercase tracking-widest">Team</span>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-4">
-                  <h1
-                    className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl text-stone-900 font-bold tracking-tight"
-                    style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-                  >
-                    Team Comparison
-                  </h1>
-                  <span className="text-stone-400 text-sm sm:text-base font-medium">
-                    {getDateRangeLabel()}
-                  </span>
-                </div>
-              </div>
+          {/* Dark Header with Team accent */}
+          <div
+            className="relative overflow-hidden"
+            style={{
+              background: 'linear-gradient(135deg, #1c1917 0%, #292524 50%, #1c1917 100%)'
+            }}
+          >
+            {/* Subtle grid pattern */}
+            <div
+              className="absolute inset-0 opacity-10"
+              style={{
+                backgroundImage: `linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
+                                 linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px)`,
+                backgroundSize: '32px 32px'
+              }}
+            />
+            {/* Indigo glow accent for Team */}
+            <div
+              className="absolute top-0 left-1/4 w-96 h-96 rounded-full opacity-20 blur-3xl"
+              style={{ background: 'radial-gradient(circle, #6366f1 0%, transparent 70%)' }}
+            />
+            <div
+              className="absolute bottom-0 right-1/4 w-64 h-64 rounded-full opacity-15 blur-2xl"
+              style={{ background: 'radial-gradient(circle, #818cf8 0%, transparent 70%)' }}
+            />
 
-              {/* Time Period Selector - Same as Financial */}
+            {/* Header content */}
+            <div className="relative z-10 px-4 sm:px-6 lg:px-8 xl:px-10 pt-6 sm:pt-8 pb-6">
+              <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 lg:gap-0">
+                {/* Title & Breadcrumb */}
+                <div>
+                  <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                    <span className="text-stone-500 text-xs sm:text-sm font-medium uppercase tracking-widest">Detailed Analysis</span>
+                    <span className="text-stone-600">/</span>
+                    <span className="text-indigo-400 text-xs sm:text-sm font-bold uppercase tracking-widest">Team</span>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-4">
+                    <h1
+                      className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl text-white font-bold tracking-tight"
+                      style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                    >
+                      Team Comparison
+                    </h1>
+                    <span className="text-stone-400 text-sm sm:text-base font-medium">
+                      {getDateRangeLabel()}
+                    </span>
+                  </div>
+                </div>
+
+              {/* Time Period Selector - Dark Theme */}
               <div className="flex items-center gap-2 sm:gap-4 relative">
                 {/* Mobile: Select dropdown */}
                 <select
                   value={timePeriod}
                   onChange={(e) => setTimePeriod(e.target.value as any)}
-                  className="md:hidden px-3 py-2 rounded-xl border border-stone-200 bg-white text-sm font-medium text-stone-700"
+                  className="md:hidden px-3 py-2 rounded-xl border border-stone-600 bg-stone-800 text-sm font-medium text-white"
                 >
                   {timePeriods.map((period) => (
                     <option key={period.id} value={period.id}>{period.label}</option>
@@ -6298,9 +6348,9 @@ export const PracticeAnalysis: React.FC = () => {
 
                 {/* Desktop: Button group */}
                 <div
-                  className="hidden md:flex items-center gap-1 p-1 lg:p-1.5 rounded-xl lg:rounded-2xl bg-white/80 backdrop-blur-sm"
+                  className="hidden md:flex items-center gap-1 p-1 lg:p-1.5 rounded-xl lg:rounded-2xl bg-stone-800/60 backdrop-blur-sm"
                   style={{
-                    boxShadow: '0 4px 20px -4px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.03)'
+                    boxShadow: '0 4px 20px -4px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.05)'
                   }}
                 >
                   {timePeriods.map((period) => (
@@ -6309,8 +6359,8 @@ export const PracticeAnalysis: React.FC = () => {
                       onClick={() => setTimePeriod(period.id)}
                       className={`px-3 lg:px-5 py-2 lg:py-2.5 rounded-lg lg:rounded-xl text-xs lg:text-sm font-semibold transition-all duration-300 ${
                         timePeriod === period.id
-                          ? 'bg-stone-900 text-white shadow-lg'
-                          : 'text-stone-500 hover:text-stone-900 hover:bg-stone-100'
+                          ? 'bg-white text-stone-900 shadow-lg'
+                          : 'text-stone-400 hover:text-white hover:bg-stone-700/50'
                       }`}
                     >
                       {period.label}
@@ -6321,14 +6371,9 @@ export const PracticeAnalysis: React.FC = () => {
                     onClick={() => setShowDatePicker(!showDatePicker)}
                     className={`group px-3 lg:px-5 py-2 lg:py-2.5 rounded-lg lg:rounded-xl text-xs lg:text-sm font-semibold transition-all duration-500 flex items-center gap-1.5 lg:gap-2.5 relative overflow-hidden ${
                       timePeriod === 'custom'
-                        ? 'text-white shadow-lg'
-                        : 'text-stone-500 hover:text-stone-900'
+                        ? 'bg-white text-stone-900 shadow-lg'
+                        : 'text-stone-400 hover:text-white'
                     }`}
-                    style={{
-                      background: timePeriod === 'custom'
-                        ? 'linear-gradient(135deg, #1c1917 0%, #292524 50%, #1c1917 100%)'
-                        : 'transparent'
-                    }}
                   >
                     <Calendar
                       size={16}
@@ -6339,7 +6384,7 @@ export const PracticeAnalysis: React.FC = () => {
                   </button>
                 </div>
 
-                {/* Date Picker Dropdown - Same as Financial */}
+                {/* Date Picker Dropdown */}
                 {showDatePicker && (
                   <div
                     className="absolute top-full right-0 mt-3 z-[100000] rounded-2xl bg-white p-4 sm:p-6"
@@ -6425,11 +6470,7 @@ export const PracticeAnalysis: React.FC = () => {
                         setTimePeriod('custom');
                         setShowDatePicker(false);
                       }}
-                      className="w-full py-3 rounded-xl text-white font-semibold transition-all duration-300"
-                      style={{
-                        background: 'linear-gradient(135deg, #1c1917 0%, #292524 50%, #1c1917 100%)',
-                        boxShadow: '0 4px 12px -2px rgba(0, 0, 0, 0.3)'
-                      }}
+                      className="w-full py-3 rounded-xl bg-white text-stone-900 font-semibold transition-all hover:bg-stone-100 active:scale-[0.98]"
                     >
                       Apply Range
                     </button>
@@ -6438,16 +6479,16 @@ export const PracticeAnalysis: React.FC = () => {
               </div>
             </div>
 
-            {/* Tab Navigation - Minimal Pills */}
-            <div className="flex items-center gap-2 sm:gap-3 mt-4 sm:mt-6 xl:mt-8 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
+            {/* Tab Navigation - Dark theme pills */}
+            <div className="flex items-center gap-2 sm:gap-3 mt-6 overflow-x-auto scrollbar-hide pb-2">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`px-3 sm:px-4 xl:px-6 py-2 sm:py-2.5 xl:py-3 rounded-full text-xs sm:text-sm xl:text-base font-semibold transition-all duration-300 whitespace-nowrap flex-shrink-0 ${
+                  className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-sm font-medium transition-all duration-300 whitespace-nowrap flex-shrink-0 ${
                     activeTab === tab.id
-                      ? 'bg-stone-900 text-white shadow-md'
-                      : 'text-stone-500 hover:text-stone-800 border border-stone-300 hover:border-stone-400 bg-white/50'
+                      ? 'bg-white text-stone-900 shadow-lg'
+                      : 'text-stone-400 hover:text-white border border-stone-600 hover:border-stone-500 bg-transparent'
                   }`}
                 >
                   {tab.shortLabel}
@@ -6455,9 +6496,10 @@ export const PracticeAnalysis: React.FC = () => {
               ))}
             </div>
           </div>
+        </div>
 
           {/* Main Content */}
-          <div className="px-4 sm:px-6 lg:px-8 xl:px-10 pb-6 xl:pb-10 space-y-6 xl:space-y-8">
+          <div className="px-4 sm:px-6 lg:px-8 xl:px-10 py-6 xl:py-10 space-y-6 xl:space-y-8">
             {/* Summary Stats Row */}
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 xl:gap-6">
               {/* Total Clinicians */}

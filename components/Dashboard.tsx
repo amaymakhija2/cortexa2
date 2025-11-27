@@ -186,9 +186,9 @@ export const Dashboard: React.FC = () => {
   // Get the display title based on view mode
   const getTitle = () => {
     if (viewMode === 'live') {
-      return `${FULL_MONTHS[now.getMonth()]} ${now.getFullYear()} Practice Review`;
+      return `${FULL_MONTHS[now.getMonth()]} ${now.getFullYear()}`;
     }
-    return `${FULL_MONTHS[selectedMonth]} ${selectedYear} Practice Review`;
+    return `${FULL_MONTHS[selectedMonth]} ${selectedYear}`;
   };
 
   // Check if cards overflow the container
@@ -286,153 +286,179 @@ export const Dashboard: React.FC = () => {
   ];
 
   return (
-    <div className="flex-1 flex flex-col h-[calc(100vh-80px)] overflow-y-auto bg-gradient-to-br from-stone-50 via-orange-50/20 to-stone-100/50">
+    <div className="flex-1 flex flex-col h-[calc(100vh-80px)] overflow-y-auto bg-gradient-to-b from-stone-100 to-stone-50">
+      <div className="min-h-full flex flex-col">
 
-      {/* Warm gradient overlay */}
-      <div
-        className="fixed inset-0 pointer-events-none"
-        style={{
-          background: 'radial-gradient(ellipse at top, rgba(251, 191, 36, 0.03) 0%, transparent 50%)',
-        }}
-      />
+        {/* =============================================
+            DARK HEADER SECTION
+            ============================================= */}
+        <div
+          className="relative overflow-hidden flex-shrink-0"
+          style={{
+            background: 'linear-gradient(135deg, #1c1917 0%, #292524 50%, #1c1917 100%)'
+          }}
+        >
+          {/* Subtle grid pattern */}
+          <div
+            className="absolute inset-0 opacity-10"
+            style={{
+              backgroundImage: `linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
+                               linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px)`,
+              backgroundSize: '32px 32px'
+            }}
+          />
 
-      {/* Header Section */}
-      <div className="px-4 sm:px-6 lg:px-8 xl:px-10 pt-4 sm:pt-6 xl:pt-8 pb-4 xl:pb-6 flex-shrink-0 relative">
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 lg:gap-0">
-          <div>
-            <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
-              <span className="text-stone-400 text-xs sm:text-sm font-medium uppercase tracking-widest">Practice</span>
-              <span className="text-stone-300">/</span>
-              <span className="text-amber-600 text-xs sm:text-sm font-bold uppercase tracking-widest">Overview</span>
+          {/* Warm glow accent */}
+          <div
+            className="absolute top-0 left-1/4 w-96 h-96 rounded-full opacity-20 blur-3xl"
+            style={{ background: 'radial-gradient(circle, #f59e0b 0%, transparent 70%)' }}
+          />
+
+          <div className="relative px-6 sm:px-8 lg:px-12 py-8 lg:py-10">
+            {/* Header row */}
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+              <div>
+                <p className="text-amber-500/80 text-sm font-semibold tracking-widest uppercase mb-2">
+                  Practice Overview
+                </p>
+                <h1
+                  className="text-4xl sm:text-5xl lg:text-6xl text-white tracking-tight"
+                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  {getTitle()}
+                </h1>
+              </div>
+
+              {/* Live/Historical Toggle */}
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1 p-1 rounded-xl bg-white/10 backdrop-blur-sm">
+                  <button
+                    onClick={() => setViewMode('live')}
+                    className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
+                      viewMode === 'live'
+                        ? 'bg-white text-stone-900 shadow-lg'
+                        : 'text-white/70 hover:text-white hover:bg-white/10'
+                    }`}
+                  >
+                    Live
+                  </button>
+                  <button
+                    onClick={() => setViewMode('historical')}
+                    className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
+                      viewMode === 'historical'
+                        ? 'bg-white text-stone-900 shadow-lg'
+                        : 'text-white/70 hover:text-white hover:bg-white/10'
+                    }`}
+                  >
+                    Historical
+                  </button>
+                </div>
+
+                {viewMode === 'historical' && (
+                  <MonthPicker
+                    selectedMonth={selectedMonth}
+                    selectedYear={selectedYear}
+                    onSelect={handleMonthSelect}
+                    minYear={2020}
+                    maxYear={new Date().getFullYear()}
+                    autoOpen={true}
+                  />
+                )}
+              </div>
             </div>
-            <div className="flex items-baseline gap-4">
-              <h1
-                className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl text-stone-900 font-bold tracking-tight"
-                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-              >
-                {getTitle()}
-              </h1>
-            </div>
-          </div>
 
-          {/* Mode Toggle */}
-          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-            <div className="flex items-center p-1 rounded-full bg-stone-100 border border-stone-200/60">
-              <button
-                onClick={() => setViewMode('live')}
-                className={`px-3 sm:px-5 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 ${
-                  viewMode === 'live'
-                    ? 'bg-stone-900 text-white shadow-sm'
-                    : 'text-stone-500 hover:text-stone-700'
-                }`}
-              >
-                Live
-              </button>
-              <button
-                onClick={() => setViewMode('historical')}
-                className={`px-3 sm:px-5 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 ${
-                  viewMode === 'historical'
-                    ? 'bg-stone-900 text-white shadow-sm'
-                    : 'text-stone-500 hover:text-stone-700'
-                }`}
-              >
-                Historical
-              </button>
-            </div>
-
-            {viewMode === 'historical' && (
-              <MonthPicker
-                selectedMonth={selectedMonth}
-                selectedYear={selectedYear}
-                onSelect={handleMonthSelect}
-                minYear={2020}
-                maxYear={new Date().getFullYear()}
-                autoOpen={true}
-              />
-            )}
           </div>
         </div>
-      </div>
 
-      {/* Main Layout */}
-      <div className="flex flex-col gap-4 sm:gap-6 xl:gap-8 flex-1 min-h-0 px-4 sm:px-6 lg:px-8 xl:px-10">
-        {/* Metrics Row */}
-        <div className="flex-shrink-0">
-          <MetricsRow metrics={metrics} />
-        </div>
+        {/* =============================================
+            MAIN CONTENT AREA
+            ============================================= */}
+        <div className="flex flex-col gap-6 lg:gap-8 flex-1 min-h-0 px-6 sm:px-8 lg:px-12 py-6 lg:py-8">
 
-        {/* Priority Tasks Section */}
-        <div className="flex flex-col gap-3 sm:gap-4 pb-4 sm:pb-6 flex-1">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0 flex-shrink-0">
+          {/* Metrics Row */}
+          <div className="flex-shrink-0">
             <h2
-              className="text-xl sm:text-2xl xl:text-3xl text-stone-900 font-bold tracking-tight"
+              className="text-xl sm:text-2xl text-stone-900 font-bold tracking-tight mb-4"
               style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
             >
-              Priority Tasks
-              <span className="ml-2 sm:ml-3 text-sm sm:text-base font-medium text-stone-400">
-                {totalCards} items
-              </span>
+              Key Metrics
             </h2>
-
-            {/* Navigation - only show if cards overflow */}
-            {needsNavigation && (
-              <div className="flex items-center gap-2 sm:gap-3">
-                <div className="flex items-center gap-1 sm:gap-1.5 mr-2 sm:mr-3">
-                  {Array.from({ length: totalCards }).map((_, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => {
-                        setCurrentCardIndex(idx);
-                        scrollToCard(idx);
-                      }}
-                      className={`transition-all duration-300 rounded-full ${
-                        currentCardIndex === idx
-                          ? 'w-5 sm:w-6 h-1 sm:h-1.5 bg-stone-800'
-                          : 'w-1 sm:w-1.5 h-1 sm:h-1.5 bg-stone-300 hover:bg-stone-400'
-                      }`}
-                      aria-label={`Go to card ${idx + 1}`}
-                    />
-                  ))}
-                </div>
-                <button
-                  onClick={handlePrevious}
-                  disabled={currentCardIndex === 0}
-                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white border border-stone-200 flex items-center justify-center transition-all hover:border-stone-300 hover:shadow-sm disabled:opacity-30 disabled:cursor-not-allowed"
-                  aria-label="Previous card"
-                >
-                  <ChevronLeft size={16} className="text-stone-600" />
-                </button>
-                <button
-                  onClick={handleNext}
-                  disabled={currentCardIndex === totalCards - 1}
-                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white border border-stone-200 flex items-center justify-center transition-all hover:border-stone-300 hover:shadow-sm disabled:opacity-30 disabled:cursor-not-allowed"
-                  aria-label="Next card"
-                >
-                  <ChevronRight size={16} className="text-stone-600" />
-                </button>
-              </div>
-            )}
+            <MetricsRow metrics={metrics} />
           </div>
 
-          {/* Cards Container */}
-          <div className="relative flex-1 min-h-0 -mx-4 sm:-mx-6 lg:-mx-8 xl:-mx-10">
-            <div
-              ref={scrollContainerRef}
-              className="flex gap-3 sm:gap-4 xl:gap-5 h-full overflow-x-auto overflow-y-hidden snap-x snap-mandatory scrollbar-hide pb-2 px-4 sm:px-6 lg:px-8 xl:px-10"
-              style={{
-                scrollbarWidth: 'none',
-                msOverflowStyle: 'none',
-                WebkitOverflowScrolling: 'touch',
-              }}
-            >
-              {priorityCards.map((card, index) => (
-                <div
-                  key={index}
-                  className="snap-start flex-shrink-0 h-full w-[280px] sm:w-[320px] md:w-[340px] lg:w-[calc(25%-12px)]"
-                >
-                  {card}
+          {/* Priority Tasks Section */}
+          <div className="flex flex-col gap-4 pb-4 sm:pb-6 flex-1">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0 flex-shrink-0">
+              <h2
+                className="text-xl sm:text-2xl text-stone-900 font-bold tracking-tight"
+                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+              >
+                Priority Tasks
+                <span className="ml-3 text-sm font-medium text-stone-400">
+                  {totalCards} items
+                </span>
+              </h2>
+
+              {/* Navigation - only show if cards overflow */}
+              {needsNavigation && (
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1.5 mr-3">
+                    {Array.from({ length: totalCards }).map((_, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => {
+                          setCurrentCardIndex(idx);
+                          scrollToCard(idx);
+                        }}
+                        className={`transition-all duration-300 rounded-full ${
+                          currentCardIndex === idx
+                            ? 'w-6 h-1.5 bg-stone-800'
+                            : 'w-1.5 h-1.5 bg-stone-300 hover:bg-stone-400'
+                        }`}
+                        aria-label={`Go to card ${idx + 1}`}
+                      />
+                    ))}
+                  </div>
+                  <button
+                    onClick={handlePrevious}
+                    disabled={currentCardIndex === 0}
+                    className="w-9 h-9 rounded-full bg-white border border-stone-200 flex items-center justify-center transition-all hover:border-stone-300 hover:shadow-sm disabled:opacity-30 disabled:cursor-not-allowed"
+                    aria-label="Previous card"
+                  >
+                    <ChevronLeft size={16} className="text-stone-600" />
+                  </button>
+                  <button
+                    onClick={handleNext}
+                    disabled={currentCardIndex === totalCards - 1}
+                    className="w-9 h-9 rounded-full bg-white border border-stone-200 flex items-center justify-center transition-all hover:border-stone-300 hover:shadow-sm disabled:opacity-30 disabled:cursor-not-allowed"
+                    aria-label="Next card"
+                  >
+                    <ChevronRight size={16} className="text-stone-600" />
+                  </button>
                 </div>
-              ))}
+              )}
+            </div>
+
+            {/* Cards Container */}
+            <div className="relative flex-1 min-h-0 -mx-6 sm:-mx-8 lg:-mx-12">
+              <div
+                ref={scrollContainerRef}
+                className="flex gap-4 lg:gap-5 h-full overflow-x-auto overflow-y-hidden snap-x snap-mandatory scrollbar-hide pb-2 px-6 sm:px-8 lg:px-12"
+                style={{
+                  scrollbarWidth: 'none',
+                  msOverflowStyle: 'none',
+                  WebkitOverflowScrolling: 'touch',
+                }}
+              >
+                {priorityCards.map((card, index) => (
+                  <div
+                    key={index}
+                    className="snap-start flex-shrink-0 h-full w-[280px] sm:w-[320px] md:w-[340px] lg:w-[calc(25%-12px)]"
+                  >
+                    {card}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
