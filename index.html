@@ -2,11 +2,58 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Cortexa</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Serif+Display&display=swap" rel="stylesheet">
     <style>
+      /* ===== RESPONSIVE CSS CUSTOM PROPERTIES ===== */
+      :root {
+        /* Fluid Typography Scale - optimized for 13-14" laptops */
+        --text-xs: clamp(0.7rem, 0.65rem + 0.25vw, 0.875rem);
+        --text-sm: clamp(0.8rem, 0.75rem + 0.25vw, 1rem);
+        --text-base: clamp(0.9rem, 0.85rem + 0.25vw, 1.125rem);
+        --text-lg: clamp(1rem, 0.95rem + 0.25vw, 1.25rem);
+        --text-xl: clamp(1.1rem, 1rem + 0.5vw, 1.5rem);
+        --text-2xl: clamp(1.25rem, 1.1rem + 0.75vw, 1.875rem);
+        --text-3xl: clamp(1.5rem, 1.25rem + 1.25vw, 2.25rem);
+        --text-4xl: clamp(1.75rem, 1.5rem + 1.25vw, 2.75rem);
+        --text-5xl: clamp(2rem, 1.75rem + 1.25vw, 3.25rem);
+
+        /* Chart Font Sizes - Proportional scaling */
+        --chart-tick: clamp(10px, 9px + 0.4vw, 14px);
+        --chart-label: clamp(11px, 10px + 0.4vw, 15px);
+        --chart-value: clamp(12px, 11px + 0.4vw, 16px);
+
+        /* Spacing Scale */
+        --space-xs: clamp(0.25rem, 0.2rem + 0.25vw, 0.5rem);
+        --space-sm: clamp(0.5rem, 0.4rem + 0.5vw, 0.75rem);
+        --space-md: clamp(0.75rem, 0.6rem + 0.75vw, 1.25rem);
+        --space-lg: clamp(1rem, 0.75rem + 1.25vw, 1.75rem);
+        --space-xl: clamp(1.5rem, 1rem + 2.5vw, 2.5rem);
+
+        /* Responsive chart heights */
+        --chart-height-sm: clamp(280px, 40vh, 380px);
+        --chart-height-md: clamp(350px, 50vh, 500px);
+        --chart-height-lg: clamp(400px, 55vh, 600px);
+
+        /* Card constraints */
+        --card-min-width: 280px;
+        --card-max-width: 420px;
+
+        /* Gap scale */
+        --gap-sm: clamp(8px, 1.5vw, 12px);
+        --gap-md: clamp(12px, 2vw, 20px);
+        --gap-lg: clamp(16px, 2.5vw, 28px);
+      }
+
+      /* Dynamic viewport height support */
+      @supports (height: 100dvh) {
+        .h-dvh { height: 100dvh; }
+        .min-h-dvh { min-height: 100dvh; }
+        .max-h-dvh { max-height: 100dvh; }
+      }
+
       body {
         font-family: 'DM Sans', system-ui, sans-serif;
         background-color: #fafaf9;
@@ -40,6 +87,47 @@
       }
       .scrollbar-hide::-webkit-scrollbar {
         display: none;
+      }
+
+      /* ===== SAFE AREA INSETS (iOS notch/home indicator) ===== */
+      .safe-area-top {
+        padding-top: env(safe-area-inset-top, 0px);
+      }
+      .safe-area-bottom {
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+      }
+      .safe-area-left {
+        padding-left: env(safe-area-inset-left, 0px);
+      }
+      .safe-area-right {
+        padding-right: env(safe-area-inset-right, 0px);
+      }
+      .pt-safe {
+        padding-top: env(safe-area-inset-top, 0px);
+      }
+      .pb-safe {
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+      }
+
+      /* ===== MOBILE TOUCH IMPROVEMENTS ===== */
+      @media (max-width: 768px) {
+        /* Ensure minimum touch target size */
+        button, a, [role="button"] {
+          min-height: 44px;
+          min-width: 44px;
+        }
+
+        /* Disable text selection on interactive elements */
+        button, a {
+          -webkit-user-select: none;
+          user-select: none;
+          -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Smoother scrolling on iOS */
+        * {
+          -webkit-overflow-scrolling: touch;
+        }
       }
     </style>
   <script type="importmap">

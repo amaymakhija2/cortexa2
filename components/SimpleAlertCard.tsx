@@ -77,44 +77,44 @@ export const SimpleAlertCard: React.FC<SimpleAlertCardProps> = ({
         {/* Accent line */}
         <div className={`h-1 ${config.accent}`} />
 
-        <div className="flex flex-col h-full p-5">
+        <div className="flex flex-col h-full p-4 sm:p-5">
 
           {/* Badge */}
-          <div className="flex items-center gap-3 mb-4">
-            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${config.badge}`}>
+          <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+            <div className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full ${config.badge}`}>
               <span className="relative flex h-2 w-2">
                 <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${config.ping} opacity-75`}></span>
                 <span className={`relative inline-flex rounded-full h-2 w-2 ${config.dot}`}></span>
               </span>
-              <span className="text-sm font-semibold uppercase tracking-wide">
+              <span className="text-xs sm:text-sm font-semibold uppercase tracking-wide">
                 {config.label}
               </span>
             </div>
           </div>
 
           {/* Title */}
-          <h2 className="text-3xl font-semibold text-white mb-4">
+          <h2 className="text-xl sm:text-2xl xl:text-3xl font-semibold text-white mb-2 sm:mb-4">
             {title}
           </h2>
 
           {/* Insight */}
           <p
-            className="text-xl text-stone-300 leading-relaxed mb-6"
+            className="text-base sm:text-lg xl:text-xl text-stone-300 leading-relaxed mb-4 xl:mb-6"
             style={{ fontFamily: "'Georgia', serif" }}
           >
             {aiGuidance}
           </p>
 
           {/* Stats */}
-          <div className="flex items-center gap-6">
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4 xl:gap-6">
             {stats.map((stat, idx) => (
               <React.Fragment key={idx}>
-                {idx > 0 && <div className="w-px h-16 bg-stone-700" />}
+                {idx > 0 && <div className="w-px h-12 sm:h-14 xl:h-16 bg-stone-700" />}
                 <div>
-                  <span className={`text-5xl font-semibold ${colorMap[stat.color || 'white']}`}>
+                  <span className={`text-3xl sm:text-4xl xl:text-5xl font-semibold ${colorMap[stat.color || 'white']}`}>
                     {stat.value}
                   </span>
-                  <p className="text-lg text-stone-400 mt-1">{stat.label}</p>
+                  <p className="text-sm sm:text-base xl:text-lg text-stone-400 mt-0.5 sm:mt-1">{stat.label}</p>
                 </div>
               </React.Fragment>
             ))}
@@ -122,16 +122,16 @@ export const SimpleAlertCard: React.FC<SimpleAlertCardProps> = ({
 
           {/* Button - pinned to bottom */}
           <button className={`
-            w-full py-4 mt-auto
+            w-full py-3 xl:py-4 mt-auto
             ${config.button}
-            text-white text-base font-semibold
+            text-white text-sm xl:text-base font-semibold
             rounded-xl
             transition-colors duration-200
             flex items-center justify-center gap-2
             group
           `}>
             {action}
-            <ArrowRight className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
+            <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-0.5 transition-transform" />
           </button>
         </div>
       </div>

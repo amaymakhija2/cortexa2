@@ -76,9 +76,9 @@ const StatusIndicator: React.FC<{ status: MetricDetail['status'] }> = ({ status 
   const config = configs[status];
 
   return (
-    <div className="flex items-center gap-3">
-      <div className={`w-3 h-3 rounded-full ${config.color}`} />
-      <span className="text-lg font-semibold text-stone-600">
+    <div className="flex items-center gap-2 sm:gap-3">
+      <div className={`w-2.5 sm:w-3 h-2.5 sm:h-3 rounded-full ${config.color}`} />
+      <span className="text-sm sm:text-base lg:text-lg font-semibold text-stone-600">
         {config.label}
       </span>
     </div>
@@ -161,40 +161,41 @@ const RevenueCard: React.FC<{ data: MetricDetail }> = ({ data }) => {
       >
         <div className={`h-1.5 ${statusColors[data.status]}`} />
 
-        <div className="p-6 flex flex-col">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-lg font-bold text-stone-700 uppercase tracking-wide">
+        <div className="p-4 sm:p-5 xl:p-6 flex flex-col">
+          <div className="flex items-center justify-between mb-3 xl:mb-4">
+            <span className="text-sm sm:text-base lg:text-lg font-bold text-stone-700 uppercase tracking-wide">
               {data.label}
             </span>
             <Tooltip title={tooltip.title} description={tooltip.description} />
           </div>
 
-          <div className="mb-3">
-            <span className="text-5xl font-black text-stone-900 tracking-tight">
+          <div className="mb-2 xl:mb-3">
+            <span className="text-3xl sm:text-4xl xl:text-5xl font-black text-stone-900 tracking-tight">
               {data.value}
             </span>
             {data.valueLabel && (
-              <span className="text-xl font-medium text-stone-400 ml-2">
+              <span className="text-base sm:text-lg xl:text-xl font-medium text-stone-400 ml-2">
                 {data.valueLabel}
               </span>
             )}
           </div>
 
-          <p className="text-lg text-stone-500 leading-snug mb-5">
+          <p className="text-sm sm:text-base lg:text-lg text-stone-500 leading-snug mb-4 xl:mb-5">
             {data.subtext}
           </p>
 
-          <div className="pt-4 border-t border-stone-100 flex items-center justify-between">
+          <div className="pt-3 xl:pt-4 border-t border-stone-100 flex items-center justify-between">
             <StatusIndicator status={data.status} />
             <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-300 ${
+              className={`flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 ${
                 isExpanded
                   ? 'bg-stone-900 text-white'
                   : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
               }`}
             >
-              <span>{isExpanded ? 'Close' : 'Weekly Breakdown'}</span>
+              <span className="hidden sm:inline">{isExpanded ? 'Close' : 'Weekly Breakdown'}</span>
+              <span className="sm:hidden">{isExpanded ? 'Close' : 'Weekly'}</span>
               <ChevronRight
                 size={14}
                 className={`transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`}
@@ -211,7 +212,7 @@ const RevenueCard: React.FC<{ data: MetricDetail }> = ({ data }) => {
         }`}
       >
         <div
-          className="bg-white border-t border-stone-100 rounded-b-2xl p-5"
+          className="bg-white border-t border-stone-100 rounded-b-2xl p-4 sm:p-5"
           style={{
             boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
           }}
@@ -275,40 +276,41 @@ const SessionsCard: React.FC<{ data: MetricDetail }> = ({ data }) => {
       >
         <div className={`h-1.5 ${statusColors[data.status]}`} />
 
-        <div className="p-6 flex flex-col">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-lg font-bold text-stone-700 uppercase tracking-wide">
+        <div className="p-4 sm:p-5 xl:p-6 flex flex-col">
+          <div className="flex items-center justify-between mb-3 xl:mb-4">
+            <span className="text-sm sm:text-base lg:text-lg font-bold text-stone-700 uppercase tracking-wide">
               {data.label}
             </span>
             <Tooltip title={tooltip.title} description={tooltip.description} />
           </div>
 
-          <div className="mb-3">
-            <span className="text-5xl font-black text-stone-900 tracking-tight">
+          <div className="mb-2 xl:mb-3">
+            <span className="text-3xl sm:text-4xl xl:text-5xl font-black text-stone-900 tracking-tight">
               {data.value}
             </span>
             {data.valueLabel && (
-              <span className="text-xl font-medium text-stone-400 ml-2">
+              <span className="text-base sm:text-lg xl:text-xl font-medium text-stone-400 ml-2">
                 {data.valueLabel}
               </span>
             )}
           </div>
 
-          <p className="text-lg text-stone-500 leading-snug mb-5">
+          <p className="text-sm sm:text-base lg:text-lg text-stone-500 leading-snug mb-4 xl:mb-5">
             {data.subtext}
           </p>
 
-          <div className="pt-4 border-t border-stone-100 flex items-center justify-between">
+          <div className="pt-3 xl:pt-4 border-t border-stone-100 flex items-center justify-between">
             <StatusIndicator status={data.status} />
             <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-300 ${
+              className={`flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 ${
                 isExpanded
                   ? 'bg-stone-900 text-white'
                   : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
               }`}
             >
-              <span>{isExpanded ? 'Close' : 'Upcoming Bookings'}</span>
+              <span className="hidden sm:inline">{isExpanded ? 'Close' : 'Upcoming Bookings'}</span>
+              <span className="sm:hidden">{isExpanded ? 'Close' : 'Bookings'}</span>
               <ChevronRight
                 size={14}
                 className={`transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`}
@@ -325,7 +327,7 @@ const SessionsCard: React.FC<{ data: MetricDetail }> = ({ data }) => {
         }`}
       >
         <div
-          className="bg-white border-t border-stone-100 rounded-b-2xl p-5"
+          className="bg-white border-t border-stone-100 rounded-b-2xl p-4 sm:p-5"
           style={{
             boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
           }}
@@ -385,35 +387,35 @@ const MetricCard: React.FC<{ data: MetricDetail; index: number }> = ({ data, ind
       <div className={`h-1.5 ${statusColors[data.status]}`} />
 
       {/* Content */}
-      <div className="p-6 flex flex-col">
+      <div className="p-4 sm:p-5 xl:p-6 flex flex-col">
 
         {/* Label row */}
-        <div className="flex items-center justify-between mb-4">
-          <span className="text-lg font-bold text-stone-700 uppercase tracking-wide">
+        <div className="flex items-center justify-between mb-3 xl:mb-4">
+          <span className="text-sm sm:text-base lg:text-lg font-bold text-stone-700 uppercase tracking-wide">
             {data.label}
           </span>
           <Tooltip title={tooltip.title} description={tooltip.description} />
         </div>
 
         {/* Big value - the hero */}
-        <div className="mb-3">
-          <span className="text-5xl font-black text-stone-900 tracking-tight">
+        <div className="mb-2 xl:mb-3">
+          <span className="text-3xl sm:text-4xl xl:text-5xl font-black text-stone-900 tracking-tight">
             {data.value}
           </span>
           {data.valueLabel && (
-            <span className="text-xl font-medium text-stone-400 ml-2">
+            <span className="text-base sm:text-lg xl:text-xl font-medium text-stone-400 ml-2">
               {data.valueLabel}
             </span>
           )}
         </div>
 
         {/* Subtext */}
-        <p className="text-lg text-stone-500 leading-snug mb-5">
+        <p className="text-sm sm:text-base lg:text-lg text-stone-500 leading-snug mb-4 xl:mb-5">
           {data.subtext}
         </p>
 
         {/* Status footer */}
-        <div className="pt-4 border-t border-stone-100">
+        <div className="pt-3 xl:pt-4 border-t border-stone-100">
           <StatusIndicator status={data.status} />
         </div>
       </div>
@@ -423,20 +425,49 @@ const MetricCard: React.FC<{ data: MetricDetail; index: number }> = ({ data, ind
 
 export const MetricsRow: React.FC<{ metrics: PracticeMetrics; isLive?: boolean }> = ({ metrics, isLive = true }) => {
   return (
-    <div className="grid grid-cols-5 gap-5 items-start">
-      {isLive ? (
-        <RevenueCard data={metrics.revenue} />
-      ) : (
-        <MetricCard data={metrics.revenue} index={0} />
-      )}
-      {isLive ? (
-        <SessionsCard data={metrics.sessions} />
-      ) : (
-        <MetricCard data={metrics.sessions} index={1} />
-      )}
-      <MetricCard data={metrics.clientGrowth} index={2} />
-      <MetricCard data={metrics.attendance} index={3} />
-      <MetricCard data={metrics.compliance} index={4} />
-    </div>
+    <>
+      {/* Mobile/Tablet: Horizontal scroll (below lg/1024px) */}
+      <div
+        className="lg:hidden flex gap-3 sm:gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2 -mx-4 sm:-mx-6 px-4 sm:px-6"
+        style={{
+          WebkitOverflowScrolling: 'touch',
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none'
+        }}
+      >
+        <div className="snap-start flex-shrink-0 w-[280px] sm:w-[320px] md:w-[340px]">
+          {isLive ? <RevenueCard data={metrics.revenue} /> : <MetricCard data={metrics.revenue} index={0} />}
+        </div>
+        <div className="snap-start flex-shrink-0 w-[280px] sm:w-[320px] md:w-[340px]">
+          {isLive ? <SessionsCard data={metrics.sessions} /> : <MetricCard data={metrics.sessions} index={1} />}
+        </div>
+        <div className="snap-start flex-shrink-0 w-[280px] sm:w-[320px] md:w-[340px]">
+          <MetricCard data={metrics.clientGrowth} index={2} />
+        </div>
+        <div className="snap-start flex-shrink-0 w-[280px] sm:w-[320px] md:w-[340px]">
+          <MetricCard data={metrics.attendance} index={3} />
+        </div>
+        <div className="snap-start flex-shrink-0 w-[280px] sm:w-[320px] md:w-[340px]">
+          <MetricCard data={metrics.compliance} index={4} />
+        </div>
+      </div>
+
+      {/* Desktop: Grid layout (lg/1024px and above) */}
+      <div className="hidden lg:grid lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 lg:gap-4 xl:gap-5 items-start">
+        {isLive ? (
+          <RevenueCard data={metrics.revenue} />
+        ) : (
+          <MetricCard data={metrics.revenue} index={0} />
+        )}
+        {isLive ? (
+          <SessionsCard data={metrics.sessions} />
+        ) : (
+          <MetricCard data={metrics.sessions} index={1} />
+        )}
+        <MetricCard data={metrics.clientGrowth} index={2} />
+        <MetricCard data={metrics.attendance} index={3} />
+        <MetricCard data={metrics.compliance} index={4} />
+      </div>
+    </>
   );
 };

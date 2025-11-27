@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { MetricChart } from './MetricChart';
 import { ResponsiveContainer, LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, LabelList, Legend, CartesianGrid, ReferenceLine } from 'recharts';
 import { Info, X, ArrowRight, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 type TabType = 'financial' | 'sessions' | 'capacity-client' | 'retention' | 'insurance' | 'admin' | 'team-comparison';
 
@@ -19,6 +20,48 @@ const ALL_REVENUE_DATA = [
   { month: 'Oct', value: 155200 },
   { month: 'Nov', value: 148900 },
   { month: 'Dec', value: 153400 }
+];
+
+// Session timing heatmap data - sessions per hour slot per day of week
+// Realistic therapy practice patterns: peaks at lunch (12-1pm) and after work (5-7pm)
+// Lower on weekends, Monday mornings slow, Thursday/Friday evenings busy
+const SESSION_TIMING_DATA = [
+  // Format: { day, hour, sessions } - hour is 0-23, sessions is count
+  // Monday - slow morning, picks up afternoon
+  { day: 'Mon', hour: 8, sessions: 12 }, { day: 'Mon', hour: 9, sessions: 18 }, { day: 'Mon', hour: 10, sessions: 24 },
+  { day: 'Mon', hour: 11, sessions: 28 }, { day: 'Mon', hour: 12, sessions: 32 }, { day: 'Mon', hour: 13, sessions: 26 },
+  { day: 'Mon', hour: 14, sessions: 30 }, { day: 'Mon', hour: 15, sessions: 34 }, { day: 'Mon', hour: 16, sessions: 38 },
+  { day: 'Mon', hour: 17, sessions: 42 }, { day: 'Mon', hour: 18, sessions: 36 }, { day: 'Mon', hour: 19, sessions: 22 },
+  // Tuesday - solid throughout
+  { day: 'Tue', hour: 8, sessions: 16 }, { day: 'Tue', hour: 9, sessions: 28 }, { day: 'Tue', hour: 10, sessions: 32 },
+  { day: 'Tue', hour: 11, sessions: 36 }, { day: 'Tue', hour: 12, sessions: 38 }, { day: 'Tue', hour: 13, sessions: 30 },
+  { day: 'Tue', hour: 14, sessions: 34 }, { day: 'Tue', hour: 15, sessions: 40 }, { day: 'Tue', hour: 16, sessions: 44 },
+  { day: 'Tue', hour: 17, sessions: 48 }, { day: 'Tue', hour: 18, sessions: 42 }, { day: 'Tue', hour: 19, sessions: 28 },
+  // Wednesday - midweek peak
+  { day: 'Wed', hour: 8, sessions: 18 }, { day: 'Wed', hour: 9, sessions: 30 }, { day: 'Wed', hour: 10, sessions: 36 },
+  { day: 'Wed', hour: 11, sessions: 40 }, { day: 'Wed', hour: 12, sessions: 44 }, { day: 'Wed', hour: 13, sessions: 34 },
+  { day: 'Wed', hour: 14, sessions: 38 }, { day: 'Wed', hour: 15, sessions: 42 }, { day: 'Wed', hour: 16, sessions: 46 },
+  { day: 'Wed', hour: 17, sessions: 52 }, { day: 'Wed', hour: 18, sessions: 48 }, { day: 'Wed', hour: 19, sessions: 32 },
+  // Thursday - busiest day, especially evenings
+  { day: 'Thu', hour: 8, sessions: 20 }, { day: 'Thu', hour: 9, sessions: 32 }, { day: 'Thu', hour: 10, sessions: 38 },
+  { day: 'Thu', hour: 11, sessions: 44 }, { day: 'Thu', hour: 12, sessions: 48 }, { day: 'Thu', hour: 13, sessions: 36 },
+  { day: 'Thu', hour: 14, sessions: 42 }, { day: 'Thu', hour: 15, sessions: 46 }, { day: 'Thu', hour: 16, sessions: 52 },
+  { day: 'Thu', hour: 17, sessions: 58 }, { day: 'Thu', hour: 18, sessions: 54 }, { day: 'Thu', hour: 19, sessions: 38 },
+  // Friday - morning rush, tapers off
+  { day: 'Fri', hour: 8, sessions: 22 }, { day: 'Fri', hour: 9, sessions: 34 }, { day: 'Fri', hour: 10, sessions: 40 },
+  { day: 'Fri', hour: 11, sessions: 38 }, { day: 'Fri', hour: 12, sessions: 42 }, { day: 'Fri', hour: 13, sessions: 32 },
+  { day: 'Fri', hour: 14, sessions: 28 }, { day: 'Fri', hour: 15, sessions: 24 }, { day: 'Fri', hour: 16, sessions: 20 },
+  { day: 'Fri', hour: 17, sessions: 16 }, { day: 'Fri', hour: 18, sessions: 10 }, { day: 'Fri', hour: 19, sessions: 6 },
+  // Saturday - limited hours, some availability
+  { day: 'Sat', hour: 8, sessions: 4 }, { day: 'Sat', hour: 9, sessions: 12 }, { day: 'Sat', hour: 10, sessions: 18 },
+  { day: 'Sat', hour: 11, sessions: 16 }, { day: 'Sat', hour: 12, sessions: 14 }, { day: 'Sat', hour: 13, sessions: 8 },
+  { day: 'Sat', hour: 14, sessions: 4 }, { day: 'Sat', hour: 15, sessions: 2 }, { day: 'Sat', hour: 16, sessions: 0 },
+  { day: 'Sat', hour: 17, sessions: 0 }, { day: 'Sat', hour: 18, sessions: 0 }, { day: 'Sat', hour: 19, sessions: 0 },
+  // Sunday - minimal
+  { day: 'Sun', hour: 8, sessions: 0 }, { day: 'Sun', hour: 9, sessions: 2 }, { day: 'Sun', hour: 10, sessions: 6 },
+  { day: 'Sun', hour: 11, sessions: 8 }, { day: 'Sun', hour: 12, sessions: 6 }, { day: 'Sun', hour: 13, sessions: 4 },
+  { day: 'Sun', hour: 14, sessions: 2 }, { day: 'Sun', hour: 15, sessions: 0 }, { day: 'Sun', hour: 16, sessions: 0 },
+  { day: 'Sun', hour: 17, sessions: 0 }, { day: 'Sun', hour: 18, sessions: 0 }, { day: 'Sun', hour: 19, sessions: 0 },
 ];
 
 const ALL_SESSIONS_DATA = [
@@ -294,6 +337,7 @@ const MONTH_MAP: { [key: string]: number } = {
 };
 
 export const PracticeAnalysis: React.FC = () => {
+  const isMobile = useIsMobile(1024);
   const [activeTab, setActiveTab] = useState<TabType>('financial');
   const [hoveredSessionValue, setHoveredSessionValue] = useState<number | null>(null);
   const [hoveredYTDValue, setHoveredYTDValue] = useState<number | null>(null);
@@ -554,32 +598,45 @@ export const PracticeAnalysis: React.FC = () => {
       {isFinancialTab && (
         <div className="min-h-full relative">
           {/* Integrated Header */}
-          <div className="sticky top-0 z-50 px-10 pt-8 pb-6" style={{ background: 'linear-gradient(180deg, rgba(250,250,249,0.97) 0%, rgba(250,250,249,0.95) 80%, transparent 100%)' }}>
-            <div className="flex items-end justify-between">
+          <div className="sticky top-0 z-50 px-4 sm:px-6 lg:px-8 xl:px-10 pt-4 sm:pt-6 xl:pt-8 pb-4 xl:pb-6" style={{ background: 'linear-gradient(180deg, rgba(250,250,249,0.97) 0%, rgba(250,250,249,0.95) 80%, transparent 100%)' }}>
+            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 lg:gap-0">
               {/* Title & Breadcrumb */}
               <div>
-                <div className="flex items-center gap-3 mb-3">
-                  <span className="text-stone-400 text-sm font-medium uppercase tracking-widest">Detailed Analysis</span>
+                <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                  <span className="text-stone-400 text-xs sm:text-sm font-medium uppercase tracking-widest">Detailed Analysis</span>
                   <span className="text-stone-300">/</span>
-                  <span className="text-emerald-600 text-sm font-bold uppercase tracking-widest">Financial</span>
+                  <span className="text-emerald-600 text-xs sm:text-sm font-bold uppercase tracking-widest">Financial</span>
                 </div>
-                <div className="flex items-baseline gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-4">
                   <h1
-                    className="text-5xl text-stone-900 font-bold tracking-tight"
+                    className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl text-stone-900 font-bold tracking-tight"
                     style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                   >
                     Financial Performance
                   </h1>
-                  <span className="text-stone-400 text-base font-medium">
+                  <span className="text-stone-400 text-sm sm:text-base font-medium">
                     {getDateRangeLabel()}
                   </span>
                 </div>
               </div>
 
               {/* Time Period Selector - Redesigned */}
-              <div className="flex items-center gap-4 relative">
+              <div className="flex items-center gap-2 sm:gap-4 relative">
+                {/* Mobile: Select dropdown */}
+                <select
+                  value={timePeriod}
+                  onChange={(e) => setTimePeriod(e.target.value as any)}
+                  className="lg:hidden px-3 py-2 rounded-xl border border-stone-200 bg-white text-sm font-medium text-stone-700"
+                >
+                  {timePeriods.map((period) => (
+                    <option key={period.id} value={period.id}>{period.label}</option>
+                  ))}
+                  <option value="custom">Custom Range</option>
+                </select>
+
+                {/* Desktop: Button group */}
                 <div
-                  className="flex items-center gap-1 p-1.5 rounded-2xl bg-white/80 backdrop-blur-sm"
+                  className="hidden lg:flex items-center gap-1 p-1 xl:p-1.5 rounded-xl xl:rounded-2xl bg-white/80 backdrop-blur-sm"
                   style={{
                     boxShadow: '0 4px 20px -4px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.03)'
                   }}
@@ -588,7 +645,7 @@ export const PracticeAnalysis: React.FC = () => {
                     <button
                       key={period.id}
                       onClick={() => setTimePeriod(period.id)}
-                      className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${
+                      className={`px-3 lg:px-5 py-2 lg:py-2.5 rounded-lg lg:rounded-xl text-xs lg:text-sm font-semibold transition-all duration-300 ${
                         timePeriod === period.id
                           ? 'bg-stone-900 text-white shadow-lg'
                           : 'text-stone-500 hover:text-stone-900 hover:bg-stone-100'
@@ -600,7 +657,7 @@ export const PracticeAnalysis: React.FC = () => {
                   {/* Custom Range Button */}
                   <button
                     onClick={() => setShowDatePicker(!showDatePicker)}
-                    className={`group px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-500 flex items-center gap-2.5 relative overflow-hidden ${
+                    className={`group px-3 lg:px-5 py-2 lg:py-2.5 rounded-lg lg:rounded-xl text-xs lg:text-sm font-semibold transition-all duration-500 flex items-center gap-1.5 lg:gap-2.5 relative overflow-hidden ${
                       timePeriod === 'custom'
                         ? 'text-white shadow-lg'
                         : 'text-stone-500 hover:text-stone-900'
@@ -615,16 +672,18 @@ export const PracticeAnalysis: React.FC = () => {
                       size={16}
                       className={`transition-transform duration-500 ${showDatePicker ? 'rotate-12' : 'group-hover:rotate-6'}`}
                     />
-                    <span>{timePeriod === 'custom' ? formatCustomRange() : 'Custom'}</span>
+                    <span className="hidden lg:inline">{timePeriod === 'custom' ? formatCustomRange() : 'Custom'}</span>
+                    <span className="lg:hidden">{timePeriod === 'custom' ? 'Custom' : 'Custom'}</span>
                   </button>
                 </div>
 
                 {/* Simple & Elegant Date Picker */}
                 {showDatePicker && (
                   <div
-                    className="absolute top-full right-0 mt-3 z-[100000] rounded-2xl bg-white p-6"
+                    className="absolute top-full right-0 mt-3 z-[100000] rounded-2xl bg-white p-4 sm:p-6"
                     style={{
-                      width: '340px',
+                      width: 'clamp(280px, 85vw, 380px)',
+                      maxWidth: 'calc(100vw - 32px)',
                       boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05)',
                       animation: 'fadeIn 0.2s ease-out'
                     }}
@@ -670,7 +729,7 @@ export const PracticeAnalysis: React.FC = () => {
                     </div>
 
                     {/* Month Grid - Click to set start, click again to set end */}
-                    <div className="grid grid-cols-4 gap-2 mb-5">
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-4 sm:mb-5">
                       {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((month, idx) => {
                         const isStart = idx === customStartMonth;
                         const isEnd = idx === customEndMonth;
@@ -738,12 +797,12 @@ export const PracticeAnalysis: React.FC = () => {
             </div>
 
             {/* Tab Navigation - Minimal Pills */}
-            <div className="flex items-center gap-3 mt-8">
+            <div className="flex items-center gap-2 sm:gap-3 mt-4 sm:mt-6 xl:mt-8 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`px-6 py-3 rounded-full text-base font-semibold transition-all duration-300 ${
+                  className={`px-3 sm:px-4 xl:px-6 py-2 sm:py-2.5 xl:py-3 rounded-full text-xs sm:text-sm xl:text-base font-semibold transition-all duration-300 whitespace-nowrap flex-shrink-0 ${
                     activeTab === tab.id
                       ? 'bg-stone-900 text-white shadow-md'
                       : 'text-stone-500 hover:text-stone-800 border border-stone-300 hover:border-stone-400 bg-white/50'
@@ -756,70 +815,70 @@ export const PracticeAnalysis: React.FC = () => {
           </div>
 
           {/* Main Content */}
-          <div className="px-10 pb-10 space-y-8">
+          <div className="px-4 sm:px-6 lg:px-8 xl:px-10 pb-6 xl:pb-10 space-y-6 xl:space-y-8">
 
             {/* Hero Stats Row */}
-            <div className="grid grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-5 xl:gap-6">
               {/* Total Gross Revenue Card */}
               <div
-                className="rounded-3xl p-6 relative overflow-hidden"
+                className="rounded-2xl sm:rounded-3xl p-4 sm:p-5 xl:p-6 relative overflow-hidden"
                 style={{
                   background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
                   boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
                 }}
               >
                 <h3
-                  className="text-stone-800 text-2xl font-semibold mb-4"
+                  className="text-stone-800 text-lg sm:text-xl xl:text-2xl font-semibold mb-2 sm:mb-3 xl:mb-4"
                   style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
                   Total Gross Revenue
                 </h3>
                 <span
                   className="text-stone-900 font-bold block"
-                  style={{ fontSize: '2.5rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
+                  className="text-2xl sm:text-3xl xl:text-[2.5rem]" style={{ lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
                   ${(REVENUE_DATA.reduce((sum, item) => sum + item.value, 0) / 1000000).toFixed(2)}M
                 </span>
-                <p className="text-stone-500 text-lg mt-3">
+                <p className="text-stone-500 text-sm sm:text-base xl:text-lg mt-2 sm:mt-3">
                   across {REVENUE_DATA.length} months
                 </p>
               </div>
 
               {/* Total Net Revenue Card */}
               <div
-                className="rounded-3xl p-6 relative overflow-hidden"
+                className="rounded-2xl sm:rounded-3xl p-4 sm:p-5 xl:p-6 relative overflow-hidden"
                 style={{
                   background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
                   boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
                 }}
               >
                 <h3
-                  className="text-stone-800 text-2xl font-semibold mb-4"
+                  className="text-stone-800 text-lg sm:text-xl xl:text-2xl font-semibold mb-2 sm:mb-3 xl:mb-4"
                   style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
                   Total Net Revenue
                 </h3>
                 <span
                   className="text-stone-900 font-bold block"
-                  style={{ fontSize: '2.5rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
+                  className="text-2xl sm:text-3xl xl:text-[2.5rem]" style={{ lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
                   ${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.netRevenue, 0) / 1000).toFixed(0)}k
                 </span>
-                <p className="text-stone-500 text-lg mt-3">
+                <p className="text-stone-500 text-sm sm:text-base xl:text-lg mt-2 sm:mt-3">
                   {((REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.netRevenue, 0) / REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.grossRevenue, 0)) * 100).toFixed(1)}% avg margin
                 </p>
               </div>
 
               {/* Goal Achievement Card */}
               <div
-                className="rounded-3xl p-6 relative overflow-hidden"
+                className="rounded-2xl sm:rounded-3xl p-4 sm:p-5 xl:p-6 relative overflow-hidden"
                 style={{
                   background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
                   boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
                 }}
               >
                 <h3
-                  className="text-stone-800 text-2xl font-semibold mb-4"
+                  className="text-stone-800 text-lg sm:text-xl xl:text-2xl font-semibold mb-2 sm:mb-3 xl:mb-4"
                   style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
                   Goal Achievement
@@ -831,11 +890,11 @@ export const PracticeAnalysis: React.FC = () => {
                     <>
                       <span
                         className="text-stone-900 font-bold block"
-                        style={{ fontSize: '2.5rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
+                        className="text-2xl sm:text-3xl xl:text-[2.5rem]" style={{ lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
                       >
                         {monthsMet}/{REVENUE_DATA.length}
                       </span>
-                      <p className="text-stone-500 text-lg mt-3">
+                      <p className="text-stone-500 text-sm sm:text-base xl:text-lg mt-2 sm:mt-3">
                         months hit $150k goal
                       </p>
                     </>
@@ -845,49 +904,48 @@ export const PracticeAnalysis: React.FC = () => {
 
               {/* Avg Revenue Card - Monthly & Weekly in one line */}
               <div
-                className="rounded-3xl p-6 relative overflow-hidden"
+                className="rounded-2xl sm:rounded-3xl p-4 sm:p-5 xl:p-6 relative overflow-hidden"
                 style={{
                   background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
                   boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
                 }}
               >
                 <h3
-                  className="text-stone-800 text-2xl font-semibold mb-4"
+                  className="text-stone-800 text-lg sm:text-xl xl:text-2xl font-semibold mb-2 sm:mb-3 xl:mb-4"
                   style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
                   Avg Revenue
                 </h3>
                 <span
                   className="text-stone-900 font-bold block"
-                  style={{ fontSize: '2.5rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
+                  className="text-2xl sm:text-3xl xl:text-[2.5rem]" style={{ lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
                   ${(REVENUE_DATA.reduce((sum, item) => sum + item.value, 0) / REVENUE_DATA.length / 1000).toFixed(0)}k
                   <span className="text-stone-400 text-xl font-medium" style={{ fontFamily: "system-ui, sans-serif" }}>/mo</span>
                 </span>
-                <p className="text-stone-500 text-lg mt-3">
+                <p className="text-stone-500 text-sm sm:text-base xl:text-lg mt-2 sm:mt-3">
                   ${(REVENUE_DATA.reduce((sum, item) => sum + item.value, 0) / REVENUE_DATA.length / 4.33 / 1000).toFixed(1)}k/week
                 </p>
               </div>
             </div>
 
             {/* Revenue Performance & Cost Breakdown - Side by Side */}
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-5 xl:gap-6">
               {/* Revenue Performance - Vertical Bar Chart */}
               <div
-                className="rounded-2xl p-8 relative flex flex-col overflow-hidden"
+                className="rounded-xl sm:rounded-2xl p-4 sm:p-6 xl:p-8 relative flex flex-col overflow-hidden h-[380px] sm:h-[450px] lg:h-[520px] xl:h-[600px]"
                 style={{
                   background: '#ffffff',
-                  height: '750px',
                   border: '2px solid #d6d3d1',
                   borderLeft: '4px solid #059669'
                 }}
               >
                 <div className="flex items-start justify-between mb-6">
                   <div>
-                    <h3 className="text-stone-800 text-2xl font-semibold mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                    <h3 className="text-stone-800 text-lg sm:text-xl xl:text-2xl font-semibold mb-1 sm:mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
                       Revenue Performance
                     </h3>
-                    <p className="text-stone-500 text-lg">Monthly breakdown</p>
+                    <p className="text-stone-500 text-sm sm:text-base xl:text-lg">Monthly breakdown</p>
                   </div>
                   <div className="flex items-center gap-3">
                     {/* Hover tooltip for clinician breakdown - positioned within header area */}
@@ -1012,7 +1070,7 @@ export const PracticeAnalysis: React.FC = () => {
                             <div
                               key={item.month}
                               className="group relative flex flex-col items-center justify-end h-full"
-                              style={{ flex: '1', maxWidth: '72px' }}
+                              style={{ flex: '1', maxWidth: 'clamp(48px, 6vw, 80px)' }}
                             >
                               {/* Single bar container */}
                               <div className="flex items-end w-full justify-center h-full">
@@ -1132,7 +1190,7 @@ export const PracticeAnalysis: React.FC = () => {
                         <div
                           key={item.month}
                           className="text-center"
-                          style={{ flex: '1', maxWidth: '72px' }}
+                          style={{ flex: '1', maxWidth: 'clamp(48px, 6vw, 80px)' }}
                         >
                           <span className={`text-sm font-semibold ${
                             isCurrentMonth
@@ -1211,18 +1269,17 @@ export const PracticeAnalysis: React.FC = () => {
 
               {/* Revenue Distribution - Donut Chart */}
               <div
-                className="rounded-3xl p-8 overflow-hidden"
+                className="rounded-2xl sm:rounded-3xl p-4 sm:p-6 xl:p-8 overflow-hidden h-[380px] sm:h-[450px] lg:h-[520px] xl:h-[600px]"
                 style={{
                   background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
-                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)',
-                  height: '750px'
+                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
                 }}
               >
                 <div className="mb-6">
-                  <h3 className="text-stone-800 text-2xl font-semibold mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                  <h3 className="text-stone-800 text-lg sm:text-xl xl:text-2xl font-semibold mb-1 sm:mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
                     Revenue Distribution
                   </h3>
-                  <p className="text-stone-500 text-lg">Total across all {REVENUE_BREAKDOWN_DATA.length} selected month{REVENUE_BREAKDOWN_DATA.length !== 1 ? 's' : ''}</p>
+                  <p className="text-stone-500 text-sm sm:text-base xl:text-lg">Total across all {REVENUE_BREAKDOWN_DATA.length} selected month{REVENUE_BREAKDOWN_DATA.length !== 1 ? 's' : ''}</p>
                 </div>
 
                 {/* Donut Chart */}
@@ -1239,9 +1296,9 @@ export const PracticeAnalysis: React.FC = () => {
                   const total = segments.reduce((sum, s) => sum + s.value, 0);
 
                   // SVG donut chart calculations using arc paths
-                  const size = 520;
-                  const outerRadius = 240;
-                  const innerRadius = 155;
+                  const size = 320;
+                  const outerRadius = 150;
+                  const innerRadius = 95;
                   const centerX = size / 2;
                   const centerY = size / 2;
 
@@ -1268,7 +1325,7 @@ export const PracticeAnalysis: React.FC = () => {
                   let currentAngle = -Math.PI / 2; // Start from top
 
                   return (
-                    <div className="flex items-center justify-center gap-12 h-full">
+                    <div className="flex items-center justify-center gap-8 lg:gap-12 h-full px-4">
                       {/* SVG Donut */}
                       <div className="relative flex-shrink-0" style={{ width: size, height: size }}>
                         <svg width={size} height={size} className="overflow-visible">
@@ -1297,10 +1354,10 @@ export const PracticeAnalysis: React.FC = () => {
 
                         {/* Center content */}
                         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                          <span className="text-stone-500 text-xl font-medium mb-2">Gross Revenue</span>
+                          <span className="text-stone-500 text-base font-medium mb-1">Gross Revenue</span>
                           <span
-                            className="text-stone-900 font-bold"
-                            style={{ fontSize: '4.5rem', fontFamily: "'DM Serif Display', Georgia, serif" }}
+                            className="text-stone-900 font-bold text-3xl lg:text-4xl"
+                            style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                           >
                             {gross >= 1000000 ? `$${(gross / 1000000).toFixed(2)}M` : `$${(gross / 1000).toFixed(0)}k`}
                           </span>
@@ -1308,44 +1365,40 @@ export const PracticeAnalysis: React.FC = () => {
                       </div>
 
                       {/* Legend - Vertical stack on the right */}
-                      <div className="flex flex-col gap-6">
+                      <div className="flex flex-col gap-4 flex-1 max-w-[280px]">
                         {segments.map((segment) => {
                           const percent = ((segment.value / total) * 100).toFixed(1);
                           return (
                             <div
                               key={segment.label}
-                              className="flex items-center gap-5 py-4 px-5 rounded-2xl transition-all duration-200 hover:bg-stone-50"
-                              style={{ minWidth: '340px' }}
+                              className="flex items-center gap-4 py-3 px-4 rounded-xl transition-all duration-200 hover:bg-stone-50"
                             >
                               {/* Color indicator with glow */}
                               <div
-                                className="w-7 h-7 rounded-full flex-shrink-0"
+                                className="w-6 h-6 rounded-full flex-shrink-0"
                                 style={{
                                   backgroundColor: segment.color,
-                                  boxShadow: `0 0 16px ${segment.color}50`
+                                  boxShadow: `0 0 12px ${segment.color}50`
                                 }}
                               />
 
                               {/* Label and stats */}
-                              <div className="flex-1 flex items-center justify-between gap-8">
+                              <div className="flex-1 flex items-center justify-between gap-3">
                                 <span
-                                  className="text-stone-700 font-semibold text-xl"
+                                  className="text-stone-700 font-semibold text-base lg:text-lg"
                                   style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                                 >
                                   {segment.label}
                                 </span>
 
-                                <div className="flex items-baseline gap-4">
+                                <div className="flex items-baseline gap-2">
                                   <span
-                                    className="text-stone-900 font-bold text-3xl tabular-nums"
+                                    className="text-stone-900 font-bold text-xl lg:text-2xl tabular-nums"
                                     style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                                   >
                                     {segment.value >= 1000000 ? `$${(segment.value / 1000000).toFixed(2)}M` : `$${(segment.value / 1000).toFixed(1)}k`}
                                   </span>
-                                  <span
-                                    className="text-stone-400 font-semibold text-lg tabular-nums"
-                                    style={{ minWidth: '60px', textAlign: 'right' }}
-                                  >
+                                  <span className="text-stone-400 font-semibold text-sm tabular-nums">
                                     {percent}%
                                   </span>
                                 </div>
@@ -1362,20 +1415,20 @@ export const PracticeAnalysis: React.FC = () => {
 
             {/* Team Performance */}
             <div
-              className="rounded-3xl p-8"
+              className="rounded-2xl sm:rounded-3xl p-4 sm:p-6 xl:p-8"
               style={{
                 background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
                 boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
               }}
             >
               <div className="mb-6">
-                <h3 className="text-stone-800 text-2xl font-semibold mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                <h3 className="text-stone-800 text-lg sm:text-xl xl:text-2xl font-semibold mb-1 sm:mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
                   Team Performance
                 </h3>
-                <p className="text-stone-500 text-lg">Total across all {CLINICIAN_REVENUE_DATA.length} selected month{CLINICIAN_REVENUE_DATA.length !== 1 ? 's' : ''}</p>
+                <p className="text-stone-500 text-sm sm:text-base xl:text-lg">Total across all {CLINICIAN_REVENUE_DATA.length} selected month{CLINICIAN_REVENUE_DATA.length !== 1 ? 's' : ''}</p>
               </div>
 
-              <div className="grid grid-cols-5 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 xl:gap-4">
                 {(() => {
                   // Sum all months in the selected period
                   const totalRevenue = REVENUE_DATA.reduce((sum, item) => sum + item.value, 0);
@@ -1392,7 +1445,7 @@ export const PracticeAnalysis: React.FC = () => {
                   return clinicians.map((clinician, idx) => (
                     <div
                       key={clinician.name}
-                      className="rounded-2xl p-5 relative transition-all duration-300 hover:scale-[1.02]"
+                      className="rounded-xl sm:rounded-2xl p-3 sm:p-4 xl:p-5 relative transition-all duration-300 hover:scale-[1.02]"
                       style={{
                         background: idx === 0 ? `linear-gradient(135deg, ${clinician.color}15 0%, ${clinician.color}08 100%)` : '#fafaf9',
                         border: idx === 0 ? `1px solid ${clinician.color}40` : '1px solid #e7e5e4',
@@ -1406,7 +1459,7 @@ export const PracticeAnalysis: React.FC = () => {
                       )}
                       <p className="text-stone-500 text-sm font-bold uppercase tracking-wide mb-1">#{idx + 1}</p>
                       <h4 className="text-stone-900 text-xl font-bold mb-3">{clinician.name}</h4>
-                      <div className="text-2xl font-bold mb-3" style={{ color: clinician.color, fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                      <div className="text-lg sm:text-xl xl:text-2xl font-bold mb-2 sm:mb-3" style={{ color: clinician.color, fontFamily: "'DM Serif Display', Georgia, serif" }}>
                         {clinician.value >= 1000000 ? `$${(clinician.value / 1000000).toFixed(2)}M` : `$${(clinician.value / 1000).toFixed(1)}k`}
                       </div>
                       <div className="h-2 bg-stone-200 rounded-full overflow-hidden">
@@ -1426,88 +1479,145 @@ export const PracticeAnalysis: React.FC = () => {
 
             {/* Detailed Table */}
             <div
-              className="rounded-3xl p-8"
+              className="rounded-2xl sm:rounded-3xl p-4 sm:p-6 xl:p-8"
               style={{
                 background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
                 boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
               }}
             >
-              <h3 className="text-stone-800 text-2xl font-semibold mb-6" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+              <h3 className="text-stone-800 text-lg sm:text-xl xl:text-2xl font-semibold mb-4 sm:mb-6" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
                 Full Breakdown
               </h3>
 
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b-2 border-stone-200">
-                      <th className="text-left py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider"></th>
-                      {REVENUE_BREAKDOWN_DATA.map((item) => (
-                        <th key={item.month} className="text-right py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">{item.month}</th>
-                      ))}
-                      <th className="text-right py-5 px-4 text-sm font-bold text-stone-900 uppercase tracking-wider">Total</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr className="border-b border-stone-100 hover:bg-stone-50 transition-colors">
-                      <td className="py-5 px-4 text-base font-semibold text-stone-900">Gross Revenue</td>
-                      {REVENUE_BREAKDOWN_DATA.map((item) => (
-                        <td key={item.month} className="py-5 px-4 text-base text-stone-600 text-right">${(item.grossRevenue / 1000).toFixed(1)}k</td>
-                      ))}
-                      <td className="py-5 px-4 text-base font-bold text-stone-900 text-right">
-                        {REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.grossRevenue, 0) >= 1000000 ? `$${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.grossRevenue, 0) / 1000000).toFixed(2)}M` : `$${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.grossRevenue, 0) / 1000).toFixed(1)}k`}
-                      </td>
-                    </tr>
-                    <tr className="border-b border-stone-100 hover:bg-stone-50 transition-colors">
-                      <td className="py-5 px-4 text-base font-semibold text-stone-900 flex items-center gap-3">
-                        <div className="w-3 h-3 rounded-full bg-blue-500" />
-                        Clinician Cost
-                      </td>
-                      {REVENUE_BREAKDOWN_DATA.map((item) => (
-                        <td key={item.month} className="py-5 px-4 text-base text-blue-600 text-right">${(item.clinicianCosts / 1000).toFixed(1)}k</td>
-                      ))}
-                      <td className="py-5 px-4 text-base font-bold text-blue-600 text-right">
-                        {REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.clinicianCosts, 0) >= 1000000 ? `$${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.clinicianCosts, 0) / 1000000).toFixed(2)}M` : `$${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.clinicianCosts, 0) / 1000).toFixed(1)}k`}
-                      </td>
-                    </tr>
-                    <tr className="border-b border-stone-100 hover:bg-stone-50 transition-colors">
-                      <td className="py-5 px-4 text-base font-semibold text-stone-900 flex items-center gap-3">
-                        <div className="w-3 h-3 rounded-full bg-amber-500" />
-                        Supervisor Cost
-                      </td>
-                      {REVENUE_BREAKDOWN_DATA.map((item) => (
-                        <td key={item.month} className="py-5 px-4 text-base text-amber-600 text-right">${(item.supervisorCosts / 1000).toFixed(1)}k</td>
-                      ))}
-                      <td className="py-5 px-4 text-base font-bold text-amber-600 text-right">
-                        {REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.supervisorCosts, 0) >= 1000000 ? `$${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.supervisorCosts, 0) / 1000000).toFixed(2)}M` : `$${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.supervisorCosts, 0) / 1000).toFixed(1)}k`}
-                      </td>
-                    </tr>
-                    <tr className="border-b border-stone-100 hover:bg-stone-50 transition-colors">
-                      <td className="py-5 px-4 text-base font-semibold text-stone-900 flex items-center gap-3">
-                        <div className="w-3 h-3 rounded-full bg-rose-500" />
-                        Credit Card Fees
-                      </td>
-                      {REVENUE_BREAKDOWN_DATA.map((item) => (
-                        <td key={item.month} className="py-5 px-4 text-base text-rose-600 text-right">${(item.creditCardFees / 1000).toFixed(1)}k</td>
-                      ))}
-                      <td className="py-5 px-4 text-base font-bold text-rose-600 text-right">
-                        {REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.creditCardFees, 0) >= 1000000 ? `$${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.creditCardFees, 0) / 1000000).toFixed(2)}M` : `$${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.creditCardFees, 0) / 1000).toFixed(1)}k`}
-                      </td>
-                    </tr>
-                    <tr className="hover:bg-emerald-50 transition-colors">
-                      <td className="py-5 px-4 text-base font-bold text-emerald-700 flex items-center gap-3">
-                        <div className="w-3 h-3 rounded-full bg-emerald-500" />
-                        Net Revenue
-                      </td>
-                      {REVENUE_BREAKDOWN_DATA.map((item) => (
-                        <td key={item.month} className="py-5 px-4 text-base font-bold text-emerald-600 text-right">${(item.netRevenue / 1000).toFixed(1)}k</td>
-                      ))}
-                      <td className="py-5 px-4 text-lg font-bold text-emerald-700 text-right">
-                        {REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.netRevenue, 0) >= 1000000 ? `$${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.netRevenue, 0) / 1000000).toFixed(2)}M` : `$${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.netRevenue, 0) / 1000).toFixed(1)}k`}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
+              {/* Mobile: Card view */}
+              {isMobile ? (
+                <div className="space-y-3">
+                  {/* Totals Card */}
+                  <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-200">
+                    <div className="font-semibold text-emerald-800 mb-3">Period Totals</div>
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <span className="text-stone-500">Gross:</span>
+                        <span className="font-bold text-stone-900 ml-1">
+                          {REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.grossRevenue, 0) >= 1000000 ? `$${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.grossRevenue, 0) / 1000000).toFixed(2)}M` : `$${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.grossRevenue, 0) / 1000).toFixed(1)}k`}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-stone-500">Net:</span>
+                        <span className="font-bold text-emerald-600 ml-1">
+                          {REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.netRevenue, 0) >= 1000000 ? `$${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.netRevenue, 0) / 1000000).toFixed(2)}M` : `$${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.netRevenue, 0) / 1000).toFixed(1)}k`}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Monthly Cards */}
+                  {REVENUE_BREAKDOWN_DATA.map((item) => (
+                    <div key={item.month} className="bg-white rounded-xl p-4 border border-stone-200 shadow-sm">
+                      <div className="font-semibold text-stone-800 mb-3">{item.month}</div>
+                      <div className="grid grid-cols-2 gap-2 text-sm">
+                        <div>
+                          <span className="text-stone-500">Gross:</span>
+                          <span className="font-medium text-stone-900 ml-1">${(item.grossRevenue / 1000).toFixed(1)}k</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <div className="w-2 h-2 rounded-full bg-blue-500" />
+                          <span className="text-stone-500">Clinician:</span>
+                          <span className="font-medium text-blue-600">${(item.clinicianCosts / 1000).toFixed(1)}k</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <div className="w-2 h-2 rounded-full bg-amber-500" />
+                          <span className="text-stone-500">Supervisor:</span>
+                          <span className="font-medium text-amber-600">${(item.supervisorCosts / 1000).toFixed(1)}k</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <div className="w-2 h-2 rounded-full bg-rose-500" />
+                          <span className="text-stone-500">CC Fees:</span>
+                          <span className="font-medium text-rose-600">${(item.creditCardFees / 1000).toFixed(1)}k</span>
+                        </div>
+                        <div className="col-span-2 pt-2 mt-2 border-t border-stone-100 flex items-center gap-1">
+                          <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                          <span className="text-stone-500">Net Revenue:</span>
+                          <span className="font-bold text-emerald-600">${(item.netRevenue / 1000).toFixed(1)}k</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                /* Desktop: Table view */
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b-2 border-stone-200">
+                        <th className="text-left py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider"></th>
+                        {REVENUE_BREAKDOWN_DATA.map((item) => (
+                          <th key={item.month} className="text-right py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">{item.month}</th>
+                        ))}
+                        <th className="text-right py-5 px-4 text-sm font-bold text-stone-900 uppercase tracking-wider">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="border-b border-stone-100 hover:bg-stone-50 transition-colors">
+                        <td className="py-5 px-4 text-base font-semibold text-stone-900">Gross Revenue</td>
+                        {REVENUE_BREAKDOWN_DATA.map((item) => (
+                          <td key={item.month} className="py-5 px-4 text-base text-stone-600 text-right">${(item.grossRevenue / 1000).toFixed(1)}k</td>
+                        ))}
+                        <td className="py-5 px-4 text-base font-bold text-stone-900 text-right">
+                          {REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.grossRevenue, 0) >= 1000000 ? `$${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.grossRevenue, 0) / 1000000).toFixed(2)}M` : `$${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.grossRevenue, 0) / 1000).toFixed(1)}k`}
+                        </td>
+                      </tr>
+                      <tr className="border-b border-stone-100 hover:bg-stone-50 transition-colors">
+                        <td className="py-5 px-4 text-base font-semibold text-stone-900 flex items-center gap-3">
+                          <div className="w-3 h-3 rounded-full bg-blue-500" />
+                          Clinician Cost
+                        </td>
+                        {REVENUE_BREAKDOWN_DATA.map((item) => (
+                          <td key={item.month} className="py-5 px-4 text-base text-blue-600 text-right">${(item.clinicianCosts / 1000).toFixed(1)}k</td>
+                        ))}
+                        <td className="py-5 px-4 text-base font-bold text-blue-600 text-right">
+                          {REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.clinicianCosts, 0) >= 1000000 ? `$${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.clinicianCosts, 0) / 1000000).toFixed(2)}M` : `$${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.clinicianCosts, 0) / 1000).toFixed(1)}k`}
+                        </td>
+                      </tr>
+                      <tr className="border-b border-stone-100 hover:bg-stone-50 transition-colors">
+                        <td className="py-5 px-4 text-base font-semibold text-stone-900 flex items-center gap-3">
+                          <div className="w-3 h-3 rounded-full bg-amber-500" />
+                          Supervisor Cost
+                        </td>
+                        {REVENUE_BREAKDOWN_DATA.map((item) => (
+                          <td key={item.month} className="py-5 px-4 text-base text-amber-600 text-right">${(item.supervisorCosts / 1000).toFixed(1)}k</td>
+                        ))}
+                        <td className="py-5 px-4 text-base font-bold text-amber-600 text-right">
+                          {REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.supervisorCosts, 0) >= 1000000 ? `$${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.supervisorCosts, 0) / 1000000).toFixed(2)}M` : `$${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.supervisorCosts, 0) / 1000).toFixed(1)}k`}
+                        </td>
+                      </tr>
+                      <tr className="border-b border-stone-100 hover:bg-stone-50 transition-colors">
+                        <td className="py-5 px-4 text-base font-semibold text-stone-900 flex items-center gap-3">
+                          <div className="w-3 h-3 rounded-full bg-rose-500" />
+                          Credit Card Fees
+                        </td>
+                        {REVENUE_BREAKDOWN_DATA.map((item) => (
+                          <td key={item.month} className="py-5 px-4 text-base text-rose-600 text-right">${(item.creditCardFees / 1000).toFixed(1)}k</td>
+                        ))}
+                        <td className="py-5 px-4 text-base font-bold text-rose-600 text-right">
+                          {REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.creditCardFees, 0) >= 1000000 ? `$${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.creditCardFees, 0) / 1000000).toFixed(2)}M` : `$${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.creditCardFees, 0) / 1000).toFixed(1)}k`}
+                        </td>
+                      </tr>
+                      <tr className="hover:bg-emerald-50 transition-colors">
+                        <td className="py-5 px-4 text-base font-bold text-emerald-700 flex items-center gap-3">
+                          <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                          Net Revenue
+                        </td>
+                        {REVENUE_BREAKDOWN_DATA.map((item) => (
+                          <td key={item.month} className="py-5 px-4 text-base font-bold text-emerald-600 text-right">${(item.netRevenue / 1000).toFixed(1)}k</td>
+                        ))}
+                        <td className="py-5 px-4 text-lg font-bold text-emerald-700 text-right">
+                          {REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.netRevenue, 0) >= 1000000 ? `$${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.netRevenue, 0) / 1000000).toFixed(2)}M` : `$${(REVENUE_BREAKDOWN_DATA.reduce((sum, item) => sum + item.netRevenue, 0) / 1000).toFixed(1)}k`}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -1589,32 +1699,45 @@ export const PracticeAnalysis: React.FC = () => {
       {isSessionsTab && (
         <div className="min-h-full relative">
           {/* Integrated Header */}
-          <div className="sticky top-0 z-50 px-10 pt-8 pb-6" style={{ background: 'linear-gradient(180deg, rgba(250,250,249,0.97) 0%, rgba(250,250,249,0.95) 80%, transparent 100%)' }}>
-            <div className="flex items-end justify-between">
+          <div className="sticky top-0 z-50 px-4 sm:px-6 lg:px-8 xl:px-10 pt-4 sm:pt-6 xl:pt-8 pb-4 xl:pb-6" style={{ background: 'linear-gradient(180deg, rgba(250,250,249,0.97) 0%, rgba(250,250,249,0.95) 80%, transparent 100%)' }}>
+            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 lg:gap-0">
               {/* Title & Breadcrumb */}
               <div>
-                <div className="flex items-center gap-3 mb-3">
-                  <span className="text-stone-400 text-sm font-medium uppercase tracking-widest">Detailed Analysis</span>
+                <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                  <span className="text-stone-400 text-xs sm:text-sm font-medium uppercase tracking-widest">Detailed Analysis</span>
                   <span className="text-stone-300">/</span>
-                  <span className="text-cyan-600 text-sm font-bold uppercase tracking-widest">Sessions</span>
+                  <span className="text-cyan-600 text-xs sm:text-sm font-bold uppercase tracking-widest">Sessions</span>
                 </div>
-                <div className="flex items-baseline gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-4">
                   <h1
-                    className="text-5xl text-stone-900 font-bold tracking-tight"
+                    className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl text-stone-900 font-bold tracking-tight"
                     style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                   >
                     Sessions Performance
                   </h1>
-                  <span className="text-stone-400 text-base font-medium">
+                  <span className="text-stone-400 text-sm sm:text-base font-medium">
                     {getDateRangeLabel()}
                   </span>
                 </div>
               </div>
 
               {/* Time Period Selector - Redesigned */}
-              <div className="flex items-center gap-4 relative">
+              <div className="flex items-center gap-2 sm:gap-4 relative">
+                {/* Mobile: Select dropdown */}
+                <select
+                  value={timePeriod}
+                  onChange={(e) => setTimePeriod(e.target.value as any)}
+                  className="lg:hidden px-3 py-2 rounded-xl border border-stone-200 bg-white text-sm font-medium text-stone-700"
+                >
+                  {timePeriods.map((period) => (
+                    <option key={period.id} value={period.id}>{period.label}</option>
+                  ))}
+                  <option value="custom">Custom Range</option>
+                </select>
+
+                {/* Desktop: Button group */}
                 <div
-                  className="flex items-center gap-1 p-1.5 rounded-2xl bg-white/80 backdrop-blur-sm"
+                  className="hidden lg:flex items-center gap-1 p-1 xl:p-1.5 rounded-xl xl:rounded-2xl bg-white/80 backdrop-blur-sm"
                   style={{
                     boxShadow: '0 4px 20px -4px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.03)'
                   }}
@@ -1623,7 +1746,7 @@ export const PracticeAnalysis: React.FC = () => {
                     <button
                       key={period.id}
                       onClick={() => setTimePeriod(period.id)}
-                      className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${
+                      className={`px-3 lg:px-5 py-2 lg:py-2.5 rounded-lg lg:rounded-xl text-xs lg:text-sm font-semibold transition-all duration-300 ${
                         timePeriod === period.id
                           ? 'bg-stone-900 text-white shadow-lg'
                           : 'text-stone-500 hover:text-stone-900 hover:bg-stone-100'
@@ -1635,7 +1758,7 @@ export const PracticeAnalysis: React.FC = () => {
                   {/* Custom Range Button */}
                   <button
                     onClick={() => setShowDatePicker(!showDatePicker)}
-                    className={`group px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-500 flex items-center gap-2.5 relative overflow-hidden ${
+                    className={`group px-3 lg:px-5 py-2 lg:py-2.5 rounded-lg lg:rounded-xl text-xs lg:text-sm font-semibold transition-all duration-500 flex items-center gap-1.5 lg:gap-2.5 relative overflow-hidden ${
                       timePeriod === 'custom'
                         ? 'text-white shadow-lg'
                         : 'text-stone-500 hover:text-stone-900'
@@ -1650,16 +1773,18 @@ export const PracticeAnalysis: React.FC = () => {
                       size={16}
                       className={`transition-transform duration-500 ${showDatePicker ? 'rotate-12' : 'group-hover:rotate-6'}`}
                     />
-                    <span>{timePeriod === 'custom' ? formatCustomRange() : 'Custom'}</span>
+                    <span className="hidden lg:inline">{timePeriod === 'custom' ? formatCustomRange() : 'Custom'}</span>
+                    <span className="lg:hidden">{timePeriod === 'custom' ? 'Custom' : 'Custom'}</span>
                   </button>
                 </div>
 
                 {/* Simple & Elegant Date Picker */}
                 {showDatePicker && (
                   <div
-                    className="absolute top-full right-0 mt-3 z-[100000] rounded-2xl bg-white p-6"
+                    className="absolute top-full right-0 mt-3 z-[100000] rounded-2xl bg-white p-4 sm:p-6"
                     style={{
-                      width: '340px',
+                      width: 'clamp(280px, 85vw, 380px)',
+                      maxWidth: 'calc(100vw - 32px)',
                       boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05)',
                       animation: 'fadeIn 0.2s ease-out'
                     }}
@@ -1705,7 +1830,7 @@ export const PracticeAnalysis: React.FC = () => {
                     </div>
 
                     {/* Month Grid - Click to set start, click again to set end */}
-                    <div className="grid grid-cols-4 gap-2 mb-5">
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-4 sm:mb-5">
                       {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((month, idx) => {
                         const isStart = idx === customStartMonth;
                         const isEnd = idx === customEndMonth;
@@ -1773,12 +1898,12 @@ export const PracticeAnalysis: React.FC = () => {
             </div>
 
             {/* Tab Navigation - Minimal Pills */}
-            <div className="flex items-center gap-3 mt-8">
+            <div className="flex items-center gap-2 sm:gap-3 mt-4 sm:mt-6 xl:mt-8 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`px-6 py-3 rounded-full text-base font-semibold transition-all duration-300 ${
+                  className={`px-3 sm:px-4 xl:px-6 py-2 sm:py-2.5 xl:py-3 rounded-full text-xs sm:text-sm xl:text-base font-semibold transition-all duration-300 whitespace-nowrap flex-shrink-0 ${
                     activeTab === tab.id
                       ? 'bg-stone-900 text-white shadow-md'
                       : 'text-stone-500 hover:text-stone-800 border border-stone-300 hover:border-stone-400 bg-white/50'
@@ -1791,102 +1916,102 @@ export const PracticeAnalysis: React.FC = () => {
           </div>
 
           {/* Main Content */}
-          <div className="px-10 pb-10 space-y-8">
+          <div className="px-4 sm:px-6 lg:px-8 xl:px-10 pb-6 xl:pb-10 space-y-6 xl:space-y-8">
 
             {/* Hero Stats Row */}
-            <div className="grid grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-5 xl:gap-6">
               {/* Total Completed Sessions */}
               <div
-                className="rounded-3xl p-6 relative overflow-hidden"
+                className="rounded-2xl sm:rounded-3xl p-4 sm:p-5 xl:p-6 relative overflow-hidden"
                 style={{
                   background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
                   boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
                 }}
               >
                 <h3
-                  className="text-stone-800 text-2xl font-semibold mb-4"
+                  className="text-stone-800 text-lg sm:text-xl xl:text-2xl font-semibold mb-2 sm:mb-3 xl:mb-4"
                   style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
                   Total Completed
                 </h3>
                 <span
                   className="text-stone-900 font-bold block"
-                  style={{ fontSize: '2.5rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
+                  className="text-2xl sm:text-3xl xl:text-[2.5rem]" style={{ lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
                   {SESSIONS_DATA.reduce((sum, item) => sum + item.completed, 0).toLocaleString()}
                 </span>
-                <p className="text-stone-500 text-lg mt-3">
+                <p className="text-stone-500 text-sm sm:text-base xl:text-lg mt-2 sm:mt-3">
                   across {SESSIONS_DATA.length} months
                 </p>
               </div>
 
               {/* Total Booked Sessions */}
               <div
-                className="rounded-3xl p-6 relative overflow-hidden"
+                className="rounded-2xl sm:rounded-3xl p-4 sm:p-5 xl:p-6 relative overflow-hidden"
                 style={{
                   background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
                   boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
                 }}
               >
                 <h3
-                  className="text-stone-800 text-2xl font-semibold mb-4"
+                  className="text-stone-800 text-lg sm:text-xl xl:text-2xl font-semibold mb-2 sm:mb-3 xl:mb-4"
                   style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
                   Total Booked
                 </h3>
                 <span
                   className="text-stone-900 font-bold block"
-                  style={{ fontSize: '2.5rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
+                  className="text-2xl sm:text-3xl xl:text-[2.5rem]" style={{ lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
                   {SESSIONS_DATA.reduce((sum, item) => sum + item.booked, 0).toLocaleString()}
                 </span>
-                <p className="text-stone-500 text-lg mt-3">
+                <p className="text-stone-500 text-sm sm:text-base xl:text-lg mt-2 sm:mt-3">
                   {((SESSIONS_DATA.reduce((sum, item) => sum + item.show, 0) / SESSIONS_DATA.reduce((sum, item) => sum + item.booked, 0)) * 100).toFixed(1)}% show rate
                 </p>
               </div>
 
               {/* Goal Achievement */}
               <div
-                className="rounded-3xl p-6 relative overflow-hidden"
+                className="rounded-2xl sm:rounded-3xl p-4 sm:p-5 xl:p-6 relative overflow-hidden"
                 style={{
                   background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
                   boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
                 }}
               >
                 <h3
-                  className="text-stone-800 text-2xl font-semibold mb-4"
+                  className="text-stone-800 text-lg sm:text-xl xl:text-2xl font-semibold mb-2 sm:mb-3 xl:mb-4"
                   style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
                   Goal Achievement
                 </h3>
                 <span
                   className="text-stone-900 font-bold block"
-                  style={{ fontSize: '2.5rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
+                  className="text-2xl sm:text-3xl xl:text-[2.5rem]" style={{ lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
                   {SESSIONS_DATA.filter(item => item.completed >= 700).length}/{SESSIONS_DATA.length}
                 </span>
-                <p className="text-stone-500 text-lg mt-3">
+                <p className="text-stone-500 text-sm sm:text-base xl:text-lg mt-2 sm:mt-3">
                   months hit 700 goal
                 </p>
               </div>
 
               {/* Avg Non-Billable Cancel Rate */}
               <div
-                className="rounded-3xl p-6 relative overflow-hidden"
+                className="rounded-2xl sm:rounded-3xl p-4 sm:p-5 xl:p-6 relative overflow-hidden"
                 style={{
                   background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
                   boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
                 }}
               >
                 <h3
-                  className="text-stone-800 text-2xl font-semibold mb-4"
+                  className="text-stone-800 text-lg sm:text-xl xl:text-2xl font-semibold mb-2 sm:mb-3 xl:mb-4"
                   style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
                   Avg Non-Billable Cancel Rate
                 </h3>
                 <span
                   className="text-stone-900 font-bold block"
-                  style={{ fontSize: '2.5rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
+                  className="text-2xl sm:text-3xl xl:text-[2.5rem]" style={{ lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
                   {(
                     ((SESSIONS_DATA.reduce((sum, item) => sum + item.clinicianCancelled + item.cancelled, 0)) /
@@ -1895,18 +2020,17 @@ export const PracticeAnalysis: React.FC = () => {
                     )) * 100
                   ).toFixed(1)}%
                 </span>
-                <p className="text-stone-500 text-lg mt-3">Client Cancellations + Clinician Cancellations</p>
+                <p className="text-stone-500 text-sm sm:text-base xl:text-lg mt-2 sm:mt-3">Client Cancellations + Clinician Cancellations</p>
               </div>
             </div>
 
             {/* Session Volume & Attendance Breakdown - Side by Side */}
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-5 xl:gap-6">
               {/* Session Volume - Single Bar Chart */}
               <div
-                className="rounded-2xl p-8 relative overflow-hidden flex flex-col"
+                className="rounded-xl sm:rounded-2xl p-4 sm:p-6 xl:p-8 relative overflow-hidden flex flex-col h-[380px] sm:h-[450px] lg:h-[520px] xl:h-[600px]"
                 style={{
                   background: '#ffffff',
-                  height: '750px',
                   border: '2px solid #d6d3d1',
                   borderLeft: '4px solid #059669'
                 }}
@@ -1914,10 +2038,10 @@ export const PracticeAnalysis: React.FC = () => {
 
                 <div className="flex items-start justify-between mb-6">
                   <div>
-                    <h3 className="text-stone-800 text-2xl font-semibold mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                    <h3 className="text-stone-800 text-lg sm:text-xl xl:text-2xl font-semibold mb-1 sm:mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
                       Completed Sessions
                     </h3>
-                    <p className="text-stone-500 text-lg">Monthly performance</p>
+                    <p className="text-stone-500 text-sm sm:text-base xl:text-lg">Monthly performance</p>
                   </div>
                   <div className="flex items-center gap-3">
                     {/* Hover tooltip for clinician breakdown */}
@@ -2044,7 +2168,7 @@ export const PracticeAnalysis: React.FC = () => {
                             <div
                               key={item.month}
                               className="group relative flex flex-col items-center justify-end h-full"
-                              style={{ flex: '1', maxWidth: '72px' }}
+                              style={{ flex: '1', maxWidth: 'clamp(48px, 6vw, 80px)' }}
                             >
                               {/* Single bar container */}
                               <div className="flex items-end w-full justify-center h-full">
@@ -2165,7 +2289,7 @@ export const PracticeAnalysis: React.FC = () => {
                         <div
                           key={item.month}
                           className="text-center"
-                          style={{ flex: '1', maxWidth: '72px' }}
+                          style={{ flex: '1', maxWidth: 'clamp(48px, 6vw, 80px)' }}
                         >
                           <span className={`text-sm font-semibold ${
                             isCurrentMonth
@@ -2243,18 +2367,17 @@ export const PracticeAnalysis: React.FC = () => {
 
               {/* Attendance Breakdown - Donut Chart */}
               <div
-                className="rounded-3xl p-8 overflow-hidden"
+                className="rounded-2xl sm:rounded-3xl p-4 sm:p-6 xl:p-8 overflow-hidden h-[380px] sm:h-[450px] lg:h-[520px] xl:h-[600px]"
                 style={{
                   background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
-                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)',
-                  height: '750px'
+                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
                 }}
               >
                 <div className="mb-6">
-                  <h3 className="text-stone-800 text-2xl font-semibold mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                  <h3 className="text-stone-800 text-lg sm:text-xl xl:text-2xl font-semibold mb-1 sm:mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
                     Attendance Breakdown
                   </h3>
-                  <p className="text-stone-500 text-lg">Session outcomes</p>
+                  <p className="text-stone-500 text-sm sm:text-base xl:text-lg">Session outcomes</p>
                 </div>
 
                 {/* Donut Chart */}
@@ -2270,9 +2393,9 @@ export const PracticeAnalysis: React.FC = () => {
                   const total = segments.reduce((sum, s) => sum + s.value, 0);
 
                   // SVG donut chart calculations using arc paths
-                  const size = 520;
-                  const outerRadius = 240;
-                  const innerRadius = 155;
+                  const size = 320;
+                  const outerRadius = 150;
+                  const innerRadius = 95;
                   const centerX = size / 2;
                   const centerY = size / 2;
 
@@ -2299,7 +2422,7 @@ export const PracticeAnalysis: React.FC = () => {
                   let currentAngle = -Math.PI / 2; // Start from top
 
                   return (
-                    <div className="flex items-center justify-center gap-12 h-full">
+                    <div className="flex items-center justify-center gap-8 lg:gap-12 h-full px-4">
                       {/* SVG Donut */}
                       <div className="relative flex-shrink-0" style={{ width: size, height: size }}>
                         <svg width={size} height={size} className="overflow-visible">
@@ -2328,10 +2451,10 @@ export const PracticeAnalysis: React.FC = () => {
 
                         {/* Center content */}
                         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                          <span className="text-stone-500 text-xl font-medium mb-2">Show Rate</span>
+                          <span className="text-stone-500 text-base font-medium mb-1">Show Rate</span>
                           <span
-                            className="text-emerald-600 font-bold"
-                            style={{ fontSize: '4.5rem', fontFamily: "'DM Serif Display', Georgia, serif" }}
+                            className="text-emerald-600 font-bold text-3xl lg:text-4xl"
+                            style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                           >
                             {((segments[0].value / total) * 100).toFixed(1)}%
                           </span>
@@ -2339,44 +2462,40 @@ export const PracticeAnalysis: React.FC = () => {
                       </div>
 
                       {/* Legend - Vertical stack on the right */}
-                      <div className="flex flex-col gap-6">
+                      <div className="flex flex-col gap-3 flex-1 max-w-[280px]">
                         {segments.map((segment) => {
                           const percent = ((segment.value / total) * 100).toFixed(1);
                           return (
                             <div
                               key={segment.label}
-                              className="flex items-center gap-5 py-4 px-5 rounded-2xl transition-all duration-200 hover:bg-stone-50"
-                              style={{ minWidth: '340px' }}
+                              className="flex items-center gap-4 py-3 px-4 rounded-xl transition-all duration-200 hover:bg-stone-50"
                             >
                               {/* Color indicator with glow */}
                               <div
-                                className="w-7 h-7 rounded-full flex-shrink-0"
+                                className="w-6 h-6 rounded-full flex-shrink-0"
                                 style={{
                                   backgroundColor: segment.color,
-                                  boxShadow: `0 0 16px ${segment.color}50`
+                                  boxShadow: `0 0 12px ${segment.color}50`
                                 }}
                               />
 
                               {/* Label and stats */}
-                              <div className="flex-1 flex items-center justify-between gap-8">
+                              <div className="flex-1 flex items-center justify-between gap-3">
                                 <span
-                                  className="text-stone-700 font-semibold text-xl"
+                                  className="text-stone-700 font-semibold text-base lg:text-lg"
                                   style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                                 >
                                   {segment.label}
                                 </span>
 
-                                <div className="flex items-baseline gap-4">
+                                <div className="flex items-baseline gap-2">
                                   <span
-                                    className="text-stone-900 font-bold text-3xl tabular-nums"
+                                    className="text-stone-900 font-bold text-xl lg:text-2xl tabular-nums"
                                     style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                                   >
                                     {segment.value.toLocaleString()}
                                   </span>
-                                  <span
-                                    className="text-stone-400 font-semibold text-lg tabular-nums"
-                                    style={{ minWidth: '60px', textAlign: 'right' }}
-                                  >
+                                  <span className="text-stone-400 font-semibold text-sm tabular-nums">
                                     {percent}%
                                   </span>
                                 </div>
@@ -2392,54 +2511,54 @@ export const PracticeAnalysis: React.FC = () => {
             </div>
 
             {/* Secondary Metrics Row */}
-            <div className="grid grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
               {/* Sessions per Client */}
               <div
-                className="rounded-3xl p-6 relative overflow-hidden"
+                className="rounded-2xl sm:rounded-3xl p-4 sm:p-5 xl:p-6 relative overflow-hidden"
                 style={{
                   background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
                   boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
                 }}
               >
                 <h3
-                  className="text-stone-800 text-2xl font-semibold mb-4"
+                  className="text-stone-800 text-lg sm:text-xl xl:text-2xl font-semibold mb-2 sm:mb-3 xl:mb-4"
                   style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
                   Avg Sessions per Client per Month
                 </h3>
                 <span
                   className="text-stone-900 font-bold block"
-                  style={{ fontSize: '2.5rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
+                  className="text-2xl sm:text-3xl xl:text-[2.5rem]" style={{ lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
                   {(SESSIONS_DATA.reduce((sum, item) => sum + item.completed, 0) / SESSIONS_DATA.reduce((sum, item) => sum + item.clients, 0)).toFixed(1)}
                 </span>
-                <p className="text-stone-500 text-lg mt-3">
+                <p className="text-stone-500 text-sm sm:text-base xl:text-lg mt-2 sm:mt-3">
                   sessions per active client per month
                 </p>
               </div>
 
               {/* Avg Sessions */}
               <div
-                className="rounded-3xl p-6 relative overflow-hidden"
+                className="rounded-2xl sm:rounded-3xl p-4 sm:p-5 xl:p-6 relative overflow-hidden"
                 style={{
                   background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
                   boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
                 }}
               >
                 <h3
-                  className="text-stone-800 text-2xl font-semibold mb-4"
+                  className="text-stone-800 text-lg sm:text-xl xl:text-2xl font-semibold mb-2 sm:mb-3 xl:mb-4"
                   style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
                   Avg Sessions
                 </h3>
                 <span
                   className="text-stone-900 font-bold block"
-                  style={{ fontSize: '2.5rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
+                  className="text-2xl sm:text-3xl xl:text-[2.5rem]" style={{ lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
                   {Math.round(SESSIONS_DATA.reduce((sum, item) => sum + item.completed, 0) / SESSIONS_DATA.length).toLocaleString()}
                   <span className="text-stone-400 text-xl font-medium" style={{ fontFamily: "system-ui, sans-serif" }}>/mo</span>
                 </span>
-                <p className="text-stone-500 text-lg mt-3">
+                <p className="text-stone-500 text-sm sm:text-base xl:text-lg mt-2 sm:mt-3">
                   {Math.round(SESSIONS_DATA.reduce((sum, item) => sum + item.completed, 0) / SESSIONS_DATA.length / 4.33)}/week
                 </p>
               </div>
@@ -2454,7 +2573,7 @@ export const PracticeAnalysis: React.FC = () => {
 
                 return (
                   <div
-                    className="rounded-3xl p-6 relative overflow-hidden"
+                    className="rounded-2xl sm:rounded-3xl p-4 sm:p-5 xl:p-6 relative overflow-hidden"
                     style={{
                       background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
                       boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
@@ -2548,105 +2667,425 @@ export const PracticeAnalysis: React.FC = () => {
 
             {/* Detailed Table */}
             <div
-              className="rounded-3xl p-8"
+              className="rounded-2xl sm:rounded-3xl p-4 sm:p-6 xl:p-8"
               style={{
                 background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
                 boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
               }}
             >
               <h3
-                className="text-stone-800 text-2xl font-semibold mb-6"
+                className="text-stone-800 text-lg sm:text-xl xl:text-2xl font-semibold mb-4 sm:mb-6"
                 style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
               >
                 Monthly Breakdown
               </h3>
 
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b-2 border-stone-200">
-                      <th className="text-left py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider"></th>
-                      {SESSIONS_DATA.map((item) => (
-                        <th key={item.month} className="text-right py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">{item.month}</th>
-                      ))}
-                      <th className="text-right py-5 px-4 text-sm font-bold text-stone-900 uppercase tracking-wider">Total</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr className="border-b border-stone-100 hover:bg-stone-50 transition-colors">
-                      <td className="py-5 px-4 text-base font-semibold text-stone-900 flex items-center gap-3">
-                        <div className="w-3 h-3 rounded-full bg-cyan-500" />
-                        Booked
-                      </td>
-                      {SESSIONS_DATA.map((item) => (
-                        <td key={item.month} className="py-5 px-4 text-base text-stone-600 text-right">{item.booked}</td>
-                      ))}
-                      <td className="py-5 px-4 text-base font-bold text-stone-900 text-right">
-                        {SESSIONS_DATA.reduce((sum, item) => sum + item.booked, 0).toLocaleString()}
-                      </td>
-                    </tr>
-                    <tr className="border-b border-stone-100 hover:bg-emerald-50 transition-colors">
-                      <td className="py-5 px-4 text-base font-semibold text-emerald-700 flex items-center gap-3">
-                        <div className="w-3 h-3 rounded-full bg-emerald-500" />
-                        Completed
-                      </td>
-                      {SESSIONS_DATA.map((item) => (
-                        <td key={item.month} className="py-5 px-4 text-base font-bold text-emerald-600 text-right">{item.completed}</td>
-                      ))}
-                      <td className="py-5 px-4 text-lg font-bold text-emerald-700 text-right">
-                        {SESSIONS_DATA.reduce((sum, item) => sum + item.completed, 0).toLocaleString()}
-                      </td>
-                    </tr>
-                    <tr className="border-b border-stone-100 hover:bg-stone-50 transition-colors">
-                      <td className="py-5 px-4 text-base font-semibold text-stone-900 flex items-center gap-3">
-                        <div className="w-3 h-3 rounded-full bg-rose-500" />
-                        Cancelled
-                      </td>
-                      {SESSIONS_DATA.map((item) => (
-                        <td key={item.month} className="py-5 px-4 text-base text-rose-600 text-right">{item.cancelled}</td>
-                      ))}
-                      <td className="py-5 px-4 text-base font-bold text-rose-600 text-right">
-                        {SESSIONS_DATA.reduce((sum, item) => sum + item.cancelled, 0).toLocaleString()}
-                      </td>
-                    </tr>
-                    <tr className="border-b border-stone-100 hover:bg-stone-50 transition-colors">
-                      <td className="py-5 px-4 text-base font-semibold text-stone-900 flex items-center gap-3">
-                        <div className="w-3 h-3 rounded-full bg-blue-500" />
-                        Clinician Cancelled
-                      </td>
-                      {SESSIONS_DATA.map((item) => (
-                        <td key={item.month} className="py-5 px-4 text-base text-blue-600 text-right">{item.clinicianCancelled}</td>
-                      ))}
-                      <td className="py-5 px-4 text-base font-bold text-blue-600 text-right">
-                        {SESSIONS_DATA.reduce((sum, item) => sum + item.clinicianCancelled, 0).toLocaleString()}
-                      </td>
-                    </tr>
-                    <tr className="border-b border-stone-100 hover:bg-stone-50 transition-colors">
-                      <td className="py-5 px-4 text-base font-semibold text-stone-900 flex items-center gap-3">
-                        <div className="w-3 h-3 rounded-full bg-amber-500" />
-                        Late Cancelled
-                      </td>
-                      {SESSIONS_DATA.map((item) => (
-                        <td key={item.month} className="py-5 px-4 text-base text-amber-600 text-right">{item.lateCancelled}</td>
-                      ))}
-                      <td className="py-5 px-4 text-base font-bold text-amber-600 text-right">
-                        {SESSIONS_DATA.reduce((sum, item) => sum + item.lateCancelled, 0).toLocaleString()}
-                      </td>
-                    </tr>
-                    <tr className="hover:bg-stone-50 transition-colors">
-                      <td className="py-5 px-4 text-base font-semibold text-stone-900 flex items-center gap-3">
-                        <div className="w-3 h-3 rounded-full bg-stone-500" />
-                        No Show
-                      </td>
-                      {SESSIONS_DATA.map((item) => (
-                        <td key={item.month} className="py-5 px-4 text-base text-stone-600 text-right">{item.noShow}</td>
-                      ))}
-                      <td className="py-5 px-4 text-base font-bold text-stone-600 text-right">
-                        {SESSIONS_DATA.reduce((sum, item) => sum + item.noShow, 0).toLocaleString()}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+              {isMobile ? (
+                /* Mobile: Card view */
+                <div className="space-y-3">
+                  {/* Period Totals Card */}
+                  <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-200">
+                    <div className="font-semibold text-emerald-800 mb-3">Period Totals</div>
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-cyan-500" />
+                        <span className="text-stone-500">Booked:</span>
+                        <span className="font-bold text-stone-900">{SESSIONS_DATA.reduce((sum, item) => sum + item.booked, 0).toLocaleString()}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                        <span className="text-stone-500">Completed:</span>
+                        <span className="font-bold text-emerald-600">{SESSIONS_DATA.reduce((sum, item) => sum + item.completed, 0).toLocaleString()}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-rose-500" />
+                        <span className="text-stone-500">Cancelled:</span>
+                        <span className="font-bold text-rose-600">{SESSIONS_DATA.reduce((sum, item) => sum + item.cancelled, 0).toLocaleString()}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-blue-500" />
+                        <span className="text-stone-500">Clin. Cancel:</span>
+                        <span className="font-bold text-blue-600">{SESSIONS_DATA.reduce((sum, item) => sum + item.clinicianCancelled, 0).toLocaleString()}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-amber-500" />
+                        <span className="text-stone-500">Late Cancel:</span>
+                        <span className="font-bold text-amber-600">{SESSIONS_DATA.reduce((sum, item) => sum + item.lateCancelled, 0).toLocaleString()}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-stone-500" />
+                        <span className="text-stone-500">No Show:</span>
+                        <span className="font-bold text-stone-600">{SESSIONS_DATA.reduce((sum, item) => sum + item.noShow, 0).toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Monthly Cards */}
+                  {SESSIONS_DATA.map((item) => (
+                    <div key={item.month} className="bg-white rounded-xl p-4 border border-stone-200 shadow-sm">
+                      <div className="font-semibold text-stone-800 mb-3">{item.month}</div>
+                      <div className="grid grid-cols-2 gap-2 text-sm">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-cyan-500" />
+                          <span className="text-stone-500">Booked:</span>
+                          <span className="font-medium text-stone-900">{item.booked}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                          <span className="text-stone-500">Completed:</span>
+                          <span className="font-bold text-emerald-600">{item.completed}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-rose-500" />
+                          <span className="text-stone-500">Cancelled:</span>
+                          <span className="font-medium text-rose-600">{item.cancelled}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-blue-500" />
+                          <span className="text-stone-500">Clin. Cancel:</span>
+                          <span className="font-medium text-blue-600">{item.clinicianCancelled}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-amber-500" />
+                          <span className="text-stone-500">Late Cancel:</span>
+                          <span className="font-medium text-amber-600">{item.lateCancelled}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-stone-500" />
+                          <span className="text-stone-500">No Show:</span>
+                          <span className="font-medium text-stone-600">{item.noShow}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                /* Desktop: Table view */
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b-2 border-stone-200">
+                        <th className="text-left py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider"></th>
+                        {SESSIONS_DATA.map((item) => (
+                          <th key={item.month} className="text-right py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">{item.month}</th>
+                        ))}
+                        <th className="text-right py-5 px-4 text-sm font-bold text-stone-900 uppercase tracking-wider">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="border-b border-stone-100 hover:bg-stone-50 transition-colors">
+                        <td className="py-5 px-4 text-base font-semibold text-stone-900 flex items-center gap-3">
+                          <div className="w-3 h-3 rounded-full bg-cyan-500" />
+                          Booked
+                        </td>
+                        {SESSIONS_DATA.map((item) => (
+                          <td key={item.month} className="py-5 px-4 text-base text-stone-600 text-right">{item.booked}</td>
+                        ))}
+                        <td className="py-5 px-4 text-base font-bold text-stone-900 text-right">
+                          {SESSIONS_DATA.reduce((sum, item) => sum + item.booked, 0).toLocaleString()}
+                        </td>
+                      </tr>
+                      <tr className="border-b border-stone-100 hover:bg-emerald-50 transition-colors">
+                        <td className="py-5 px-4 text-base font-semibold text-emerald-700 flex items-center gap-3">
+                          <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                          Completed
+                        </td>
+                        {SESSIONS_DATA.map((item) => (
+                          <td key={item.month} className="py-5 px-4 text-base font-bold text-emerald-600 text-right">{item.completed}</td>
+                        ))}
+                        <td className="py-5 px-4 text-lg font-bold text-emerald-700 text-right">
+                          {SESSIONS_DATA.reduce((sum, item) => sum + item.completed, 0).toLocaleString()}
+                        </td>
+                      </tr>
+                      <tr className="border-b border-stone-100 hover:bg-stone-50 transition-colors">
+                        <td className="py-5 px-4 text-base font-semibold text-stone-900 flex items-center gap-3">
+                          <div className="w-3 h-3 rounded-full bg-rose-500" />
+                          Cancelled
+                        </td>
+                        {SESSIONS_DATA.map((item) => (
+                          <td key={item.month} className="py-5 px-4 text-base text-rose-600 text-right">{item.cancelled}</td>
+                        ))}
+                        <td className="py-5 px-4 text-base font-bold text-rose-600 text-right">
+                          {SESSIONS_DATA.reduce((sum, item) => sum + item.cancelled, 0).toLocaleString()}
+                        </td>
+                      </tr>
+                      <tr className="border-b border-stone-100 hover:bg-stone-50 transition-colors">
+                        <td className="py-5 px-4 text-base font-semibold text-stone-900 flex items-center gap-3">
+                          <div className="w-3 h-3 rounded-full bg-blue-500" />
+                          Clinician Cancelled
+                        </td>
+                        {SESSIONS_DATA.map((item) => (
+                          <td key={item.month} className="py-5 px-4 text-base text-blue-600 text-right">{item.clinicianCancelled}</td>
+                        ))}
+                        <td className="py-5 px-4 text-base font-bold text-blue-600 text-right">
+                          {SESSIONS_DATA.reduce((sum, item) => sum + item.clinicianCancelled, 0).toLocaleString()}
+                        </td>
+                      </tr>
+                      <tr className="border-b border-stone-100 hover:bg-stone-50 transition-colors">
+                        <td className="py-5 px-4 text-base font-semibold text-stone-900 flex items-center gap-3">
+                          <div className="w-3 h-3 rounded-full bg-amber-500" />
+                          Late Cancelled
+                        </td>
+                        {SESSIONS_DATA.map((item) => (
+                          <td key={item.month} className="py-5 px-4 text-base text-amber-600 text-right">{item.lateCancelled}</td>
+                        ))}
+                        <td className="py-5 px-4 text-base font-bold text-amber-600 text-right">
+                          {SESSIONS_DATA.reduce((sum, item) => sum + item.lateCancelled, 0).toLocaleString()}
+                        </td>
+                      </tr>
+                      <tr className="hover:bg-stone-50 transition-colors">
+                        <td className="py-5 px-4 text-base font-semibold text-stone-900 flex items-center gap-3">
+                          <div className="w-3 h-3 rounded-full bg-stone-500" />
+                          No Show
+                        </td>
+                        {SESSIONS_DATA.map((item) => (
+                          <td key={item.month} className="py-5 px-4 text-base text-stone-600 text-right">{item.noShow}</td>
+                        ))}
+                        <td className="py-5 px-4 text-base font-bold text-stone-600 text-right">
+                          {SESSIONS_DATA.reduce((sum, item) => sum + item.noShow, 0).toLocaleString()}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            {/* Weekly Schedule Patterns - Two Card Layout */}
+            <div className="grid grid-cols-2 gap-6">
+              {/* Card 1: Availability Heatmap - Simplified */}
+              <div
+                className="rounded-2xl sm:rounded-3xl relative overflow-hidden h-full"
+                style={{
+                  background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
+                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
+                }}
+              >
+                {(() => {
+                  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+                  const timeBlocks = [
+                    { label: 'Morning', hours: [8, 9, 10, 11] },
+                    { label: 'Afternoon', hours: [12, 13, 14, 15, 16] },
+                    { label: 'Evening', hours: [17, 18, 19] }
+                  ];
+
+                  const getBlockSessions = (day: string, hours: number[]) =>
+                    SESSION_TIMING_DATA
+                      .filter(d => d.day === day && hours.includes(d.hour))
+                      .reduce((sum, d) => sum + d.sessions, 0);
+
+                  const allBlockValues: number[] = [];
+                  days.forEach(day => {
+                    timeBlocks.forEach(block => {
+                      allBlockValues.push(getBlockSessions(day, block.hours));
+                    });
+                  });
+                  const maxBlock = Math.max(...allBlockValues);
+                  const minBlock = Math.min(...allBlockValues);
+                  const range = maxBlock - minBlock;
+                  const lowThreshold = minBlock + range * 0.33;
+                  const highThreshold = minBlock + range * 0.66;
+
+                  const getState = (sessions: number): 'open' | 'moderate' | 'busy' => {
+                    if (sessions <= lowThreshold) return 'open';
+                    if (sessions >= highThreshold) return 'busy';
+                    return 'moderate';
+                  };
+
+                  const stateStyles = {
+                    open: { bg: '#e8f4f6', text: '#2d6e7e', label: 'Open' },
+                    moderate: { bg: '#b8d9df', text: '#1d5e6e', label: 'Steady' },
+                    busy: { bg: '#2d6e7e', text: '#ffffff', label: 'Busy' }
+                  };
+
+                  return (
+                    <div className="p-5 sm:p-6 h-full flex flex-col">
+                      {/* Header */}
+                      <div className="mb-4">
+                        <h3
+                          className="text-stone-800 text-lg sm:text-xl xl:text-2xl font-semibold"
+                          style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                        >
+                          Weekly Availability
+                        </h3>
+                      </div>
+
+                      {/* Heatmap Grid - fills remaining space */}
+                      <div className="flex-1 flex flex-col">
+                        {/* Day Headers */}
+                        <div className="grid gap-2 mb-2" style={{ gridTemplateColumns: '80px repeat(5, 1fr)' }}>
+                          <div></div>
+                          {days.map(day => (
+                            <div key={day} className="text-center">
+                              <span className="text-sm sm:text-base font-semibold text-stone-600">{day}</span>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Time Block Rows - flex-1 to fill space */}
+                        <div className="flex-1 flex flex-col gap-2">
+                          {timeBlocks.map(block => (
+                            <div key={block.label} className="flex-1 grid gap-2" style={{ gridTemplateColumns: '80px repeat(5, 1fr)' }}>
+                              <div className="flex items-center">
+                                <span className="text-sm sm:text-base font-medium text-stone-600">{block.label}</span>
+                              </div>
+                              {days.map(day => {
+                                const sessions = getBlockSessions(day, block.hours);
+                                const state = getState(sessions);
+                                const style = stateStyles[state];
+
+                                return (
+                                  <div
+                                    key={`${day}-${block.label}`}
+                                    className="rounded-xl flex items-center justify-center transition-all duration-200 hover:scale-[1.02] cursor-default"
+                                    style={{ background: style.bg }}
+                                  >
+                                    <span
+                                      className="text-sm sm:text-base font-semibold"
+                                      style={{ color: style.text }}
+                                    >
+                                      {style.label}
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Legend - compact */}
+                        <div className="flex items-center justify-center gap-6 mt-4 pt-3 border-t border-stone-100">
+                          {(['open', 'moderate', 'busy'] as const).map(state => {
+                            const style = stateStyles[state];
+                            return (
+                              <div key={state} className="flex items-center gap-2">
+                                <div className="w-3 h-3 rounded" style={{ background: style.bg }} />
+                                <span className="text-xs sm:text-sm text-stone-500">{style.label}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+
+              {/* Card 2: Key Insights - 2x2 Grid */}
+              <div
+                className="rounded-2xl sm:rounded-3xl relative overflow-hidden h-full"
+                style={{
+                  background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
+                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
+                }}
+              >
+                {(() => {
+                  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+                  const dayNames: Record<string, string> = {
+                    'Mon': 'Monday', 'Tue': 'Tuesday', 'Wed': 'Wednesday',
+                    'Thu': 'Thursday', 'Fri': 'Friday'
+                  };
+                  const timeBlocks = [
+                    { label: 'Morning', hours: [8, 9, 10, 11] },
+                    { label: 'Afternoon', hours: [12, 13, 14, 15, 16] },
+                    { label: 'Evening', hours: [17, 18, 19] }
+                  ];
+
+                  const getBlockSessions = (day: string, hours: number[]) =>
+                    SESSION_TIMING_DATA
+                      .filter(d => d.day === day && hours.includes(d.hour))
+                      .reduce((sum, d) => sum + d.sessions, 0);
+
+                  const allBlocks: { day: string; block: string; sessions: number }[] = [];
+                  days.forEach(day => {
+                    timeBlocks.forEach(block => {
+                      allBlocks.push({ day, block: block.label, sessions: getBlockSessions(day, block.hours) });
+                    });
+                  });
+
+                  const busiestBlock = allBlocks.reduce((max, curr) => curr.sessions > max.sessions ? curr : max);
+                  const quietestBlock = allBlocks.reduce((min, curr) => curr.sessions < min.sessions ? curr : min);
+                  const sortedByQuiet = [...allBlocks].sort((a, b) => a.sessions - b.sessions);
+                  const secondQuietest = sortedByQuiet[1];
+
+                  const getDayTotal = (day: string) =>
+                    SESSION_TIMING_DATA.filter(d => d.day === day).reduce((sum, d) => sum + d.sessions, 0);
+                  const dayTotals = days.map(day => ({ day, total: getDayTotal(day) }));
+                  const busiestDay = dayTotals.reduce((max, curr) => curr.total > max.total ? curr : max);
+
+                  return (
+                    <div className="p-5 sm:p-6 xl:p-8 h-full flex flex-col">
+                      {/* Header */}
+                      <div className="mb-4 sm:mb-5">
+                        <h3
+                          className="text-stone-800 text-lg sm:text-xl xl:text-2xl font-semibold"
+                          style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                        >
+                          Schedule Insights
+                        </h3>
+                        <p className="text-stone-500 text-sm sm:text-base mt-1">Based on weekly availability patterns</p>
+                      </div>
+
+                      {/* 2x2 Grid */}
+                      <div className="flex-1 grid grid-cols-2 gap-3 sm:gap-4">
+                        {/* Peak Time */}
+                        <div className="rounded-xl sm:rounded-2xl p-4 sm:p-5 xl:p-6 flex flex-col" style={{ background: '#2d6e7e' }}>
+                          <div className="text-white/80 text-sm sm:text-base font-bold uppercase tracking-wider mb-3">Peak Time</div>
+                          <div className="flex-1 flex flex-col justify-center">
+                            <div className="text-white text-2xl sm:text-3xl xl:text-4xl font-bold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                              {dayNames[busiestBlock.day]}
+                            </div>
+                            <div className="text-white/90 text-xl sm:text-2xl xl:text-3xl font-semibold mt-1" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                              {busiestBlock.block}s
+                            </div>
+                          </div>
+                          <div className="text-white/70 text-sm sm:text-base font-medium mt-3">Busiest slot</div>
+                        </div>
+
+                        {/* Best Opportunity */}
+                        <div className="rounded-xl sm:rounded-2xl p-4 sm:p-5 xl:p-6 flex flex-col" style={{ background: '#e8f4f6' }}>
+                          <div className="text-[#2d6e7e] text-sm sm:text-base font-bold uppercase tracking-wider mb-3">Best Opportunity</div>
+                          <div className="flex-1 flex flex-col justify-center">
+                            <div className="text-[#2d6e7e] text-2xl sm:text-3xl xl:text-4xl font-bold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                              {dayNames[quietestBlock.day]}
+                            </div>
+                            <div className="text-[#2d6e7e]/90 text-xl sm:text-2xl xl:text-3xl font-semibold mt-1" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                              {quietestBlock.block}s
+                            </div>
+                          </div>
+                          <div className="text-[#2d6e7e]/70 text-sm sm:text-base font-medium mt-3">{Math.round((1 - quietestBlock.sessions / busiestBlock.sessions) * 100)}% lighter than peak</div>
+                        </div>
+
+                        {/* Also Open */}
+                        <div className="rounded-xl sm:rounded-2xl p-4 sm:p-5 xl:p-6 flex flex-col" style={{ background: '#f5f5f4' }}>
+                          <div className="text-stone-600 text-sm sm:text-base font-bold uppercase tracking-wider mb-3">Also Open</div>
+                          <div className="flex-1 flex flex-col justify-center">
+                            <div className="text-stone-800 text-2xl sm:text-3xl xl:text-4xl font-bold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                              {dayNames[secondQuietest.day]}
+                            </div>
+                            <div className="text-stone-700 text-xl sm:text-2xl xl:text-3xl font-semibold mt-1" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                              {secondQuietest.block}s
+                            </div>
+                          </div>
+                          <div className="text-stone-500 text-sm sm:text-base font-medium mt-3">Room for more clients</div>
+                        </div>
+
+                        {/* Busiest Day */}
+                        <div className="rounded-xl sm:rounded-2xl p-4 sm:p-5 xl:p-6 flex flex-col" style={{ background: '#b8d9df' }}>
+                          <div className="text-[#1d5e6e] text-sm sm:text-base font-bold uppercase tracking-wider mb-3">Busiest Day</div>
+                          <div className="flex-1 flex flex-col justify-center">
+                            <div className="text-[#1d5e6e] text-2xl sm:text-3xl xl:text-4xl font-bold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                              {dayNames[busiestDay.day]}
+                            </div>
+                            <div className="text-[#1d5e6e]/90 text-xl sm:text-2xl xl:text-3xl font-semibold tabular-nums mt-1" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                              {busiestDay.total} sessions
+                            </div>
+                          </div>
+                          <div className="text-[#1d5e6e]/70 text-sm sm:text-base font-medium mt-3">Across all time slots</div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           </div>
@@ -2656,8 +3095,8 @@ export const PracticeAnalysis: React.FC = () => {
       {activeTab === 'capacity-client' && (
         <div className="flex flex-col gap-6 overflow-y-auto">
           {/* Top Row - Main Chart */}
-          <div className="flex gap-6 flex-shrink-0" style={{ height: 'calc(100vh - 400px)' }}>
-            <div className="w-[55%]" style={{ height: '100%' }}>
+          <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 flex-shrink-0 min-h-[300px] lg:min-h-[400px]" style={{ height: 'clamp(300px, calc(100dvh - 300px), 600px)' }}>
+            <div className="w-full lg:w-[55%] h-auto lg:h-full">
             <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[24px] h-full flex flex-col shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300"
               style={{
                 boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)'
@@ -2813,7 +3252,7 @@ export const PracticeAnalysis: React.FC = () => {
             </div>
 
             {/* Right Side - Hours Utilization */}
-            <div className="flex flex-col gap-6 w-[45%]" style={{ height: '100%' }}>
+            <div className="flex flex-col gap-4 lg:gap-6 w-full lg:w-[45%] h-auto lg:h-full">
               <div className="flex gap-4 flex-shrink-0">
                 {/* Hours Utilization - Compact */}
                 <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[20px] flex flex-col shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300 flex-1"
@@ -2846,7 +3285,7 @@ export const PracticeAnalysis: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="relative z-10 px-3 pb-2" style={{ height: '110px' }}>
+                  <div className="relative z-10 px-3 pb-2" style={{ height: 'clamp(80px, 15vw, 120px)' }}>
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart
                         data={HOURS_UTILIZATION_DATA}
@@ -2937,7 +3376,7 @@ export const PracticeAnalysis: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="relative z-10 px-3 pb-2" style={{ height: '110px' }}>
+                  <div className="relative z-10 px-3 pb-2" style={{ height: 'clamp(80px, 15vw, 120px)' }}>
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart
                         data={OPEN_SLOTS_DATA}
@@ -3147,7 +3586,7 @@ export const PracticeAnalysis: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="relative z-10 px-3 pb-2" style={{ height: '110px' }}>
+                  <div className="relative z-10 px-3 pb-2" style={{ height: 'clamp(80px, 15vw, 120px)' }}>
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart
                         data={UTILIZATION_DATA}
@@ -3238,7 +3677,7 @@ export const PracticeAnalysis: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="relative z-10 px-3 pb-2" style={{ height: '110px' }}>
+                  <div className="relative z-10 px-3 pb-2" style={{ height: 'clamp(80px, 15vw, 120px)' }}>
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart
                         data={OPEN_SLOTS_DATA}
@@ -3304,8 +3743,8 @@ export const PracticeAnalysis: React.FC = () => {
       {activeTab === 'retention' && (
             <div className="flex flex-col gap-6 overflow-y-auto">
               {/* Churn Analysis Chart */}
-              <div className="flex gap-6 flex-shrink-0" style={{ height: 'calc(100vh - 400px)' }}>
-                <div className="w-[55%]" style={{ height: '100%' }}>
+              <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 flex-shrink-0 min-h-[300px] lg:min-h-[400px]" style={{ height: 'clamp(300px, calc(100dvh - 300px), 600px)' }}>
+                <div className="w-full lg:w-[55%] h-auto lg:h-full">
                   <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[24px] h-full flex flex-col shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300"
                     style={{
                       boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)'
@@ -3443,7 +3882,7 @@ export const PracticeAnalysis: React.FC = () => {
                 </div>
 
                 {/* Right Side - Small Charts and Medium Chart */}
-                <div className="flex flex-col gap-6 w-[45%]" style={{ height: '100%' }}>
+                <div className="flex flex-col gap-4 lg:gap-6 w-full lg:w-[45%] h-auto lg:h-full">
                   <div className="flex gap-4 flex-shrink-0">
                     {/* Churn Timing - Small Chart 1 */}
                     <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[20px] flex flex-col shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300 flex-1"
@@ -3470,7 +3909,7 @@ export const PracticeAnalysis: React.FC = () => {
                         </h3>
                       </div>
 
-                      <div className="relative z-10 px-1 pb-2" style={{ height: '130px' }}>
+                      <div className="relative z-10 px-1 pb-2" style={{ height: 'clamp(90px, 14vw, 130px)' }}>
                         <ResponsiveContainer width="100%" height="100%">
                           <PieChart margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
                             <Pie
@@ -3594,7 +4033,7 @@ export const PracticeAnalysis: React.FC = () => {
                         </div>
                       </div>
 
-                      <div className="relative z-10 px-3 pb-2" style={{ height: '110px' }}>
+                      <div className="relative z-10 px-3 pb-2" style={{ height: 'clamp(80px, 15vw, 120px)' }}>
                         <ResponsiveContainer width="100%" height="100%">
                           <LineChart
                             data={CLIENT_GROWTH_DATA.map(item => ({
@@ -3701,8 +4140,8 @@ export const PracticeAnalysis: React.FC = () => {
                           <div className="relative">
                             {/* Bar */}
                             <div
-                              className="w-32 bg-gradient-to-t from-[#ef4444] to-[#dc2626] rounded-t-xl shadow-lg"
-                              style={{ height: '140px' }}
+                              className="w-24 lg:w-32 bg-gradient-to-t from-[#ef4444] to-[#dc2626] rounded-t-xl shadow-lg"
+                              style={{ height: 'clamp(100px, 15vw, 140px)' }}
                             >
                               {/* Marker line at 3.5 sessions */}
                               <div className="absolute top-0 left-0 right-0 flex items-center justify-center" style={{ top: 'calc(100% - 70%)' }}>
@@ -3729,8 +4168,8 @@ export const PracticeAnalysis: React.FC = () => {
                           <div className="relative">
                             {/* Bar */}
                             <div
-                              className="w-32 bg-gradient-to-t from-[#f59e0b] to-[#d97706] rounded-t-xl shadow-lg"
-                              style={{ height: '200px' }}
+                              className="w-24 lg:w-32 bg-gradient-to-t from-[#f59e0b] to-[#d97706] rounded-t-xl shadow-lg"
+                              style={{ height: 'clamp(140px, 20vw, 200px)' }}
                             >
                               {/* Marker line at 8 sessions */}
                               <div className="absolute top-0 left-0 right-0 flex items-center justify-center" style={{ top: 'calc(100% - 40%)' }}>
@@ -3757,8 +4196,8 @@ export const PracticeAnalysis: React.FC = () => {
                           <div className="relative">
                             {/* Bar */}
                             <div
-                              className="w-32 bg-gradient-to-t from-[#10b981] to-[#059669] rounded-t-xl shadow-lg"
-                              style={{ height: '280px' }}
+                              className="w-24 lg:w-32 bg-gradient-to-t from-[#10b981] to-[#059669] rounded-t-xl shadow-lg"
+                              style={{ height: 'clamp(180px, 28vw, 280px)' }}
                             >
                               {/* Marker line at 30 sessions */}
                               <div className="absolute top-0 left-0 right-0 flex items-center justify-center" style={{ top: 'calc(100% - 50%)' }}>
@@ -3838,7 +4277,7 @@ export const PracticeAnalysis: React.FC = () => {
               <div className="text-gray-500 text-xs font-semibold uppercase tracking-widest mb-2">CLAIMS STATUS</div>
               <h3 className="text-gray-900 text-xl font-semibold mb-6">Last 30 Days Claims Activity</h3>
 
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 xl:gap-6">
                 {/* Claims Status Tiles */}
                 <div>
                   <h4 className="text-sm font-semibold text-gray-700 mb-3">Claims Breakdown</h4>
@@ -3906,7 +4345,7 @@ export const PracticeAnalysis: React.FC = () => {
               <div className="text-gray-500 text-xs font-semibold uppercase tracking-widest mb-2">OUTSTANDING CLAIMS</div>
               <h3 className="text-gray-900 text-xl font-semibold mb-6">Claims Aging Analysis</h3>
 
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 xl:gap-6">
                 {/* Outstanding Claims Bar Chart */}
                 <div>
                   <h4 className="text-sm font-semibold text-gray-700 mb-3">Outstanding by Age</h4>
@@ -3971,7 +4410,7 @@ export const PracticeAnalysis: React.FC = () => {
       {activeTab === 'admin' && (
         <div className="flex flex-col gap-6 overflow-y-auto pb-6">
           {/* Top Row - 3 Admin Health Tiles */}
-          <div className="grid grid-cols-3 gap-4 flex-shrink-0">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 flex-shrink-0">
             {/* Tile 1: Total Client Balance Owed */}
             {(() => {
               const latestData = CLIENT_BALANCE_AGING_DATA[CLIENT_BALANCE_AGING_DATA.length - 1];
@@ -4040,7 +4479,7 @@ export const PracticeAnalysis: React.FC = () => {
               <div className="text-gray-500 text-xs font-semibold uppercase tracking-widest mb-2">BILLING HEALTH</div>
               <h3 className="text-gray-900 text-xl font-semibold mb-6">Client Balance Aging</h3>
 
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 xl:gap-6">
                 {/* Chart: Client Balance Aging Bars */}
                 <div>
                   <ResponsiveContainer width="100%" height={250}>
@@ -4095,11 +4534,11 @@ export const PracticeAnalysis: React.FC = () => {
               <div className="text-gray-500 text-xs font-semibold uppercase tracking-widest mb-2">DOCUMENTATION & NOTES</div>
               <h3 className="text-gray-900 text-xl font-semibold mb-6">Notes Status & Compliance</h3>
 
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 xl:gap-6">
                 {/* Notes Status Tiles */}
                 <div>
                   <h4 className="text-sm font-semibold text-gray-700 mb-3">Current Period Status</h4>
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     {(() => {
                       const latestNotes = NOTES_STATUS_DATA[NOTES_STATUS_DATA.length - 1];
                       return (
@@ -4155,7 +4594,7 @@ export const PracticeAnalysis: React.FC = () => {
                 const latestReminders = REMINDER_DELIVERY_DATA[REMINDER_DELIVERY_DATA.length - 1];
                 const successRate = ((latestReminders.sent - latestReminders.failed) / latestReminders.sent * 100).toFixed(1);
                 return (
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                       <div className="text-3xl font-bold text-blue-700">{latestReminders.sent}</div>
                       <div className="text-xs text-blue-600">Reminders sent (last 30 days)</div>
@@ -4180,32 +4619,45 @@ export const PracticeAnalysis: React.FC = () => {
       {isTeamComparisonTab && (
         <div className="min-h-full relative">
           {/* Integrated Header */}
-          <div className="sticky top-0 z-50 px-10 pt-8 pb-6" style={{ background: 'linear-gradient(180deg, rgba(250,250,249,0.97) 0%, rgba(250,250,249,0.95) 80%, transparent 100%)' }}>
-            <div className="flex items-end justify-between">
+          <div className="sticky top-0 z-50 px-4 sm:px-6 lg:px-8 xl:px-10 pt-4 sm:pt-6 xl:pt-8 pb-4 xl:pb-6" style={{ background: 'linear-gradient(180deg, rgba(250,250,249,0.97) 0%, rgba(250,250,249,0.95) 80%, transparent 100%)' }}>
+            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 lg:gap-0">
               {/* Title & Breadcrumb */}
               <div>
-                <div className="flex items-center gap-3 mb-3">
-                  <span className="text-stone-400 text-sm font-medium uppercase tracking-widest">Detailed Analysis</span>
+                <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                  <span className="text-stone-400 text-xs sm:text-sm font-medium uppercase tracking-widest">Detailed Analysis</span>
                   <span className="text-stone-300">/</span>
-                  <span className="text-indigo-600 text-sm font-bold uppercase tracking-widest">Team</span>
+                  <span className="text-indigo-600 text-xs sm:text-sm font-bold uppercase tracking-widest">Team</span>
                 </div>
-                <div className="flex items-baseline gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-4">
                   <h1
-                    className="text-5xl text-stone-900 font-bold tracking-tight"
+                    className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl text-stone-900 font-bold tracking-tight"
                     style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                   >
                     Team Comparison
                   </h1>
-                  <span className="text-stone-400 text-base font-medium">
+                  <span className="text-stone-400 text-sm sm:text-base font-medium">
                     {getDateRangeLabel()}
                   </span>
                 </div>
               </div>
 
               {/* Time Period Selector - Same as Financial */}
-              <div className="flex items-center gap-4 relative">
+              <div className="flex items-center gap-2 sm:gap-4 relative">
+                {/* Mobile: Select dropdown */}
+                <select
+                  value={timePeriod}
+                  onChange={(e) => setTimePeriod(e.target.value as any)}
+                  className="md:hidden px-3 py-2 rounded-xl border border-stone-200 bg-white text-sm font-medium text-stone-700"
+                >
+                  {timePeriods.map((period) => (
+                    <option key={period.id} value={period.id}>{period.label}</option>
+                  ))}
+                  <option value="custom">Custom Range</option>
+                </select>
+
+                {/* Desktop: Button group */}
                 <div
-                  className="flex items-center gap-1 p-1.5 rounded-2xl bg-white/80 backdrop-blur-sm"
+                  className="hidden md:flex items-center gap-1 p-1 lg:p-1.5 rounded-xl lg:rounded-2xl bg-white/80 backdrop-blur-sm"
                   style={{
                     boxShadow: '0 4px 20px -4px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.03)'
                   }}
@@ -4214,7 +4666,7 @@ export const PracticeAnalysis: React.FC = () => {
                     <button
                       key={period.id}
                       onClick={() => setTimePeriod(period.id)}
-                      className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${
+                      className={`px-3 lg:px-5 py-2 lg:py-2.5 rounded-lg lg:rounded-xl text-xs lg:text-sm font-semibold transition-all duration-300 ${
                         timePeriod === period.id
                           ? 'bg-stone-900 text-white shadow-lg'
                           : 'text-stone-500 hover:text-stone-900 hover:bg-stone-100'
@@ -4226,7 +4678,7 @@ export const PracticeAnalysis: React.FC = () => {
                   {/* Custom Range Button */}
                   <button
                     onClick={() => setShowDatePicker(!showDatePicker)}
-                    className={`group px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-500 flex items-center gap-2.5 relative overflow-hidden ${
+                    className={`group px-3 lg:px-5 py-2 lg:py-2.5 rounded-lg lg:rounded-xl text-xs lg:text-sm font-semibold transition-all duration-500 flex items-center gap-1.5 lg:gap-2.5 relative overflow-hidden ${
                       timePeriod === 'custom'
                         ? 'text-white shadow-lg'
                         : 'text-stone-500 hover:text-stone-900'
@@ -4241,16 +4693,17 @@ export const PracticeAnalysis: React.FC = () => {
                       size={16}
                       className={`transition-transform duration-500 ${showDatePicker ? 'rotate-12' : 'group-hover:rotate-6'}`}
                     />
-                    <span>{timePeriod === 'custom' ? formatCustomRange() : 'Custom'}</span>
+                    <span className="hidden lg:inline">{timePeriod === 'custom' ? formatCustomRange() : 'Custom'}</span>
+                    <span className="lg:hidden">{timePeriod === 'custom' ? 'Custom' : 'Custom'}</span>
                   </button>
                 </div>
 
                 {/* Date Picker Dropdown - Same as Financial */}
                 {showDatePicker && (
                   <div
-                    className="absolute top-full right-0 mt-3 z-[100000] rounded-2xl bg-white p-6"
+                    className="absolute top-full right-0 mt-3 z-[100000] rounded-2xl bg-white p-4 sm:p-6"
                     style={{
-                      width: '340px',
+                      width: 'min(340px, 90vw)',
                       boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05)',
                       animation: 'fadeIn 0.2s ease-out'
                     }}
@@ -4289,7 +4742,7 @@ export const PracticeAnalysis: React.FC = () => {
                     </div>
 
                     {/* Month Grid */}
-                    <div className="grid grid-cols-4 gap-2 mb-5">
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-4 sm:mb-5">
                       {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((month, idx) => {
                         const isStart = idx === customStartMonth;
                         const isEnd = idx === customEndMonth;
@@ -4345,12 +4798,12 @@ export const PracticeAnalysis: React.FC = () => {
             </div>
 
             {/* Tab Navigation - Minimal Pills */}
-            <div className="flex items-center gap-3 mt-8">
+            <div className="flex items-center gap-2 sm:gap-3 mt-4 sm:mt-6 xl:mt-8 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`px-6 py-3 rounded-full text-base font-semibold transition-all duration-300 ${
+                  className={`px-3 sm:px-4 xl:px-6 py-2 sm:py-2.5 xl:py-3 rounded-full text-xs sm:text-sm xl:text-base font-semibold transition-all duration-300 whitespace-nowrap flex-shrink-0 ${
                     activeTab === tab.id
                       ? 'bg-stone-900 text-white shadow-md'
                       : 'text-stone-500 hover:text-stone-800 border border-stone-300 hover:border-stone-400 bg-white/50'
@@ -4363,105 +4816,105 @@ export const PracticeAnalysis: React.FC = () => {
           </div>
 
           {/* Main Content */}
-          <div className="px-10 pb-10 space-y-8">
+          <div className="px-4 sm:px-6 lg:px-8 xl:px-10 pb-6 xl:pb-10 space-y-6 xl:space-y-8">
             {/* Summary Stats Row */}
-            <div className="grid grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 xl:gap-6">
               {/* Total Clinicians */}
               <div
-                className="rounded-3xl p-6 relative overflow-hidden"
+                className="rounded-2xl sm:rounded-3xl p-4 sm:p-5 xl:p-6 relative overflow-hidden"
                 style={{
                   background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
                   boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
                 }}
               >
                 <h3
-                  className="text-stone-800 text-2xl font-semibold mb-4"
+                  className="text-stone-800 text-lg sm:text-xl xl:text-2xl font-semibold mb-2 sm:mb-3 xl:mb-4"
                   style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
                   Total Clinicians
                 </h3>
                 <span
                   className="text-stone-900 font-bold block"
-                  style={{ fontSize: '2.5rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
+                  className="text-2xl sm:text-3xl xl:text-[2.5rem]" style={{ lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
                   {CLINICIAN_COMPARISON_DATA.length}
                 </span>
-                <p className="text-stone-500 text-lg mt-3">
+                <p className="text-stone-500 text-sm sm:text-base xl:text-lg mt-2 sm:mt-3">
                   across {LOCATION_DATA.length} locations
                 </p>
               </div>
 
               {/* Total Sessions */}
               <div
-                className="rounded-3xl p-6 relative overflow-hidden"
+                className="rounded-2xl sm:rounded-3xl p-4 sm:p-5 xl:p-6 relative overflow-hidden"
                 style={{
                   background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
                   boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
                 }}
               >
                 <h3
-                  className="text-stone-800 text-2xl font-semibold mb-4"
+                  className="text-stone-800 text-lg sm:text-xl xl:text-2xl font-semibold mb-2 sm:mb-3 xl:mb-4"
                   style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
                   Total Sessions
                 </h3>
                 <span
                   className="text-stone-900 font-bold block"
-                  style={{ fontSize: '2.5rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
+                  className="text-2xl sm:text-3xl xl:text-[2.5rem]" style={{ lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
                   {LOCATION_DATA.reduce((sum, loc) => sum + loc.completedSessions, 0).toLocaleString()}
                 </span>
-                <p className="text-stone-500 text-lg mt-3">
+                <p className="text-stone-500 text-sm sm:text-base xl:text-lg mt-2 sm:mt-3">
                   completed this period
                 </p>
               </div>
 
               {/* Avg Utilization */}
               <div
-                className="rounded-3xl p-6 relative overflow-hidden"
+                className="rounded-2xl sm:rounded-3xl p-4 sm:p-5 xl:p-6 relative overflow-hidden"
                 style={{
                   background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
                   boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
                 }}
               >
                 <h3
-                  className="text-stone-800 text-2xl font-semibold mb-4"
+                  className="text-stone-800 text-lg sm:text-xl xl:text-2xl font-semibold mb-2 sm:mb-3 xl:mb-4"
                   style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
                   Avg Utilization
                 </h3>
                 <span
                   className="text-stone-900 font-bold block"
-                  style={{ fontSize: '2.5rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
+                  className="text-2xl sm:text-3xl xl:text-[2.5rem]" style={{ lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
                   {(LOCATION_DATA.reduce((sum, loc) => sum + loc.utilizationPercent, 0) / LOCATION_DATA.length).toFixed(0)}%
                 </span>
-                <p className="text-stone-500 text-lg mt-3">
+                <p className="text-stone-500 text-sm sm:text-base xl:text-lg mt-2 sm:mt-3">
                   of goal achieved
                 </p>
               </div>
 
               {/* Avg Retention */}
               <div
-                className="rounded-3xl p-6 relative overflow-hidden"
+                className="rounded-2xl sm:rounded-3xl p-4 sm:p-5 xl:p-6 relative overflow-hidden"
                 style={{
                   background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
                   boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
                 }}
               >
                 <h3
-                  className="text-stone-800 text-2xl font-semibold mb-4"
+                  className="text-stone-800 text-lg sm:text-xl xl:text-2xl font-semibold mb-2 sm:mb-3 xl:mb-4"
                   style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
                   Avg Retention
                 </h3>
                 <span
                   className="text-stone-900 font-bold block"
-                  style={{ fontSize: '2.5rem', lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
+                  className="text-2xl sm:text-3xl xl:text-[2.5rem]" style={{ lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
                   {(LOCATION_DATA.reduce((sum, loc) => sum + loc.retentionRate, 0) / LOCATION_DATA.length).toFixed(0)}%
                 </span>
-                <p className="text-stone-500 text-lg mt-3">
+                <p className="text-stone-500 text-sm sm:text-base xl:text-lg mt-2 sm:mt-3">
                   client retention rate
                 </p>
               </div>
@@ -4469,7 +4922,7 @@ export const PracticeAnalysis: React.FC = () => {
 
             {/* Group by Primary Location Table */}
             <div
-              className="rounded-3xl p-8"
+              className="rounded-2xl sm:rounded-3xl p-4 sm:p-6 xl:p-8"
               style={{
                 background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
                 boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
@@ -4488,105 +4941,162 @@ export const PracticeAnalysis: React.FC = () => {
                 </button>
               </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b-2 border-stone-200">
-                      <th className="text-left py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">
-                        <button
-                          className="flex items-center gap-2 hover:text-stone-900 transition-colors"
-                          onClick={() => {
-                            if (locationSortColumn === 'location') {
-                              setLocationSortDirection(locationSortDirection === 'asc' ? 'desc' : 'asc');
-                            } else {
-                              setLocationSortColumn('location');
-                              setLocationSortDirection('asc');
-                            }
-                          }}
-                        >
-                          Group by Primary Location
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-                          </svg>
-                        </button>
-                      </th>
-                      {['Avg Weekly Sessions', 'Completed Sessions', 'Utilization (% of Goal)', 'Clients Seen', 'Cancel Rate', 'Churn Rate', 'Retention Rate', 'Outstanding Notes'].map((header, idx) => (
-                        <th key={header} className="text-center py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">
+              {isMobile ? (
+                /* Mobile: Card view */
+                <div className="space-y-3">
+                  {[...LOCATION_DATA].sort((a, b) => {
+                    if (!locationSortColumn) return 0;
+                    const aVal = a[locationSortColumn as keyof LocationData];
+                    const bVal = b[locationSortColumn as keyof LocationData];
+                    const aNum = typeof aVal === 'string' ? parseFloat(aVal.split('/')[0]) : aVal;
+                    const bNum = typeof bVal === 'string' ? parseFloat(bVal.split('/')[0]) : bVal;
+                    return locationSortDirection === 'asc' ? (aNum as number) - (bNum as number) : (bNum as number) - (aNum as number);
+                  }).map((row) => (
+                    <div key={row.location} className="bg-white rounded-xl p-4 border border-stone-200 shadow-sm">
+                      <div className="font-semibold text-stone-800 uppercase tracking-wide mb-3">{row.location}</div>
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div>
+                          <span className="text-stone-500">Avg Weekly:</span>
+                          <span className="font-medium text-stone-900 ml-1">{row.avgWeeklySessions}</span>
+                        </div>
+                        <div>
+                          <span className="text-stone-500">Completed:</span>
+                          <span className="font-medium text-stone-900 ml-1">{row.completedSessions.toLocaleString()}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className={`w-2 h-2 rounded-full ${row.utilizationPercent >= 90 ? 'bg-emerald-500' : row.utilizationPercent >= 80 ? 'bg-amber-500' : 'bg-rose-500'}`}></span>
+                          <span className="text-stone-500">Utilization:</span>
+                          <span className="font-medium text-stone-900">{row.utilizationPercent}%</span>
+                        </div>
+                        <div>
+                          <span className="text-stone-500">Clients:</span>
+                          <span className="font-medium text-stone-900 ml-1">{row.clientsSeen}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className={`w-2 h-2 rounded-full ${row.cancelRate <= 20 ? 'bg-emerald-500' : row.cancelRate <= 25 ? 'bg-amber-500' : 'bg-rose-500'}`}></span>
+                          <span className="text-stone-500">Cancel:</span>
+                          <span className="font-medium text-stone-900">{row.cancelRate}%</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className={`w-2 h-2 rounded-full ${row.churnRate <= 15 ? 'bg-emerald-500' : row.churnRate <= 20 ? 'bg-amber-500' : 'bg-rose-500'}`}></span>
+                          <span className="text-stone-500">Churn:</span>
+                          <span className="font-medium text-stone-900">{row.churnRate}%</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className={`w-2 h-2 rounded-full ${row.retentionRate >= 75 ? 'bg-emerald-500' : row.retentionRate >= 60 ? 'bg-amber-500' : 'bg-rose-500'}`}></span>
+                          <span className="text-stone-500">Retention:</span>
+                          <span className="font-medium text-stone-900">{row.retentionRate}%</span>
+                        </div>
+                        <div>
+                          <span className="text-stone-500">Notes:</span>
+                          <span className="font-medium text-stone-900 ml-1">{row.outstandingNotes}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                /* Desktop: Table view */
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b-2 border-stone-200">
+                        <th className="text-left py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">
                           <button
-                            className="flex items-center justify-center gap-1 hover:text-stone-900 transition-colors w-full"
+                            className="flex items-center gap-2 hover:text-stone-900 transition-colors"
                             onClick={() => {
-                              const columnKey = ['avgWeeklySessions', 'completedSessions', 'utilizationPercent', 'clientsSeen', 'cancelRate', 'churnRate', 'retentionRate', 'outstandingNotes'][idx];
-                              if (locationSortColumn === columnKey) {
+                              if (locationSortColumn === 'location') {
                                 setLocationSortDirection(locationSortDirection === 'asc' ? 'desc' : 'asc');
                               } else {
-                                setLocationSortColumn(columnKey);
-                                setLocationSortDirection('desc');
+                                setLocationSortColumn('location');
+                                setLocationSortDirection('asc');
                               }
                             }}
                           >
-                            {header}
-                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            Group by Primary Location
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
                             </svg>
                           </button>
                         </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {[...LOCATION_DATA].sort((a, b) => {
-                      if (!locationSortColumn) return 0;
-                      const aVal = a[locationSortColumn as keyof LocationData];
-                      const bVal = b[locationSortColumn as keyof LocationData];
-                      const aNum = typeof aVal === 'string' ? parseFloat(aVal.split('/')[0]) : aVal;
-                      const bNum = typeof bVal === 'string' ? parseFloat(bVal.split('/')[0]) : bVal;
-                      return locationSortDirection === 'asc' ? (aNum as number) - (bNum as number) : (bNum as number) - (aNum as number);
-                    }).map((row, idx) => (
-                      <tr key={row.location} className="border-b border-stone-100 hover:bg-stone-50 transition-colors">
-                        <td className="py-5 px-4 text-base font-semibold text-stone-900 uppercase tracking-wide">{row.location}</td>
-                        <td className="py-5 px-4 text-center">
-                          <div className="flex items-center justify-center gap-2">
-                            <span className={`w-2.5 h-2.5 rounded-full ${typeof row.avgWeeklySessions === 'string' ? 'bg-amber-500' : 'bg-transparent'}`}></span>
-                            <span className="text-base text-stone-700 font-medium">{row.avgWeeklySessions}</span>
-                          </div>
-                        </td>
-                        <td className="py-5 px-4 text-base text-stone-700 text-center font-medium">{row.completedSessions.toLocaleString()}</td>
-                        <td className="py-5 px-4 text-center">
-                          <div className="flex items-center justify-center gap-2">
-                            <span className={`w-2.5 h-2.5 rounded-full ${row.utilizationPercent >= 90 ? 'bg-emerald-500' : row.utilizationPercent >= 80 ? 'bg-amber-500' : 'bg-rose-500'}`}></span>
-                            <span className="text-base text-stone-700 font-medium">{row.utilizationPercent}%</span>
-                          </div>
-                        </td>
-                        <td className="py-5 px-4 text-base text-stone-700 text-center font-medium">{row.clientsSeen}</td>
-                        <td className="py-5 px-4 text-center">
-                          <div className="flex items-center justify-center gap-2">
-                            <span className={`w-2.5 h-2.5 rounded-full ${row.cancelRate <= 20 ? 'bg-emerald-500' : row.cancelRate <= 25 ? 'bg-amber-500' : 'bg-rose-500'}`}></span>
-                            <span className="text-base text-stone-700 font-medium">{row.cancelRate}%</span>
-                          </div>
-                        </td>
-                        <td className="py-5 px-4 text-center">
-                          <div className="flex items-center justify-center gap-2">
-                            <span className={`w-2.5 h-2.5 rounded-full ${row.churnRate <= 15 ? 'bg-emerald-500' : row.churnRate <= 20 ? 'bg-amber-500' : 'bg-rose-500'}`}></span>
-                            <span className="text-base text-stone-700 font-medium">{row.churnRate}%</span>
-                          </div>
-                        </td>
-                        <td className="py-5 px-4 text-center">
-                          <div className="flex items-center justify-center gap-2">
-                            <span className={`w-2.5 h-2.5 rounded-full ${row.retentionRate >= 75 ? 'bg-emerald-500' : row.retentionRate >= 60 ? 'bg-amber-500' : 'bg-rose-500'}`}></span>
-                            <span className="text-base text-stone-700 font-medium">{row.retentionRate}%</span>
-                          </div>
-                        </td>
-                        <td className="py-5 px-4 text-base text-stone-700 text-center font-medium">{row.outstandingNotes}</td>
+                        {['Avg Weekly Sessions', 'Completed Sessions', 'Utilization (% of Goal)', 'Clients Seen', 'Cancel Rate', 'Churn Rate', 'Retention Rate', 'Outstanding Notes'].map((header, idx) => (
+                          <th key={header} className="text-center py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">
+                            <button
+                              className="flex items-center justify-center gap-1 hover:text-stone-900 transition-colors w-full"
+                              onClick={() => {
+                                const columnKey = ['avgWeeklySessions', 'completedSessions', 'utilizationPercent', 'clientsSeen', 'cancelRate', 'churnRate', 'retentionRate', 'outstandingNotes'][idx];
+                                if (locationSortColumn === columnKey) {
+                                  setLocationSortDirection(locationSortDirection === 'asc' ? 'desc' : 'asc');
+                                } else {
+                                  setLocationSortColumn(columnKey);
+                                  setLocationSortDirection('desc');
+                                }
+                              }}
+                            >
+                              {header}
+                              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                              </svg>
+                            </button>
+                          </th>
+                        ))}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {[...LOCATION_DATA].sort((a, b) => {
+                        if (!locationSortColumn) return 0;
+                        const aVal = a[locationSortColumn as keyof LocationData];
+                        const bVal = b[locationSortColumn as keyof LocationData];
+                        const aNum = typeof aVal === 'string' ? parseFloat(aVal.split('/')[0]) : aVal;
+                        const bNum = typeof bVal === 'string' ? parseFloat(bVal.split('/')[0]) : bVal;
+                        return locationSortDirection === 'asc' ? (aNum as number) - (bNum as number) : (bNum as number) - (aNum as number);
+                      }).map((row, idx) => (
+                        <tr key={row.location} className="border-b border-stone-100 hover:bg-stone-50 transition-colors">
+                          <td className="py-5 px-4 text-base font-semibold text-stone-900 uppercase tracking-wide">{row.location}</td>
+                          <td className="py-5 px-4 text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              <span className={`w-2.5 h-2.5 rounded-full ${typeof row.avgWeeklySessions === 'string' ? 'bg-amber-500' : 'bg-transparent'}`}></span>
+                              <span className="text-base text-stone-700 font-medium">{row.avgWeeklySessions}</span>
+                            </div>
+                          </td>
+                          <td className="py-5 px-4 text-base text-stone-700 text-center font-medium">{row.completedSessions.toLocaleString()}</td>
+                          <td className="py-5 px-4 text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              <span className={`w-2.5 h-2.5 rounded-full ${row.utilizationPercent >= 90 ? 'bg-emerald-500' : row.utilizationPercent >= 80 ? 'bg-amber-500' : 'bg-rose-500'}`}></span>
+                              <span className="text-base text-stone-700 font-medium">{row.utilizationPercent}%</span>
+                            </div>
+                          </td>
+                          <td className="py-5 px-4 text-base text-stone-700 text-center font-medium">{row.clientsSeen}</td>
+                          <td className="py-5 px-4 text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              <span className={`w-2.5 h-2.5 rounded-full ${row.cancelRate <= 20 ? 'bg-emerald-500' : row.cancelRate <= 25 ? 'bg-amber-500' : 'bg-rose-500'}`}></span>
+                              <span className="text-base text-stone-700 font-medium">{row.cancelRate}%</span>
+                            </div>
+                          </td>
+                          <td className="py-5 px-4 text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              <span className={`w-2.5 h-2.5 rounded-full ${row.churnRate <= 15 ? 'bg-emerald-500' : row.churnRate <= 20 ? 'bg-amber-500' : 'bg-rose-500'}`}></span>
+                              <span className="text-base text-stone-700 font-medium">{row.churnRate}%</span>
+                            </div>
+                          </td>
+                          <td className="py-5 px-4 text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              <span className={`w-2.5 h-2.5 rounded-full ${row.retentionRate >= 75 ? 'bg-emerald-500' : row.retentionRate >= 60 ? 'bg-amber-500' : 'bg-rose-500'}`}></span>
+                              <span className="text-base text-stone-700 font-medium">{row.retentionRate}%</span>
+                            </div>
+                          </td>
+                          <td className="py-5 px-4 text-base text-stone-700 text-center font-medium">{row.outstandingNotes}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
 
             {/* Group by Supervisor Table */}
             <div
-              className="rounded-3xl p-8"
+              className="rounded-2xl sm:rounded-3xl p-4 sm:p-6 xl:p-8"
               style={{
                 background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
                 boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
@@ -4605,146 +5115,120 @@ export const PracticeAnalysis: React.FC = () => {
                 </button>
               </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b-2 border-stone-200">
-                      <th className="text-left py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">
-                        <button
-                          className="flex items-center gap-2 hover:text-stone-900 transition-colors"
-                          onClick={() => {
-                            if (supervisorSortColumn === 'supervisor') {
-                              setSupervisorSortDirection(supervisorSortDirection === 'asc' ? 'desc' : 'asc');
-                            } else {
-                              setSupervisorSortColumn('supervisor');
-                              setSupervisorSortDirection('asc');
-                            }
-                          }}
-                        >
-                          Group by Supervisor
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-                          </svg>
-                        </button>
-                      </th>
-                      {['Avg Weekly Sessions', 'Completed Sessions', 'Utilization (% of Goal)', 'Clients Seen', 'Cancel Rate', 'Churn Rate', 'Retention Rate', 'Outstanding Notes'].map((header, idx) => (
-                        <th key={header} className="text-center py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">
-                          <button
-                            className="flex items-center justify-center gap-1 hover:text-stone-900 transition-colors w-full"
-                            onClick={() => {
-                              const columnKey = ['avgWeeklySessions', 'completedSessions', 'utilizationPercent', 'clientsSeen', 'cancelRate', 'churnRate', 'retentionRate', 'outstandingNotes'][idx];
-                              if (supervisorSortColumn === columnKey) {
-                                setSupervisorSortDirection(supervisorSortDirection === 'asc' ? 'desc' : 'asc');
-                              } else {
-                                setSupervisorSortColumn(columnKey);
-                                setSupervisorSortDirection('desc');
-                              }
-                            }}
-                          >
-                            {header}
-                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-                            </svg>
-                          </button>
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {[...SUPERVISOR_DATA].sort((a, b) => {
-                      if (!supervisorSortColumn) return 0;
-                      const aVal = a[supervisorSortColumn as keyof SupervisorData];
-                      const bVal = b[supervisorSortColumn as keyof SupervisorData];
-                      if (typeof aVal === 'string' && typeof bVal === 'string') {
-                        return supervisorSortDirection === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
-                      }
-                      return supervisorSortDirection === 'asc' ? (aVal as number) - (bVal as number) : (bVal as number) - (aVal as number);
-                    }).map((row, idx) => (
-                      <tr key={row.supervisor} className="border-b border-stone-100 hover:bg-stone-50 transition-colors">
-                        <td className="py-5 px-4 text-base font-semibold text-stone-900 uppercase tracking-wide">{row.supervisor}</td>
-                        <td className="py-5 px-4 text-base text-stone-700 text-center font-medium">{row.avgWeeklySessions}</td>
-                        <td className="py-5 px-4 text-base text-stone-700 text-center font-medium">{row.completedSessions.toLocaleString()}</td>
-                        <td className="py-5 px-4 text-center">
-                          <div className="flex items-center justify-center gap-2">
-                            <span className={`w-2.5 h-2.5 rounded-full ${row.utilizationPercent >= 90 ? 'bg-emerald-500' : row.utilizationPercent >= 80 ? 'bg-amber-500' : 'bg-rose-500'}`}></span>
-                            <span className="text-base text-stone-700 font-medium">{row.utilizationPercent}%</span>
-                          </div>
-                        </td>
-                        <td className="py-5 px-4 text-base text-stone-700 text-center font-medium">{row.clientsSeen}</td>
-                        <td className="py-5 px-4 text-center">
-                          <div className="flex items-center justify-center gap-2">
-                            <span className={`w-2.5 h-2.5 rounded-full ${row.cancelRate <= 20 ? 'bg-emerald-500' : row.cancelRate <= 25 ? 'bg-amber-500' : 'bg-rose-500'}`}></span>
-                            <span className="text-base text-stone-700 font-medium">{row.cancelRate}%</span>
-                          </div>
-                        </td>
-                        <td className="py-5 px-4 text-center">
-                          <div className="flex items-center justify-center gap-2">
-                            <span className={`w-2.5 h-2.5 rounded-full ${row.churnRate <= 15 ? 'bg-emerald-500' : row.churnRate <= 20 ? 'bg-amber-500' : 'bg-rose-500'}`}></span>
-                            <span className="text-base text-stone-700 font-medium">{row.churnRate}%</span>
-                          </div>
-                        </td>
-                        <td className="py-5 px-4 text-center">
-                          <div className="flex items-center justify-center gap-2">
-                            <span className={`w-2.5 h-2.5 rounded-full ${row.retentionRate >= 75 ? 'bg-emerald-500' : row.retentionRate >= 60 ? 'bg-amber-500' : 'bg-rose-500'}`}></span>
-                            <span className="text-base text-stone-700 font-medium">{row.retentionRate}%</span>
-                          </div>
-                        </td>
-                        <td className="py-5 px-4 text-base text-stone-700 text-center font-medium">{row.outstandingNotes}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Clinician Details Table - Expandable */}
-            {showClinicianDetails && (
-              <div
-                className="rounded-3xl p-8"
-                style={{
-                  background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
-                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)',
-                  borderLeft: '4px solid #6366f1'
-                }}
-              >
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-stone-800 text-2xl font-semibold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
-                    Clinicians by {showClinicianDetails === 'location' ? 'Primary Location' : 'Supervisor'}
-                  </h3>
-                  <button
-                    onClick={() => setShowClinicianDetails(null)}
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-colors"
-                  >
-                    <X size={18} />
-                  </button>
+              {isMobile ? (
+                /* Mobile: Card view */
+                <div className="space-y-3">
+                  {[...SUPERVISOR_DATA].sort((a, b) => {
+                    if (!supervisorSortColumn) return 0;
+                    const aVal = a[supervisorSortColumn as keyof SupervisorData];
+                    const bVal = b[supervisorSortColumn as keyof SupervisorData];
+                    if (typeof aVal === 'string' && typeof bVal === 'string') {
+                      return supervisorSortDirection === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+                    }
+                    return supervisorSortDirection === 'asc' ? (aVal as number) - (bVal as number) : (bVal as number) - (aVal as number);
+                  }).map((row) => (
+                    <div key={row.supervisor} className="bg-white rounded-xl p-4 border border-stone-200 shadow-sm">
+                      <div className="font-semibold text-stone-800 uppercase tracking-wide mb-3">{row.supervisor}</div>
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div>
+                          <span className="text-stone-500">Avg Weekly:</span>
+                          <span className="font-medium text-stone-900 ml-1">{row.avgWeeklySessions}</span>
+                        </div>
+                        <div>
+                          <span className="text-stone-500">Completed:</span>
+                          <span className="font-medium text-stone-900 ml-1">{row.completedSessions.toLocaleString()}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className={`w-2 h-2 rounded-full ${row.utilizationPercent >= 90 ? 'bg-emerald-500' : row.utilizationPercent >= 80 ? 'bg-amber-500' : 'bg-rose-500'}`}></span>
+                          <span className="text-stone-500">Utilization:</span>
+                          <span className="font-medium text-stone-900">{row.utilizationPercent}%</span>
+                        </div>
+                        <div>
+                          <span className="text-stone-500">Clients:</span>
+                          <span className="font-medium text-stone-900 ml-1">{row.clientsSeen}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className={`w-2 h-2 rounded-full ${row.cancelRate <= 20 ? 'bg-emerald-500' : row.cancelRate <= 25 ? 'bg-amber-500' : 'bg-rose-500'}`}></span>
+                          <span className="text-stone-500">Cancel:</span>
+                          <span className="font-medium text-stone-900">{row.cancelRate}%</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className={`w-2 h-2 rounded-full ${row.churnRate <= 15 ? 'bg-emerald-500' : row.churnRate <= 20 ? 'bg-amber-500' : 'bg-rose-500'}`}></span>
+                          <span className="text-stone-500">Churn:</span>
+                          <span className="font-medium text-stone-900">{row.churnRate}%</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className={`w-2 h-2 rounded-full ${row.retentionRate >= 75 ? 'bg-emerald-500' : row.retentionRate >= 60 ? 'bg-amber-500' : 'bg-rose-500'}`}></span>
+                          <span className="text-stone-500">Retention:</span>
+                          <span className="font-medium text-stone-900">{row.retentionRate}%</span>
+                        </div>
+                        <div>
+                          <span className="text-stone-500">Notes:</span>
+                          <span className="font-medium text-stone-900 ml-1">{row.outstandingNotes}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-
+              ) : (
+                /* Desktop: Table view */
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
                       <tr className="border-b-2 border-stone-200">
-                        <th className="text-left py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">Clinician</th>
-                        <th className="text-left py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">{showClinicianDetails === 'location' ? 'Location' : 'Supervisor'}</th>
-                        <th className="text-center py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">Avg Weekly Sessions</th>
-                        <th className="text-center py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">Completed Sessions</th>
-                        <th className="text-center py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">Utilization</th>
-                        <th className="text-center py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">Clients Seen</th>
-                        <th className="text-center py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">Cancel Rate</th>
-                        <th className="text-center py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">Churn Rate</th>
-                        <th className="text-center py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">Retention Rate</th>
-                        <th className="text-center py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">Notes</th>
+                        <th className="text-left py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">
+                          <button
+                            className="flex items-center gap-2 hover:text-stone-900 transition-colors"
+                            onClick={() => {
+                              if (supervisorSortColumn === 'supervisor') {
+                                setSupervisorSortDirection(supervisorSortDirection === 'asc' ? 'desc' : 'asc');
+                              } else {
+                                setSupervisorSortColumn('supervisor');
+                                setSupervisorSortDirection('asc');
+                              }
+                            }}
+                          >
+                            Group by Supervisor
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                            </svg>
+                          </button>
+                        </th>
+                        {['Avg Weekly Sessions', 'Completed Sessions', 'Utilization (% of Goal)', 'Clients Seen', 'Cancel Rate', 'Churn Rate', 'Retention Rate', 'Outstanding Notes'].map((header, idx) => (
+                          <th key={header} className="text-center py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">
+                            <button
+                              className="flex items-center justify-center gap-1 hover:text-stone-900 transition-colors w-full"
+                              onClick={() => {
+                                const columnKey = ['avgWeeklySessions', 'completedSessions', 'utilizationPercent', 'clientsSeen', 'cancelRate', 'churnRate', 'retentionRate', 'outstandingNotes'][idx];
+                                if (supervisorSortColumn === columnKey) {
+                                  setSupervisorSortDirection(supervisorSortDirection === 'asc' ? 'desc' : 'asc');
+                                } else {
+                                  setSupervisorSortColumn(columnKey);
+                                  setSupervisorSortDirection('desc');
+                                }
+                              }}
+                            >
+                              {header}
+                              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                              </svg>
+                            </button>
+                          </th>
+                        ))}
                       </tr>
                     </thead>
                     <tbody>
-                      {[...CLINICIAN_COMPARISON_DATA]
-                        .sort((a, b) => showClinicianDetails === 'location'
-                          ? a.location.localeCompare(b.location)
-                          : a.supervisor.localeCompare(b.supervisor)
-                        )
-                        .map((row) => (
-                        <tr key={row.clinician} className="border-b border-stone-100 hover:bg-stone-50 transition-colors">
-                          <td className="py-5 px-4 text-base font-semibold text-stone-900">{row.clinician}</td>
-                          <td className="py-5 px-4 text-base text-stone-600">{showClinicianDetails === 'location' ? row.location : row.supervisor}</td>
+                      {[...SUPERVISOR_DATA].sort((a, b) => {
+                        if (!supervisorSortColumn) return 0;
+                        const aVal = a[supervisorSortColumn as keyof SupervisorData];
+                        const bVal = b[supervisorSortColumn as keyof SupervisorData];
+                        if (typeof aVal === 'string' && typeof bVal === 'string') {
+                          return supervisorSortDirection === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+                        }
+                        return supervisorSortDirection === 'asc' ? (aVal as number) - (bVal as number) : (bVal as number) - (aVal as number);
+                      }).map((row, idx) => (
+                        <tr key={row.supervisor} className="border-b border-stone-100 hover:bg-stone-50 transition-colors">
+                          <td className="py-5 px-4 text-base font-semibold text-stone-900 uppercase tracking-wide">{row.supervisor}</td>
                           <td className="py-5 px-4 text-base text-stone-700 text-center font-medium">{row.avgWeeklySessions}</td>
                           <td className="py-5 px-4 text-base text-stone-700 text-center font-medium">{row.completedSessions.toLocaleString()}</td>
                           <td className="py-5 px-4 text-center">
@@ -4778,6 +5262,148 @@ export const PracticeAnalysis: React.FC = () => {
                     </tbody>
                   </table>
                 </div>
+              )}
+            </div>
+
+            {/* Clinician Details Table - Expandable */}
+            {showClinicianDetails && (
+              <div
+                className="rounded-2xl sm:rounded-3xl p-4 sm:p-6 xl:p-8"
+                style={{
+                  background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
+                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)',
+                  borderLeft: '4px solid #6366f1'
+                }}
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-stone-800 text-2xl font-semibold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                    Clinicians by {showClinicianDetails === 'location' ? 'Primary Location' : 'Supervisor'}
+                  </h3>
+                  <button
+                    onClick={() => setShowClinicianDetails(null)}
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-colors"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+
+                {isMobile ? (
+                  /* Mobile: Card view */
+                  <div className="space-y-3">
+                    {[...CLINICIAN_COMPARISON_DATA]
+                      .sort((a, b) => showClinicianDetails === 'location'
+                        ? a.location.localeCompare(b.location)
+                        : a.supervisor.localeCompare(b.supervisor)
+                      )
+                      .map((row) => (
+                      <div key={row.clinician} className="bg-white rounded-xl p-4 border border-stone-200 shadow-sm">
+                        <div className="font-semibold text-stone-800 mb-1">{row.clinician}</div>
+                        <div className="text-sm text-stone-500 mb-3">
+                          {showClinicianDetails === 'location' ? row.location : row.supervisor}
+                        </div>
+                        <div className="grid grid-cols-2 gap-3 text-sm">
+                          <div>
+                            <span className="text-stone-500">Avg Weekly:</span>
+                            <span className="font-medium text-stone-900 ml-1">{row.avgWeeklySessions}</span>
+                          </div>
+                          <div>
+                            <span className="text-stone-500">Completed:</span>
+                            <span className="font-medium text-stone-900 ml-1">{row.completedSessions.toLocaleString()}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span className={`w-2 h-2 rounded-full ${row.utilizationPercent >= 90 ? 'bg-emerald-500' : row.utilizationPercent >= 80 ? 'bg-amber-500' : 'bg-rose-500'}`}></span>
+                            <span className="text-stone-500">Utilization:</span>
+                            <span className="font-medium text-stone-900">{row.utilizationPercent}%</span>
+                          </div>
+                          <div>
+                            <span className="text-stone-500">Clients:</span>
+                            <span className="font-medium text-stone-900 ml-1">{row.clientsSeen}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span className={`w-2 h-2 rounded-full ${row.cancelRate <= 20 ? 'bg-emerald-500' : row.cancelRate <= 25 ? 'bg-amber-500' : 'bg-rose-500'}`}></span>
+                            <span className="text-stone-500">Cancel:</span>
+                            <span className="font-medium text-stone-900">{row.cancelRate}%</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span className={`w-2 h-2 rounded-full ${row.churnRate <= 15 ? 'bg-emerald-500' : row.churnRate <= 20 ? 'bg-amber-500' : 'bg-rose-500'}`}></span>
+                            <span className="text-stone-500">Churn:</span>
+                            <span className="font-medium text-stone-900">{row.churnRate}%</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span className={`w-2 h-2 rounded-full ${row.retentionRate >= 75 ? 'bg-emerald-500' : row.retentionRate >= 60 ? 'bg-amber-500' : 'bg-rose-500'}`}></span>
+                            <span className="text-stone-500">Retention:</span>
+                            <span className="font-medium text-stone-900">{row.retentionRate}%</span>
+                          </div>
+                          <div>
+                            <span className="text-stone-500">Notes:</span>
+                            <span className="font-medium text-stone-900 ml-1">{row.outstandingNotes}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  /* Desktop: Table view */
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b-2 border-stone-200">
+                          <th className="text-left py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">Clinician</th>
+                          <th className="text-left py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">{showClinicianDetails === 'location' ? 'Location' : 'Supervisor'}</th>
+                          <th className="text-center py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">Avg Weekly Sessions</th>
+                          <th className="text-center py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">Completed Sessions</th>
+                          <th className="text-center py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">Utilization</th>
+                          <th className="text-center py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">Clients Seen</th>
+                          <th className="text-center py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">Cancel Rate</th>
+                          <th className="text-center py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">Churn Rate</th>
+                          <th className="text-center py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">Retention Rate</th>
+                          <th className="text-center py-5 px-4 text-sm font-bold text-stone-500 uppercase tracking-wider">Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {[...CLINICIAN_COMPARISON_DATA]
+                          .sort((a, b) => showClinicianDetails === 'location'
+                            ? a.location.localeCompare(b.location)
+                            : a.supervisor.localeCompare(b.supervisor)
+                          )
+                          .map((row) => (
+                          <tr key={row.clinician} className="border-b border-stone-100 hover:bg-stone-50 transition-colors">
+                            <td className="py-5 px-4 text-base font-semibold text-stone-900">{row.clinician}</td>
+                            <td className="py-5 px-4 text-base text-stone-600">{showClinicianDetails === 'location' ? row.location : row.supervisor}</td>
+                            <td className="py-5 px-4 text-base text-stone-700 text-center font-medium">{row.avgWeeklySessions}</td>
+                            <td className="py-5 px-4 text-base text-stone-700 text-center font-medium">{row.completedSessions.toLocaleString()}</td>
+                            <td className="py-5 px-4 text-center">
+                              <div className="flex items-center justify-center gap-2">
+                                <span className={`w-2.5 h-2.5 rounded-full ${row.utilizationPercent >= 90 ? 'bg-emerald-500' : row.utilizationPercent >= 80 ? 'bg-amber-500' : 'bg-rose-500'}`}></span>
+                                <span className="text-base text-stone-700 font-medium">{row.utilizationPercent}%</span>
+                              </div>
+                            </td>
+                            <td className="py-5 px-4 text-base text-stone-700 text-center font-medium">{row.clientsSeen}</td>
+                            <td className="py-5 px-4 text-center">
+                              <div className="flex items-center justify-center gap-2">
+                                <span className={`w-2.5 h-2.5 rounded-full ${row.cancelRate <= 20 ? 'bg-emerald-500' : row.cancelRate <= 25 ? 'bg-amber-500' : 'bg-rose-500'}`}></span>
+                                <span className="text-base text-stone-700 font-medium">{row.cancelRate}%</span>
+                              </div>
+                            </td>
+                            <td className="py-5 px-4 text-center">
+                              <div className="flex items-center justify-center gap-2">
+                                <span className={`w-2.5 h-2.5 rounded-full ${row.churnRate <= 15 ? 'bg-emerald-500' : row.churnRate <= 20 ? 'bg-amber-500' : 'bg-rose-500'}`}></span>
+                                <span className="text-base text-stone-700 font-medium">{row.churnRate}%</span>
+                              </div>
+                            </td>
+                            <td className="py-5 px-4 text-center">
+                              <div className="flex items-center justify-center gap-2">
+                                <span className={`w-2.5 h-2.5 rounded-full ${row.retentionRate >= 75 ? 'bg-emerald-500' : row.retentionRate >= 60 ? 'bg-amber-500' : 'bg-rose-500'}`}></span>
+                                <span className="text-base text-stone-700 font-medium">{row.retentionRate}%</span>
+                              </div>
+                            </td>
+                            <td className="py-5 px-4 text-base text-stone-700 text-center font-medium">{row.outstandingNotes}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             )}
           </div>
