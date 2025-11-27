@@ -548,6 +548,22 @@ export const PracticeAnalysis: React.FC = () => {
     [SESSIONS_DATA]
   );
 
+  // Client demographics - Gender breakdown
+  const CLIENT_GENDER_DATA = {
+    male: 127,
+    female: 241,
+    other: 18,
+    total: 386
+  };
+
+  // Session frequency breakdown
+  const SESSION_FREQUENCY_DATA = {
+    weekly: 198,
+    biweekly: 156,
+    monthly: 32,
+    total: 386
+  };
+
   // Calculate practice utilization percentage (completed / booked * 100)
   const UTILIZATION_DATA = useMemo(() =>
     SESSIONS_DATA.map((item) => ({
@@ -3786,6 +3802,109 @@ export const PracticeAnalysis: React.FC = () => {
                       </>
                     );
                   })()}
+                </div>
+              </div>
+            </div>
+
+            {/* Client Demographics Row */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 xl:gap-6">
+              {/* Gender Ratio Card */}
+              <div
+                className="rounded-2xl xl:rounded-3xl p-6 sm:p-7 xl:p-8 relative overflow-hidden"
+                style={{
+                  background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
+                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
+                }}
+              >
+                <h3
+                  className="text-stone-800 text-xl sm:text-2xl xl:text-2xl font-bold mb-4 xl:mb-5"
+                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  Client Gender
+                </h3>
+                <div className="flex items-center gap-4 mb-4">
+                  {/* Visual bar */}
+                  <div className="flex-1 h-4 rounded-full overflow-hidden flex">
+                    <div
+                      className="h-full bg-blue-500"
+                      style={{ width: `${(CLIENT_GENDER_DATA.male / CLIENT_GENDER_DATA.total) * 100}%` }}
+                    />
+                    <div
+                      className="h-full bg-pink-500"
+                      style={{ width: `${(CLIENT_GENDER_DATA.female / CLIENT_GENDER_DATA.total) * 100}%` }}
+                    />
+                    <div
+                      className="h-full bg-purple-500"
+                      style={{ width: `${(CLIENT_GENDER_DATA.other / CLIENT_GENDER_DATA.total) * 100}%` }}
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center justify-between text-sm sm:text-base">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-blue-500" />
+                    <span className="text-stone-600">Male</span>
+                    <span className="font-semibold text-stone-900">{((CLIENT_GENDER_DATA.male / CLIENT_GENDER_DATA.total) * 100).toFixed(0)}%</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-pink-500" />
+                    <span className="text-stone-600">Female</span>
+                    <span className="font-semibold text-stone-900">{((CLIENT_GENDER_DATA.female / CLIENT_GENDER_DATA.total) * 100).toFixed(0)}%</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-purple-500" />
+                    <span className="text-stone-600">Other</span>
+                    <span className="font-semibold text-stone-900">{((CLIENT_GENDER_DATA.other / CLIENT_GENDER_DATA.total) * 100).toFixed(0)}%</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Session Frequency Card */}
+              <div
+                className="rounded-2xl xl:rounded-3xl p-6 sm:p-7 xl:p-8 relative overflow-hidden"
+                style={{
+                  background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
+                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
+                }}
+              >
+                <h3
+                  className="text-stone-800 text-xl sm:text-2xl xl:text-2xl font-bold mb-4 xl:mb-5"
+                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  Client Session Frequency
+                </h3>
+                <div className="flex items-center gap-4 mb-4">
+                  {/* Visual bar */}
+                  <div className="flex-1 h-4 rounded-full overflow-hidden flex">
+                    <div
+                      className="h-full bg-emerald-500"
+                      style={{ width: `${(SESSION_FREQUENCY_DATA.weekly / SESSION_FREQUENCY_DATA.total) * 100}%` }}
+                    />
+                    <div
+                      className="h-full bg-amber-500"
+                      style={{ width: `${(SESSION_FREQUENCY_DATA.biweekly / SESSION_FREQUENCY_DATA.total) * 100}%` }}
+                    />
+                    <div
+                      className="h-full bg-stone-400"
+                      style={{ width: `${(SESSION_FREQUENCY_DATA.monthly / SESSION_FREQUENCY_DATA.total) * 100}%` }}
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center justify-between text-sm sm:text-base">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                    <span className="text-stone-600">Weekly</span>
+                    <span className="font-semibold text-stone-900">{SESSION_FREQUENCY_DATA.weekly}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-amber-500" />
+                    <span className="text-stone-600">Bi-weekly</span>
+                    <span className="font-semibold text-stone-900">{SESSION_FREQUENCY_DATA.biweekly}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-stone-400" />
+                    <span className="text-stone-600">Monthly</span>
+                    <span className="font-semibold text-stone-900">{SESSION_FREQUENCY_DATA.monthly}</span>
+                  </div>
                 </div>
               </div>
             </div>
