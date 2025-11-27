@@ -21,8 +21,19 @@ The number of client openings that clinicians can take on — i.e., capacity for
 ### Completed Sessions
 The number of counted sessions completed for the time frame selected. Note, days and weeks are based on your preferred calendar configuration set in onboarding.
 
-### Utilization
-The percentage of completed sessions out of the clinician's session goal for that time frame. This percentage gives you a sense for how much this clinician is being utilized (or their general capacity) out of their target.
+### Client Utilization
+The percentage of a clinician's client capacity that is currently filled. This measures how close a clinician is to their maximum caseload.
+
+**Formula:** Active Clients ÷ Client Goal × 100
+
+**Example:** A clinician has a goal of 25 clients and currently has 10 active clients → Client Utilization = 10/25 = 40%
+
+### Session Utilization
+The percentage of completed sessions out of the clinician's session goal for that time frame. This measures how much of their session capacity a clinician is achieving.
+
+**Formula:** Completed Sessions ÷ Session Goal × 100
+
+**Example:** A clinician has a monthly goal of 90 sessions and completes 60 → Session Utilization = 60/90 = 66.7%
 
 ### Average Weekly Sessions
 The total counted sessions in that time frame divided by the total number of weeks in that time frame. Note, weeks are based on your preferred calendar configuration set in onboarding.

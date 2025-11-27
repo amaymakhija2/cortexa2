@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { MetricChart } from './MetricChart';
-import { ResponsiveContainer, LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, LabelList, Legend, CartesianGrid, ReferenceLine } from 'recharts';
+import { ResponsiveContainer, LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, LabelList, Legend, CartesianGrid, ReferenceLine, ComposedChart } from 'recharts';
 import { Info, X, ArrowRight, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useIsMobile } from '../hooks/useIsMobile';
 
@@ -579,13 +579,14 @@ export const PracticeAnalysis: React.FC = () => {
   const isFinancialTab = activeTab === 'financial';
   const isSessionsTab = activeTab === 'sessions';
   const isTeamComparisonTab = activeTab === 'team-comparison';
+  const isCapacityClientTab = activeTab === 'capacity-client';
 
   return (
     <div
-      className={`flex-1 overflow-y-auto h-[calc(100vh-80px)] ${(isFinancialTab || isSessionsTab || isTeamComparisonTab) ? 'bg-gradient-to-br from-stone-50 via-orange-50/20 to-stone-100/50' : 'p-8 pt-2'}`}
+      className={`flex-1 overflow-y-auto h-[calc(100vh-80px)] ${(isFinancialTab || isSessionsTab || isTeamComparisonTab || isCapacityClientTab) ? 'bg-gradient-to-br from-stone-50 via-orange-50/20 to-stone-100/50' : 'p-8 pt-2'}`}
     >
       {/* Warm gradient overlay - same as Practice Overview */}
-      {(isFinancialTab || isSessionsTab || isTeamComparisonTab) && (
+      {(isFinancialTab || isSessionsTab || isTeamComparisonTab || isCapacityClientTab) && (
         <div
           className="fixed inset-0 pointer-events-none"
           style={{
@@ -1623,8 +1624,8 @@ export const PracticeAnalysis: React.FC = () => {
         </div>
       )}
 
-      {/* Original Header for other tabs (not Financial, Sessions, or Team Comparison) */}
-      {!isFinancialTab && !isSessionsTab && !isTeamComparisonTab && (
+      {/* Original Header for other tabs (not Financial, Sessions, Team Comparison, or Capacity & Client) */}
+      {!isFinancialTab && !isSessionsTab && !isTeamComparisonTab && !isCapacityClientTab && (
         <>
           <div className="mb-6">
             <h2 className="text-gray-500 text-sm font-medium mb-1">DETAILED INSIGHTS</h2>
@@ -2850,9 +2851,9 @@ export const PracticeAnalysis: React.FC = () => {
               )}
             </div>
 
-            {/* Weekly Schedule Patterns - Two Card Layout */}
-            <div className="grid grid-cols-2 gap-6">
-              {/* Card 1: Availability Heatmap - Simplified */}
+            {/* Weekly Schedule Patterns */}
+            <div className="grid grid-cols-1 gap-6">
+              {/* Weekly Availability Card - COMMENTED OUT
               <div
                 className="rounded-2xl sm:rounded-3xl relative overflow-hidden h-full"
                 style={{
@@ -2880,26 +2881,23 @@ export const PracticeAnalysis: React.FC = () => {
                     });
                   });
                   const maxBlock = Math.max(...allBlockValues);
-                  const minBlock = Math.min(...allBlockValues);
-                  const range = maxBlock - minBlock;
-                  const lowThreshold = minBlock + range * 0.33;
-                  const highThreshold = minBlock + range * 0.66;
 
-                  const getState = (sessions: number): 'open' | 'moderate' | 'busy' => {
-                    if (sessions <= lowThreshold) return 'open';
-                    if (sessions >= highThreshold) return 'busy';
-                    return 'moderate';
+                  // Calculate percentage busy (0-100) relative to the busiest block
+                  const getPercentBusy = (sessions: number): number => {
+                    if (maxBlock === 0) return 0;
+                    return Math.round((sessions / maxBlock) * 100);
                   };
 
-                  const stateStyles = {
-                    open: { bg: '#e8f4f6', text: '#2d6e7e', label: 'Open' },
-                    moderate: { bg: '#b8d9df', text: '#1d5e6e', label: 'Steady' },
-                    busy: { bg: '#2d6e7e', text: '#ffffff', label: 'Busy' }
+                  // Get background color based on percentage (gradient from light teal to dark teal)
+                  const getColorForPercent = (percent: number): { bg: string; text: string } => {
+                    if (percent <= 25) return { bg: '#e8f4f6', text: '#2d6e7e' };
+                    if (percent <= 50) return { bg: '#b8d9df', text: '#1d5e6e' };
+                    if (percent <= 75) return { bg: '#6ba3b0', text: '#ffffff' };
+                    return { bg: '#2d6e7e', text: '#ffffff' };
                   };
 
                   return (
                     <div className="p-5 sm:p-6 h-full flex flex-col">
-                      {/* Header */}
                       <div className="mb-4">
                         <h3
                           className="text-stone-800 text-lg sm:text-xl xl:text-2xl font-semibold"
@@ -2907,11 +2905,10 @@ export const PracticeAnalysis: React.FC = () => {
                         >
                           Weekly Availability
                         </h3>
+                        <p className="text-stone-500 text-sm sm:text-base mt-1">% of capacity booked by time slot</p>
                       </div>
 
-                      {/* Heatmap Grid - fills remaining space */}
                       <div className="flex-1 flex flex-col">
-                        {/* Day Headers */}
                         <div className="grid gap-2 mb-2" style={{ gridTemplateColumns: '80px repeat(5, 1fr)' }}>
                           <div></div>
                           {days.map(day => (
@@ -2921,7 +2918,6 @@ export const PracticeAnalysis: React.FC = () => {
                           ))}
                         </div>
 
-                        {/* Time Block Rows - flex-1 to fill space */}
                         <div className="flex-1 flex flex-col gap-2">
                           {timeBlocks.map(block => (
                             <div key={block.label} className="flex-1 grid gap-2" style={{ gridTemplateColumns: '80px repeat(5, 1fr)' }}>
@@ -2930,20 +2926,20 @@ export const PracticeAnalysis: React.FC = () => {
                               </div>
                               {days.map(day => {
                                 const sessions = getBlockSessions(day, block.hours);
-                                const state = getState(sessions);
-                                const style = stateStyles[state];
+                                const percent = getPercentBusy(sessions);
+                                const colors = getColorForPercent(percent);
 
                                 return (
                                   <div
                                     key={`${day}-${block.label}`}
                                     className="rounded-xl flex items-center justify-center transition-all duration-200 hover:scale-[1.02] cursor-default"
-                                    style={{ background: style.bg }}
+                                    style={{ background: colors.bg }}
                                   >
                                     <span
-                                      className="text-sm sm:text-base font-semibold"
-                                      style={{ color: style.text }}
+                                      className="text-sm sm:text-base font-bold"
+                                      style={{ color: colors.text }}
                                     >
-                                      {style.label}
+                                      {percent}%
                                     </span>
                                   </div>
                                 );
@@ -2952,25 +2948,27 @@ export const PracticeAnalysis: React.FC = () => {
                           ))}
                         </div>
 
-                        {/* Legend - compact */}
-                        <div className="flex items-center justify-center gap-6 mt-4 pt-3 border-t border-stone-100">
-                          {(['open', 'moderate', 'busy'] as const).map(state => {
-                            const style = stateStyles[state];
-                            return (
-                              <div key={state} className="flex items-center gap-2">
-                                <div className="w-3 h-3 rounded" style={{ background: style.bg }} />
-                                <span className="text-xs sm:text-sm text-stone-500">{style.label}</span>
-                              </div>
-                            );
-                          })}
+                        <div className="flex items-center justify-center gap-4 mt-4 pt-3 border-t border-stone-100">
+                          {[
+                            { range: '0-25%', bg: '#e8f4f6' },
+                            { range: '26-50%', bg: '#b8d9df' },
+                            { range: '51-75%', bg: '#6ba3b0' },
+                            { range: '76-100%', bg: '#2d6e7e' }
+                          ].map(item => (
+                            <div key={item.range} className="flex items-center gap-1.5">
+                              <div className="w-3 h-3 rounded" style={{ background: item.bg }} />
+                              <span className="text-xs text-stone-500">{item.range}</span>
+                            </div>
+                          ))}
                         </div>
                       </div>
                     </div>
                   );
                 })()}
               </div>
+              END Weekly Availability Card */}
 
-              {/* Card 2: Key Insights - 2x2 Grid */}
+              {/* Schedule Insights - 2x2 Grid */}
               <div
                 className="rounded-2xl sm:rounded-3xl relative overflow-hidden h-full"
                 style={{
@@ -3093,459 +3091,848 @@ export const PracticeAnalysis: React.FC = () => {
       )}
 
       {activeTab === 'capacity-client' && (
-        <div className="flex flex-col gap-6 overflow-y-auto">
-          {/* Top Row - Main Chart */}
-          <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 flex-shrink-0 min-h-[300px] lg:min-h-[400px]" style={{ height: 'clamp(300px, calc(100dvh - 300px), 600px)' }}>
-            <div className="w-full lg:w-[55%] h-auto lg:h-full">
-            <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[24px] h-full flex flex-col shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300"
-              style={{
-                boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)'
-              }}
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-
-              <div className="relative px-6 pt-6 pb-4 flex-shrink-0">
-                <div className="text-gray-500 text-xs font-semibold uppercase tracking-widest mb-2">ANALYTICS</div>
-                <h3 className="text-gray-900 text-2xl font-semibold mb-4 flex items-center gap-2">
-                  Client Capacity
-                  <div className="group/info relative z-[100000]">
-                    <Info size={18} className="text-[#2d6e7e] cursor-help" />
-                    <div className="absolute left-0 top-8 invisible group-hover/info:visible opacity-0 group-hover/info:opacity-100 transition-all duration-200 w-80 z-[100000]">
-                      <div className="bg-gray-900 text-white text-xs rounded-lg p-3 shadow-xl">
-                        <p className="font-medium mb-1">Client Capacity Tracking</p>
-                        <p className="text-gray-300">Compare your active client count versus your practice capacity. The percentage above shows how much of your capacity is being utilized. Higher utilization means you're closer to your practice limits.</p>
-                        <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
-                      </div>
-                    </div>
-                  </div>
-                </h3>
-
-                {/* Legend */}
-                <div className="flex gap-4 mb-4">
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-3 h-3 rounded-full bg-[#9ca3af]"></div>
-                    <span className="text-xs font-medium text-gray-700">Client Capacity</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-3 h-3 rounded-full bg-[#2d6e7e]"></div>
-                    <span className="text-xs font-medium text-gray-700">Active Clients</span>
-                  </div>
+        <div className="min-h-full relative">
+          {/* Integrated Header - Matching Financial Tab */}
+          <div className="sticky top-0 z-50 px-4 sm:px-6 lg:px-8 xl:px-10 pt-4 sm:pt-6 xl:pt-8 pb-4 xl:pb-6" style={{ background: 'linear-gradient(180deg, rgba(250,250,249,0.97) 0%, rgba(250,250,249,0.95) 80%, transparent 100%)' }}>
+            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 lg:gap-0">
+              {/* Title & Breadcrumb */}
+              <div>
+                <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                  <span className="text-stone-400 text-xs sm:text-sm font-medium uppercase tracking-widest">Detailed Analysis</span>
+                  <span className="text-stone-300">/</span>
+                  <span className="text-amber-600 text-xs sm:text-sm font-bold uppercase tracking-widest">Capacity & Clients</span>
                 </div>
-              </div>
-
-              <div className="relative z-10 px-4 pb-4 flex-1 min-h-0">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={CLIENT_GROWTH_DATA.map((item, index) => ({
-                      ...item,
-                      dataIndex: index
-                    }))}
-                    margin={{ top: 50, right: 20, bottom: 5, left: 20 }}
-                    barGap={8}
-                    barCategoryGap="20%"
+                <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-4">
+                  <h1
+                    className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl text-stone-900 font-bold tracking-tight"
+                    style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                   >
-                    <defs>
-                      <linearGradient id="capacityGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#9ca3af" stopOpacity={1}/>
-                        <stop offset="100%" stopColor="#6b7280" stopOpacity={1}/>
-                      </linearGradient>
-                      <linearGradient id="activeClientsGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#2d6e7e" stopOpacity={1}/>
-                        <stop offset="100%" stopColor="#1d4e5e" stopOpacity={1}/>
-                      </linearGradient>
-                      <filter id="softShadow" x="-50%" y="-50%" width="200%" height="200%">
-                        <feGaussianBlur in="SourceAlpha" stdDeviation="1.5"/>
-                        <feOffset dx="0" dy="2" result="offsetblur"/>
-                        <feComponentTransfer>
-                          <feFuncA type="linear" slope="0.15"/>
-                        </feComponentTransfer>
-                        <feMerge>
-                          <feMergeNode/>
-                          <feMergeNode in="SourceGraphic"/>
-                        </feMerge>
-                      </filter>
-                    </defs>
-                    <XAxis
-                      dataKey="month"
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fill: '#6b7280', fontSize: 12, fontWeight: 600 }}
-                      dy={8}
-                    />
-                    <YAxis
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fill: '#6b7280', fontSize: 11, fontWeight: 600 }}
-                      domain={[0, 200]}
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: '#1f2937',
-                        border: 'none',
-                        borderRadius: '12px',
-                        padding: '12px 16px',
-                        boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.3)'
-                      }}
-                      labelStyle={{ color: '#9ca3af', fontSize: '12px', fontWeight: 600, marginBottom: '4px' }}
-                      itemStyle={{ color: '#fff', fontSize: '14px', fontWeight: 700 }}
-                      formatter={(value: number, name: string, props: any) => {
-                        const utilized = ((props.payload.activeClients / props.payload.capacity) * 100).toFixed(1);
-                        return [value, name === 'capacity' ? `Capacity (${utilized}% utilized)` : `Active Clients`];
-                      }}
-                    />
-                    <Bar dataKey="capacity" fill="url(#capacityGradient)" radius={[8, 8, 0, 0]} name="Capacity" maxBarSize={60}>
-                      <LabelList dataKey="capacity" position="top" style={{ fill: '#1f2937', fontSize: '11px', fontWeight: 700 }} offset={8} />
-                      <LabelList
-                        content={(props: any) => {
-                          const { x, y, width, height, index, value } = props;
-                          if (index === undefined || !CLIENT_GROWTH_DATA[index]) return null;
-
-                          const item = CLIENT_GROWTH_DATA[index];
-                          const utilized = ((item.activeClients / item.capacity) * 100).toFixed(1);
-                          const numUtilized = parseFloat(utilized);
-
-                          // Position in the center of the bar group (accounting for gap between bars)
-                          const barGap = 8; // matches barGap prop
-                          const centerX = x + width + barGap / 2; // Center between the two bars
-                          const topY = y - 20; // Position above the bar
-
-                          return (
-                            <g>
-                              {/* Pill background */}
-                              <rect
-                                x={centerX - 30}
-                                y={topY - 50}
-                                width={60}
-                                height={24}
-                                rx={12}
-                                ry={12}
-                                fill="white"
-                                stroke={numUtilized > 85 ? '#ef4444' : numUtilized > 70 ? '#f59e0b' : '#10b981'}
-                                strokeWidth={2}
-                                filter="url(#softShadow)"
-                              />
-                              {/* Percentage text */}
-                              <text
-                                x={centerX}
-                                y={topY - 35}
-                                fill={numUtilized > 85 ? '#dc2626' : numUtilized > 70 ? '#d97706' : '#059669'}
-                                textAnchor="middle"
-                                dominantBaseline="middle"
-                                fontSize={12}
-                                fontWeight={700}
-                                letterSpacing={0.2}
-                              >
-                                {utilized}%
-                              </text>
-                            </g>
-                          );
-                        }}
-                      />
-                    </Bar>
-                    <Bar dataKey="activeClients" fill="url(#activeClientsGradient)" radius={[8, 8, 0, 0]} name="Active Clients" maxBarSize={60}>
-                      <LabelList dataKey="activeClients" position="top" style={{ fill: '#1f2937', fontSize: '11px', fontWeight: 700 }} offset={8} />
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-            </div>
-
-            {/* Right Side - Hours Utilization */}
-            <div className="flex flex-col gap-4 lg:gap-6 w-full lg:w-[45%] h-auto lg:h-full">
-              <div className="flex gap-4 flex-shrink-0">
-                {/* Hours Utilization - Compact */}
-                <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[20px] flex flex-col shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300 flex-1"
-                  style={{
-                    boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)'
-                  }}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-
-                  <div className="relative px-5 pt-5 pb-2">
-                    <div className="text-gray-500 text-[10px] font-semibold uppercase tracking-widest mb-2">ANALYTICS</div>
-                    <h3 className="text-gray-900 text-lg font-semibold mb-2 flex items-center gap-2">
-                      Hours Utilization
-                      <div className="group/info relative z-[100000]">
-                        <Info size={14} className="text-[#2d6e7e] cursor-help" />
-                        <div className="absolute left-0 top-6 invisible group-hover/info:visible opacity-0 group-hover/info:opacity-100 transition-all duration-200 w-64 z-[100000]">
-                          <div className="bg-gray-900 text-white text-xs rounded-lg p-3 shadow-xl">
-                            <p className="font-medium mb-1">Practice Hours Utilization</p>
-                            <p className="text-gray-300">Shows the percentage of billable hours utilized across the practice over time (based on 800 hrs/month = 5 clinicians × 160 hrs). Higher percentage indicates better capacity usage.</p>
-                            <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
-                          </div>
-                        </div>
-                      </div>
-                    </h3>
-                    <div className="text-2xl font-bold text-gray-900 tracking-tight transition-all duration-200">
-                      {hoveredHoursUtilization !== null
-                        ? `${hoveredHoursUtilization.toFixed(1)}%`
-                        : `${(HOURS_UTILIZATION_DATA.reduce((sum, item) => sum + item.percentage, 0) / HOURS_UTILIZATION_DATA.length).toFixed(1)}%`
-                      }
-                    </div>
-                  </div>
-
-                  <div className="relative z-10 px-3 pb-2" style={{ height: 'clamp(80px, 15vw, 120px)' }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart
-                        data={HOURS_UTILIZATION_DATA}
-                        margin={{ top: 20, right: 10, bottom: 5, left: 5 }}
-                        onMouseMove={(e: any) => {
-                          if (e.activePayload && e.activePayload[0]) {
-                            setHoveredHoursUtilization(e.activePayload[0].value);
-                          }
-                        }}
-                        onMouseLeave={() => setHoveredHoursUtilization(null)}
-                      >
-                        <defs>
-                          <linearGradient id="hoursUtilizationGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#2d6e7e" stopOpacity={0.2}/>
-                            <stop offset="100%" stopColor="#2d6e7e" stopOpacity={0}/>
-                          </linearGradient>
-                        </defs>
-                        <XAxis
-                          dataKey="month"
-                          axisLine={false}
-                          tickLine={false}
-                          tick={{ fill: '#6b7280', fontSize: 11, fontWeight: 600 }}
-                          dy={3}
-                        />
-                        <YAxis hide domain={['dataMin - 5', 'dataMax + 5']} />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: '#1f2937',
-                            border: 'none',
-                            borderRadius: '10px',
-                            padding: '10px 14px',
-                            boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.3)'
-                          }}
-                          labelStyle={{ color: '#9ca3af', fontSize: '11px', fontWeight: 600, marginBottom: '3px' }}
-                          itemStyle={{ color: '#fff', fontSize: '14px', fontWeight: 700 }}
-                          formatter={(value: number) => [`${value.toFixed(1)}%`, 'Utilization']}
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="percentage"
-                          stroke="#2d6e7e"
-                          strokeWidth={2.5}
-                          dot={{ fill: '#2d6e7e', strokeWidth: 2, stroke: '#fff', r: 3 }}
-                          activeDot={{ r: 5, strokeWidth: 2, stroke: '#fff' }}
-                          fill="url(#hoursUtilizationGradient)"
-                        >
-                          <LabelList
-                            dataKey="percentage"
-                            position="top"
-                            style={{ fill: '#1f2937', fontSize: '10px', fontWeight: 700 }}
-                            offset={8}
-                            formatter={(value: number) => `${value.toFixed(1)}%`}
-                          />
-                        </Line>
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-
-                {/* Open Slots - Compact */}
-                <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[20px] flex flex-col shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300 flex-1"
-                  style={{
-                    boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)'
-                  }}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-
-                  <div className="relative px-5 pt-5 pb-2">
-                    <div className="text-gray-500 text-[10px] font-semibold uppercase tracking-widest mb-2">ANALYTICS</div>
-                    <h3 className="text-gray-900 text-lg font-semibold mb-2 flex items-center gap-2">
-                      Open Slots
-                      <div className="group/info relative z-[100000]">
-                        <Info size={14} className="text-[#2d6e7e] cursor-help" />
-                        <div className="absolute left-0 top-6 invisible group-hover/info:visible opacity-0 group-hover/info:opacity-100 transition-all duration-200 w-64 z-[100000]">
-                          <div className="bg-gray-900 text-white text-xs rounded-lg p-3 shadow-xl">
-                            <p className="font-medium mb-1">Open Slots Available</p>
-                            <p className="text-gray-300">Shows the number of unfilled appointment slots available each month across the practice (booked minus completed sessions). Lower numbers indicate better utilization and fewer cancellations/no-shows.</p>
-                            <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
-                          </div>
-                        </div>
-                      </div>
-                    </h3>
-                    <div className="text-2xl font-bold text-gray-900 tracking-tight transition-all duration-200">
-                      {hoveredOpenSlots !== null
-                        ? hoveredOpenSlots
-                        : Math.round(OPEN_SLOTS_DATA.reduce((sum, item) => sum + item.value, 0) / OPEN_SLOTS_DATA.length)
-                      }
-                    </div>
-                  </div>
-
-                  <div className="relative z-10 px-3 pb-2" style={{ height: 'clamp(80px, 15vw, 120px)' }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart
-                        data={OPEN_SLOTS_DATA}
-                        margin={{ top: 20, right: 10, bottom: 5, left: 5 }}
-                        onMouseMove={(e: any) => {
-                          if (e.activePayload && e.activePayload[0]) {
-                            setHoveredOpenSlots(e.activePayload[0].value);
-                          }
-                        }}
-                        onMouseLeave={() => setHoveredOpenSlots(null)}
-                      >
-                        <defs>
-                          <linearGradient id="openSlotsGradientClient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#ef4444" stopOpacity={0.2}/>
-                            <stop offset="100%" stopColor="#ef4444" stopOpacity={0}/>
-                          </linearGradient>
-                        </defs>
-                        <XAxis
-                          dataKey="month"
-                          axisLine={false}
-                          tickLine={false}
-                          tick={{ fill: '#6b7280', fontSize: 11, fontWeight: 600 }}
-                          dy={3}
-                        />
-                        <YAxis hide domain={['dataMin - 5', 'dataMax + 5']} />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: '#1f2937',
-                            border: 'none',
-                            borderRadius: '10px',
-                            padding: '10px 14px',
-                            boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.3)'
-                          }}
-                          labelStyle={{ color: '#9ca3af', fontSize: '11px', fontWeight: 600, marginBottom: '3px' }}
-                          itemStyle={{ color: '#fff', fontSize: '14px', fontWeight: 700 }}
-                          formatter={(value: number) => [value, 'Open Slots']}
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="value"
-                          stroke="#ef4444"
-                          strokeWidth={2.5}
-                          dot={{ fill: '#ef4444', strokeWidth: 2, stroke: '#fff', r: 3 }}
-                          activeDot={{ r: 5, strokeWidth: 2, stroke: '#fff' }}
-                          fill="url(#openSlotsGradientClient)"
-                        >
-                          <LabelList
-                            dataKey="value"
-                            position="top"
-                            style={{ fill: '#1f2937', fontSize: '10px', fontWeight: 700 }}
-                            offset={8}
-                          />
-                        </Line>
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
+                    Capacity & Client Analysis
+                  </h1>
+                  <span className="text-stone-400 text-sm sm:text-base font-medium">
+                    {getDateRangeLabel()}
+                  </span>
                 </div>
               </div>
 
-              {/* Client Movement Chart - Diverging Bar Chart */}
-              <div className="bg-gradient-to-br from-white via-white to-slate-50/20 rounded-[24px] flex flex-col flex-1 shadow-2xl border-2 border-[#2d6e7e] relative overflow-hidden group hover:shadow-[0_20px_70px_-10px_rgba(45,110,126,0.3)] transition-all duration-300"
+              {/* Time Period Selector */}
+              <div className="flex items-center gap-2 sm:gap-4 relative">
+                {/* Mobile: Select dropdown */}
+                <select
+                  value={timePeriod}
+                  onChange={(e) => setTimePeriod(e.target.value as TimePeriod)}
+                  className="lg:hidden px-3 py-2 rounded-xl border border-stone-200 bg-white text-sm font-medium text-stone-700"
+                >
+                  {timePeriods.map((period) => (
+                    <option key={period.id} value={period.id}>{period.label}</option>
+                  ))}
+                  <option value="custom">Custom Range</option>
+                </select>
+
+                {/* Desktop: Button group */}
+                <div
+                  className="hidden lg:flex items-center gap-1 p-1 xl:p-1.5 rounded-xl xl:rounded-2xl bg-white/80 backdrop-blur-sm"
+                  style={{
+                    boxShadow: '0 4px 20px -4px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.03)'
+                  }}
+                >
+                  {timePeriods.map((period) => (
+                    <button
+                      key={period.id}
+                      onClick={() => setTimePeriod(period.id)}
+                      className={`px-3 lg:px-5 py-2 lg:py-2.5 rounded-lg lg:rounded-xl text-xs lg:text-sm font-semibold transition-all duration-300 ${
+                        timePeriod === period.id
+                          ? 'bg-stone-900 text-white shadow-lg'
+                          : 'text-stone-500 hover:text-stone-900 hover:bg-stone-100'
+                      }`}
+                    >
+                      {period.label}
+                    </button>
+                  ))}
+                  {/* Custom Range Button */}
+                  <button
+                    onClick={() => setShowDatePicker(!showDatePicker)}
+                    className={`group px-3 lg:px-5 py-2 lg:py-2.5 rounded-lg lg:rounded-xl text-xs lg:text-sm font-semibold transition-all duration-500 flex items-center gap-1.5 lg:gap-2.5 relative overflow-hidden ${
+                      timePeriod === 'custom'
+                        ? 'text-white shadow-lg'
+                        : 'text-stone-500 hover:text-stone-900'
+                    }`}
+                    style={{
+                      background: timePeriod === 'custom'
+                        ? 'linear-gradient(135deg, #1c1917 0%, #292524 50%, #1c1917 100%)'
+                        : 'transparent'
+                    }}
+                  >
+                    <Calendar
+                      size={16}
+                      className={`transition-transform duration-500 ${showDatePicker ? 'rotate-12' : 'group-hover:rotate-6'}`}
+                    />
+                    <span className="hidden lg:inline">{timePeriod === 'custom' ? formatCustomRange() : 'Custom'}</span>
+                    <span className="lg:hidden">Custom</span>
+                  </button>
+                </div>
+
+                {/* Custom Date Picker - Same as Financial Tab */}
+                {showDatePicker && (
+                  <div
+                    className="absolute top-full right-0 mt-3 z-[100000] rounded-2xl bg-white p-4 sm:p-6"
+                    style={{
+                      width: 'clamp(280px, 85vw, 380px)',
+                      maxWidth: 'calc(100vw - 32px)',
+                      boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05)',
+                      animation: 'fadeIn 0.2s ease-out'
+                    }}
+                  >
+                    {/* Header */}
+                    <div className="flex items-center justify-between mb-5">
+                      <h3 className="text-stone-900 text-lg font-semibold">Custom Range</h3>
+                      <button
+                        onClick={() => setShowDatePicker(false)}
+                        className="w-8 h-8 rounded-full flex items-center justify-center text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-colors"
+                      >
+                        <X size={18} />
+                      </button>
+                    </div>
+
+                    {/* Year Selector */}
+                    <div className="flex items-center justify-center gap-4 mb-5 pb-5 border-b border-stone-100">
+                      <button
+                        onClick={() => setCustomYear(prev => prev - 1)}
+                        className="w-9 h-9 rounded-full flex items-center justify-center text-stone-400 hover:text-stone-900 hover:bg-stone-100 transition-all"
+                      >
+                        <ChevronLeft size={20} />
+                      </button>
+                      <span
+                        className="text-stone-900 text-2xl font-bold tabular-nums w-20 text-center"
+                        style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                      >
+                        {customYear}
+                      </span>
+                      <button
+                        onClick={() => setCustomYear(prev => prev + 1)}
+                        className="w-9 h-9 rounded-full flex items-center justify-center text-stone-400 hover:text-stone-900 hover:bg-stone-100 transition-all"
+                      >
+                        <ChevronRight size={20} />
+                      </button>
+                    </div>
+
+                    {/* Month Grid */}
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-4 sm:mb-5">
+                      {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((month, idx) => {
+                        const isStart = idx === customStartMonth;
+                        const isEnd = idx === customEndMonth;
+                        const isInRange = idx > customStartMonth && idx < customEndMonth;
+                        const isSelected = isStart || isEnd;
+
+                        return (
+                          <button
+                            key={month}
+                            onClick={() => {
+                              if (customStartMonth === customEndMonth) {
+                                if (idx < customStartMonth) {
+                                  setCustomStartMonth(idx);
+                                } else if (idx > customStartMonth) {
+                                  setCustomEndMonth(idx);
+                                }
+                              } else {
+                                setCustomStartMonth(idx);
+                                setCustomEndMonth(idx);
+                              }
+                            }}
+                            className={`h-10 rounded-lg text-sm font-medium transition-all duration-200 ${
+                              isSelected
+                                ? 'bg-stone-900 text-white'
+                                : isInRange
+                                  ? 'bg-stone-100 text-stone-700'
+                                  : 'text-stone-600 hover:bg-stone-50'
+                            }`}
+                          >
+                            {month}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Selected Range Display */}
+                    <div className="flex items-center justify-center gap-3 mb-5 py-3 px-4 rounded-xl bg-stone-50">
+                      <span className="text-stone-900 font-semibold">
+                        {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][customStartMonth]}
+                      </span>
+                      {customStartMonth !== customEndMonth && (
+                        <>
+                          <span className="text-stone-400">→</span>
+                          <span className="text-stone-900 font-semibold">
+                            {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][customEndMonth]}
+                          </span>
+                        </>
+                      )}
+                      <span className="text-stone-500">{customYear}</span>
+                    </div>
+
+                    {/* Apply Button */}
+                    <button
+                      onClick={applyCustomRange}
+                      className="w-full py-3 rounded-xl bg-stone-900 text-white font-semibold transition-all hover:bg-stone-800 active:scale-[0.98]"
+                    >
+                      Apply
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Tab Navigation - Minimal Pills */}
+            <div className="flex items-center gap-2 sm:gap-3 mt-4 sm:mt-6 xl:mt-8 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`px-3 sm:px-4 xl:px-6 py-2 sm:py-2.5 xl:py-3 rounded-full text-xs sm:text-sm xl:text-base font-semibold transition-all duration-300 whitespace-nowrap flex-shrink-0 ${
+                    activeTab === tab.id
+                      ? 'bg-stone-900 text-white shadow-md'
+                      : 'text-stone-500 hover:text-stone-800 border border-stone-300 hover:border-stone-400 bg-white/50'
+                  }`}
+                >
+                  {tab.shortLabel}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Main Content */}
+          <div className="px-4 sm:px-6 lg:px-8 xl:px-10 pb-6 xl:pb-10 space-y-6 xl:space-y-8">
+
+            {/* Hero Stats Row - Large & Impactful */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 xl:gap-6">
+              {/* Active Clients Card */}
+              <div
+                className="rounded-2xl xl:rounded-3xl p-6 sm:p-7 xl:p-8 relative overflow-hidden"
                 style={{
-                  boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)'
+                  background: 'linear-gradient(145deg, #fffbeb 0%, #fef3c7 100%)',
+                  boxShadow: '0 4px 24px -4px rgba(245, 158, 11, 0.15), 0 0 0 1px rgba(245, 158, 11, 0.1)'
                 }}
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                <h3
+                  className="text-amber-800 text-xl sm:text-2xl xl:text-2xl font-bold mb-3 xl:mb-4"
+                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  Active Clients
+                </h3>
+                <span
+                  className="text-amber-900 font-bold block text-4xl sm:text-5xl xl:text-6xl"
+                  style={{ lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  {CLIENT_GROWTH_DATA[CLIENT_GROWTH_DATA.length - 1]?.activeClients || 0}
+                </span>
+                <p className="text-amber-700 text-base sm:text-lg xl:text-xl mt-3 xl:mt-4 font-medium">
+                  of {CLIENT_GROWTH_DATA[CLIENT_GROWTH_DATA.length - 1]?.capacity || 0} capacity
+                </p>
+              </div>
 
-                <div className="relative px-6 pt-6 pb-4 flex-shrink-0">
-                  <div className="text-gray-500 text-xs font-semibold uppercase tracking-widest mb-2">ANALYTICS</div>
-                  <h3 className="text-gray-900 text-2xl font-semibold mb-4 flex items-center gap-2">
-                    Client Movement
-                    <div className="group/info relative z-[100000]">
-                      <Info size={18} className="text-[#2d6e7e] cursor-help" />
-                      <div className="absolute left-0 top-8 invisible group-hover/info:visible opacity-0 group-hover/info:opacity-100 transition-all duration-200 w-80 z-[100000]">
-                        <div className="bg-gray-900 text-white text-xs rounded-lg p-3 shadow-xl">
-                          <p className="font-medium mb-1">Client Movement Analysis</p>
-                          <p className="text-gray-300">Visualizes the flow of clients in and out of your practice. New clients appear as positive bars (green) above the center line, while churned clients appear as negative bars (red) below. This helps you understand client retention and growth patterns.</p>
-                          <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
-                        </div>
-                      </div>
-                    </div>
-                  </h3>
+              {/* Client Utilization Rate Card */}
+              <div
+                className="rounded-2xl xl:rounded-3xl p-6 sm:p-7 xl:p-8 relative overflow-hidden"
+                style={{
+                  background: 'linear-gradient(145deg, #ecfdf5 0%, #d1fae5 100%)',
+                  boxShadow: '0 4px 24px -4px rgba(16, 185, 129, 0.15), 0 0 0 1px rgba(16, 185, 129, 0.1)'
+                }}
+              >
+                <h3
+                  className="text-emerald-800 text-xl sm:text-2xl xl:text-2xl font-bold mb-3 xl:mb-4"
+                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  Client Utilization
+                </h3>
+                <span
+                  className="text-emerald-700 font-bold block text-4xl sm:text-5xl xl:text-6xl"
+                  style={{ lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  {((CLIENT_GROWTH_DATA[CLIENT_GROWTH_DATA.length - 1]?.activeClients / CLIENT_GROWTH_DATA[CLIENT_GROWTH_DATA.length - 1]?.capacity) * 100).toFixed(0)}%
+                </span>
+                <p className="text-emerald-600 text-base sm:text-lg xl:text-xl mt-3 xl:mt-4 font-medium">
+                  of client capacity filled
+                </p>
+              </div>
 
-                  {/* Legend */}
-                  <div className="flex items-center gap-6 mb-2">
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 rounded" style={{ backgroundColor: '#10b981' }}></div>
-                      <span className="text-sm font-medium text-gray-700">New Clients</span>
+              {/* Net Client Growth Card */}
+              <div
+                className="rounded-2xl xl:rounded-3xl p-6 sm:p-7 xl:p-8 relative overflow-hidden"
+                style={{
+                  background: 'linear-gradient(145deg, #ffffff 0%, #f5f5f4 100%)',
+                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
+                }}
+              >
+                <h3
+                  className="text-stone-700 text-xl sm:text-2xl xl:text-2xl font-bold mb-3 xl:mb-4"
+                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  Net Growth
+                </h3>
+                {(() => {
+                  const totalNew = CLIENT_GROWTH_DATA.reduce((sum, item) => sum + item.new, 0);
+                  const totalChurned = CLIENT_GROWTH_DATA.reduce((sum, item) => sum + item.churned, 0);
+                  const netGrowth = totalNew - totalChurned;
+                  return (
+                    <>
+                      <span
+                        className={`font-bold block text-4xl sm:text-5xl xl:text-6xl ${netGrowth >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}
+                        style={{ lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
+                      >
+                        {netGrowth >= 0 ? '+' : ''}{netGrowth}
+                      </span>
+                      <p className="text-stone-500 text-base sm:text-lg xl:text-xl mt-3 xl:mt-4 font-medium">
+                        <span className="text-emerald-600">+{totalNew}</span> new, <span className="text-rose-500">-{totalChurned}</span> churned
+                      </p>
+                    </>
+                  );
+                })()}
+              </div>
+
+              {/* Session Utilization Card */}
+              <div
+                className="rounded-2xl xl:rounded-3xl p-6 sm:p-7 xl:p-8 relative overflow-hidden"
+                style={{
+                  background: 'linear-gradient(145deg, #eff6ff 0%, #dbeafe 100%)',
+                  boxShadow: '0 4px 24px -4px rgba(59, 130, 246, 0.15), 0 0 0 1px rgba(59, 130, 246, 0.1)'
+                }}
+              >
+                <h3
+                  className="text-blue-800 text-xl sm:text-2xl xl:text-2xl font-bold mb-3 xl:mb-4"
+                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  Session Utilization
+                </h3>
+                <span
+                  className="text-blue-700 font-bold block text-4xl sm:text-5xl xl:text-6xl"
+                  style={{ lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  {(HOURS_UTILIZATION_DATA.reduce((sum, item) => sum + item.percentage, 0) / HOURS_UTILIZATION_DATA.length).toFixed(0)}%
+                </span>
+                <p className="text-blue-600 text-base sm:text-lg xl:text-xl mt-3 xl:mt-4 font-medium">
+                  avg across {HOURS_UTILIZATION_DATA.length} months
+                </p>
+              </div>
+            </div>
+
+            {/* Client Utilization Rate & Client Movement - Side by Side */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 xl:gap-8">
+              {/* Client Utilization Rate - Combo Chart (Bar + Line) */}
+              <div
+                className="rounded-2xl xl:rounded-3xl p-6 sm:p-8 xl:p-10 relative flex flex-col overflow-hidden"
+                style={{
+                  background: 'linear-gradient(145deg, #ffffff 0%, #fafaf9 100%)',
+                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)',
+                  minHeight: '580px'
+                }}
+              >
+                {/* Header Section */}
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
+                  <div>
+                    <h3
+                      className="text-stone-900 text-2xl sm:text-3xl xl:text-4xl font-bold mb-2 tracking-tight"
+                      style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                    >
+                      Client Utilization
+                    </h3>
+                    <p className="text-stone-500 text-base sm:text-lg xl:text-xl">Active clients & utilization rate over time</p>
+                  </div>
+
+                  {/* Legend - Large & Clear */}
+                  <div className="flex items-center gap-6 bg-stone-50 rounded-xl px-5 py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-5 h-5 rounded-md bg-gradient-to-b from-amber-400 to-amber-500 shadow-sm"></div>
+                      <span className="text-stone-700 text-base font-semibold">Active Clients</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 rounded" style={{ backgroundColor: '#ef4444' }}></div>
-                      <span className="text-sm font-medium text-gray-700">Churned Clients</span>
+                    <div className="w-px h-6 bg-stone-200" />
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-1 bg-emerald-500 rounded-full"></div>
+                      <span className="text-stone-700 text-base font-semibold">Utilization %</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex-1 px-6 pb-6 relative z-10">
+                {/* Chart Area - Maximum Height */}
+                <div className="flex-1 min-h-[350px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ComposedChart
+                      data={CLIENT_GROWTH_DATA.map(item => ({
+                        ...item,
+                        utilizationRate: parseFloat(((item.activeClients / item.capacity) * 100).toFixed(1))
+                      }))}
+                      margin={{ top: 30, right: 80, bottom: 30, left: 20 }}
+                    >
+                      <defs>
+                        <linearGradient id="activeClientsBarGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#fbbf24" stopOpacity={1}/>
+                          <stop offset="100%" stopColor="#f59e0b" stopOpacity={1}/>
+                        </linearGradient>
+                        <filter id="barShadow" x="-20%" y="-20%" width="140%" height="140%">
+                          <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.15"/>
+                        </filter>
+                      </defs>
+                      <CartesianGrid strokeDasharray="4 4" stroke="#e7e5e4" vertical={false} />
+                      <XAxis
+                        dataKey="month"
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: '#57534e', fontSize: 15, fontWeight: 600 }}
+                        dy={12}
+                        height={50}
+                      />
+                      <YAxis
+                        yAxisId="left"
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: '#78716c', fontSize: 14, fontWeight: 600 }}
+                        domain={[0, 200]}
+                        width={50}
+                        tickCount={5}
+                      />
+                      <YAxis
+                        yAxisId="right"
+                        orientation="right"
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: '#059669', fontSize: 14, fontWeight: 700 }}
+                        domain={[0, 100]}
+                        tickFormatter={(value) => `${value}%`}
+                        width={60}
+                        tickCount={5}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: '#1c1917',
+                          border: 'none',
+                          borderRadius: '16px',
+                          padding: '16px 20px',
+                          boxShadow: '0 20px 40px -10px rgba(0, 0, 0, 0.4)'
+                        }}
+                        labelStyle={{ color: '#a8a29e', fontSize: '14px', fontWeight: 600, marginBottom: '8px' }}
+                        itemStyle={{ color: '#fff', fontSize: '18px', fontWeight: 700, padding: '4px 0' }}
+                        formatter={(value: number, name: string) => {
+                          if (name === 'utilizationRate') return [`${value}%`, 'Utilization Rate'];
+                          return [value, 'Active Clients'];
+                        }}
+                      />
+                      <Bar
+                        yAxisId="left"
+                        dataKey="activeClients"
+                        fill="url(#activeClientsBarGradient)"
+                        radius={[8, 8, 0, 0]}
+                        name="Active Clients"
+                        maxBarSize={56}
+                        style={{ filter: 'url(#barShadow)' }}
+                      >
+                        <LabelList
+                          dataKey="activeClients"
+                          position="top"
+                          style={{ fill: '#44403c', fontSize: '14px', fontWeight: 700 }}
+                          offset={10}
+                        />
+                      </Bar>
+                      <Line
+                        yAxisId="right"
+                        type="monotone"
+                        dataKey="utilizationRate"
+                        stroke="#059669"
+                        strokeWidth={4}
+                        dot={{ fill: '#059669', strokeWidth: 4, stroke: '#fff', r: 7 }}
+                        activeDot={{ r: 10, strokeWidth: 4, stroke: '#fff', fill: '#059669' }}
+                        name="Utilization Rate"
+                      />
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Insights Row - Large Stats Cards */}
+                <div className="grid grid-cols-3 gap-4 pt-6 mt-6 border-t-2 border-stone-100">
+                  {(() => {
+                    const utilizationValues = CLIENT_GROWTH_DATA.map(item => (item.activeClients / item.capacity) * 100);
+                    const avgUtilization = utilizationValues.reduce((sum, v) => sum + v, 0) / utilizationValues.length;
+                    const maxUtilization = Math.max(...utilizationValues);
+                    const highestMonth = CLIENT_GROWTH_DATA[utilizationValues.indexOf(maxUtilization)]?.month || '';
+                    const avgActiveClients = CLIENT_GROWTH_DATA.reduce((sum, item) => sum + item.activeClients, 0) / CLIENT_GROWTH_DATA.length;
+                    const currentClients = CLIENT_GROWTH_DATA[CLIENT_GROWTH_DATA.length - 1]?.activeClients || 0;
+
+                    return (
+                      <>
+                        <div className="bg-amber-50 rounded-xl p-4 text-center">
+                          <div className="text-amber-600 text-2xl sm:text-3xl font-bold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                            {avgActiveClients.toFixed(0)}
+                          </div>
+                          <div className="text-stone-600 text-sm sm:text-base font-medium mt-1">Avg Clients</div>
+                        </div>
+                        <div className="bg-emerald-50 rounded-xl p-4 text-center">
+                          <div className="text-emerald-600 text-2xl sm:text-3xl font-bold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                            {avgUtilization.toFixed(0)}%
+                          </div>
+                          <div className="text-stone-600 text-sm sm:text-base font-medium mt-1">Avg Utilization</div>
+                        </div>
+                        <div className="bg-stone-100 rounded-xl p-4 text-center">
+                          <div className="text-stone-800 text-2xl sm:text-3xl font-bold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                            {highestMonth}
+                          </div>
+                          <div className="text-stone-600 text-sm sm:text-base font-medium mt-1">Peak ({maxUtilization.toFixed(0)}%)</div>
+                        </div>
+                      </>
+                    );
+                  })()}
+                </div>
+              </div>
+
+              {/* Client Movement - Diverging Bar Chart */}
+              <div
+                className="rounded-2xl xl:rounded-3xl p-6 sm:p-8 xl:p-10 relative flex flex-col overflow-hidden"
+                style={{
+                  background: 'linear-gradient(145deg, #ffffff 0%, #fafaf9 100%)',
+                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)',
+                  minHeight: '580px'
+                }}
+              >
+                {/* Header Section */}
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
+                  <div>
+                    <h3
+                      className="text-stone-900 text-2xl sm:text-3xl xl:text-4xl font-bold mb-2 tracking-tight"
+                      style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                    >
+                      Client Movement
+                    </h3>
+                    <p className="text-stone-500 text-base sm:text-lg xl:text-xl">New acquisitions vs churned clients</p>
+                  </div>
+
+                  {/* Legend - Large & Clear */}
+                  <div className="flex items-center gap-6 bg-stone-50 rounded-xl px-5 py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-5 h-5 rounded-md bg-gradient-to-b from-emerald-400 to-emerald-500 shadow-sm"></div>
+                      <span className="text-stone-700 text-base font-semibold">New Clients</span>
+                    </div>
+                    <div className="w-px h-6 bg-stone-200" />
+                    <div className="flex items-center gap-3">
+                      <div className="w-5 h-5 rounded-md bg-gradient-to-b from-rose-400 to-rose-500 shadow-sm"></div>
+                      <span className="text-stone-700 text-base font-semibold">Churned</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Chart Area */}
+                <div className="flex-1 min-h-[350px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                       data={CLIENT_GROWTH_DATA.map(item => ({
                         month: item.month,
                         new: item.new,
-                        churned: -item.churned // Negative for diverging effect
+                        churned: -item.churned
                       }))}
-                      margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+                      margin={{ top: 30, right: 30, bottom: 30, left: 30 }}
                     >
                       <defs>
-                        <linearGradient id="newClientsGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#10b981" stopOpacity={0.8}/>
-                          <stop offset="100%" stopColor="#10b981" stopOpacity={0.6}/>
+                        <linearGradient id="newClientsGradientNew" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#34d399" stopOpacity={1}/>
+                          <stop offset="100%" stopColor="#10b981" stopOpacity={1}/>
                         </linearGradient>
-                        <linearGradient id="churnedClientsGradient" x1="0" y1="1" x2="0" y2="0">
-                          <stop offset="0%" stopColor="#ef4444" stopOpacity={0.8}/>
-                          <stop offset="100%" stopColor="#ef4444" stopOpacity={0.6}/>
+                        <linearGradient id="churnedClientsGradientNew" x1="0" y1="1" x2="0" y2="0">
+                          <stop offset="0%" stopColor="#fb7185" stopOpacity={1}/>
+                          <stop offset="100%" stopColor="#f43f5e" stopOpacity={1}/>
                         </linearGradient>
+                        <filter id="barShadowMovement" x="-20%" y="-20%" width="140%" height="140%">
+                          <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.15"/>
+                        </filter>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+                      <CartesianGrid strokeDasharray="4 4" stroke="#e7e5e4" vertical={false} />
                       <XAxis
                         dataKey="month"
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fill: '#4b5563', fontSize: 14, fontWeight: 600 }}
-                        dy={10}
+                        tick={{ fill: '#57534e', fontSize: 15, fontWeight: 600 }}
+                        dy={12}
+                        height={50}
                       />
                       <YAxis
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fill: '#6b7280', fontSize: 12, fontWeight: 600 }}
+                        tick={{ fill: '#78716c', fontSize: 14, fontWeight: 600 }}
                         tickFormatter={(value) => Math.abs(value).toString()}
+                        width={40}
                       />
-                      <ReferenceLine y={0} stroke="#9ca3af" strokeWidth={2} />
+                      <ReferenceLine y={0} stroke="#78716c" strokeWidth={2} strokeDasharray="0" />
                       <Tooltip
                         contentStyle={{
-                          backgroundColor: '#1f2937',
+                          backgroundColor: '#1c1917',
                           border: 'none',
-                          borderRadius: '12px',
-                          padding: '12px 16px',
-                          boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.3)'
+                          borderRadius: '16px',
+                          padding: '16px 20px',
+                          boxShadow: '0 20px 40px -10px rgba(0, 0, 0, 0.4)'
                         }}
-                        labelStyle={{ color: '#9ca3af', fontSize: '12px', fontWeight: 600, marginBottom: '4px' }}
-                        itemStyle={{ color: '#fff', fontSize: '14px', fontWeight: 700 }}
+                        labelStyle={{ color: '#a8a29e', fontSize: '14px', fontWeight: 600, marginBottom: '8px' }}
+                        itemStyle={{ color: '#fff', fontSize: '18px', fontWeight: 700, padding: '4px 0' }}
                         formatter={(value: number, name: string) => {
                           const absValue = Math.abs(value);
                           const label = name === 'new' ? 'New Clients' : 'Churned Clients';
                           return [absValue, label];
                         }}
                       />
-                      <Bar dataKey="new" fill="url(#newClientsGradient)" radius={[6, 6, 0, 0]} maxBarSize={80}>
+                      <Bar
+                        dataKey="new"
+                        fill="url(#newClientsGradientNew)"
+                        radius={[8, 8, 0, 0]}
+                        maxBarSize={50}
+                        style={{ filter: 'url(#barShadowMovement)' }}
+                      >
                         <LabelList
                           dataKey="new"
                           position="top"
-                          style={{ fill: '#1f2937', fontSize: '12px', fontWeight: 700 }}
-                          offset={8}
+                          style={{ fill: '#059669', fontSize: '14px', fontWeight: 700 }}
+                          offset={10}
+                          formatter={(value: number) => `+${value}`}
                         />
                       </Bar>
-                      <Bar dataKey="churned" fill="url(#churnedClientsGradient)" radius={[0, 0, 6, 6]} maxBarSize={80}>
+                      <Bar
+                        dataKey="churned"
+                        fill="url(#churnedClientsGradientNew)"
+                        radius={[0, 0, 8, 8]}
+                        maxBarSize={50}
+                        style={{ filter: 'url(#barShadowMovement)' }}
+                      >
                         <LabelList
                           dataKey="churned"
                           position="bottom"
-                          style={{ fill: '#1f2937', fontSize: '12px', fontWeight: 700 }}
-                          offset={8}
-                          formatter={(value: number) => Math.abs(value).toString()}
+                          style={{ fill: '#e11d48', fontSize: '14px', fontWeight: 700 }}
+                          offset={10}
+                          formatter={(value: number) => `-${Math.abs(value)}`}
                         />
                       </Bar>
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
+
+                {/* Insights Row - Large Stats Cards */}
+                <div className="grid grid-cols-3 gap-4 pt-6 mt-6 border-t-2 border-stone-100">
+                  {(() => {
+                    const totalNew = CLIENT_GROWTH_DATA.reduce((sum, item) => sum + item.new, 0);
+                    const totalChurned = CLIENT_GROWTH_DATA.reduce((sum, item) => sum + item.churned, 0);
+                    const netGrowth = totalNew - totalChurned;
+                    const avgMonthlyNew = totalNew / CLIENT_GROWTH_DATA.length;
+                    const avgMonthlyChurn = totalChurned / CLIENT_GROWTH_DATA.length;
+
+                    return (
+                      <>
+                        <div className={`${netGrowth >= 0 ? 'bg-emerald-50' : 'bg-rose-50'} rounded-xl p-4 text-center`}>
+                          <div
+                            className={`text-2xl sm:text-3xl font-bold ${netGrowth >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}
+                            style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                          >
+                            {netGrowth >= 0 ? '+' : ''}{netGrowth}
+                          </div>
+                          <div className="text-stone-600 text-sm sm:text-base font-medium mt-1">Net Change</div>
+                        </div>
+                        <div className="bg-emerald-50 rounded-xl p-4 text-center">
+                          <div className="text-emerald-600 text-2xl sm:text-3xl font-bold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                            +{avgMonthlyNew.toFixed(1)}
+                          </div>
+                          <div className="text-stone-600 text-sm sm:text-base font-medium mt-1">Avg New/mo</div>
+                        </div>
+                        <div className="bg-rose-50 rounded-xl p-4 text-center">
+                          <div className="text-rose-600 text-2xl sm:text-3xl font-bold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                            -{avgMonthlyChurn.toFixed(1)}
+                          </div>
+                          <div className="text-stone-600 text-sm sm:text-base font-medium mt-1">Avg Churn/mo</div>
+                        </div>
+                      </>
+                    );
+                  })()}
+                </div>
               </div>
             </div>
+
+            {/* Session Utilization & Open Slots - Side by Side */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 xl:gap-8">
+              {/* Session Utilization Trend */}
+              <div
+                className="rounded-2xl xl:rounded-3xl p-6 sm:p-8 xl:p-10 overflow-hidden"
+                style={{
+                  background: 'linear-gradient(145deg, #ffffff 0%, #fafaf9 100%)',
+                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
+                }}
+              >
+                {/* Header with Current Value */}
+                <div className="flex items-start justify-between mb-6">
+                  <div>
+                    <h3
+                      className="text-stone-900 text-2xl sm:text-3xl xl:text-4xl font-bold mb-2 tracking-tight"
+                      style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                    >
+                      Session Utilization
+                    </h3>
+                    <p className="text-stone-500 text-base sm:text-lg xl:text-xl">Percentage of session capacity utilized</p>
+                  </div>
+                  <div className="bg-blue-50 rounded-xl px-5 py-3 text-center">
+                    <div className="text-blue-600 text-2xl sm:text-3xl font-bold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                      {hoveredHoursUtilization !== null
+                        ? `${hoveredHoursUtilization.toFixed(0)}%`
+                        : `${(HOURS_UTILIZATION_DATA.reduce((sum, item) => sum + item.percentage, 0) / HOURS_UTILIZATION_DATA.length).toFixed(0)}%`
+                      }
+                    </div>
+                    <div className="text-stone-500 text-sm font-medium">
+                      {hoveredHoursUtilization !== null ? 'Selected' : 'Average'}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="h-[280px] sm:h-[320px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart
+                      data={HOURS_UTILIZATION_DATA}
+                      margin={{ top: 20, right: 30, bottom: 30, left: 30 }}
+                      onMouseMove={(e: any) => {
+                        if (e.activePayload && e.activePayload[0]) {
+                          setHoveredHoursUtilization(e.activePayload[0].value);
+                        }
+                      }}
+                      onMouseLeave={() => setHoveredHoursUtilization(null)}
+                    >
+                      <defs>
+                        <linearGradient id="hoursUtilizationGradientNew" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.25}/>
+                          <stop offset="100%" stopColor="#3b82f6" stopOpacity={0.02}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="4 4" stroke="#e7e5e4" vertical={false} />
+                      <XAxis
+                        dataKey="month"
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: '#57534e', fontSize: 15, fontWeight: 600 }}
+                        dy={12}
+                        height={50}
+                      />
+                      <YAxis
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: '#3b82f6', fontSize: 14, fontWeight: 700 }}
+                        domain={[70, 100]}
+                        tickFormatter={(value) => `${value}%`}
+                        width={55}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: '#1c1917',
+                          border: 'none',
+                          borderRadius: '16px',
+                          padding: '16px 20px',
+                          boxShadow: '0 20px 40px -10px rgba(0, 0, 0, 0.4)'
+                        }}
+                        labelStyle={{ color: '#a8a29e', fontSize: '14px', fontWeight: 600, marginBottom: '8px' }}
+                        itemStyle={{ color: '#fff', fontSize: '20px', fontWeight: 700 }}
+                        formatter={(value: number) => [`${value.toFixed(1)}%`, 'Utilization']}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="percentage"
+                        stroke="#3b82f6"
+                        strokeWidth={4}
+                        dot={{ fill: '#3b82f6', strokeWidth: 4, stroke: '#fff', r: 7 }}
+                        activeDot={{ r: 10, strokeWidth: 4, stroke: '#fff' }}
+                        fill="url(#hoursUtilizationGradientNew)"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Open Slots Trend */}
+              <div
+                className="rounded-2xl xl:rounded-3xl p-6 sm:p-8 xl:p-10 overflow-hidden"
+                style={{
+                  background: 'linear-gradient(145deg, #ffffff 0%, #fafaf9 100%)',
+                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
+                }}
+              >
+                {/* Header with Current Value */}
+                <div className="flex items-start justify-between mb-6">
+                  <div>
+                    <h3
+                      className="text-stone-900 text-2xl sm:text-3xl xl:text-4xl font-bold mb-2 tracking-tight"
+                      style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                    >
+                      Open Slots
+                    </h3>
+                    <p className="text-stone-500 text-base sm:text-lg xl:text-xl">Unfilled appointment slots per month</p>
+                  </div>
+                  <div className="bg-rose-50 rounded-xl px-5 py-3 text-center">
+                    <div className="text-rose-600 text-2xl sm:text-3xl font-bold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                      {hoveredOpenSlots !== null
+                        ? hoveredOpenSlots
+                        : Math.round(OPEN_SLOTS_DATA.reduce((sum, item) => sum + item.value, 0) / OPEN_SLOTS_DATA.length)
+                      }
+                    </div>
+                    <div className="text-stone-500 text-sm font-medium">
+                      {hoveredOpenSlots !== null ? 'Selected' : 'Average'}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="h-[280px] sm:h-[320px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart
+                      data={OPEN_SLOTS_DATA}
+                      margin={{ top: 20, right: 30, bottom: 30, left: 30 }}
+                      onMouseMove={(e: any) => {
+                        if (e.activePayload && e.activePayload[0]) {
+                          setHoveredOpenSlots(e.activePayload[0].value);
+                        }
+                      }}
+                      onMouseLeave={() => setHoveredOpenSlots(null)}
+                    >
+                      <defs>
+                        <linearGradient id="openSlotsGradientNew" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#f43f5e" stopOpacity={0.25}/>
+                          <stop offset="100%" stopColor="#f43f5e" stopOpacity={0.02}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="4 4" stroke="#e7e5e4" vertical={false} />
+                      <XAxis
+                        dataKey="month"
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: '#57534e', fontSize: 15, fontWeight: 600 }}
+                        dy={12}
+                        height={50}
+                      />
+                      <YAxis
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: '#e11d48', fontSize: 14, fontWeight: 700 }}
+                        domain={[0, 'dataMax + 10']}
+                        width={40}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: '#1c1917',
+                          border: 'none',
+                          borderRadius: '16px',
+                          padding: '16px 20px',
+                          boxShadow: '0 20px 40px -10px rgba(0, 0, 0, 0.4)'
+                        }}
+                        labelStyle={{ color: '#a8a29e', fontSize: '14px', fontWeight: 600, marginBottom: '8px' }}
+                        itemStyle={{ color: '#fff', fontSize: '20px', fontWeight: 700 }}
+                        formatter={(value: number) => [value, 'Open Slots']}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="value"
+                        stroke="#f43f5e"
+                        strokeWidth={4}
+                        dot={{ fill: '#f43f5e', strokeWidth: 4, stroke: '#fff', r: 7 }}
+                        activeDot={{ r: 10, strokeWidth: 4, stroke: '#fff' }}
+                        fill="url(#openSlotsGradientNew)"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       )}
