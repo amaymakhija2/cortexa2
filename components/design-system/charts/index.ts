@@ -16,3 +16,10 @@ export type {
 
 export { LineChart } from './LineChart';
 export type { LineChartProps, LineConfig } from './LineChart';
+
+export { DivergingBarChart } from './DivergingBarChart';
+export type {
+  DivergingBarChartProps,
+  DivergingBarDataPoint,
+  DivergingBarConfig,
+} from './DivergingBarChart';

@@ -38,8 +38,20 @@ export { ToggleButton, GoalIndicator, ActionButton } from './controls';
 export type { ToggleButtonProps, GoalIndicatorProps, GoalIndicatorColor, ActionButtonProps, ActionButtonVariant } from './controls';
 
 // Chart Components
-export { BarChart, LineChart } from './charts';
-export type { BarChartProps, BarChartDataPoint, BarChartSize, SegmentConfig, BarColorConfig, HoverInfo, LineChartProps, LineConfig } from './charts';
+export { BarChart, LineChart, DivergingBarChart } from './charts';
+export type {
+  BarChartProps,
+  BarChartDataPoint,
+  BarChartSize,
+  SegmentConfig,
+  BarColorConfig,
+  HoverInfo,
+  LineChartProps,
+  LineConfig,
+  DivergingBarChartProps,
+  DivergingBarDataPoint,
+  DivergingBarConfig,
+} from './charts';
 
 // Reference Page (for viewing in app)
 export { Reference } from './Reference';

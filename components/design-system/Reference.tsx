@@ -22,6 +22,7 @@ import {
   DataTableCard,
   BarChart,
   SplitBarCard,
+  DivergingBarChart,
 } from './';
 import type { HoverInfo } from './charts';
 
@@ -126,6 +127,16 @@ const CLINICIAN_SEGMENTS = [
   { key: 'Patel', label: 'Patel', color: '#d97706', gradient: 'linear-gradient(180deg, #fbbf24 0%, #d97706 100%)' },
   { key: 'Kim', label: 'Kim', color: '#db2777', gradient: 'linear-gradient(180deg, #f472b6 0%, #db2777 100%)' },
   { key: 'Johnson', label: 'Johnson', color: '#059669', gradient: 'linear-gradient(180deg, #34d399 0%, #059669 100%)' },
+];
+
+// Sample data for DivergingBarChart (Client Movement)
+const SAMPLE_CLIENT_MOVEMENT_DATA = [
+  { label: 'Jan', positive: 12, negative: 5 },
+  { label: 'Feb', positive: 8, negative: 3 },
+  { label: 'Mar', positive: 15, negative: 7 },
+  { label: 'Apr', positive: 10, negative: 4 },
+  { label: 'May', positive: 14, negative: 6 },
+  { label: 'Jun', positive: 11, negative: 8 },
 ];
 
 export const Reference: React.FC = () => {
@@ -1451,6 +1462,116 @@ export const Reference: React.FC = () => {
                   </pre>
                 </div>
               </Grid>
+            </Section>
+
+            {/* DivergingBarChart Component */}
+            <Section>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                DivergingBarChart Component
+              </h2>
+              <p className="text-stone-500 mb-6">For visualizing flows with positive and negative values (e.g., new vs churned clients, gains vs losses). Bars extend above and below a zero reference line.</p>
+
+              {/* Interactive Demo */}
+              <div className="mb-8">
+                <ChartCard
+                  title="Client Movement"
+                  subtitle="New acquisitions vs churned clients"
+                  headerControls={
+                    <>
+                      <div className="flex items-center gap-6 bg-stone-50 rounded-xl px-5 py-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-5 h-5 rounded-md bg-gradient-to-b from-emerald-400 to-emerald-500 shadow-sm"></div>
+                          <span className="text-stone-700 text-base font-semibold">New Clients</span>
+                        </div>
+                        <div className="w-px h-6 bg-stone-200" />
+                        <div className="flex items-center gap-3">
+                          <div className="w-5 h-5 rounded-md bg-gradient-to-b from-rose-400 to-rose-500 shadow-sm"></div>
+                          <span className="text-stone-700 text-base font-semibold">Churned</span>
+                        </div>
+                      </div>
+                    </>
+                  }
+                  insights={[
+                    { value: '+70', label: 'Total New', bgColor: 'bg-emerald-50', textColor: 'text-emerald-600' },
+                    { value: '-33', label: 'Total Churned', bgColor: 'bg-rose-50', textColor: 'text-rose-600' },
+                    { value: '+37', label: 'Net Growth', bgColor: 'bg-stone-100', textColor: 'text-stone-700' },
+                  ]}
+                  expandable
+                  onExpand={() => setExpandedChart('diverging')}
+                  minHeight="480px"
+                >
+                  <DivergingBarChart
+                    data={SAMPLE_CLIENT_MOVEMENT_DATA}
+                    positiveConfig={{
+                      label: 'New Clients',
+                      color: '#34d399',
+                      colorEnd: '#10b981',
+                    }}
+                    negativeConfig={{
+                      label: 'Churned',
+                      color: '#fb7185',
+                      colorEnd: '#f43f5e',
+                    }}
+                    height="340px"
+                  />
+                </ChartCard>
+              </div>
+
+              {/* Props Reference */}
+              <div className="rounded-xl p-5 bg-stone-100 mb-6">
+                <h4 className="font-semibold text-stone-900 mb-3">Props Reference</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <code className="text-violet-600">data</code>
+                    <span className="text-stone-500 ml-2">DivergingBarDataPoint[] - {'{label, positive, negative}'}</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">positiveConfig</code>
+                    <span className="text-stone-500 ml-2">{'{label, color, colorEnd}'} - Above zero</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">negativeConfig</code>
+                    <span className="text-stone-500 ml-2">{'{label, color, colorEnd}'} - Below zero</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">showLabels</code>
+                    <span className="text-stone-500 ml-2">boolean - Show +X/-X labels (default: true)</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">formatPositiveLabel</code>
+                    <span className="text-stone-500 ml-2">(v) =&gt; string - Format +X label</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">formatNegativeLabel</code>
+                    <span className="text-stone-500 ml-2">(v) =&gt; string - Format -X label</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Code Example */}
+              <div className="rounded-xl p-5 bg-stone-100">
+                <h4 className="font-semibold text-stone-900 mb-3">Usage Example</h4>
+                <pre className="text-sm text-stone-700 overflow-x-auto">
+{`<DivergingBarChart
+  data={[
+    { label: 'Jan', positive: 12, negative: 5 },
+    { label: 'Feb', positive: 8, negative: 3 },
+    { label: 'Mar', positive: 15, negative: 7 },
+  ]}
+  positiveConfig={{
+    label: 'New Clients',
+    color: '#34d399',      // emerald-400
+    colorEnd: '#10b981',   // emerald-500
+  }}
+  negativeConfig={{
+    label: 'Churned',
+    color: '#fb7185',      // rose-400
+    colorEnd: '#f43f5e',   // rose-500
+  }}
+  height="340px"
+/>`}
+                </pre>
+              </div>
             </Section>
 
             {/* Recharts Styling Reference */}
