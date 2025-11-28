@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { MetricChart } from './MetricChart';
 import { ResponsiveContainer, LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, LabelList, Legend, CartesianGrid, ReferenceLine, ComposedChart } from 'recharts';
-import { Info, X, ArrowRight, Calendar, ChevronLeft, ChevronRight, Maximize2, Minimize2 } from 'lucide-react';
+import { Info, X, ArrowRight, Calendar, ChevronLeft, ChevronRight, Maximize2, Minimize2, Users } from 'lucide-react';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { ToggleButton, GoalIndicator, ActionButton } from './design-system';
 
 type TabType = 'financial' | 'sessions' | 'capacity-client' | 'retention' | 'insurance' | 'admin' | 'team-comparison';
 
@@ -2005,7 +2006,7 @@ export const PracticeAnalysis: React.FC = () => {
 
             {/* Session Volume & Attendance Breakdown - Side by Side */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-5 xl:gap-6">
-              {/* Session Volume - Single Bar Chart */}
+              {/* Session Volume - Single Bar Chart (Using Design System Controls) */}
               <div
                 className="rounded-xl sm:rounded-2xl p-4 sm:p-6 xl:p-8 relative overflow-hidden flex flex-col h-[380px] sm:h-[450px] lg:h-[520px] xl:h-[600px]"
                 style={{
@@ -2040,68 +2041,29 @@ export const PracticeAnalysis: React.FC = () => {
                         </div>
                       </div>
                     )}
-                    {/* Toggle Button */}
-                    {!hoveredSessionsClinicianBar && (
-                      <button
-                        onClick={() => setShowSessionsClinicianBreakdown(!showSessionsClinicianBreakdown)}
-                        className="relative flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300"
-                        style={{
-                          background: showSessionsClinicianBreakdown
-                            ? 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)'
-                            : 'linear-gradient(135deg, #f5f5f4 0%, #e7e5e4 100%)',
-                          boxShadow: showSessionsClinicianBreakdown
-                            ? '0 4px 12px -2px rgba(30, 27, 75, 0.4), inset 0 1px 0 rgba(255,255,255,0.1)'
-                            : '0 2px 8px -2px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.8)'
-                        }}
-                      >
-                        <svg
-                          className={`w-4 h-4 transition-colors duration-300 ${showSessionsClinicianBreakdown ? 'text-indigo-300' : 'text-stone-500'}`}
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
-                        <span className={`text-sm font-semibold transition-colors duration-300 ${showSessionsClinicianBreakdown ? 'text-white' : 'text-stone-600'}`}>
-                          By Clinician
-                        </span>
-                        <div
-                          className={`w-2 h-2 rounded-full transition-all duration-300 ${showSessionsClinicianBreakdown ? 'bg-emerald-400 shadow-lg shadow-emerald-400/50' : 'bg-stone-400'}`}
-                        />
-                      </button>
-                    )}
-                    {/* Goal indicator */}
-                    {!showSessionsClinicianBreakdown && !hoveredSessionsClinicianBar && (
-                      <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-300/50">
-                        <div className="w-4 h-0.5 bg-amber-500" style={{ borderTop: '2px dashed #f59e0b' }} />
-                        <span className="text-amber-700 text-sm font-semibold">700 Goal</span>
-                      </div>
-                    )}
-                    {/* Sessions Report Button */}
-                    <button
-                      className="group relative px-6 py-2.5 rounded-full text-sm font-bold tracking-wide transition-all duration-300 ease-out transform hover:scale-[1.03] active:scale-[0.98]"
-                      style={{
-                        background: 'linear-gradient(135deg, #1c1917 0%, #292524 50%, #1c1917 100%)',
-                        boxShadow: '0 8px 20px -6px rgba(28, 25, 23, 0.4), 0 4px 8px -4px rgba(28, 25, 23, 0.2), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)',
-                        color: '#fafaf9',
-                        letterSpacing: '0.02em'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.boxShadow = '0 12px 24px -6px rgba(28, 25, 23, 0.5), 0 6px 12px -4px rgba(28, 25, 23, 0.3), inset 0 1px 0 0 rgba(255, 255, 255, 0.15)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.boxShadow = '0 8px 20px -6px rgba(28, 25, 23, 0.4), 0 4px 8px -4px rgba(28, 25, 23, 0.2), inset 0 1px 0 0 rgba(255, 255, 255, 0.1)';
-                      }}
-                    >
-                      <span className="relative z-10 flex items-center gap-2">
-                        Sessions Report
-                        <ArrowRight
-                          size={16}
-                          className="transition-transform duration-300 group-hover:translate-x-1"
-                          strokeWidth={2.5}
-                        />
-                      </span>
-                    </button>
+
+                    {/* Design System: ToggleButton */}
+                    <ToggleButton
+                      label="By Clinician"
+                      active={showSessionsClinicianBreakdown}
+                      onToggle={() => setShowSessionsClinicianBreakdown(!showSessionsClinicianBreakdown)}
+                      icon={<Users size={16} />}
+                      hidden={!!hoveredSessionsClinicianBar}
+                    />
+
+                    {/* Design System: GoalIndicator */}
+                    <GoalIndicator
+                      value={700}
+                      label="Goal"
+                      color="amber"
+                      hidden={showSessionsClinicianBreakdown || !!hoveredSessionsClinicianBar}
+                    />
+
+                    {/* Design System: ActionButton */}
+                    <ActionButton
+                      label="Sessions Report"
+                      icon={<ArrowRight size={16} strokeWidth={2.5} />}
+                    />
 
                     {/* Expand Button */}
                     <button
@@ -2292,8 +2254,8 @@ export const PracticeAnalysis: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Insights Row */}
-                <div className="flex items-center justify-between pt-5 border-t border-stone-200/60 flex-shrink-0 mt-4">
+                {/* Insights Row - Design System Style */}
+                <div className="pt-4 mt-2 border-t-2 border-stone-100 flex-shrink-0">
                   {showSessionsClinicianBreakdown ? (
                     <div className="flex items-center gap-5 w-full flex-wrap">
                       {[
@@ -2325,26 +2287,39 @@ export const PracticeAnalysis: React.FC = () => {
                       const momChange = prevMonth > 0 ? ((lastMonth - prevMonth) / prevMonth * 100) : 0;
 
                       return (
-                        <div className="flex items-center gap-8 w-full">
-                          <div className="flex items-center gap-2">
-                            <span className="text-stone-500 text-base">Best Month:</span>
-                            <span className="text-emerald-600 font-bold text-base">
-                              {bestMonth} ({maxCompleted})
-                            </span>
+                        <div className="grid grid-cols-3 gap-4">
+                          <div className="bg-emerald-50 rounded-xl p-4 text-center">
+                            <div
+                              className="text-emerald-600 text-2xl sm:text-3xl font-bold"
+                              style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                            >
+                              {bestMonth}
+                            </div>
+                            <div className="text-stone-600 text-sm sm:text-base font-medium mt-1">
+                              Best ({maxCompleted})
+                            </div>
                           </div>
-                          <div className="w-px h-5 bg-stone-200" />
-                          <div className="flex items-center gap-2">
-                            <span className="text-stone-500 text-base">MoM Trend:</span>
-                            <span className={`font-bold text-base ${momChange >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                          <div className={`${momChange >= 0 ? 'bg-emerald-50' : 'bg-rose-50'} rounded-xl p-4 text-center`}>
+                            <div
+                              className={`${momChange >= 0 ? 'text-emerald-600' : 'text-rose-600'} text-2xl sm:text-3xl font-bold`}
+                              style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                            >
                               {momChange >= 0 ? '+' : ''}{momChange.toFixed(1)}%
-                            </span>
+                            </div>
+                            <div className="text-stone-600 text-sm sm:text-base font-medium mt-1">
+                              MoM Trend
+                            </div>
                           </div>
-                          <div className="w-px h-5 bg-stone-200" />
-                          <div className="flex items-center gap-2">
-                            <span className="text-stone-500 text-base">Range:</span>
-                            <span className="text-stone-700 font-bold text-base">
-                              {minCompleted} – {maxCompleted}
-                            </span>
+                          <div className="bg-stone-100 rounded-xl p-4 text-center">
+                            <div
+                              className="text-stone-800 text-2xl sm:text-3xl font-bold"
+                              style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                            >
+                              {minCompleted}–{maxCompleted}
+                            </div>
+                            <div className="text-stone-600 text-sm sm:text-base font-medium mt-1">
+                              Range
+                            </div>
                           </div>
                         </div>
                       );

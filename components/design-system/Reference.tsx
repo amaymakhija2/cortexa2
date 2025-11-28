@@ -515,6 +515,99 @@ export const Reference: React.FC = () => {
               </Grid>
             </Section>
 
+            {/* ChartCard with Controls */}
+            <Section>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                ChartCard with Controls
+              </h2>
+              <p className="text-stone-500 mb-6">Interactive chart card with toggle, goal indicator, and action button. Click "By Clinician" to see breakdown view.</p>
+
+              <ChartCard
+                title="Completed Sessions"
+                subtitle="Monthly performance with breakdown toggle"
+                headerControls={
+                  <>
+                    <ToggleButton
+                      label="By Clinician"
+                      active={toggleDemo}
+                      onToggle={() => setToggleDemo(!toggleDemo)}
+                      icon={<Users size={16} />}
+                    />
+                    <GoalIndicator
+                      value={700}
+                      label="Goal"
+                      color="amber"
+                      hidden={toggleDemo}
+                    />
+                    <ActionButton
+                      label="Sessions Report"
+                      icon={<ArrowRight size={16} />}
+                    />
+                  </>
+                }
+                expandable
+                onExpand={() => setExpandedChart('sessions')}
+                insights={
+                  toggleDemo
+                    ? [
+                        { value: 'Chen', label: 'Top (157)', bgColor: 'bg-violet-50', textColor: 'text-violet-600' },
+                        { value: '698', label: 'Team Total', bgColor: 'bg-indigo-50', textColor: 'text-indigo-600' },
+                        { value: '5', label: 'Clinicians', bgColor: 'bg-stone-100', textColor: 'text-stone-700' }
+                      ]
+                    : [
+                        { value: 'Oct', label: 'Best (712)', bgColor: 'bg-emerald-50', textColor: 'text-emerald-600' },
+                        { value: '+2.2%', label: 'MoM Trend', bgColor: 'bg-emerald-50', textColor: 'text-emerald-600' },
+                        { value: '628–712', label: 'Range', bgColor: 'bg-stone-100', textColor: 'text-stone-700' }
+                      ]
+                }
+                minHeight="480px"
+              >
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={SAMPLE_BAR_DATA} margin={{ top: 20, right: 20, bottom: 10, left: 20 }}>
+                    <defs>
+                      <linearGradient id="sessionsBarGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={toggleDemo ? '#a78bfa' : '#34d399'} stopOpacity={1}/>
+                        <stop offset="100%" stopColor={toggleDemo ? '#7c3aed' : '#059669'} stopOpacity={1}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="4 4" stroke="#e7e5e4" vertical={false} />
+                    <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#57534e', fontSize: 14 }} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#78716c', fontSize: 12 }} domain={[0, 800]} />
+                    {!toggleDemo && (
+                      <ReferenceLine y={700} stroke="#f59e0b" strokeDasharray="8 4" strokeWidth={2} />
+                    )}
+                    <Bar dataKey="value" fill="url(#sessionsBarGradient)" radius={[8, 8, 0, 0]} maxBarSize={50} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </ChartCard>
+
+              <div className="mt-6 rounded-xl p-5 bg-stone-100">
+                <h4 className="font-semibold text-stone-900 mb-3">Usage Pattern</h4>
+                <pre className="text-sm text-stone-700 overflow-x-auto">
+{`<ChartCard
+  title="Completed Sessions"
+  subtitle="Monthly performance"
+  headerControls={
+    <>
+      <ToggleButton
+        label="By Clinician"
+        active={showBreakdown}
+        onToggle={() => setShowBreakdown(!showBreakdown)}
+        icon={<Users size={16} />}
+      />
+      <GoalIndicator value={700} label="Goal" hidden={showBreakdown} />
+      <ActionButton label="Sessions Report" icon={<ArrowRight size={16} />} />
+    </>
+  }
+  insights={showBreakdown ? clinicianInsights : totalInsights}
+  expandable
+>
+  <YourChart data={showBreakdown ? clinicianData : totalData} />
+</ChartCard>`}
+                </pre>
+              </div>
+            </Section>
+
             {/* CompactCard */}
             <Section>
               <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
