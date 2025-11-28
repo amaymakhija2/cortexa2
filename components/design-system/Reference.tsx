@@ -81,6 +81,21 @@ const SAMPLE_LINE_DATA = [
   { month: 'Jun', percentage: 89.2 },
 ];
 
+const SAMPLE_SESSIONS_DATA = [
+  { month: 'Jan', value: 628 },
+  { month: 'Feb', value: 641 },
+  { month: 'Mar', value: 635 },
+  { month: 'Apr', value: 658 },
+  { month: 'May', value: 651 },
+  { month: 'Jun', value: 672 },
+  { month: 'Jul', value: 665 },
+  { month: 'Aug', value: 689 },
+  { month: 'Sep', value: 645 },
+  { month: 'Oct', value: 712 },
+  { month: 'Nov', value: 683 },
+  { month: 'Dec', value: 698 },
+];
+
 export const Reference: React.FC = () => {
   const [activeSection, setActiveSection] = useState('overview');
   const [expandedChart, setExpandedChart] = useState<string | null>(null);
@@ -563,7 +578,7 @@ export const Reference: React.FC = () => {
                 minHeight="480px"
               >
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={SAMPLE_BAR_DATA} margin={{ top: 20, right: 20, bottom: 10, left: 20 }}>
+                  <BarChart data={SAMPLE_SESSIONS_DATA} margin={{ top: 20, right: 20, bottom: 10, left: 20 }}>
                     <defs>
                       <linearGradient id="sessionsBarGradient" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stopColor={toggleDemo ? '#a78bfa' : '#34d399'} stopOpacity={1}/>
