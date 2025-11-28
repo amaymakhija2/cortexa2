@@ -94,6 +94,30 @@ export interface ClientGrowthDataPoint {
   withNextAppt: number;
 }
 
+export interface GenderData {
+  male: number;
+  female: number;
+  other: number;
+  total: number;
+}
+
+export interface SessionFrequencyData {
+  weekly: number;
+  biweekly: number;
+  monthly: number;
+  total: number;
+}
+
+export interface OpenSlotsDataPoint {
+  month: string;
+  value: number;
+}
+
+export interface HoursUtilizationDataPoint {
+  month: string;
+  percentage: number;
+}
+
 // =============================================================================
 // COMMON PROPS FOR ALL ANALYSIS TABS
 // =============================================================================
@@ -125,4 +149,16 @@ export interface FinancialAnalysisTabProps extends BaseAnalysisTabProps {
 export interface SessionsAnalysisTabProps extends BaseAnalysisTabProps {
   sessionsData: SessionsDataPoint[];
   clinicianSessionsData: ClinicianSessionsDataPoint[];
+}
+
+// =============================================================================
+// CAPACITY & CLIENT TAB PROPS
+// =============================================================================
+
+export interface CapacityClientTabProps extends BaseAnalysisTabProps {
+  clientGrowthData: ClientGrowthDataPoint[];
+  genderData: GenderData;
+  sessionFrequencyData: SessionFrequencyData;
+  openSlotsData: OpenSlotsDataPoint[];
+  hoursUtilizationData: HoursUtilizationDataPoint[];
 }

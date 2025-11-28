@@ -19,7 +19,7 @@ const ACCENT_COLORS: Record<AccentColor, { glow: string; glowSecondary: string; 
   blue: { glow: '#3b82f6', glowSecondary: '#60a5fa', labelClass: 'text-blue-500/80' },
 };
 
-export type TimePeriod = 'last-12-months' | 'this-year' | 'this-quarter' | 'last-quarter' | 'this-month' | 'last-month' | 'custom';
+export type TimePeriod = 'last-12-months' | 'this-year' | 'this-quarter' | 'last-quarter' | 'this-month' | 'last-month' | '2024' | '2023' | 'custom';
 
 export interface Tab {
   id: string;

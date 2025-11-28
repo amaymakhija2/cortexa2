@@ -6,6 +6,7 @@
 
 export { FinancialAnalysisTab } from './FinancialAnalysisTab';
 export { SessionsAnalysisTab } from './SessionsAnalysisTab';
+export { CapacityClientTab } from './CapacityClientTab';
 
 // Export all types
 export type {
@@ -18,7 +19,12 @@ export type {
   SessionsDataPoint,
   ClinicianSessionsDataPoint,
   ClientGrowthDataPoint,
+  GenderData,
+  SessionFrequencyData,
+  OpenSlotsDataPoint,
+  HoursUtilizationDataPoint,
   BaseAnalysisTabProps,
   FinancialAnalysisTabProps,
   SessionsAnalysisTabProps,
+  CapacityClientTabProps,
 } from './types';

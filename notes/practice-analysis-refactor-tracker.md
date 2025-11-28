@@ -15,7 +15,7 @@ This document tracks the refactoring of all Practice Analysis tabs to use the de
 |-----|--------|----------------|-------------------|
 | Financial | 🟢 Complete | `FinancialAnalysisTab.tsx` | 611-1672 |
 | Sessions | 🟢 Complete | `SessionsAnalysisTab.tsx` | 1673-3074 |
-| Capacity & Client | 🔴 Not Started | `CapacityClientTab.tsx` | 3075-4710 |
+| Capacity & Client | 🟢 Complete | `CapacityClientTab.tsx` | 3075-4710 |
 | Retention | 🔴 Not Started | `RetentionTab.tsx` | 4711-5195 |
 | Insurance | 🔴 Not Started | `InsuranceTab.tsx` | 5196-5377 |
 | Admin | 🔴 Not Started | `AdminTab.tsx` | 5378-5586 |
@@ -817,14 +817,260 @@ const buildTableRows = () => {
 
 ---
 
-# TAB 3: CAPACITY & CLIENT 🔴 NOT STARTED
+# TAB 3: CAPACITY & CLIENT ✅ COMPLETE
 
 ## Tab Info
 - **Accent Color:** `amber`
-- **Original Lines:** 3075-4710
+- **Original Lines:** 3075-4710 (~1634 lines removed from PracticeAnalysis.tsx)
 - **Component File:** `CapacityClientTab.tsx`
+- **Lines of Code:** ~725 lines
 
-(Follow same pattern as Sessions tab)
+## Final Component Structure
+
+```
+CapacityClientTab.tsx
+├── PageHeader (amber accent)
+├── PageContent
+│   ├── Section: Hero Stats Row
+│   │   └── Grid cols={4}
+│   │       ├── StatCard: Active Clients (of capacity)
+│   │       ├── StatCard: Net Growth (+new -churned)
+│   │       ├── StatCard: Client Utilization %
+│   │       └── StatCard: Session Utilization %
+│   │
+│   ├── Section: Main Charts Row
+│   │   └── Grid cols={2}
+│   │       ├── ChartCard: Client Utilization (ComposedChart)
+│   │       │   ├── headerControls: ActionButton
+│   │       │   ├── Bar (Active Clients) + Line (Utilization %)
+│   │       │   └── expandable
+│   │       │
+│   │       └── ChartCard: Client Movement (DivergingBarChart)
+│   │           ├── headerControls: ActionButton
+│   │           ├── Positive bars (New) + Negative bars (Churned)
+│   │           └── expandable
+│   │
+│   ├── Section: Client Demographics Row
+│   │   └── Grid cols={2}
+│   │       ├── StackedBarCard: Client Gender (Male, Female, Other)
+│   │       └── StackedBarCard: Client Session Frequency (Weekly, Bi-weekly, Monthly)
+│   │
+│   └── Section: Trend Charts Row
+│       └── Grid cols={2}
+│           ├── SimpleChartCard: Session Utilization Trend
+│           │   └── LineChart (percentage 70-100% domain)
+│           │
+│           └── SimpleChartCard: Open Slots Trend
+│               └── LineChart (with area fill)
+│
+└── Expanded Modals
+    ├── ExpandedChartModal: Client Utilization
+    ├── ExpandedChartModal: Client Movement
+    ├── ExpandedChartModal: Session Utilization
+    └── ExpandedChartModal: Open Slots
+```
+
+## Key Implementation Details
+
+### 1. Imports Pattern
+```tsx
+import React, { useState, useMemo } from 'react';
+import { ArrowRight } from 'lucide-react';
+import {
+  ResponsiveContainer,
+  ComposedChart,
+  Bar,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  LabelList,
+} from 'recharts';
+import {
+  PageHeader,
+  PageContent,
+  Grid,
+  Section,
+  StatCard,
+  ChartCard,
+  SimpleChartCard,
+  StackedBarCard,
+  ActionButton,
+  DivergingBarChart,
+  LineChart,
+  ExpandedChartModal,
+} from '../design-system';
+import type { CapacityClientTabProps } from './types';
+```
+
+### 2. Props Interface (in types.ts)
+```tsx
+export interface ClientGrowthDataPoint {
+  month: string;
+  activeClients: number;
+  capacity: number;
+  retained: number;
+  new: number;
+  churned: number;
+  withNextAppt: number;
+}
+
+export interface GenderData {
+  male: number;
+  female: number;
+  other: number;
+  total: number;
+}
+
+export interface SessionFrequencyData {
+  weekly: number;
+  biweekly: number;
+  monthly: number;
+  total: number;
+}
+
+export interface OpenSlotsDataPoint {
+  month: string;
+  value: number;
+}
+
+export interface HoursUtilizationDataPoint {
+  month: string;
+  percentage: number;
+}
+
+export interface CapacityClientTabProps extends BaseAnalysisTabProps {
+  clientGrowthData: ClientGrowthDataPoint[];
+  genderData: GenderData;
+  sessionFrequencyData: SessionFrequencyData;
+  openSlotsData: OpenSlotsDataPoint[];
+  hoursUtilizationData: HoursUtilizationDataPoint[];
+}
+```
+
+### 3. DivergingBarChart Pattern (Client Movement)
+```tsx
+import { DivergingBarChart } from '../design-system';
+
+<ChartCard
+  title="Client Movement"
+  subtitle="New vs churned clients"
+  headerControls={<ActionButton label="Client Report" icon={<ArrowRight size={16} />} />}
+  expandable
+  onExpand={() => setExpandedCard('client-movement')}
+>
+  <DivergingBarChart
+    data={clientMovementData}  // { label: string, positive: number, negative: number }[]
+    positiveConfig={{
+      label: 'New Clients',
+      color: '#34d399',
+      colorEnd: '#10b981',
+    }}
+    negativeConfig={{
+      label: 'Churned',
+      color: '#fb7185',
+      colorEnd: '#f43f5e',
+    }}
+    height={380}
+  />
+</ChartCard>
+```
+
+### 4. StackedBarCard Pattern (Demographics)
+```tsx
+<StackedBarCard
+  title="Client Gender"
+  segments={[
+    { label: 'Male', value: genderData.male, color: 'bg-blue-500' },
+    { label: 'Female', value: genderData.female, color: 'bg-pink-500' },
+    { label: 'Other', value: genderData.other, color: 'bg-violet-500' },
+  ]}
+/>
+
+<StackedBarCard
+  title="Client Session Frequency"
+  segments={[
+    { label: 'Weekly', value: sessionFrequencyData.weekly, color: 'bg-emerald-500' },
+    { label: 'Bi-weekly', value: sessionFrequencyData.biweekly, color: 'bg-amber-500' },
+    { label: 'Monthly', value: sessionFrequencyData.monthly, color: 'bg-stone-400' },
+  ]}
+/>
+```
+
+> **Important:** StackedBarCard uses Tailwind class names (e.g., `bg-blue-500`), NOT hex colors!
+
+### 5. ComposedChart Pattern (Client Utilization)
+Uses raw Recharts ComposedChart inside ChartCard for combined Bar + Line visualization:
+```tsx
+<ChartCard title="Client Utilization" ...>
+  <ResponsiveContainer width="100%" height={380}>
+    <ComposedChart data={chartData}>
+      <Bar dataKey="activeClients" fill="url(#clientsGradient)" radius={[8, 8, 0, 0]} />
+      <Line dataKey="utilization" stroke="#f59e0b" strokeWidth={4} dot={{ r: 6 }} />
+    </ComposedChart>
+  </ResponsiveContainer>
+</ChartCard>
+```
+
+### 6. LineChart with Area Fill Pattern
+```tsx
+<SimpleChartCard
+  title="Open Slots"
+  subtitle="Unfilled slots per month"
+  expandable
+  onExpand={() => setExpandedCard('open-slots')}
+>
+  <LineChart
+    data={openSlotsChartData}
+    xAxisKey="month"
+    lines={[{ dataKey: 'value', color: '#f43f5e', activeColor: '#e11d48' }]}
+    tooltipFormatter={(value: number) => [String(value), 'Open Slots']}
+    showAreaFill
+  />
+</SimpleChartCard>
+```
+
+## Color Reference (Capacity & Client Tab)
+
+| Element | Color Code |
+|---------|------------|
+| Active Clients Bar | `#60a5fa` → `#3b82f6` (blue gradient) |
+| Utilization Line | `#f59e0b` (amber) |
+| New Clients | `#34d399` → `#10b981` (emerald gradient) |
+| Churned Clients | `#fb7185` → `#f43f5e` (rose gradient) |
+| Male | `bg-blue-500` |
+| Female | `bg-pink-500` |
+| Other | `bg-violet-500` |
+| Weekly | `bg-emerald-500` |
+| Bi-weekly | `bg-amber-500` |
+| Monthly | `bg-stone-400` |
+| Session Utilization | `#10b981` (emerald) |
+| Open Slots | `#f43f5e` (rose) |
+
+## Bug Fixes & Lessons Learned
+
+### 1. StackedBarCard Color Format
+**Problem:** Used hex colors like `#3b82f6` for StackedBarCard segments
+**Solution:** StackedBarCard expects Tailwind class names (`bg-blue-500`), not hex values
+
+### 2. LineChart yDomain with 'auto'
+**Problem:** Used `yDomain={[0, 'auto']}` but LineChart expects `[number, number]`
+**Solution:** Remove yDomain when auto-scaling is desired, or provide numeric bounds
+
+### 3. tooltipFormatter Return Type
+**Problem:** `tooltipFormatter` returned `[number, string]` but should return `[string, string]`
+**Solution:** Convert value to string: `(value: number) => [String(value), 'Label']`
+
+## Implementation Checklist ✅
+
+- [x] Phase 1: Analyze tab structure in PracticeAnalysis.tsx
+- [x] Phase 2: Add types to types.ts
+- [x] Phase 3: Create CapacityClientTab.tsx component
+- [x] Phase 4: Integrate in PracticeAnalysis.tsx
+- [x] Phase 5: Remove old code (~1634 lines)
+- [x] Phase 6: Fix TypeScript errors
+- [x] Phase 7: Update tracker
 
 ---
 
