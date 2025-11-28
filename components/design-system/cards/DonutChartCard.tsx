@@ -264,7 +264,7 @@ export const DonutChartCard: React.FC<DonutChartCardProps> = ({
         </div>
 
         {/* Legend */}
-        <div className="flex flex-col gap-3 lg:gap-4 flex-1 max-w-[320px]">
+        <div className="flex flex-col gap-4 lg:gap-5 flex-1 max-w-[360px]">
           {segmentPaths.map((segment) => {
             const isHovered = hoveredSegment === segment.label;
             const percentDisplay = (segment.percent * 100).toFixed(1);
@@ -272,42 +272,71 @@ export const DonutChartCard: React.FC<DonutChartCardProps> = ({
             return (
               <div
                 key={segment.label}
-                className={`flex items-center gap-4 py-3 px-4 rounded-xl transition-all duration-200 cursor-pointer ${
-                  isHovered ? 'bg-stone-100 scale-[1.02]' : 'hover:bg-stone-50'
+                className={`relative rounded-2xl transition-all duration-300 cursor-pointer overflow-hidden ${
+                  isHovered ? 'scale-[1.02]' : 'hover:scale-[1.01]'
                 }`}
+                style={{
+                  background: isHovered
+                    ? `linear-gradient(135deg, ${segment.color}12 0%, ${segment.color}08 100%)`
+                    : 'linear-gradient(135deg, #fafaf9 0%, #f5f5f4 100%)',
+                  boxShadow: isHovered
+                    ? `0 8px 24px -4px ${segment.color}25, 0 0 0 1px ${segment.color}20`
+                    : '0 2px 8px -2px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(0, 0, 0, 0.03)',
+                }}
                 onMouseEnter={() => handleSegmentHover(segment, segment.percent * 100)}
                 onMouseLeave={() => handleSegmentHover(null, 0)}
               >
-                {/* Color indicator with glow */}
+                {/* Percentage bar background */}
                 <div
-                  className="w-5 h-5 lg:w-6 lg:h-6 rounded-full flex-shrink-0 transition-all duration-300"
+                  className="absolute inset-y-0 left-0 transition-all duration-500 ease-out"
                   style={{
-                    backgroundColor: segment.color,
-                    boxShadow: isHovered
-                      ? `0 0 20px ${segment.color}60, 0 0 8px ${segment.color}40`
-                      : `0 0 12px ${segment.color}30`,
+                    width: `${segment.percent * 100}%`,
+                    background: `linear-gradient(90deg, ${segment.color}18 0%, ${segment.color}08 100%)`,
                   }}
                 />
 
-                {/* Label and stats */}
-                <div className="flex-1 flex items-center justify-between gap-3 min-w-0">
+                <div className="relative flex items-center gap-4 py-4 px-5">
+                  {/* Color indicator with glow */}
+                  <div
+                    className="w-4 h-4 lg:w-5 lg:h-5 rounded-full flex-shrink-0 transition-all duration-300"
+                    style={{
+                      backgroundColor: segment.color,
+                      boxShadow: isHovered
+                        ? `0 0 20px ${segment.color}60, 0 0 8px ${segment.color}40`
+                        : `0 0 12px ${segment.color}30`,
+                    }}
+                  />
+
+                  {/* Label */}
                   <span
-                    className="text-stone-700 font-semibold text-sm lg:text-base xl:text-lg truncate"
+                    className="flex-1 text-stone-700 font-semibold text-sm lg:text-base truncate"
                     style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                   >
                     {segment.label}
                   </span>
 
-                  <div className="flex items-baseline gap-2 flex-shrink-0">
+                  {/* Value and Percentage - stacked for prominence */}
+                  <div className="flex items-center gap-3 flex-shrink-0">
                     <span
-                      className="text-stone-900 font-bold text-lg lg:text-xl xl:text-2xl tabular-nums"
+                      className="text-stone-900 font-bold text-base lg:text-lg xl:text-xl tabular-nums"
                       style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                     >
                       {formatValue(segment.value, valueFormat, currencySymbol)}
                     </span>
-                    <span className="text-stone-400 font-semibold text-xs lg:text-sm tabular-nums">
+
+                    {/* Prominent percentage pill */}
+                    <div
+                      className="px-3 py-1.5 rounded-lg font-bold text-sm lg:text-base tabular-nums transition-all duration-300"
+                      style={{
+                        backgroundColor: isHovered ? segment.color : `${segment.color}15`,
+                        color: isHovered ? '#fff' : segment.color,
+                        boxShadow: isHovered
+                          ? `0 4px 12px ${segment.color}40`
+                          : 'none',
+                      }}
+                    >
                       {percentDisplay}%
-                    </span>
+                    </div>
                   </div>
                 </div>
               </div>

@@ -39,6 +39,9 @@ export interface TableRow {
   highlightColor?: string;
 }
 
+/** Size variant for different contexts */
+export type DataTableSize = 'default' | 'lg';
+
 export interface DataTableCardProps {
   /** Card title */
   title: string;
@@ -48,6 +51,11 @@ export interface DataTableCardProps {
   columns: TableColumn[];
   /** Table rows */
   rows: TableRow[];
+  /**
+   * Size variant - 'default' for cards, 'lg' for expanded/fullscreen views
+   * Controls font sizes, padding, and spacing
+   */
+  size?: DataTableSize;
   /** Show expand button */
   expandable?: boolean;
   /** Expand callback */
@@ -57,6 +65,44 @@ export interface DataTableCardProps {
   /** Additional className */
   className?: string;
 }
+
+// Size-based styling configurations
+const SIZE_CONFIG = {
+  default: {
+    // Container
+    containerPadding: 'p-5 sm:p-6 xl:p-8',
+    headerMargin: 'mb-6 xl:mb-8',
+    // Header text
+    titleClass: 'text-2xl sm:text-3xl xl:text-4xl',
+    subtitleClass: 'text-base sm:text-lg',
+    // Table header
+    thClass: 'py-4 px-3 text-xs',
+    // Table cells
+    tdPadding: 'py-4 px-3',
+    cellTextClass: 'text-sm',
+    labelTextClass: 'text-sm',
+    // Indicator
+    indicatorSize: 'w-2.5 h-2.5',
+    indicatorGap: 'gap-2.5',
+  },
+  lg: {
+    // Container - more padding for expanded view
+    containerPadding: 'p-0', // No padding when inside ExpandedChartModal (it provides its own)
+    headerMargin: 'mb-8',
+    // Header text - larger for expanded view
+    titleClass: 'text-3xl sm:text-4xl xl:text-5xl',
+    subtitleClass: 'text-lg sm:text-xl',
+    // Table header - larger
+    thClass: 'py-5 px-4 text-sm',
+    // Table cells - larger text and more padding
+    tdPadding: 'py-5 px-4',
+    cellTextClass: 'text-base sm:text-lg',
+    labelTextClass: 'text-base sm:text-lg',
+    // Indicator - larger
+    indicatorSize: 'w-3.5 h-3.5',
+    indicatorGap: 'gap-3',
+  },
+} as const;
 
 /**
  * DataTableCard - Premium data table with responsive design
@@ -101,13 +147,14 @@ export const DataTableCard: React.FC<DataTableCardProps> = ({
   subtitle,
   columns,
   rows,
+  size = 'default',
   expandable = false,
   onExpand,
   forceMobileView = false,
   className = '',
 }) => {
-  // Responsive hook would go here in real implementation
-  // For now, using CSS breakpoints and optional force flag
+  // Get size configuration
+  const sizeConfig = SIZE_CONFIG[size];
 
   const getAlignClass = (align?: 'left' | 'right' | 'center') => {
     switch (align) {
@@ -127,38 +174,45 @@ export const DataTableCard: React.FC<DataTableCardProps> = ({
     }
   };
 
-  return (
-    <div
-      className={`rounded-2xl xl:rounded-3xl p-5 sm:p-6 xl:p-8 overflow-hidden ${className}`}
-      style={{
+  // For lg size inside ExpandedChartModal, use minimal container styling
+  const containerStyle = size === 'lg'
+    ? {}
+    : {
         background: 'linear-gradient(145deg, #ffffff 0%, #fafaf9 100%)',
         boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)',
-      }}
+      };
+
+  return (
+    <div
+      className={`${size === 'lg' ? '' : 'rounded-2xl xl:rounded-3xl'} ${sizeConfig.containerPadding} overflow-hidden ${className}`}
+      style={containerStyle}
     >
-      {/* Header */}
-      <div className="flex items-start justify-between mb-5 xl:mb-6">
-        <div>
-          <h3
-            className="text-stone-800 text-lg sm:text-xl xl:text-2xl font-semibold tracking-tight"
-            style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-          >
-            {title}
-          </h3>
-          {subtitle && (
-            <p className="text-stone-500 text-sm sm:text-base mt-1">{subtitle}</p>
+      {/* Header - only show if title exists */}
+      {title && (
+        <div className={`flex items-start justify-between ${sizeConfig.headerMargin}`}>
+          <div>
+            <h3
+              className={`text-stone-900 ${sizeConfig.titleClass} font-bold tracking-tight`}
+              style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+            >
+              {title}
+            </h3>
+            {subtitle && (
+              <p className={`text-stone-500 ${sizeConfig.subtitleClass} mt-2`}>{subtitle}</p>
+            )}
+          </div>
+
+          {expandable && (
+            <button
+              onClick={onExpand}
+              className="p-2.5 rounded-xl bg-stone-100/80 hover:bg-stone-200 text-stone-500 hover:text-stone-700 transition-all duration-200 hover:scale-105 active:scale-95"
+              title="Expand table"
+            >
+              <Maximize2 size={18} strokeWidth={2} />
+            </button>
           )}
         </div>
-
-        {expandable && (
-          <button
-            onClick={onExpand}
-            className="p-2 rounded-xl bg-stone-100/80 hover:bg-stone-200 text-stone-500 hover:text-stone-700 transition-all duration-200 hover:scale-105 active:scale-95"
-            title="Expand table"
-          >
-            <Maximize2 size={16} strokeWidth={2} />
-          </button>
-        )}
-      </div>
+      )}
 
       {/* Desktop Table View */}
       <div className={`${forceMobileView ? 'hidden' : 'hidden sm:block'}`}>
@@ -167,11 +221,11 @@ export const DataTableCard: React.FC<DataTableCardProps> = ({
             <thead>
               <tr className="border-b-2 border-stone-200/80">
                 {/* Empty header for label column */}
-                <th className="text-left py-4 px-3 text-xs font-bold text-stone-400 uppercase tracking-wider"></th>
+                <th className={`text-left ${sizeConfig.thClass} font-bold text-stone-400 uppercase tracking-wider`}></th>
                 {columns.map((col) => (
                   <th
                     key={col.key}
-                    className={`py-4 px-3 text-xs font-bold uppercase tracking-wider ${getAlignClass(col.align)} ${
+                    className={`${sizeConfig.thClass} font-bold uppercase tracking-wider ${getAlignClass(col.align)} ${
                       col.isTotals ? 'text-stone-900' : 'text-stone-400'
                     }`}
                   >
@@ -191,11 +245,11 @@ export const DataTableCard: React.FC<DataTableCardProps> = ({
                     className={`${!isLast ? 'border-b border-stone-100' : ''} ${rowBg} hover:bg-stone-50/80 transition-colors duration-150`}
                   >
                     {/* Row label with optional indicator */}
-                    <td className="py-4 px-3">
-                      <div className="flex items-center gap-2.5">
+                    <td className={sizeConfig.tdPadding}>
+                      <div className={`flex items-center ${sizeConfig.indicatorGap}`}>
                         {row.indicator && (
                           <div
-                            className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                            className={`${sizeConfig.indicatorSize} rounded-full flex-shrink-0`}
                             style={{
                               backgroundColor: row.indicator.color,
                               boxShadow: `0 0 8px ${row.indicator.color}40`,
@@ -203,7 +257,7 @@ export const DataTableCard: React.FC<DataTableCardProps> = ({
                           />
                         )}
                         <span
-                          className={`text-sm font-semibold ${
+                          className={`${sizeConfig.labelTextClass} font-semibold ${
                             row.isHighlighted && row.highlightColor
                               ? `text-${row.highlightColor}-700`
                               : 'text-stone-800'
@@ -219,7 +273,7 @@ export const DataTableCard: React.FC<DataTableCardProps> = ({
                     {columns.map((col) => (
                       <td
                         key={col.key}
-                        className={`py-4 px-3 text-sm tabular-nums ${getAlignClass(col.align)} ${
+                        className={`${sizeConfig.tdPadding} ${sizeConfig.cellTextClass} tabular-nums ${getAlignClass(col.align)} ${
                           col.isTotals
                             ? `font-bold ${row.valueColor || 'text-stone-900'}`
                             : `${row.isHighlighted ? 'font-bold' : 'font-medium'} ${row.valueColor || 'text-stone-600'}`

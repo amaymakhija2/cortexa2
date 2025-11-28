@@ -1,0 +1,741 @@
+import React, { useState, useMemo } from 'react';
+import { Users, ArrowRight } from 'lucide-react';
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import {
+  PageHeader,
+  PageContent,
+  Grid,
+  Section,
+  StatCard,
+  ChartCard,
+  SimpleChartCard,
+  DonutChartCard,
+  DataTableCard,
+  ToggleButton,
+  GoalIndicator,
+  ActionButton,
+  BarChart,
+  ExpandedChartModal,
+} from '../design-system';
+import type { HoverInfo } from '../design-system';
+import type { FinancialAnalysisTabProps } from './types';
+
+// =============================================================================
+// FINANCIAL ANALYSIS TAB
+// =============================================================================
+// Displays financial metrics including revenue performance, distribution,
+// and detailed breakdown. Uses design system components throughout.
+// =============================================================================
+
+// Clinician segment configuration for BarChart
+const CLINICIAN_SEGMENTS = [
+  { key: 'Chen', label: 'Chen', color: '#7c3aed', gradient: 'linear-gradient(180deg, #a78bfa 0%, #7c3aed 100%)' },
+  { key: 'Rodriguez', label: 'Rodriguez', color: '#0891b2', gradient: 'linear-gradient(180deg, #22d3ee 0%, #0891b2 100%)' },
+  { key: 'Patel', label: 'Patel', color: '#d97706', gradient: 'linear-gradient(180deg, #fbbf24 0%, #d97706 100%)' },
+  { key: 'Kim', label: 'Kim', color: '#db2777', gradient: 'linear-gradient(180deg, #f472b6 0%, #db2777 100%)' },
+  { key: 'Johnson', label: 'Johnson', color: '#059669', gradient: 'linear-gradient(180deg, #34d399 0%, #059669 100%)' },
+];
+
+// Order for stacking (bottom to top)
+const CLINICIAN_STACK_ORDER = ['Johnson', 'Kim', 'Patel', 'Rodriguez', 'Chen'];
+
+const CLINICIAN_NAMES = ['Chen', 'Rodriguez', 'Patel', 'Kim', 'Johnson'] as const;
+
+export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
+  timePeriod,
+  onTimePeriodChange,
+  timePeriods,
+  tabs,
+  activeTab,
+  onTabChange,
+  getDateRangeLabel,
+  revenueData,
+  revenueBreakdownData,
+  clinicianRevenueData,
+}) => {
+  // =========================================================================
+  // LOCAL STATE
+  // =========================================================================
+  const [showClinicianBreakdown, setShowClinicianBreakdown] = useState(false);
+  const [expandedCard, setExpandedCard] = useState<string | null>(null);
+  const [hoveredClinicianBar, setHoveredClinicianBar] = useState<HoverInfo | null>(null);
+
+  // =========================================================================
+  // COMPUTED VALUES
+  // =========================================================================
+
+  // Total gross revenue
+  const totalGrossRevenue = useMemo(
+    () => revenueData.reduce((sum, item) => sum + item.value, 0),
+    [revenueData]
+  );
+
+  // Total net revenue
+  const totalNetRevenue = useMemo(
+    () => revenueBreakdownData.reduce((sum, item) => sum + item.netRevenue, 0),
+    [revenueBreakdownData]
+  );
+
+  // Total costs breakdown
+  const totalClinicianCosts = useMemo(
+    () => revenueBreakdownData.reduce((sum, item) => sum + item.clinicianCosts, 0),
+    [revenueBreakdownData]
+  );
+
+  const totalSupervisorCosts = useMemo(
+    () => revenueBreakdownData.reduce((sum, item) => sum + item.supervisorCosts, 0),
+    [revenueBreakdownData]
+  );
+
+  const totalCCFees = useMemo(
+    () => revenueBreakdownData.reduce((sum, item) => sum + item.creditCardFees, 0),
+    [revenueBreakdownData]
+  );
+
+  // Average margin percentage
+  const avgMargin = useMemo(() => {
+    const totalGross = revenueBreakdownData.reduce((sum, item) => sum + item.grossRevenue, 0);
+    return totalGross > 0 ? (totalNetRevenue / totalGross) * 100 : 0;
+  }, [revenueBreakdownData, totalNetRevenue]);
+
+  // Months that hit the $150k goal
+  const monthsAtGoal = useMemo(
+    () => revenueData.filter((item) => item.value >= 150000).length,
+    [revenueData]
+  );
+
+  // Average monthly revenue
+  const avgMonthlyRevenue = useMemo(
+    () => (revenueData.length > 0 ? totalGrossRevenue / revenueData.length : 0),
+    [totalGrossRevenue, revenueData.length]
+  );
+
+  // Average weekly revenue
+  const avgWeeklyRevenue = useMemo(
+    () => avgMonthlyRevenue / 4.33,
+    [avgMonthlyRevenue]
+  );
+
+  // Best month
+  const bestMonth = useMemo(() => {
+    if (revenueData.length === 0) return { month: '-', value: 0 };
+    const max = revenueData.reduce((best, item) =>
+      item.value > best.value ? item : best
+    );
+    return max;
+  }, [revenueData]);
+
+  // Month-over-month change
+  const momChange = useMemo(() => {
+    if (revenueData.length < 2) return 0;
+    const lastMonth = revenueData[revenueData.length - 1].value;
+    const prevMonth = revenueData[revenueData.length - 2].value;
+    return prevMonth > 0 ? ((lastMonth - prevMonth) / prevMonth) * 100 : 0;
+  }, [revenueData]);
+
+  // Revenue range
+  const revenueRange = useMemo(() => {
+    if (revenueData.length === 0) return { min: 0, max: 0 };
+    const values = revenueData.map((item) => item.value);
+    return { min: Math.min(...values), max: Math.max(...values) };
+  }, [revenueData]);
+
+  // Net revenue margin data for line chart
+  const marginChartData = useMemo(() => {
+    return revenueBreakdownData.map((item) => ({
+      month: item.month,
+      margin: item.grossRevenue > 0 ? (item.netRevenue / item.grossRevenue) * 100 : 0,
+    }));
+  }, [revenueBreakdownData]);
+
+  // Cost percentage data for line chart (clinician + supervisor as % of gross)
+  const costPercentageData = useMemo(() => {
+    return revenueBreakdownData.map((item) => ({
+      month: item.month,
+      clinicianPct: item.grossRevenue > 0 ? (item.clinicianCosts / item.grossRevenue) * 100 : 0,
+      supervisorPct: item.grossRevenue > 0 ? (item.supervisorCosts / item.grossRevenue) * 100 : 0,
+    }));
+  }, [revenueBreakdownData]);
+
+  // Average cost percentages for indicators
+  const avgClinicianPct = useMemo(() => {
+    return totalGrossRevenue > 0 ? (totalClinicianCosts / totalGrossRevenue) * 100 : 0;
+  }, [totalClinicianCosts, totalGrossRevenue]);
+
+  const avgSupervisorPct = useMemo(() => {
+    return totalGrossRevenue > 0 ? (totalSupervisorCosts / totalGrossRevenue) * 100 : 0;
+  }, [totalSupervisorCosts, totalGrossRevenue]);
+
+  // =========================================================================
+  // FORMATTERS
+  // =========================================================================
+
+  const formatCurrency = (value: number) => {
+    if (value >= 1000000) {
+      return `$${(value / 1000000).toFixed(2)}M`;
+    }
+    return `$${(value / 1000).toFixed(0)}k`;
+  };
+
+  const formatCurrencyShort = (value: number) => {
+    return `$${(value / 1000).toFixed(0)}k`;
+  };
+
+  // =========================================================================
+  // CHART DATA (formatted for BarChart component)
+  // =========================================================================
+
+  // Prepare bar chart data for single mode (BarChart expects 'label' key)
+  const barChartData = useMemo(() => {
+    return revenueData.map((item) => ({
+      label: item.month,
+      value: item.value,
+    }));
+  }, [revenueData]);
+
+  // Prepare stacked bar chart data for clinician breakdown
+  const clinicianBarChartData = useMemo(() => {
+    return clinicianRevenueData.map((item) => ({
+      label: item.month,
+      Chen: item.Chen,
+      Rodriguez: item.Rodriguez,
+      Patel: item.Patel,
+      Kim: item.Kim,
+      Johnson: item.Johnson,
+    }));
+  }, [clinicianRevenueData]);
+
+  // =========================================================================
+  // INSIGHTS
+  // =========================================================================
+
+  const revenueInsights = useMemo(() => [
+    {
+      value: bestMonth.month,
+      label: `Best (${formatCurrencyShort(bestMonth.value)})`,
+      bgColor: 'bg-emerald-50',
+      textColor: 'text-emerald-600',
+    },
+    {
+      value: `${momChange >= 0 ? '+' : ''}${momChange.toFixed(1)}%`,
+      label: 'MoM Trend',
+      bgColor: momChange >= 0 ? 'bg-emerald-50' : 'bg-rose-50',
+      textColor: momChange >= 0 ? 'text-emerald-600' : 'text-rose-600',
+    },
+    {
+      value: `${formatCurrencyShort(revenueRange.min)}–${formatCurrencyShort(revenueRange.max)}`,
+      label: 'Range',
+      bgColor: 'bg-stone-100',
+      textColor: 'text-stone-700',
+    },
+  ], [bestMonth, momChange, revenueRange]);
+
+  const clinicianInsights = useMemo(() => {
+    // Find top clinician by total revenue
+    const clinicianTotals = CLINICIAN_NAMES.map((name) => ({
+      name,
+      total: clinicianRevenueData.reduce((sum, item) => sum + item[name], 0),
+    }));
+    const topClinician = clinicianTotals.reduce((best, curr) =>
+      curr.total > best.total ? curr : best
+    );
+
+    return [
+      {
+        value: topClinician.name,
+        label: `Top (${formatCurrencyShort(topClinician.total)})`,
+        bgColor: 'bg-violet-50',
+        textColor: 'text-violet-600',
+      },
+      {
+        value: formatCurrencyShort(totalGrossRevenue),
+        label: 'Team Total',
+        bgColor: 'bg-indigo-50',
+        textColor: 'text-indigo-600',
+      },
+      {
+        value: '5',
+        label: 'Clinicians',
+        bgColor: 'bg-stone-100',
+        textColor: 'text-stone-700',
+      },
+    ];
+  }, [clinicianRevenueData, totalGrossRevenue]);
+
+  // =========================================================================
+  // TABLE DATA
+  // =========================================================================
+
+  const buildTableColumns = () => {
+    const monthColumns = revenueBreakdownData.map((item) => ({
+      key: item.month.toLowerCase(),
+      header: item.month,
+      align: 'right' as const,
+    }));
+    return [...monthColumns, { key: 'total', header: 'Total', align: 'right' as const, isTotals: true }];
+  };
+
+  const buildTableRows = () => {
+    const buildRowValues = (field: keyof typeof revenueBreakdownData[0]) => {
+      const values: Record<string, string> = {};
+      let total = 0;
+      revenueBreakdownData.forEach((item) => {
+        const val = item[field] as number;
+        values[item.month.toLowerCase()] = formatCurrencyShort(val);
+        total += val;
+      });
+      values.total = formatCurrency(total);
+      return values;
+    };
+
+    return [
+      {
+        id: 'gross',
+        label: 'Gross Revenue',
+        values: buildRowValues('grossRevenue'),
+      },
+      {
+        id: 'clinician',
+        label: 'Clinician Cost',
+        indicator: { color: '#3b82f6' },
+        values: buildRowValues('clinicianCosts'),
+        valueColor: 'text-blue-600',
+      },
+      {
+        id: 'supervisor',
+        label: 'Supervisor Cost',
+        indicator: { color: '#f59e0b' },
+        values: buildRowValues('supervisorCosts'),
+        valueColor: 'text-amber-600',
+      },
+      {
+        id: 'fees',
+        label: 'Credit Card Fees',
+        indicator: { color: '#f43f5e' },
+        values: buildRowValues('creditCardFees'),
+        valueColor: 'text-rose-600',
+      },
+      {
+        id: 'net',
+        label: 'Net Revenue',
+        indicator: { color: '#10b981' },
+        values: buildRowValues('netRevenue'),
+        valueColor: 'text-emerald-600',
+        isHighlighted: true,
+        highlightColor: 'emerald' as const,
+      },
+    ];
+  };
+
+  // =========================================================================
+  // RENDER
+  // =========================================================================
+
+  return (
+    <div className="min-h-full">
+      {/* Page Header */}
+      <PageHeader
+        accent="amber"
+        label="Detailed Analysis"
+        title="Financial Performance"
+        subtitle={getDateRangeLabel()}
+        showTimePeriod
+        timePeriod={timePeriod as any}
+        onTimePeriodChange={onTimePeriodChange as any}
+        timePeriods={timePeriods as any}
+        tabs={tabs.map((t) => ({ id: t.id, label: t.shortLabel }))}
+        activeTab={activeTab}
+        onTabChange={onTabChange}
+      />
+
+      <PageContent>
+        {/* Hero Stats Row */}
+        <Section spacing="md">
+          <Grid cols={4} gap="md">
+            <StatCard
+              title="Total Gross Revenue"
+              value={formatCurrency(totalGrossRevenue)}
+              subtitle={`across ${revenueData.length} months`}
+            />
+            <StatCard
+              title="Total Net Revenue"
+              value={formatCurrency(totalNetRevenue)}
+              subtitle={`${avgMargin.toFixed(1)}% avg margin`}
+            />
+            <StatCard
+              title="Goal Achievement"
+              value={`${monthsAtGoal}/${revenueData.length}`}
+              subtitle="months hit $150k goal"
+            />
+            <StatCard
+              title="Avg Revenue"
+              value={`${formatCurrencyShort(avgMonthlyRevenue)}/mo`}
+              subtitle={`${formatCurrencyShort(avgWeeklyRevenue)}/week`}
+            />
+          </Grid>
+        </Section>
+
+        {/* Charts Row */}
+        <Section spacing="md">
+          <Grid cols={2} gap="lg">
+            {/* Revenue Performance Chart */}
+            <ChartCard
+              title="Revenue Performance"
+              subtitle="Monthly breakdown"
+              headerControls={
+                <>
+                  <ToggleButton
+                    label="By Clinician"
+                    active={showClinicianBreakdown}
+                    onToggle={() => setShowClinicianBreakdown(!showClinicianBreakdown)}
+                    icon={<Users size={16} />}
+                    hidden={!!hoveredClinicianBar}
+                  />
+                  <GoalIndicator
+                    value="$150k"
+                    label="Goal"
+                    color="amber"
+                    hidden={showClinicianBreakdown || !!hoveredClinicianBar}
+                  />
+                  {/* Hover tooltip for clinician segment */}
+                  {hoveredClinicianBar && (
+                    <div
+                      className="flex items-center gap-3 px-4 py-2 rounded-xl"
+                      style={{ backgroundColor: `${hoveredClinicianBar.color}15` }}
+                    >
+                      <div
+                        className="w-3 h-3 rounded-full"
+                        style={{ backgroundColor: hoveredClinicianBar.color }}
+                      />
+                      <span className="text-stone-700 font-semibold">
+                        {hoveredClinicianBar.segmentLabel}
+                      </span>
+                      <span
+                        className="font-bold"
+                        style={{ color: hoveredClinicianBar.color }}
+                      >
+                        {formatCurrencyShort(hoveredClinicianBar.value)}
+                      </span>
+                      <span className="text-stone-500 text-sm">
+                        in {hoveredClinicianBar.label}
+                      </span>
+                    </div>
+                  )}
+                  <ActionButton
+                    label="Revenue Report"
+                    icon={<ArrowRight size={16} />}
+                  />
+                </>
+              }
+              expandable
+              onExpand={() => setExpandedCard('revenue-performance')}
+              insights={showClinicianBreakdown ? clinicianInsights : revenueInsights}
+              minHeight="520px"
+            >
+              {/* Using the design system BarChart component */}
+              {showClinicianBreakdown ? (
+                <BarChart
+                  data={clinicianBarChartData}
+                  mode="stacked"
+                  segments={CLINICIAN_SEGMENTS}
+                  stackOrder={CLINICIAN_STACK_ORDER}
+                  formatValue={formatCurrencyShort}
+                  onHover={setHoveredClinicianBar}
+                  showLegend
+                  height="380px"
+                />
+              ) : (
+                <BarChart
+                  data={barChartData}
+                  mode="single"
+                  goal={{ value: 150000 }}
+                  getBarColor={(value) =>
+                    value >= 150000
+                      ? {
+                          gradient: 'linear-gradient(180deg, #34d399 0%, #059669 100%)',
+                          shadow: '0 4px 12px -2px rgba(16, 185, 129, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
+                          textColor: 'text-emerald-600',
+                        }
+                      : {
+                          gradient: 'linear-gradient(180deg, #60a5fa 0%, #2563eb 100%)',
+                          shadow: '0 4px 12px -2px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
+                          textColor: 'text-blue-600',
+                        }
+                  }
+                  formatValue={formatCurrencyShort}
+                  height="380px"
+                />
+              )}
+            </ChartCard>
+
+            {/* Revenue Distribution Donut Chart */}
+            <DonutChartCard
+              title="Revenue Distribution"
+              subtitle={`Total across all ${revenueBreakdownData.length} months`}
+              segments={[
+                { label: 'Clinician Costs', value: totalClinicianCosts, color: '#3b82f6' },
+                { label: 'Supervisor Costs', value: totalSupervisorCosts, color: '#f59e0b' },
+                { label: 'CC Fees', value: totalCCFees, color: '#f43f5e' },
+                { label: 'Net Revenue', value: totalNetRevenue, color: '#10b981' },
+              ]}
+              centerLabel="Gross Revenue"
+              centerValue={formatCurrency(totalGrossRevenue)}
+              valueFormat="currency"
+              size="md"
+              expandable
+              onExpand={() => setExpandedCard('revenue-distribution')}
+            />
+          </Grid>
+        </Section>
+
+        {/* Margin & Cost Trend Charts */}
+        <Section spacing="md">
+          <Grid cols={2} gap="lg">
+            {/* Net Revenue Margin Chart */}
+            <SimpleChartCard
+              title="Net Revenue Margin"
+              subtitle="Percentage of gross revenue retained"
+              valueIndicator={{
+                value: `${avgMargin.toFixed(1)}%`,
+                label: 'Average',
+                bgColor: 'bg-emerald-50',
+                textColor: 'text-emerald-600',
+              }}
+              height="280px"
+            >
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={marginChartData} margin={{ top: 10, right: 20, bottom: 10, left: 10 }}>
+                  <CartesianGrid strokeDasharray="4 4" stroke="#e7e5e4" vertical={false} />
+                  <XAxis
+                    dataKey="month"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#57534e', fontSize: 12, fontWeight: 500 }}
+                  />
+                  <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#10b981', fontSize: 12, fontWeight: 600 }}
+                    domain={[0, 30]}
+                    allowDataOverflow={true}
+                    tickFormatter={(v) => `${v}%`}
+                    width={45}
+                  />
+                  <Tooltip
+                    formatter={(value: number) => [`${value.toFixed(1)}%`, 'Margin']}
+                    contentStyle={{
+                      background: 'rgba(255, 255, 255, 0.95)',
+                      border: 'none',
+                      borderRadius: '12px',
+                      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+                      padding: '12px 16px',
+                    }}
+                    labelStyle={{ fontWeight: 600, color: '#1c1917' }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="margin"
+                    stroke="#10b981"
+                    strokeWidth={3}
+                    dot={{ fill: '#10b981', r: 5, strokeWidth: 2, stroke: '#fff' }}
+                    activeDot={{ r: 7, fill: '#059669', stroke: '#fff', strokeWidth: 2 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </SimpleChartCard>
+
+            {/* Clinician & Supervisor Cost as % of Revenue */}
+            <SimpleChartCard
+              title="Cost as % of Revenue"
+              subtitle="Clinician and supervisor costs"
+              valueIndicator={{
+                value: `${(avgClinicianPct + avgSupervisorPct).toFixed(1)}%`,
+                label: 'Total Avg',
+                bgColor: 'bg-stone-100',
+                textColor: 'text-stone-700',
+              }}
+              height="280px"
+            >
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={costPercentageData} margin={{ top: 30, right: 20, bottom: 10, left: 10 }}>
+                  <CartesianGrid strokeDasharray="4 4" stroke="#e7e5e4" vertical={false} />
+                  <XAxis
+                    dataKey="month"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#57534e', fontSize: 12, fontWeight: 500 }}
+                  />
+                  <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#57534e', fontSize: 12, fontWeight: 600 }}
+                    domain={[0, 80]}
+                    tickFormatter={(v) => `${v}%`}
+                    width={45}
+                  />
+                  <Tooltip
+                    formatter={(value: number, name: string) => [
+                      `${value.toFixed(1)}%`,
+                      name === 'clinicianPct' ? 'Clinician' : 'Supervisor',
+                    ]}
+                    contentStyle={{
+                      background: 'rgba(255, 255, 255, 0.95)',
+                      border: 'none',
+                      borderRadius: '12px',
+                      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+                      padding: '12px 16px',
+                    }}
+                    labelStyle={{ fontWeight: 600, color: '#1c1917' }}
+                  />
+                  <Legend
+                    verticalAlign="top"
+                    align="right"
+                    iconType="circle"
+                    iconSize={10}
+                    wrapperStyle={{ paddingBottom: '10px' }}
+                    formatter={(value) => (
+                      <span style={{ color: '#57534e', fontSize: '13px', fontWeight: 500 }}>
+                        {value === 'clinicianPct' ? 'Clinician' : 'Supervisor'}
+                      </span>
+                    )}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="clinicianPct"
+                    name="clinicianPct"
+                    stroke="#3b82f6"
+                    strokeWidth={3}
+                    dot={{ fill: '#3b82f6', r: 4, strokeWidth: 2, stroke: '#fff' }}
+                    activeDot={{ r: 6, fill: '#2563eb', stroke: '#fff', strokeWidth: 2 }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="supervisorPct"
+                    name="supervisorPct"
+                    stroke="#f59e0b"
+                    strokeWidth={3}
+                    dot={{ fill: '#f59e0b', r: 4, strokeWidth: 2, stroke: '#fff' }}
+                    activeDot={{ r: 6, fill: '#d97706', stroke: '#fff', strokeWidth: 2 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </SimpleChartCard>
+          </Grid>
+        </Section>
+
+        {/* Breakdown Table */}
+        <Section spacing="none">
+          <DataTableCard
+            title="Full Breakdown"
+            columns={buildTableColumns()}
+            rows={buildTableRows()}
+            expandable
+            onExpand={() => setExpandedCard('breakdown-table')}
+          />
+        </Section>
+      </PageContent>
+
+      {/* Expanded Modals using centralized ExpandedChartModal */}
+      <ExpandedChartModal
+        isOpen={expandedCard === 'revenue-performance'}
+        onClose={() => setExpandedCard(null)}
+        title="Revenue Performance"
+        subtitle={showClinicianBreakdown ? 'Revenue by clinician breakdown' : 'Monthly revenue with $150k goal'}
+        headerControls={
+          <>
+            <ToggleButton
+              label="By Clinician"
+              active={showClinicianBreakdown}
+              onToggle={() => setShowClinicianBreakdown(!showClinicianBreakdown)}
+              icon={<Users size={16} />}
+            />
+            <GoalIndicator
+              value="$150k"
+              label="Goal"
+              color="amber"
+              hidden={showClinicianBreakdown}
+            />
+            <ActionButton
+              label="Revenue Report"
+              icon={<ArrowRight size={16} />}
+            />
+          </>
+        }
+        insights={showClinicianBreakdown ? clinicianInsights : revenueInsights}
+      >
+        {showClinicianBreakdown ? (
+          <BarChart
+            data={clinicianBarChartData}
+            mode="stacked"
+            size="lg"
+            segments={CLINICIAN_SEGMENTS}
+            stackOrder={CLINICIAN_STACK_ORDER}
+            formatValue={formatCurrencyShort}
+            onHover={setHoveredClinicianBar}
+            showLegend
+            height="100%"
+          />
+        ) : (
+          <BarChart
+            data={barChartData}
+            mode="single"
+            size="lg"
+            goal={{ value: 150000 }}
+            getBarColor={(value) =>
+              value >= 150000
+                ? {
+                    gradient: 'linear-gradient(180deg, #34d399 0%, #059669 100%)',
+                    shadow: '0 6px 16px -2px rgba(16, 185, 129, 0.4), inset 0 1px 0 rgba(255,255,255,0.2)',
+                    textColor: 'text-emerald-600',
+                  }
+                : {
+                    gradient: 'linear-gradient(180deg, #60a5fa 0%, #2563eb 100%)',
+                    shadow: '0 6px 16px -2px rgba(37, 99, 235, 0.4), inset 0 1px 0 rgba(255,255,255,0.2)',
+                    textColor: 'text-blue-600',
+                  }
+            }
+            formatValue={formatCurrencyShort}
+            height="100%"
+          />
+        )}
+      </ExpandedChartModal>
+
+      <ExpandedChartModal
+        isOpen={expandedCard === 'revenue-distribution'}
+        onClose={() => setExpandedCard(null)}
+        title="Revenue Distribution"
+        subtitle={`Cost breakdown across ${revenueBreakdownData.length} months`}
+      >
+        <DonutChartCard
+          title=""
+          segments={[
+            { label: 'Clinician Costs', value: totalClinicianCosts, color: '#3b82f6' },
+            { label: 'Supervisor Costs', value: totalSupervisorCosts, color: '#f59e0b' },
+            { label: 'CC Fees', value: totalCCFees, color: '#f43f5e' },
+            { label: 'Net Revenue', value: totalNetRevenue, color: '#10b981' },
+          ]}
+          centerLabel="Gross Revenue"
+          centerValue={formatCurrency(totalGrossRevenue)}
+          valueFormat="currency"
+          size="lg"
+        />
+      </ExpandedChartModal>
+
+      <ExpandedChartModal
+        isOpen={expandedCard === 'breakdown-table'}
+        onClose={() => setExpandedCard(null)}
+        title="Full Breakdown"
+        subtitle="Monthly revenue, costs, and net revenue details"
+      >
+        <DataTableCard
+          title=""
+          columns={buildTableColumns()}
+          rows={buildTableRows()}
+          size="lg"
+        />
+      </ExpandedChartModal>
+    </div>
+  );
+};
+
+export default FinancialAnalysisTab;

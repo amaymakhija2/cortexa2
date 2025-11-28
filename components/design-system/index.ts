@@ -28,11 +28,18 @@ export { DonutChartCard } from './cards/DonutChartCard';
 export type { DonutChartCardProps, DonutSegment, ValueFormat } from './cards/DonutChartCard';
 
 export { DataTableCard } from './cards/DataTableCard';
-export type { DataTableCardProps, TableColumn, TableRow } from './cards/DataTableCard';
+export type { DataTableCardProps, DataTableSize, TableColumn, TableRow } from './cards/DataTableCard';
+
+export { SplitBarCard } from './cards/SplitBarCard';
+export type { SplitBarCardProps, SplitBarSegment } from './cards/SplitBarCard';
 
 // Control Components
 export { ToggleButton, GoalIndicator, ActionButton } from './controls';
 export type { ToggleButtonProps, GoalIndicatorProps, GoalIndicatorColor, ActionButtonProps, ActionButtonVariant } from './controls';
+
+// Chart Components
+export { BarChart } from './charts';
+export type { BarChartProps, BarChartDataPoint, BarChartSize, SegmentConfig, BarColorConfig, HoverInfo } from './charts';
 
 // Reference Page (for viewing in app)
 export { Reference } from './Reference';

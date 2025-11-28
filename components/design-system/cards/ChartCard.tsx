@@ -103,7 +103,7 @@ export const ChartCard: React.FC<ChartCardProps> = ({
     >
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
-        <div>
+        <div className="flex-1 min-w-0">
           <h3
             className="text-stone-900 text-2xl sm:text-3xl xl:text-4xl font-bold mb-2 tracking-tight"
             style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
@@ -115,7 +115,7 @@ export const ChartCard: React.FC<ChartCardProps> = ({
           )}
         </div>
 
-        <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex items-center gap-3 flex-shrink-0">
           {/* Custom Header Controls (ToggleButton, GoalIndicator, ActionButton, etc.) */}
           {headerControls}
 
@@ -155,7 +155,7 @@ export const ChartCard: React.FC<ChartCardProps> = ({
           {expandable && (
             <button
               onClick={onExpand}
-              className="p-2.5 rounded-xl bg-stone-100/80 hover:bg-stone-200 text-stone-500 hover:text-stone-700 transition-all duration-200 hover:scale-105 active:scale-95"
+              className="p-2.5 rounded-xl bg-stone-100/80 hover:bg-stone-200 text-stone-500 hover:text-stone-700 transition-all duration-200 hover:scale-105 active:scale-95 flex-shrink-0"
               title="Expand chart"
             >
               <Maximize2 size={18} strokeWidth={2} />
@@ -305,7 +305,8 @@ export const SimpleChartCard: React.FC<SimpleChartCardProps> = ({
 // =============================================================================
 // EXPANDED CHART MODAL
 // =============================================================================
-// Fullscreen modal for expanded charts
+// Immersive fullscreen modal for expanded charts.
+// Provides a centralized, consistent expanded experience for all chart components.
 // =============================================================================
 
 export interface ExpandedChartModalProps {
@@ -317,25 +318,57 @@ export interface ExpandedChartModalProps {
   title: string;
   /** Subtitle */
   subtitle?: string;
-  /** Legend items */
+  /** Legend items (displayed in header) */
   legend?: LegendItem[];
+  /** Custom header controls (ToggleButton, GoalIndicator, ActionButton, etc.) */
+  headerControls?: React.ReactNode;
+  /** Insights row at the bottom (optional) */
+  insights?: InsightItem[];
   /** Modal content */
   children: React.ReactNode;
 }
 
 /**
- * ExpandedChartModal - Fullscreen modal for charts
+ * ExpandedChartModal - Immersive fullscreen modal for charts
  *
- * @example
+ * Features:
+ * - 95vw x 90vh immersive viewport
+ * - Blur backdrop with elegant shadows
+ * - Large typography for titles/subtitles
+ * - Support for header controls (toggles, buttons, indicators)
+ * - Optional legend display
+ * - Optional insights row at bottom
+ *
+ * @example Basic usage
+ * ```tsx
  * <ExpandedChartModal
- *   isOpen={expanded === 'utilization'}
+ *   isOpen={expanded === 'revenue'}
  *   onClose={() => setExpanded(null)}
- *   title="Client Utilization"
- *   subtitle="Active clients & utilization rate over time"
- *   legend={[...]}
+ *   title="Revenue Performance"
+ *   subtitle="Monthly breakdown with goal tracking"
  * >
- *   <LargeChart data={data} />
+ *   <BarChart data={data} size="lg" />
  * </ExpandedChartModal>
+ * ```
+ *
+ * @example With header controls
+ * ```tsx
+ * <ExpandedChartModal
+ *   isOpen={expanded === 'revenue'}
+ *   onClose={() => setExpanded(null)}
+ *   title="Revenue Performance"
+ *   subtitle="Monthly breakdown"
+ *   headerControls={
+ *     <>
+ *       <ToggleButton label="By Clinician" active={showBreakdown} onToggle={toggle} />
+ *       <GoalIndicator value="$150k" label="Goal" color="amber" />
+ *       <ActionButton label="Export" icon={<Download />} />
+ *     </>
+ *   }
+ * >
+ *   <BarChart data={data} size="lg" />
+ * </ExpandedChartModal>
+ * ```
  */
 export const ExpandedChartModal: React.FC<ExpandedChartModalProps> = ({
   isOpen,
@@ -343,6 +376,8 @@ export const ExpandedChartModal: React.FC<ExpandedChartModalProps> = ({
   title,
   subtitle,
   legend,
+  headerControls,
+  insights,
   children,
 }) => {
   if (!isOpen) return null;
@@ -376,7 +411,8 @@ export const ExpandedChartModal: React.FC<ExpandedChartModalProps> = ({
 
         {/* Content */}
         <div className="p-8 sm:p-12 h-full flex flex-col">
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8 flex-shrink-0">
             <div>
               <h3
                 className="text-stone-900 text-3xl sm:text-4xl xl:text-5xl font-bold mb-3 tracking-tight"
@@ -389,28 +425,58 @@ export const ExpandedChartModal: React.FC<ExpandedChartModalProps> = ({
               )}
             </div>
 
-            {legend && legend.length > 0 && (
-              <div className="flex items-center gap-8 bg-stone-50 rounded-2xl px-8 py-5">
-                {legend.map((item, idx) => (
-                  <React.Fragment key={idx}>
-                    {idx > 0 && <div className="w-px h-8 bg-stone-200" />}
-                    <div className="flex items-center gap-4">
-                      {item.type === 'box' ? (
-                        <div className={`w-6 h-6 rounded-lg ${item.color} shadow-sm`}></div>
-                      ) : (
-                        <div className={`w-10 h-1.5 ${item.color} rounded-full`}></div>
-                      )}
-                      <span className="text-stone-700 text-lg font-semibold">{item.label}</span>
-                    </div>
-                  </React.Fragment>
-                ))}
-              </div>
-            )}
+            {/* Right side: Controls and/or Legend */}
+            <div className="flex items-center gap-4 flex-wrap">
+              {/* Custom Header Controls */}
+              {headerControls}
+
+              {/* Legend */}
+              {legend && legend.length > 0 && (
+                <div className="flex items-center gap-8 bg-stone-50 rounded-2xl px-8 py-5">
+                  {legend.map((item, idx) => (
+                    <React.Fragment key={idx}>
+                      {idx > 0 && <div className="w-px h-8 bg-stone-200" />}
+                      <div className="flex items-center gap-4">
+                        {item.type === 'box' ? (
+                          <div className={`w-6 h-6 rounded-lg ${item.color} shadow-sm`}></div>
+                        ) : (
+                          <div className={`w-10 h-1.5 ${item.color} rounded-full`}></div>
+                        )}
+                        <span className="text-stone-700 text-lg font-semibold">{item.label}</span>
+                      </div>
+                    </React.Fragment>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
+          {/* Chart Content */}
           <div className="flex-1 min-h-0">
             {children}
           </div>
+
+          {/* Insights Row (optional) */}
+          {insights && insights.length > 0 && (
+            <div className="grid gap-6 pt-6 mt-4 border-t-2 border-stone-100 flex-shrink-0" style={{ gridTemplateColumns: `repeat(${insights.length}, 1fr)` }}>
+              {insights.map((insight, idx) => (
+                <div
+                  key={idx}
+                  className={`${insight.bgColor || 'bg-stone-100'} rounded-2xl p-6 text-center`}
+                >
+                  <div
+                    className={`${insight.textColor || 'text-stone-800'} text-3xl sm:text-4xl font-bold`}
+                    style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                  >
+                    {insight.value}
+                  </div>
+                  <div className="text-stone-600 text-base sm:text-lg font-medium mt-2">
+                    {insight.label}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
