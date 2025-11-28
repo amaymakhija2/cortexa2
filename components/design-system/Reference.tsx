@@ -577,7 +577,7 @@ export const Reference: React.FC = () => {
                 }
                 minHeight="480px"
               >
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height={350}>
                   <BarChart data={SAMPLE_SESSIONS_DATA} margin={{ top: 20, right: 20, bottom: 10, left: 20 }}>
                     <defs>
                       <linearGradient id="sessionsBarGradient" x1="0" y1="0" x2="0" y2="1">
