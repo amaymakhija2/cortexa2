@@ -19,6 +19,7 @@ import {
   GoalIndicator,
   ActionButton,
   DonutChartCard,
+  DataTableCard,
 } from './';
 
 // =============================================================================
@@ -761,6 +762,123 @@ export const Reference: React.FC = () => {
   centerLabel="Gross Revenue"
   centerValue="$1.73M"
   valueFormat="currency"
+  expandable
+/>`}
+                </pre>
+              </div>
+            </Section>
+
+            {/* DataTableCard */}
+            <Section>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                DataTableCard
+              </h2>
+              <p className="text-stone-500 mb-6">Premium data table with responsive card view for mobile. Supports row indicators, hover states, and highlighted summary rows.</p>
+
+              <DataTableCard
+                title="Revenue Breakdown"
+                subtitle="Monthly financial summary"
+                columns={[
+                  { key: 'jan', header: 'Jan', align: 'right' },
+                  { key: 'feb', header: 'Feb', align: 'right' },
+                  { key: 'mar', header: 'Mar', align: 'right' },
+                  { key: 'total', header: 'Total', align: 'right', isTotals: true },
+                ]}
+                rows={[
+                  {
+                    id: 'gross',
+                    label: 'Gross Revenue',
+                    values: { jan: '$142.5k', feb: '$156.2k', mar: '$148.8k', total: '$447.5k' },
+                  },
+                  {
+                    id: 'clinician',
+                    label: 'Clinician Cost',
+                    indicator: { color: '#3b82f6' },
+                    values: { jan: '$63.0k', feb: '$69.2k', mar: '$65.8k', total: '$198.0k' },
+                    valueColor: 'text-blue-600',
+                  },
+                  {
+                    id: 'supervisor',
+                    label: 'Supervisor Cost',
+                    indicator: { color: '#f59e0b' },
+                    values: { jan: '$14.0k', feb: '$15.4k', mar: '$14.6k', total: '$44.0k' },
+                    valueColor: 'text-amber-600',
+                  },
+                  {
+                    id: 'fees',
+                    label: 'Credit Card Fees',
+                    indicator: { color: '#f43f5e' },
+                    values: { jan: '$4.3k', feb: '$4.7k', mar: '$4.5k', total: '$13.5k' },
+                    valueColor: 'text-rose-600',
+                  },
+                  {
+                    id: 'net',
+                    label: 'Net Revenue',
+                    indicator: { color: '#10b981' },
+                    values: { jan: '$61.2k', feb: '$66.9k', mar: '$63.9k', total: '$192.0k' },
+                    valueColor: 'text-emerald-600',
+                    isHighlighted: true,
+                    highlightColor: 'emerald',
+                  },
+                ]}
+                expandable
+              />
+
+              <div className="mt-6 rounded-xl p-5 bg-stone-100">
+                <h4 className="font-semibold text-stone-900 mb-3">Props Reference</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <code className="text-violet-600">columns</code>
+                    <span className="text-stone-500 ml-2">{'{ key, header, align?, isTotals? }[]'}</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">rows</code>
+                    <span className="text-stone-500 ml-2">{'{ id, label, indicator?, values, valueColor?, isHighlighted?, highlightColor? }[]'}</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">indicator</code>
+                    <span className="text-stone-500 ml-2">{'{ color: string }'} - Colored dot</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">isHighlighted</code>
+                    <span className="text-stone-500 ml-2">boolean - Highlight row bg</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">forceMobileView</code>
+                    <span className="text-stone-500 ml-2">boolean - Force card layout</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">expandable</code>
+                    <span className="text-stone-500 ml-2">boolean - Show expand button</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 rounded-xl p-5 bg-stone-100">
+                <h4 className="font-semibold text-stone-900 mb-3">Usage Example</h4>
+                <pre className="text-sm text-stone-700 overflow-x-auto">
+{`<DataTableCard
+  title="Revenue Breakdown"
+  columns={[
+    { key: 'jan', header: 'Jan', align: 'right' },
+    { key: 'total', header: 'Total', align: 'right', isTotals: true },
+  ]}
+  rows={[
+    {
+      id: 'gross',
+      label: 'Gross Revenue',
+      values: { jan: '$142k', total: '$447k' },
+    },
+    {
+      id: 'net',
+      label: 'Net Revenue',
+      indicator: { color: '#10b981' },
+      values: { jan: '$61k', total: '$192k' },
+      valueColor: 'text-emerald-600',
+      isHighlighted: true,
+      highlightColor: 'emerald',
+    },
+  ]}
   expandable
 />`}
                 </pre>

@@ -27,6 +27,9 @@ export type { CompactCardProps, StackedBarCardProps, StackedBarSegment, MetricLi
 export { DonutChartCard } from './cards/DonutChartCard';
 export type { DonutChartCardProps, DonutSegment, ValueFormat } from './cards/DonutChartCard';
 
+export { DataTableCard } from './cards/DataTableCard';
+export type { DataTableCardProps, TableColumn, TableRow } from './cards/DataTableCard';
+
 // Control Components
 export { ToggleButton, GoalIndicator, ActionButton } from './controls';
 export type { ToggleButtonProps, GoalIndicatorProps, GoalIndicatorColor, ActionButtonProps, ActionButtonVariant } from './controls';
