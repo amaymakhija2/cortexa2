@@ -24,6 +24,9 @@ export type { ChartCardProps, SimpleChartCardProps, ExpandedChartModalProps, Leg
 export { CompactCard, StackedBarCard, MetricListCard } from './cards/CompactCard';
 export type { CompactCardProps, StackedBarCardProps, StackedBarSegment, MetricListCardProps, MetricItem } from './cards/CompactCard';
 
+export { DonutChartCard } from './cards/DonutChartCard';
+export type { DonutChartCardProps, DonutSegment, ValueFormat } from './cards/DonutChartCard';
+
 // Control Components
 export { ToggleButton, GoalIndicator, ActionButton } from './controls';
 export type { ToggleButtonProps, GoalIndicatorProps, GoalIndicatorColor, ActionButtonProps, ActionButtonVariant } from './controls';

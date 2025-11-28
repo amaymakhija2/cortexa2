@@ -18,6 +18,7 @@ import {
   ToggleButton,
   GoalIndicator,
   ActionButton,
+  DonutChartCard,
 } from './';
 
 // =============================================================================
@@ -671,6 +672,98 @@ export const Reference: React.FC = () => {
                     ]}
                   />
                 </Grid>
+              </div>
+            </Section>
+
+            {/* DonutChartCard */}
+            <Section>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                DonutChartCard
+              </h2>
+              <p className="text-stone-500 mb-6">Premium donut/pie chart with animated segments, center content, and interactive legend.</p>
+
+              <Grid cols={2} gap="lg">
+                <DonutChartCard
+                  title="Revenue Distribution"
+                  subtitle="Total across 12 months"
+                  segments={[
+                    { label: 'Clinician Costs', value: 756000, color: '#3b82f6' },
+                    { label: 'Supervisor Costs', value: 168000, color: '#f59e0b' },
+                    { label: 'CC Fees', value: 52000, color: '#f43f5e' },
+                    { label: 'Net Revenue', value: 754000, color: '#10b981' }
+                  ]}
+                  centerLabel="Gross Revenue"
+                  centerValue="$1.73M"
+                  valueFormat="currency"
+                  expandable
+                  size="md"
+                />
+
+                <DonutChartCard
+                  title="Attendance Breakdown"
+                  subtitle="Session outcomes"
+                  segments={[
+                    { label: 'Attended', value: 6262, color: '#10b981' },
+                    { label: 'Client Cancelled', value: 1416, color: '#ef4444' },
+                    { label: 'Clinician Cancelled', value: 286, color: '#3b82f6' },
+                    { label: 'Late Cancelled', value: 299, color: '#f59e0b' },
+                    { label: 'No Show', value: 95, color: '#6b7280' }
+                  ]}
+                  centerLabel="Show Rate"
+                  centerValue="75.0%"
+                  centerValueColor="text-emerald-600"
+                  valueFormat="number"
+                  expandable
+                  size="md"
+                />
+              </Grid>
+
+              <div className="mt-6 rounded-xl p-5 bg-stone-100">
+                <h4 className="font-semibold text-stone-900 mb-3">Props Reference</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <code className="text-violet-600">segments</code>
+                    <span className="text-stone-500 ml-2">{'{ label, value, color }[]'}</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">centerLabel</code>
+                    <span className="text-stone-500 ml-2">string - Label in center</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">centerValue</code>
+                    <span className="text-stone-500 ml-2">string - Value in center</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">valueFormat</code>
+                    <span className="text-stone-500 ml-2">'number' | 'currency' | 'percentage' | 'compact'</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">size</code>
+                    <span className="text-stone-500 ml-2">'sm' | 'md' | 'lg'</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">onSegmentHover</code>
+                    <span className="text-stone-500 ml-2">Hover callback</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 rounded-xl p-5 bg-stone-100">
+                <h4 className="font-semibold text-stone-900 mb-3">Usage Example</h4>
+                <pre className="text-sm text-stone-700 overflow-x-auto">
+{`<DonutChartCard
+  title="Revenue Distribution"
+  subtitle="Total across all months"
+  segments={[
+    { label: 'Clinician Costs', value: 756000, color: '#3b82f6' },
+    { label: 'Net Revenue', value: 754000, color: '#10b981' },
+  ]}
+  centerLabel="Gross Revenue"
+  centerValue="$1.73M"
+  valueFormat="currency"
+  expandable
+/>`}
+                </pre>
               </div>
             </Section>
           </>
