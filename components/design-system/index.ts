@@ -24,5 +24,9 @@ export type { ChartCardProps, SimpleChartCardProps, ExpandedChartModalProps, Leg
 export { CompactCard, StackedBarCard, MetricListCard } from './cards/CompactCard';
 export type { CompactCardProps, StackedBarCardProps, StackedBarSegment, MetricListCardProps, MetricItem } from './cards/CompactCard';
 
+// Control Components
+export { ToggleButton, GoalIndicator, ActionButton } from './controls';
+export type { ToggleButtonProps, GoalIndicatorProps, GoalIndicatorColor, ActionButtonProps, ActionButtonVariant } from './controls';
+
 // Reference Page (for viewing in app)
 export { Reference } from './Reference';

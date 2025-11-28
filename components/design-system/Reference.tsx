@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ResponsiveContainer, LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, LabelList, ComposedChart, ReferenceLine } from 'recharts';
-import { Users, DollarSign, Clock, TrendingUp, TrendingDown, Check, AlertCircle, Info, X as XIcon } from 'lucide-react';
+import { Users, DollarSign, Clock, TrendingUp, TrendingDown, Check, AlertCircle, Info, X as XIcon, ArrowRight, Target, FileText } from 'lucide-react';
 
 // Import from design system (same folder)
 import {
@@ -15,6 +15,9 @@ import {
   ExpandedChartModal,
   StackedBarCard,
   MetricListCard,
+  ToggleButton,
+  GoalIndicator,
+  ActionButton,
 } from './';
 
 // =============================================================================
@@ -39,8 +42,12 @@ import {
 //     │   └── Grid.tsx          - Grid, Section, PageContent
 //     ├── cards/
 //     │   ├── StatCard.tsx      - Hero stat cards
-//     │   ├── ChartCard.tsx     - Chart containers
+//     │   ├── ChartCard.tsx     - Chart containers (with headerControls prop)
 //     │   └── CompactCard.tsx   - Smaller cards
+//     ├── controls/
+//     │   ├── ToggleButton.tsx  - Toggle for switching views
+//     │   ├── GoalIndicator.tsx - Goal/target badge
+//     │   └── ActionButton.tsx  - CTA buttons
 //     ├── index.ts              - All exports
 //     └── Reference.tsx         - This reference file
 //
@@ -77,6 +84,8 @@ const SAMPLE_LINE_DATA = [
 export const Reference: React.FC = () => {
   const [activeSection, setActiveSection] = useState('overview');
   const [expandedChart, setExpandedChart] = useState<string | null>(null);
+  const [toggleDemo, setToggleDemo] = useState(false);
+  const [toggleDemo2, setToggleDemo2] = useState(true);
 
   // =========================================================================
   // PAGE STRUCTURE TEMPLATE (Copy this for new pages)
@@ -152,6 +161,7 @@ export const Reference: React.FC = () => {
           { id: 'overview', label: 'Overview' },
           { id: 'layout', label: 'Layout' },
           { id: 'cards', label: 'Cards' },
+          { id: 'controls', label: 'Controls' },
           { id: 'charts', label: 'Charts' },
           { id: 'styles', label: 'Styles' },
         ]}
@@ -553,6 +563,241 @@ export const Reference: React.FC = () => {
                     ]}
                   />
                 </Grid>
+              </div>
+            </Section>
+          </>
+        )}
+
+        {/* ================================================================= */}
+        {/* SECTION: CONTROLS - Interactive Controls                          */}
+        {/* ================================================================= */}
+        {activeSection === 'controls' && (
+          <>
+            {/* Toggle Button */}
+            <Section>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                ToggleButton
+              </h2>
+              <p className="text-stone-500 mb-6">Premium toggle for switching between chart views. Use in ChartCard headerControls.</p>
+
+              <div className="rounded-2xl p-6 bg-white shadow-sm border border-stone-100 mb-6">
+                <div className="flex items-center gap-4 flex-wrap">
+                  <ToggleButton
+                    label="By Clinician"
+                    active={toggleDemo}
+                    onToggle={() => setToggleDemo(!toggleDemo)}
+                    icon={<Users size={16} />}
+                  />
+                  <ToggleButton
+                    label="Show Details"
+                    active={toggleDemo2}
+                    onToggle={() => setToggleDemo2(!toggleDemo2)}
+                    icon={<Target size={16} />}
+                  />
+                  <ToggleButton
+                    label="No Icon"
+                    active={false}
+                    onToggle={() => {}}
+                  />
+                </div>
+              </div>
+
+              <div className="rounded-xl p-5 bg-stone-100">
+                <h4 className="font-semibold text-stone-900 mb-3">Props Reference</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <code className="text-violet-600">label</code>
+                    <span className="text-stone-500 ml-2">string - Button label</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">active</code>
+                    <span className="text-stone-500 ml-2">boolean - Toggle state</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">onToggle</code>
+                    <span className="text-stone-500 ml-2">() =&gt; void - Click handler</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">icon</code>
+                    <span className="text-stone-500 ml-2">ReactNode - Optional icon</span>
+                  </div>
+                </div>
+              </div>
+            </Section>
+
+            {/* Goal Indicator */}
+            <Section>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                GoalIndicator
+              </h2>
+              <p className="text-stone-500 mb-6">Visual badge showing goal/target value with line preview. Multiple color variants.</p>
+
+              <div className="rounded-2xl p-6 bg-white shadow-sm border border-stone-100 mb-6">
+                <div className="flex items-center gap-4 flex-wrap">
+                  <GoalIndicator value={700} label="Goal" color="amber" />
+                  <GoalIndicator value="$150k" label="Target" color="emerald" />
+                  <GoalIndicator value={85} label="Min %" color="cyan" />
+                  <GoalIndicator value={50} label="Threshold" color="rose" />
+                  <GoalIndicator value={100} label="Max" color="violet" lineStyle="solid" />
+                  <GoalIndicator value={25} label="Limit" color="blue" lineStyle="dotted" />
+                </div>
+              </div>
+
+              <div className="rounded-xl p-5 bg-stone-100">
+                <h4 className="font-semibold text-stone-900 mb-3">Props Reference</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <code className="text-violet-600">value</code>
+                    <span className="text-stone-500 ml-2">string | number - Goal value</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">label</code>
+                    <span className="text-stone-500 ml-2">string - Label (default: "Goal")</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">color</code>
+                    <span className="text-stone-500 ml-2">'amber' | 'emerald' | 'cyan' | 'rose' | 'violet' | 'blue'</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">lineStyle</code>
+                    <span className="text-stone-500 ml-2">'dashed' | 'solid' | 'dotted'</span>
+                  </div>
+                </div>
+              </div>
+            </Section>
+
+            {/* Action Button */}
+            <Section>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                ActionButton
+              </h2>
+              <p className="text-stone-500 mb-6">Premium CTA button for card actions like "View Report". Multiple variants.</p>
+
+              <div className="rounded-2xl p-6 bg-white shadow-sm border border-stone-100 mb-6">
+                <div className="flex items-center gap-4 flex-wrap">
+                  <ActionButton
+                    label="Sessions Report"
+                    icon={<ArrowRight size={16} />}
+                    variant="dark"
+                  />
+                  <ActionButton
+                    label="Export Data"
+                    icon={<FileText size={16} />}
+                    iconPosition="left"
+                    variant="outline"
+                  />
+                  <ActionButton
+                    label="View Details"
+                    variant="subtle"
+                  />
+                </div>
+              </div>
+
+              <div className="rounded-xl p-5 bg-stone-100">
+                <h4 className="font-semibold text-stone-900 mb-3">Props Reference</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <code className="text-violet-600">label</code>
+                    <span className="text-stone-500 ml-2">string - Button label</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">onClick</code>
+                    <span className="text-stone-500 ml-2">() =&gt; void - Click handler</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">icon</code>
+                    <span className="text-stone-500 ml-2">ReactNode - Optional icon</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">variant</code>
+                    <span className="text-stone-500 ml-2">'dark' | 'outline' | 'subtle'</span>
+                  </div>
+                </div>
+              </div>
+            </Section>
+
+            {/* Usage with ChartCard */}
+            <Section>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                Using with ChartCard
+              </h2>
+              <p className="text-stone-500 mb-6">Compose controls in the headerControls prop for interactive charts.</p>
+
+              <ChartCard
+                title="Interactive Chart Example"
+                subtitle="With toggle, goal indicator, and action button"
+                headerControls={
+                  <>
+                    <ToggleButton
+                      label="By Clinician"
+                      active={toggleDemo}
+                      onToggle={() => setToggleDemo(!toggleDemo)}
+                      icon={<Users size={16} />}
+                    />
+                    <GoalIndicator value={700} hidden={toggleDemo} />
+                    <ActionButton
+                      label="View Report"
+                      icon={<ArrowRight size={16} />}
+                    />
+                  </>
+                }
+                insights={
+                  toggleDemo
+                    ? [
+                        { value: 'Chen', label: 'Top (148)', bgColor: 'bg-indigo-50', textColor: 'text-indigo-600' },
+                        { value: '125', label: 'Average', bgColor: 'bg-stone-100', textColor: 'text-stone-700' },
+                        { value: '5', label: 'Clinicians', bgColor: 'bg-stone-100', textColor: 'text-stone-700' }
+                      ]
+                    : [
+                        { value: '665', label: 'Monthly Avg', bgColor: 'bg-emerald-50', textColor: 'text-emerald-600' },
+                        { value: '3/12', label: 'Hit Goal', bgColor: 'bg-amber-50', textColor: 'text-amber-600' },
+                        { value: 'Oct', label: 'Peak Month', bgColor: 'bg-stone-100', textColor: 'text-stone-700' }
+                      ]
+                }
+                minHeight="400px"
+              >
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={SAMPLE_BAR_DATA} margin={{ top: 20, right: 20, bottom: 10, left: 20 }}>
+                    <defs>
+                      <linearGradient id="controlsDemoGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={toggleDemo ? '#a78bfa' : '#34d399'} stopOpacity={1}/>
+                        <stop offset="100%" stopColor={toggleDemo ? '#7c3aed' : '#10b981'} stopOpacity={1}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="4 4" stroke="#e7e5e4" vertical={false} />
+                    <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#57534e', fontSize: 14 }} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#78716c', fontSize: 12 }} />
+                    <Bar dataKey="value" fill="url(#controlsDemoGradient)" radius={[6, 6, 0, 0]} maxBarSize={40} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </ChartCard>
+
+              <div className="mt-6 rounded-xl p-5 bg-stone-100">
+                <h4 className="font-semibold text-stone-900 mb-3">Code Example</h4>
+                <pre className="text-sm text-stone-700 overflow-x-auto">
+{`<ChartCard
+  title="Completed Sessions"
+  headerControls={
+    <>
+      <ToggleButton
+        label="By Clinician"
+        active={showBreakdown}
+        onToggle={() => setShowBreakdown(!showBreakdown)}
+        icon={<Users size={16} />}
+      />
+      <GoalIndicator value={700} hidden={showBreakdown} />
+      <ActionButton
+        label="Sessions Report"
+        onClick={() => navigate('/reports')}
+        icon={<ArrowRight size={16} />}
+      />
+    </>
+  }
+  insights={showBreakdown ? clinicianInsights : totalInsights}
+>
+  {showBreakdown ? <ClinicianChart /> : <TotalChart />}
+</ChartCard>`}
+                </pre>
               </div>
             </Section>
           </>

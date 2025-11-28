@@ -47,6 +47,8 @@ export interface ChartCardProps {
     bgColor?: string;
     textColor?: string;
   };
+  /** Custom controls in header (ToggleButton, GoalIndicator, ActionButton, etc.) */
+  headerControls?: React.ReactNode;
   /** Minimum height for the card */
   minHeight?: string;
   /** Additional className */
@@ -85,6 +87,7 @@ export const ChartCard: React.FC<ChartCardProps> = ({
   onExpand,
   insights,
   valueIndicator,
+  headerControls,
   minHeight = '480px',
   className = '',
   children,
@@ -112,7 +115,10 @@ export const ChartCard: React.FC<ChartCardProps> = ({
           )}
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
+          {/* Custom Header Controls (ToggleButton, GoalIndicator, ActionButton, etc.) */}
+          {headerControls}
+
           {/* Value Indicator */}
           {valueIndicator && (
             <div className={`${valueIndicator.bgColor || 'bg-stone-50'} rounded-xl px-5 py-3 text-center`}>

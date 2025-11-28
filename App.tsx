@@ -36,7 +36,7 @@ const ProtectedApp: React.FC = () => {
          <div className="relative z-10 flex flex-col h-full">
             <Header onMobileMenuOpen={() => setMobileMenuOpen(true)} />
             {/* Main content area - add bottom padding for BottomNav on mobile/tablet */}
-            <div className="flex-1 flex flex-col pb-16 lg:pb-0 overflow-hidden">
+            <div className="flex-1 flex flex-col pb-16 lg:pb-0 overflow-auto">
               <Routes>
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
                 <Route path="/dashboard" element={<Dashboard />} />
