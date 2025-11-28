@@ -1,0 +1,187 @@
+import React from 'react';
+import {
+  LineChart as RechartsLineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from 'recharts';
+
+// =============================================================================
+// LINE CHART COMPONENT
+// =============================================================================
+// Design system wrapper for Recharts LineChart with consistent thick styling.
+// =============================================================================
+
+export interface LineConfig {
+  /** Data key for this line */
+  dataKey: string;
+  /** Line color */
+  color: string;
+  /** Active/hover color (defaults to slightly darker) */
+  activeColor?: string;
+  /** Display name for legend/tooltip */
+  name?: string;
+}
+
+export interface LineChartProps {
+  /** Chart data */
+  data: Record<string, any>[];
+  /** X-axis data key */
+  xAxisKey: string;
+  /** Line configurations */
+  lines: LineConfig[];
+  /** Y-axis domain [min, max] */
+  yDomain?: [number, number];
+  /** Format Y-axis ticks */
+  yTickFormatter?: (value: number) => string;
+  /** Format tooltip values */
+  tooltipFormatter?: (value: number, name: string) => [string, string];
+  /** Show legend */
+  showLegend?: boolean;
+  /** Chart height */
+  height?: string;
+  /** Show area fill under line */
+  showAreaFill?: boolean;
+  /** Area fill gradient ID (for custom gradients) */
+  areaFillId?: string;
+}
+
+/**
+ * LineChart - Design system line chart with consistent thick styling
+ *
+ * Features:
+ * - Thick lines (strokeWidth: 4)
+ * - Large dots (r: 7) with white stroke
+ * - Large active dots (r: 10)
+ * - Consistent tooltip styling
+ * - Support for multiple lines
+ *
+ * @example Single line
+ * ```tsx
+ * <LineChart
+ *   data={data}
+ *   xAxisKey="month"
+ *   lines={[{ dataKey: 'value', color: '#10b981' }]}
+ *   yDomain={[0, 100]}
+ *   yTickFormatter={(v) => `${v}%`}
+ * />
+ * ```
+ *
+ * @example Multiple lines
+ * ```tsx
+ * <LineChart
+ *   data={data}
+ *   xAxisKey="month"
+ *   lines={[
+ *     { dataKey: 'clinician', color: '#3b82f6', name: 'Clinician' },
+ *     { dataKey: 'supervisor', color: '#f59e0b', name: 'Supervisor' },
+ *   ]}
+ *   showLegend
+ * />
+ * ```
+ */
+export const LineChart: React.FC<LineChartProps> = ({
+  data,
+  xAxisKey,
+  lines,
+  yDomain,
+  yTickFormatter,
+  tooltipFormatter,
+  showLegend = false,
+  height = '100%',
+  showAreaFill = false,
+  areaFillId,
+}) => {
+  return (
+    <ResponsiveContainer width="100%" height={height}>
+      <RechartsLineChart data={data} margin={{ top: 20, right: 30, bottom: 30, left: 30 }}>
+        {/* Area fill gradient definitions */}
+        {showAreaFill && (
+          <defs>
+            {lines.map((line) => (
+              <linearGradient
+                key={`gradient-${line.dataKey}`}
+                id={areaFillId || `lineGradient-${line.dataKey}`}
+                x1="0"
+                y1="0"
+                x2="0"
+                y2="1"
+              >
+                <stop offset="0%" stopColor={line.color} stopOpacity={0.25} />
+                <stop offset="100%" stopColor={line.color} stopOpacity={0.02} />
+              </linearGradient>
+            ))}
+          </defs>
+        )}
+
+        <CartesianGrid strokeDasharray="4 4" stroke="#e7e5e4" vertical={false} />
+
+        <XAxis
+          dataKey={xAxisKey}
+          axisLine={false}
+          tickLine={false}
+          tick={{ fill: '#57534e', fontSize: 15, fontWeight: 600 }}
+          dy={12}
+          height={50}
+        />
+
+        <YAxis
+          axisLine={false}
+          tickLine={false}
+          tick={{ fill: lines[0]?.color || '#57534e', fontSize: 14, fontWeight: 700 }}
+          domain={yDomain}
+          tickFormatter={yTickFormatter}
+          width={55}
+        />
+
+        <Tooltip
+          contentStyle={{
+            backgroundColor: '#1c1917',
+            border: 'none',
+            borderRadius: '16px',
+            padding: '16px 20px',
+            boxShadow: '0 20px 40px -10px rgba(0, 0, 0, 0.4)',
+          }}
+          labelStyle={{ color: '#a8a29e', fontSize: '14px', fontWeight: 600, marginBottom: '8px' }}
+          itemStyle={{ color: '#fff', fontSize: '20px', fontWeight: 700 }}
+          formatter={tooltipFormatter}
+        />
+
+        {showLegend && (
+          <Legend
+            verticalAlign="top"
+            align="right"
+            iconType="circle"
+            iconSize={12}
+            wrapperStyle={{ paddingBottom: '10px' }}
+            formatter={(value) => (
+              <span style={{ color: '#57534e', fontSize: '14px', fontWeight: 600 }}>
+                {lines.find((l) => l.dataKey === value)?.name || value}
+              </span>
+            )}
+          />
+        )}
+
+        {lines.map((line) => (
+          <Line
+            key={line.dataKey}
+            type="monotone"
+            dataKey={line.dataKey}
+            name={line.name || line.dataKey}
+            stroke={line.color}
+            strokeWidth={4}
+            dot={{ fill: line.color, r: 7, strokeWidth: 4, stroke: '#fff' }}
+            activeDot={{ r: 10, strokeWidth: 4, stroke: '#fff', fill: line.activeColor || line.color }}
+            fill={showAreaFill ? `url(#${areaFillId || `lineGradient-${line.dataKey}`})` : undefined}
+          />
+        ))}
+      </RechartsLineChart>
+    </ResponsiveContainer>
+  );
+};
+
+export default LineChart;

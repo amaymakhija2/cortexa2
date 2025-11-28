@@ -13,3 +13,6 @@ export type {
   BarColorConfig,
   HoverInfo,
 } from './BarChart';
+
+export { LineChart } from './LineChart';
+export type { LineChartProps, LineConfig } from './LineChart';

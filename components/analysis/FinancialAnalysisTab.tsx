@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from 'react';
 import { Users, ArrowRight } from 'lucide-react';
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import {
   PageHeader,
   PageContent,
@@ -15,6 +14,7 @@ import {
   GoalIndicator,
   ActionButton,
   BarChart,
+  LineChart,
   ExpandedChartModal,
 } from '../design-system';
 import type { HoverInfo } from '../design-system';
@@ -503,45 +503,14 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
               }}
               height="280px"
             >
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={marginChartData} margin={{ top: 10, right: 20, bottom: 10, left: 10 }}>
-                  <CartesianGrid strokeDasharray="4 4" stroke="#e7e5e4" vertical={false} />
-                  <XAxis
-                    dataKey="month"
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: '#57534e', fontSize: 12, fontWeight: 500 }}
-                  />
-                  <YAxis
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: '#10b981', fontSize: 12, fontWeight: 600 }}
-                    domain={[0, 30]}
-                    allowDataOverflow={true}
-                    tickFormatter={(v) => `${v}%`}
-                    width={45}
-                  />
-                  <Tooltip
-                    formatter={(value: number) => [`${value.toFixed(1)}%`, 'Margin']}
-                    contentStyle={{
-                      background: 'rgba(255, 255, 255, 0.95)',
-                      border: 'none',
-                      borderRadius: '12px',
-                      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
-                      padding: '12px 16px',
-                    }}
-                    labelStyle={{ fontWeight: 600, color: '#1c1917' }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="margin"
-                    stroke="#10b981"
-                    strokeWidth={3}
-                    dot={{ fill: '#10b981', r: 5, strokeWidth: 2, stroke: '#fff' }}
-                    activeDot={{ r: 7, fill: '#059669', stroke: '#fff', strokeWidth: 2 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+              <LineChart
+                data={marginChartData}
+                xAxisKey="month"
+                lines={[{ dataKey: 'margin', color: '#10b981', activeColor: '#059669' }]}
+                yDomain={[0, 30]}
+                yTickFormatter={(v) => `${v}%`}
+                tooltipFormatter={(value: number) => [`${value.toFixed(1)}%`, 'Margin']}
+              />
             </SimpleChartCard>
 
             {/* Clinician & Supervisor Cost as % of Revenue */}
@@ -556,69 +525,21 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
               }}
               height="280px"
             >
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={costPercentageData} margin={{ top: 30, right: 20, bottom: 10, left: 10 }}>
-                  <CartesianGrid strokeDasharray="4 4" stroke="#e7e5e4" vertical={false} />
-                  <XAxis
-                    dataKey="month"
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: '#57534e', fontSize: 12, fontWeight: 500 }}
-                  />
-                  <YAxis
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: '#57534e', fontSize: 12, fontWeight: 600 }}
-                    domain={[0, 80]}
-                    tickFormatter={(v) => `${v}%`}
-                    width={45}
-                  />
-                  <Tooltip
-                    formatter={(value: number, name: string) => [
-                      `${value.toFixed(1)}%`,
-                      name === 'clinicianPct' ? 'Clinician' : 'Supervisor',
-                    ]}
-                    contentStyle={{
-                      background: 'rgba(255, 255, 255, 0.95)',
-                      border: 'none',
-                      borderRadius: '12px',
-                      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
-                      padding: '12px 16px',
-                    }}
-                    labelStyle={{ fontWeight: 600, color: '#1c1917' }}
-                  />
-                  <Legend
-                    verticalAlign="top"
-                    align="right"
-                    iconType="circle"
-                    iconSize={10}
-                    wrapperStyle={{ paddingBottom: '10px' }}
-                    formatter={(value) => (
-                      <span style={{ color: '#57534e', fontSize: '13px', fontWeight: 500 }}>
-                        {value === 'clinicianPct' ? 'Clinician' : 'Supervisor'}
-                      </span>
-                    )}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="clinicianPct"
-                    name="clinicianPct"
-                    stroke="#3b82f6"
-                    strokeWidth={3}
-                    dot={{ fill: '#3b82f6', r: 4, strokeWidth: 2, stroke: '#fff' }}
-                    activeDot={{ r: 6, fill: '#2563eb', stroke: '#fff', strokeWidth: 2 }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="supervisorPct"
-                    name="supervisorPct"
-                    stroke="#f59e0b"
-                    strokeWidth={3}
-                    dot={{ fill: '#f59e0b', r: 4, strokeWidth: 2, stroke: '#fff' }}
-                    activeDot={{ r: 6, fill: '#d97706', stroke: '#fff', strokeWidth: 2 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+              <LineChart
+                data={costPercentageData}
+                xAxisKey="month"
+                lines={[
+                  { dataKey: 'clinicianPct', color: '#3b82f6', activeColor: '#2563eb', name: 'Clinician' },
+                  { dataKey: 'supervisorPct', color: '#f59e0b', activeColor: '#d97706', name: 'Supervisor' },
+                ]}
+                yDomain={[0, 80]}
+                yTickFormatter={(v) => `${v}%`}
+                tooltipFormatter={(value: number, name: string) => [
+                  `${value.toFixed(1)}%`,
+                  name === 'clinicianPct' ? 'Clinician' : 'Supervisor',
+                ]}
+                showLegend
+              />
             </SimpleChartCard>
           </Grid>
         </Section>
