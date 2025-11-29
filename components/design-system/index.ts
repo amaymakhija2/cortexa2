@@ -14,6 +14,9 @@ export type { PageHeaderProps, AccentColor, TimePeriod, Tab } from './layout/Pag
 export { Grid, Section, PageContent } from './layout/Grid';
 export type { GridProps, GridColumns, SectionProps, PageContentProps } from './layout/Grid';
 
+export { SectionHeader } from './layout/SectionHeader';
+export type { SectionHeaderProps, SectionAccent } from './layout/SectionHeader';
+
 // Card Components
 export { StatCard, StatCardWithBreakdown } from './cards/StatCard';
 export type { StatCardProps, StatVariant, StatCardWithBreakdownProps } from './cards/StatCard';
@@ -32,6 +35,24 @@ export type { DataTableCardProps, DataTableSize, TableColumn, TableRow } from '.
 
 export { SplitBarCard } from './cards/SplitBarCard';
 export type { SplitBarCardProps, SplitBarSegment } from './cards/SplitBarCard';
+
+export { CohortSelector } from './cards/CohortSelector';
+export type { CohortSelectorProps, CohortOption, CohortMaturity } from './cards/CohortSelector';
+
+export { AtRiskClientsCard } from './cards/AtRiskClientsCard';
+export type { AtRiskClientsCardProps, AtRiskClient } from './cards/AtRiskClientsCard';
+
+export { MilestoneOpportunityCard } from './cards/MilestoneOpportunityCard';
+export type { MilestoneOpportunityCardProps, ApproachingClient } from './cards/MilestoneOpportunityCard';
+
+export { DefinitionsBar } from './cards/DefinitionsBar';
+export type { DefinitionsBarProps, Definition } from './cards/DefinitionsBar';
+
+export { FirstSessionDropoffCard } from './cards/FirstSessionDropoffCard';
+export type { FirstSessionDropoffCardProps } from './cards/FirstSessionDropoffCard';
+
+export { FrequencyRetentionCard } from './cards/FrequencyRetentionCard';
+export type { FrequencyRetentionCardProps, FrequencyData } from './cards/FrequencyRetentionCard';
 
 // Control Components
 export { ToggleButton, GoalIndicator, ActionButton } from './controls';

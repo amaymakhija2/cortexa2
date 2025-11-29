@@ -217,14 +217,141 @@ export interface RetentionFunnelData {
   timeFunnel: FunnelStageData[];
 }
 
+/**
+ * Summary data for a selected cohort
+ */
+export interface CohortSummaryData {
+  /** Total clients acquired in this cohort */
+  clientsAcquired: number;
+  /** Clients who have churned from this cohort */
+  clientsChurned: number;
+  /** Currently active clients from this cohort */
+  activeClients: number;
+  /** Average sessions per client (ALL clients, not just churned) */
+  avgSessionsPerClient: number;
+}
+
+/**
+ * Cohort option for retention analysis
+ */
+export interface RetentionCohort {
+  id: string;
+  label: string;
+  sublabel?: string;
+  clientCount: number;
+  maturity: 'mature' | 'partial' | 'immature';
+  availableDate?: string;
+  recommended?: boolean;
+  /** Summary data for this cohort */
+  summary?: CohortSummaryData;
+}
+
+/**
+ * At-risk client for current health section
+ */
+export interface AtRiskClientData {
+  id: string;
+  name: string;
+  daysSinceLastSession: number;
+  totalSessions: number;
+  clinician: string;
+  riskLevel: 'high' | 'medium' | 'low';
+}
+
+/**
+ * Client approaching a milestone
+ */
+export interface ApproachingMilestoneClient {
+  id: string;
+  name: string;
+  currentSessions: number;
+  targetMilestone: number;
+  sessionsToGo: number;
+  nextAppointment?: string;
+  clinician: string;
+}
+
+/**
+ * Current health metrics for retention
+ */
+export interface CurrentHealthData {
+  /** Clients without upcoming appointments */
+  atRiskClients: AtRiskClientData[];
+  /** Clients approaching session 5 milestone */
+  approachingSession5: ApproachingMilestoneClient[];
+  /** Current rebook rate data */
+  rebookRateData: { month: string; rate: number }[];
+  /** Average rebook rate */
+  avgRebookRate: number;
+  /** Total active clients */
+  totalActiveClients: number;
+}
+
+/**
+ * Session 1 → 2 dropoff data
+ */
+export interface FirstSessionDropoffData {
+  /** Clients who had session 1 */
+  session1Count: number;
+  /** Clients who returned for session 2 */
+  session2Count: number;
+  /** Industry benchmark percentage */
+  benchmarkPercentage: number;
+}
+
+/**
+ * Frequency and retention correlation data
+ */
+export interface FrequencyRetentionDataPoint {
+  /** Frequency type */
+  frequency: 'weekly' | 'biweekly' | 'monthly';
+  /** Display label */
+  label: string;
+  /** Average sessions before churn */
+  avgSessions: number;
+  /** Number of clients in this category */
+  clientCount: number;
+  /** Average tenure in months */
+  avgTenureMonths: number;
+}
+
+/**
+ * Benchmark data for retention metrics
+ */
+export interface RetentionBenchmarks {
+  /** Industry average churn rate (percentage) */
+  avgChurnRate: number;
+  /** Industry average client tenure (sessions) */
+  avgClientTenure: number;
+  /** Industry average session 5 retention */
+  avgSession5Retention: number;
+  /** Frequency retention multiplier range */
+  frequencyMultiplierRange: string;
+}
+
 // =============================================================================
 // RETENTION TAB PROPS
 // =============================================================================
 
-export interface RetentionTabProps extends BaseAnalysisTabProps {
+export interface RetentionTabProps {
+  /** Available cohort options */
+  cohorts: RetentionCohort[];
+  /** Tab navigation */
+  tabs: TabConfig[];
+  activeTab: string;
+  onTabChange: (tabId: string) => void;
+  /** Churn data by clinician */
   churnByClinicianData: ChurnByClinicianDataPoint[];
+  /** Churn timing breakdown */
   churnTimingData: ChurnTimingDataPoint[];
-  clientGrowthData: ClientGrowthDataPoint[]; // For rebook rate calculation
-  retentionMetrics: RetentionMetrics; // Hero stats data
-  retentionFunnelData: RetentionFunnelData; // Funnel visualization data
+  /** Retention funnel data */
+  retentionFunnelData: RetentionFunnelData;
+  /** Current health data */
+  currentHealthData: CurrentHealthData;
+  /** First session dropoff data */
+  firstSessionDropoffData: FirstSessionDropoffData;
+  /** Frequency retention correlation data */
+  frequencyRetentionData: FrequencyRetentionDataPoint[];
+  /** Benchmark data for comparisons */
+  benchmarks: RetentionBenchmarks;
 }

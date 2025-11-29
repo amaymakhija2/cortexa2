@@ -8,6 +8,7 @@ import {
   Grid,
   Section,
   PageContent,
+  SectionHeader,
   StatCard,
   StatCardWithBreakdown,
   ChartCard,
@@ -24,6 +25,9 @@ import {
   SplitBarCard,
   DivergingBarChart,
   RetentionFunnelCard,
+  CohortSelector,
+  AtRiskClientsCard,
+  MilestoneOpportunityCard,
 } from './';
 import type { HoverInfo } from './charts';
 
@@ -153,6 +157,33 @@ const SAMPLE_TIME_FUNNEL = [
   { label: '1 Month', count: 82, percentage: 82 },
   { label: '3 Months', count: 62, percentage: 62 },
   { label: '6 Months', count: 41, percentage: 41 },
+];
+
+// Sample data for CohortSelector
+const SAMPLE_COHORTS = [
+  { id: 'all-time', label: 'All Time', sublabel: 'Since practice opened', clientCount: 847, maturity: 'mature' as const, recommended: true },
+  { id: 'ytd-2024', label: '2024 YTD', sublabel: 'Jan - Nov 2024', clientCount: 312, maturity: 'mature' as const },
+  { id: 'q3-2024', label: 'Q3 2024', sublabel: 'Jul - Sep', clientCount: 142, maturity: 'mature' as const },
+  { id: 'q4-2024', label: 'Q4 2024', sublabel: 'Oct - Dec', clientCount: 89, maturity: 'partial' as const },
+  { id: 'nov-2024', label: 'Nov 2024', sublabel: '23 clients', clientCount: 23, maturity: 'immature' as const, availableDate: 'Jan 15, 2025' },
+];
+
+// Sample data for AtRiskClientsCard
+const SAMPLE_AT_RISK_CLIENTS = [
+  { id: '1', name: 'Sarah Mitchell', daysSinceLastSession: 28, totalSessions: 12, clinician: 'Dr. Chen', riskLevel: 'high' as const },
+  { id: '2', name: 'James Rodriguez', daysSinceLastSession: 21, totalSessions: 8, clinician: 'Dr. Patel', riskLevel: 'high' as const },
+  { id: '3', name: 'Emily Chen', daysSinceLastSession: 16, totalSessions: 4, clinician: 'Dr. Kim', riskLevel: 'medium' as const },
+  { id: '4', name: 'Michael Brown', daysSinceLastSession: 14, totalSessions: 6, clinician: 'Dr. Johnson', riskLevel: 'medium' as const },
+  { id: '5', name: 'Lisa Wang', daysSinceLastSession: 10, totalSessions: 3, clinician: 'Dr. Chen', riskLevel: 'low' as const },
+];
+
+// Sample data for MilestoneOpportunityCard
+const SAMPLE_APPROACHING_CLIENTS = [
+  { id: '1', name: 'Alex Thompson', currentSessions: 4, targetMilestone: 5, sessionsToGo: 1, nextAppointment: 'Tomorrow', clinician: 'Dr. Chen' },
+  { id: '2', name: 'Jordan Lee', currentSessions: 4, targetMilestone: 5, sessionsToGo: 1, nextAppointment: 'Dec 5', clinician: 'Dr. Patel' },
+  { id: '3', name: 'Casey Morgan', currentSessions: 3, targetMilestone: 5, sessionsToGo: 2, nextAppointment: 'Dec 3', clinician: 'Dr. Kim' },
+  { id: '4', name: 'Taylor Swift', currentSessions: 3, targetMilestone: 5, sessionsToGo: 2, clinician: 'Dr. Johnson' },
+  { id: '5', name: 'Morgan Freeman', currentSessions: 2, targetMilestone: 5, sessionsToGo: 3, nextAppointment: 'Dec 8', clinician: 'Dr. Chen' },
 ];
 
 export const Reference: React.FC = () => {
@@ -1683,6 +1714,235 @@ export const Reference: React.FC = () => {
   onExpand={() => setExpanded('funnel')}
 />`}
                 </pre>
+              </div>
+            </Section>
+
+            {/* SectionHeader Component */}
+            <Section>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                SectionHeader Component
+              </h2>
+              <p className="text-stone-500 mb-6">For organizing page content into numbered sections with questions. Used in Retention tab for section-based layout.</p>
+
+              {/* Interactive Demo */}
+              <div className="mb-8 space-y-4">
+                <SectionHeader
+                  number={1}
+                  question="How far do clients get?"
+                  description="Session milestones show how clients progress through therapy"
+                  accent="amber"
+                />
+                <SectionHeader
+                  number={2}
+                  question="How long do clients stay?"
+                  description="Time-based retention milestones"
+                  accent="indigo"
+                />
+                <SectionHeader
+                  number={3}
+                  question="When and why do clients leave?"
+                  accent="rose"
+                />
+              </div>
+
+              {/* Props Reference */}
+              <div className="rounded-xl p-5 bg-stone-100 mb-6">
+                <h4 className="font-semibold text-stone-900 mb-3">Props Reference</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <code className="text-violet-600">number</code>
+                    <span className="text-stone-500 ml-2">number - Section number (optional)</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">question</code>
+                    <span className="text-stone-500 ml-2">string - Main question/title</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">description</code>
+                    <span className="text-stone-500 ml-2">string - Subtitle (optional)</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">accent</code>
+                    <span className="text-stone-500 ml-2">'amber' | 'indigo' | 'rose' | 'emerald' | 'stone'</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">icon</code>
+                    <span className="text-stone-500 ml-2">ReactNode - Custom icon (optional)</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">actions</code>
+                    <span className="text-stone-500 ml-2">ReactNode - Right-side actions (optional)</span>
+                  </div>
+                </div>
+              </div>
+            </Section>
+
+            {/* CohortSelector Component */}
+            <Section>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                CohortSelector Component
+              </h2>
+              <p className="text-stone-500 mb-6">For cohort-first retention analysis. Features hero-sized typography, expanded/collapsed states, and maturity indicators.</p>
+
+              {/* Interactive Demo */}
+              <div className="mb-8">
+                <CohortSelector
+                  cohorts={SAMPLE_COHORTS}
+                  selectedCohort={null}
+                  onSelect={() => {}}
+                  title="Which clients do you want to analyze?"
+                  subtitle="Select a time period to see retention data"
+                />
+              </div>
+
+              {/* Props Reference */}
+              <div className="rounded-xl p-5 bg-stone-100 mb-6">
+                <h4 className="font-semibold text-stone-900 mb-3">Props Reference</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <code className="text-violet-600">cohorts</code>
+                    <span className="text-stone-500 ml-2">CohortOption[] - Available cohorts</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">selectedCohort</code>
+                    <span className="text-stone-500 ml-2">string | null - Selected cohort ID</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">onSelect</code>
+                    <span className="text-stone-500 ml-2">(id: string) =&gt; void - Selection callback</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">title</code>
+                    <span className="text-stone-500 ml-2">string - Header title (optional)</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* CohortOption Interface */}
+              <div className="rounded-xl p-5 bg-stone-100 mb-6">
+                <h4 className="font-semibold text-stone-900 mb-3">CohortOption Interface</h4>
+                <pre className="text-sm text-stone-700 overflow-x-auto">
+{`interface CohortOption {
+  id: string;
+  label: string;           // "All Time", "Q3 2024"
+  sublabel?: string;       // "Since practice opened"
+  clientCount: number;     // Hero number displayed
+  maturity: 'mature' | 'partial' | 'immature';
+  availableDate?: string;  // For immature cohorts
+  recommended?: boolean;   // Shows "Recommended" badge
+}`}
+                </pre>
+              </div>
+
+              {/* Design Features */}
+              <div className="rounded-xl p-5 bg-amber-50 border border-amber-200">
+                <h4 className="font-semibold text-amber-800 mb-3">Design Features</h4>
+                <ul className="text-sm text-amber-700 space-y-2">
+                  <li><strong>Expanded State:</strong> Hero-sized typography (text-5xl client count), luxury card styling</li>
+                  <li><strong>Collapsed State:</strong> Compact bar (~60px) with amber accent, "Change" button</li>
+                  <li><strong>Auto-collapse:</strong> Collapses 400ms after selection</li>
+                  <li><strong>Maturity badges:</strong> Emerald (complete), Amber (partial), Stone (immature/disabled)</li>
+                </ul>
+              </div>
+            </Section>
+
+            {/* AtRiskClientsCard Component */}
+            <Section>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                AtRiskClientsCard Component
+              </h2>
+              <p className="text-stone-500 mb-6">Shows clients without upcoming appointments, sorted by risk level. Part of the Current Health section in Retention tab.</p>
+
+              {/* Interactive Demo */}
+              <div className="mb-8">
+                <AtRiskClientsCard
+                  clients={SAMPLE_AT_RISK_CLIENTS}
+                  totalActiveClients={156}
+                />
+              </div>
+
+              {/* Props Reference */}
+              <div className="rounded-xl p-5 bg-stone-100 mb-6">
+                <h4 className="font-semibold text-stone-900 mb-3">Props Reference</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <code className="text-violet-600">clients</code>
+                    <span className="text-stone-500 ml-2">AtRiskClient[] - At-risk client list</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">totalActiveClients</code>
+                    <span className="text-stone-500 ml-2">number - For percentage calculation</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">onViewAll</code>
+                    <span className="text-stone-500 ml-2">() =&gt; void - View all callback</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">onClientClick</code>
+                    <span className="text-stone-500 ml-2">(id: string) =&gt; void - Client click</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Risk Levels */}
+              <div className="rounded-xl p-5 bg-rose-50 border border-rose-200">
+                <h4 className="font-semibold text-rose-800 mb-3">Risk Level Thresholds</h4>
+                <ul className="text-sm text-rose-700 space-y-1">
+                  <li><strong>High (rose):</strong> 21+ days since last session</li>
+                  <li><strong>Medium (amber):</strong> 14-21 days since last session</li>
+                  <li><strong>Low (stone):</strong> 7-14 days since last session</li>
+                </ul>
+              </div>
+            </Section>
+
+            {/* MilestoneOpportunityCard Component */}
+            <Section>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                MilestoneOpportunityCard Component
+              </h2>
+              <p className="text-stone-500 mb-6">Shows clients approaching a key retention milestone (e.g., Session 5). Opportunities for proactive intervention.</p>
+
+              {/* Interactive Demo */}
+              <div className="mb-8">
+                <MilestoneOpportunityCard
+                  milestone={5}
+                  clients={SAMPLE_APPROACHING_CLIENTS}
+                  successRate={76}
+                />
+              </div>
+
+              {/* Props Reference */}
+              <div className="rounded-xl p-5 bg-stone-100 mb-6">
+                <h4 className="font-semibold text-stone-900 mb-3">Props Reference</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <code className="text-violet-600">milestone</code>
+                    <span className="text-stone-500 ml-2">number - Target milestone (e.g., 5)</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">clients</code>
+                    <span className="text-stone-500 ml-2">ApproachingClient[] - Clients list</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">successRate</code>
+                    <span className="text-stone-500 ml-2">number - Historical % reaching milestone</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">maxPreview</code>
+                    <span className="text-stone-500 ml-2">number - Max clients to show (default 5)</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Features */}
+              <div className="rounded-xl p-5 bg-emerald-50 border border-emerald-200">
+                <h4 className="font-semibold text-emerald-800 mb-3">Features</h4>
+                <ul className="text-sm text-emerald-700 space-y-1">
+                  <li><strong>Progress breakdown:</strong> Shows clients 1, 2, or 3+ sessions away</li>
+                  <li><strong>Progress indicator:</strong> Visual current/target (e.g., "4/5")</li>
+                  <li><strong>Next appointment:</strong> Shows scheduled date if available</li>
+                  <li><strong>"1 to go!" badge:</strong> Highlights clients one session away</li>
+                </ul>
               </div>
             </Section>
 

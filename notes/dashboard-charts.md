@@ -452,39 +452,159 @@ Psychotherapy practice owners and clinical directors who are very poor at readin
 
 ## RETENTION TAB
 
-### Hero Stats Row (4 Cards)
+The Retention tab uses a **cohort-first approach**. Users must first select a cohort (clients who STARTED during a specific period) before any data is displayed. This ensures retention metrics are calculated accurately for a defined group of clients.
 
-#### 1. Avg Client Tenure
-| Element | Content |
-|---------|---------|
-| **Title** | "Avg Client Tenure" |
-| **Value** | "{X.X} months" |
-| **Subtext** | "across {X} discharged clients" |
+### UX Flow
 
-#### 2. Avg Sessions per Client
-| Element | Content |
-|---------|---------|
-| **Title** | "Avg Sessions per Client" |
-| **Value** | "{X.X}" |
-| **Subtext** | "before discharge" |
+1. **Initial State**: No cohort is selected. The page shows only the cohort selector.
+2. **Cohort Selection**: User selects a cohort (All Time, YTD, Quarter, etc.)
+3. **Definitions Bar**: Shows definitions of "Churned" and "Retained"
+4. **Data Display**: Hero stats with benchmarks and all data sections appear.
 
-#### 3. Session 5 Retention
-| Element | Content |
-|---------|---------|
-| **Title** | "Session 5 Retention" |
-| **Value** | "{XX}%" |
-| **Subtext** | "of new clients reach session 5" |
-
-#### 4. 3-Month Retention
-| Element | Content |
-|---------|---------|
-| **Title** | "3-Month Retention" |
-| **Value** | "{XX}%" |
-| **Subtext** | "of new clients stay 3+ months" |
+### Section Order (Narrative Flow)
+1. **Churn Patterns** → "When do clients leave?" (see the problem first)
+2. **Retention Journey** → "How far do they get?" (understand the mechanics)
+3. **What Drives Retention** → "What keeps clients?" (identify actionable drivers)
+4. **Current Health** → "Who needs attention now?" (take action today)
 
 ---
 
-### Main Charts Row (2 Charts)
+### Cohort Selector (Primary Question)
+
+The cohort selector has two visual states with luxury-level typography matching the design system.
+
+#### Expanded State (Initial / Editing)
+
+**Container**:
+| Element | Content |
+|---------|---------|
+| **Background** | Stone gradient (#fafaf9 → #f5f5f4) with dot pattern overlay |
+| **Accents** | Dual amber gradient glows (top-right, bottom-left) |
+| **Padding** | p-8 sm:p-10 xl:p-14 |
+| **Corner Radius** | rounded-2xl xl:rounded-3xl |
+
+**Header**:
+| Element | Typography |
+|---------|------------|
+| **Title** | text-3xl sm:text-4xl xl:text-5xl, DM Serif Display |
+| **Subtitle** | text-lg xl:text-xl, stone-500, leading-relaxed |
+| **Collapse Button** | Appears when cohort already selected |
+
+**Cohort Cards** (5-column grid):
+| Element | Typography / Style |
+|---------|-------------------|
+| **Card Padding** | p-6 sm:p-7 xl:p-8 |
+| **Cohort Label** | text-2xl sm:text-3xl xl:text-3xl, DM Serif Display, stone-900 |
+| **Sublabel** | text-base xl:text-lg, stone-500 |
+| **Client Count** | text-4xl sm:text-5xl xl:text-5xl, DM Serif Display (HERO number) |
+| **"clients" label** | text-lg xl:text-xl, stone-500 |
+| **Maturity Badge** | text-sm, px-4 py-2.5, rounded-xl with glow shadow |
+| **Recommended Badge** | text-sm font-bold, amber gradient, rotates on hover |
+
+**Card States**:
+| State | Visual Treatment |
+|-------|-----------------|
+| **Default** | White gradient, subtle shadow |
+| **Hover** | translateY(-4px), deeper shadow, amber tint overlay |
+| **Selected** | Warm amber gradient (#fffbeb → #fef3c7), amber border, checkmark pulse |
+| **Disabled** | 50% opacity, cursor-not-allowed |
+
+#### Collapsed State (After Selection)
+| Element | Content |
+|---------|---------|
+| **Style** | Compact horizontal bar (~60px height) |
+| **Left Accent** | 4px amber gradient bar |
+| **Icon** | Users in amber-50 rounded-xl container |
+| **Label** | text-lg font-bold, DM Serif Display |
+| **Details** | Client count, maturity badge inline |
+| **Action** | "Change" button with Pencil icon |
+| **Transition** | Auto-collapses 400ms after selection |
+
+**Design Philosophy**: Luxury-level typography with hero-sized client counts. Make selection prominent initially with sophisticated visuals, then collapse to let users focus on data.
+
+**Cohort Options** (in order):
+
+| Cohort | Sublabel | Maturity |
+|--------|----------|----------|
+| All Time | "Since practice opened" | Mature (recommended) |
+| 2024 YTD | "Jan - Nov 2024" | Mature |
+| Q3 2024 | "Jul - Sep" | Mature |
+| Q4 2024 | "Oct - Dec" | Partial |
+| Nov 2024 | "23 clients" | Immature (grayed out, shows "Data available Jan 15, 2025") |
+
+**Maturity Badge Styles**:
+| Maturity | Background | Text | Border | Glow |
+|----------|------------|------|--------|------|
+| **Mature** | emerald-50 | emerald-700 | emerald-200 | rgba(16, 185, 129, 0.15) |
+| **Partial** | amber-50 | amber-700 | amber-200 | rgba(245, 158, 11, 0.15) |
+| **Immature** | stone-100 | stone-500 | stone-300 | rgba(120, 113, 108, 0.1) |
+
+---
+
+### Definitions Bar
+
+| Element | Content |
+|---------|---------|
+| **Location** | Below cohort selector, before hero stats |
+| **Style** | Subtle stone-100 background, compact horizontal layout |
+| **Icon** | Info icon (16px) |
+| **Definitions** | |
+| - Churned | "No appointment in 30+ days and none scheduled" |
+| - Retained | "Active or has appointment scheduled within 30 days" |
+
+**Component**: `DefinitionsBar`
+
+---
+
+### Hero Stats Row (4 Cards) - With Benchmarks
+
+Uses the standard `StatCard` component from the design system. Displayed in a 4-column grid after cohort selection. Benchmarks are shown in subtexts where applicable.
+
+#### 1. Clients Acquired
+| Element | Content |
+|---------|---------|
+| **Title** | "Clients Acquired" |
+| **Value** | "{XXX}" (total clients in cohort) |
+| **Subtext** | "in {Cohort Label}" |
+| **Variant** | default (stone-900) |
+
+#### 2. Clients Churned
+| Element | Content |
+|---------|---------|
+| **Title** | "Clients Churned" |
+| **Value** | "{XXX}" (churned count) |
+| **Subtext** | "{X}% of cohort (avg: {benchmark}%)" |
+| **Variant** | negative (rose-600) |
+| **Benchmark** | Industry average churn rate shown in subtext |
+
+#### 3. Active Clients
+| Element | Content |
+|---------|---------|
+| **Title** | "Active Clients" |
+| **Value** | "{XXX}" (still active from cohort) |
+| **Subtext** | "{X}% still active" |
+| **Variant** | positive (emerald-600) |
+
+#### 4. Avg Client Tenure
+| Element | Content |
+|---------|---------|
+| **Title** | "Avg Client Tenure" |
+| **Value** | "{X.X}" |
+| **Subtext** | "sessions per client (avg: {benchmark})" |
+| **Variant** | default (stone-900) |
+| **Benchmark** | Industry average tenure shown in subtext |
+| **Note** | **IMPORTANT**: This is the average number of sessions across ALL clients in the cohort, not just churned clients. This provides an accurate view of client engagement. |
+
+---
+
+### Section 1: Churn Patterns (Rose)
+
+| Element | Content |
+|---------|---------|
+| **Section Header** | Question: "When do clients leave?" |
+| **Description** | "Monthly churn trends and timing breakdown" |
+| **Number** | 1 |
+| **Accent** | Rose |
 
 #### Clients Churned Chart (Left)
 | Element | Content |
@@ -503,8 +623,6 @@ Psychotherapy practice owners and clinical directors who are very poor at readin
 | **Expandable** | Yes |
 | **Height** | 380px |
 
----
-
 #### Churn Timing Chart (Right)
 | Element | Content |
 |---------|---------|
@@ -521,37 +639,117 @@ Psychotherapy practice owners and clinical directors who are very poor at readin
 
 ---
 
-### Rebook Rate Chart
+### Section 2: Retention Journey (Amber)
+
+| Element | Content |
+|---------|---------|
+| **Section Header** | Question: "How far do clients get?" |
+| **Description** | "Session milestones and time-based retention" |
+| **Number** | 2 |
+| **Accent** | Amber |
+
+#### Layout
+Both funnel cards displayed **side-by-side** in a 2-column grid, followed by the First Session Drop-off card below.
+
+#### Retention by Sessions Funnel (Left)
+See Retention Funnel Cards section below for funnel details.
+
+#### Retention by Time Funnel (Right)
+See Retention Funnel Cards section below for funnel details.
+
+#### First Session Drop-off Card (Below Funnels)
+| Element | Content |
+|---------|---------|
+| **Title** | "First Session Drop-off" |
+| **Subtitle** | "Clients who don't return after session 1" |
+| **Visual** | Two-step mini funnel (Session 1 → Session 2) |
+| **Key Metric** | Return rate percentage (e.g., "77%") |
+| **Benchmark** | "Your X% vs Y% industry avg" |
+| **Status Indicator** | Alert badge if below benchmark |
+| **Drop-off Display** | Shows count and percentage lost between sessions |
+
+**Component**: `FirstSessionDropoffCard`
+
+**Why This Matters**: The Session 1→2 transition is often the steepest cliff in client retention. Highlighting it separately ensures practice owners don't miss this critical insight.
+
+---
+
+### Section 3: What Drives Retention (Cyan)
+
+| Element | Content |
+|---------|---------|
+| **Section Header** | Question: "What keeps clients?" |
+| **Description** | "Factors that correlate with longer client tenure" |
+| **Number** | 3 |
+| **Accent** | Cyan |
+
+#### Frequency & Retention Card (Left)
+| Element | Content |
+|---------|---------|
+| **Title** | "Frequency & Retention" |
+| **Subtitle** | "How session frequency affects client tenure" |
+| **Icon** | Calendar (cyan) |
+| **Key Insight Box** | "Weekly clients stay {X}x longer than bi-weekly clients" |
+| **Benchmark** | "Similar practices see {range} difference" |
+| **Comparison Bars** | |
+| - Weekly | Emerald bar, avg sessions count |
+| - Bi-weekly | Amber bar, avg sessions count |
+| - Monthly | Stone bar, avg sessions count |
+| **Recommendation** | "Encourage new clients to start with weekly sessions for the first 2-3 months to improve retention." |
+
+**Component**: `FrequencyRetentionCard`
+
+#### Future Driver Cards (Right - Placeholder)
+| Element | Content |
+|---------|---------|
+| **Style** | Dashed border placeholder |
+| **Text** | "More retention drivers coming soon (e.g., referral source, insurance type)" |
+
+---
+
+### Section 4: Current Health (Emerald)
+
+| Element | Content |
+|---------|---------|
+| **Section Header** | Question: "Who needs attention now?" |
+| **Description** | "Real-time indicators of client engagement and risk" |
+| **Number** | 4 |
+| **Accent** | Emerald |
+
+#### 4.1 Rebook Rate Chart
 | Element | Content |
 |---------|---------|
 | **Title** | "Rebook Rate" |
-| **Subtitle** | "% of clients with next appointment scheduled" |
+| **Subtitle** | "% of clients with next appointment" |
 | **Chart Type** | Line chart with area fill |
 | **Value Indicator** | Average % (emerald) |
-| **Y-Axis** | 80 - 100% |
+| **Y-Axis** | 70 - 100% |
 | **Line Color** | Emerald (#10b981) |
 | **Expandable** | Yes |
 | **Height** | 320px |
 
+#### 4.2 At-Risk Clients Card
+| Element | Content |
+|---------|---------|
+| **Title** | "At-Risk Clients" |
+| **Description** | Clients without upcoming appointments |
+| **Risk Levels** | High (21+ days), Medium (14-21 days), Low (7-14 days) |
+| **List Display** | Client name, days since last session, clinician |
+| **Action** | "View All" link to full list |
+
+#### 4.3 Approaching Session 5 Card
+| Element | Content |
+|---------|---------|
+| **Title** | "Approaching Session 5" |
+| **Description** | Key retention milestone opportunity |
+| **Breakdown** | Shows clients 1 session away, 2 sessions away, 3+ sessions away |
+| **Success Rate** | Historical percentage reaching session 5 |
+| **List Display** | Client name, current session count, next appointment, clinician |
+| **Action** | "View All" link to full list |
+
 ---
 
-### Hero Stats Row — Metric Options (Choose 4)
-
-**Selected metrics: A, B, C, D**
-
-| Option | Metric | Value Example | Subtext | Notes |
-|--------|--------|---------------|---------|-------|
-| A ✓ | Avg Client Tenure | "7.4 months" | "across discharged clients" | Anchor metric for "how long do clients stay?" |
-| B ✓ | Avg Sessions per Client | "14.3" | "before discharge" | Pairs with tenure to show engagement intensity |
-| C ✓ | Session 5 Retention | "76%" | "of new clients reach session 5" | Early stickiness signal, most predictive |
-| D ✓ | 3-Month Retention | "62%" | "of new clients stay 3+ months" | Durability signal, actionable timeframe |
-| E | Median Tenure | "5.2 months" | "half of clients stay longer" | Alternative to avg if outliers skew data |
-| F | Early Dropout Rate | "24%" | "leave before session 5" | Inverse of C, frames as problem to solve |
-| G | 6-Month Retention | "41%" | "of new clients stay 6+ months" | Alternative to D for long-term focused practices |
-
----
-
-### Retention Funnel Cards (2 Cards in Grid)
+### Retention Funnel Cards
 
 Two separate funnel cards side-by-side showing client retention journeys.
 
@@ -632,7 +830,7 @@ Two separate funnel cards side-by-side showing client retention journeys.
 
 **Component**: `RetentionFunnelCard` from design system
 
-Scope: Data calculated from cohort within tab time selector period
+Scope: Data calculated for the selected cohort (clients who STARTED during that period)
 
 ---
 

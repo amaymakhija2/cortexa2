@@ -177,29 +177,137 @@ const ALL_CHURN_TIMING_DATA = [
   { month: 'Dec', earlyChurn: 1, mediumChurn: 1, lateChurn: 1 }
 ];
 
-// Retention hero metrics - aggregated data for retention analysis
-const RETENTION_METRICS = {
-  avgTenureMonths: 7.4,
-  avgSessionsPerClient: 14.3,
-  session5RetentionRate: 76,
-  threeMonthRetentionRate: 62,
-  totalDischargedClients: 57,
-};
+// Retention cohort options - for cohort-first analysis
+// Summary data: clientsAcquired, clientsChurned, activeClients, avgSessionsPerClient (ALL clients)
+const RETENTION_COHORTS = [
+  {
+    id: 'all-time',
+    label: 'All Time',
+    sublabel: 'Since practice opened',
+    clientCount: 847,
+    maturity: 'mature' as const,
+    recommended: true,
+    summary: { clientsAcquired: 847, clientsChurned: 691, activeClients: 156, avgSessionsPerClient: 14.3 }
+  },
+  {
+    id: 'ytd-2024',
+    label: '2024 YTD',
+    sublabel: 'Jan - Nov 2024',
+    clientCount: 312,
+    maturity: 'mature' as const,
+    summary: { clientsAcquired: 312, clientsChurned: 198, activeClients: 114, avgSessionsPerClient: 11.8 }
+  },
+  {
+    id: 'q3-2024',
+    label: 'Q3 2024',
+    sublabel: 'Jul - Sep',
+    clientCount: 142,
+    maturity: 'mature' as const,
+    summary: { clientsAcquired: 142, clientsChurned: 67, activeClients: 75, avgSessionsPerClient: 9.2 }
+  },
+  {
+    id: 'q4-2024',
+    label: 'Q4 2024',
+    sublabel: 'Oct - Dec',
+    clientCount: 89,
+    maturity: 'partial' as const,
+    summary: { clientsAcquired: 89, clientsChurned: 18, activeClients: 71, avgSessionsPerClient: 5.4 }
+  },
+  {
+    id: 'nov-2024',
+    label: 'Nov 2024',
+    sublabel: '23 clients',
+    clientCount: 23,
+    maturity: 'immature' as const,
+    availableDate: 'Jan 15, 2025',
+    summary: { clientsAcquired: 23, clientsChurned: 2, activeClients: 21, avgSessionsPerClient: 2.8 }
+  },
+];
 
 // Retention funnel data - client journey visualization
 const RETENTION_FUNNEL_DATA = {
   sessionsFunnel: [
-    { label: 'Started', count: 100, percentage: 100 },
-    { label: 'Session 5', count: 76, percentage: 76 },
-    { label: 'Session 12', count: 52, percentage: 52 },
-    { label: 'Session 24', count: 31, percentage: 31 },
+    { label: 'Started', count: 847, percentage: 100 },
+    { label: 'Session 5', count: 644, percentage: 76 },
+    { label: 'Session 12', count: 440, percentage: 52 },
+    { label: 'Session 24', count: 263, percentage: 31 },
   ],
   timeFunnel: [
-    { label: 'Started', count: 100, percentage: 100 },
-    { label: '1 Month', count: 82, percentage: 82 },
-    { label: '3 Months', count: 62, percentage: 62 },
-    { label: '6 Months', count: 41, percentage: 41 },
+    { label: 'Started', count: 847, percentage: 100 },
+    { label: '1 Month', count: 695, percentage: 82 },
+    { label: '3 Months', count: 525, percentage: 62 },
+    { label: '6 Months', count: 347, percentage: 41 },
   ],
+};
+
+// At-risk clients - no upcoming appointment scheduled
+const AT_RISK_CLIENTS = [
+  { id: 'c1', name: 'Sarah Mitchell', daysSinceLastSession: 28, totalSessions: 12, clinician: 'Dr. Chen', riskLevel: 'high' as const },
+  { id: 'c2', name: 'James Rodriguez', daysSinceLastSession: 24, totalSessions: 8, clinician: 'Dr. Patel', riskLevel: 'high' as const },
+  { id: 'c3', name: 'Emily Watson', daysSinceLastSession: 21, totalSessions: 15, clinician: 'Dr. Kim', riskLevel: 'high' as const },
+  { id: 'c4', name: 'Michael Chen', daysSinceLastSession: 18, totalSessions: 6, clinician: 'Dr. Rodriguez', riskLevel: 'medium' as const },
+  { id: 'c5', name: 'Lisa Thompson', daysSinceLastSession: 16, totalSessions: 4, clinician: 'Dr. Johnson', riskLevel: 'medium' as const },
+  { id: 'c6', name: 'David Park', daysSinceLastSession: 15, totalSessions: 22, clinician: 'Dr. Chen', riskLevel: 'medium' as const },
+  { id: 'c7', name: 'Jennifer Lee', daysSinceLastSession: 12, totalSessions: 9, clinician: 'Dr. Patel', riskLevel: 'low' as const },
+  { id: 'c8', name: 'Robert Garcia', daysSinceLastSession: 10, totalSessions: 3, clinician: 'Dr. Kim', riskLevel: 'low' as const },
+];
+
+// Clients approaching session 5 milestone
+const APPROACHING_SESSION_5 = [
+  { id: 'a1', name: 'Amanda Foster', currentSessions: 4, targetMilestone: 5, sessionsToGo: 1, nextAppointment: 'Dec 3', clinician: 'Dr. Chen' },
+  { id: 'a2', name: 'Brian Martinez', currentSessions: 4, targetMilestone: 5, sessionsToGo: 1, nextAppointment: 'Dec 5', clinician: 'Dr. Patel' },
+  { id: 'a3', name: 'Christina Liu', currentSessions: 4, targetMilestone: 5, sessionsToGo: 1, nextAppointment: 'Dec 4', clinician: 'Dr. Kim' },
+  { id: 'a4', name: 'Daniel Williams', currentSessions: 3, targetMilestone: 5, sessionsToGo: 2, nextAppointment: 'Dec 6', clinician: 'Dr. Rodriguez' },
+  { id: 'a5', name: 'Elena Petrova', currentSessions: 3, targetMilestone: 5, sessionsToGo: 2, nextAppointment: 'Dec 7', clinician: 'Dr. Johnson' },
+  { id: 'a6', name: 'Frank Nakamura', currentSessions: 2, targetMilestone: 5, sessionsToGo: 3, nextAppointment: 'Dec 8', clinician: 'Dr. Chen' },
+  { id: 'a7', name: 'Grace O\'Brien', currentSessions: 2, targetMilestone: 5, sessionsToGo: 3, clinician: 'Dr. Patel' },
+];
+
+// Rebook rate trend data
+const REBOOK_RATE_DATA = [
+  { month: 'Jan', rate: 90.1 },
+  { month: 'Feb', rate: 90.3 },
+  { month: 'Mar', rate: 90.2 },
+  { month: 'Apr', rate: 90.5 },
+  { month: 'May', rate: 90.4 },
+  { month: 'Jun', rate: 90.7 },
+  { month: 'Jul', rate: 90.6 },
+  { month: 'Aug', rate: 90.9 },
+  { month: 'Sep', rate: 90.5 },
+  { month: 'Oct', rate: 90.5 },
+  { month: 'Nov', rate: 90.8 },
+  { month: 'Dec', rate: 91.0 },
+];
+
+// Current health data aggregation
+const CURRENT_HEALTH_DATA = {
+  atRiskClients: AT_RISK_CLIENTS,
+  approachingSession5: APPROACHING_SESSION_5,
+  rebookRateData: REBOOK_RATE_DATA,
+  avgRebookRate: 90.5,
+  totalActiveClients: 156,
+};
+
+// First Session Drop-off data (Session 1 → Session 2 transition)
+const FIRST_SESSION_DROPOFF_DATA = {
+  session1Count: 847,
+  session2Count: 652, // 77% return rate
+  benchmarkPercentage: 82, // Industry average
+};
+
+// Frequency and Retention correlation data
+const FREQUENCY_RETENTION_DATA = [
+  { frequency: 'weekly' as const, label: 'Weekly', avgSessions: 14.2, clientCount: 198, avgTenureMonths: 5.2 },
+  { frequency: 'biweekly' as const, label: 'Bi-weekly', avgSessions: 6.1, clientCount: 156, avgTenureMonths: 3.8 },
+  { frequency: 'monthly' as const, label: 'Monthly', avgSessions: 3.4, clientCount: 32, avgTenureMonths: 2.1 },
+];
+
+// Retention benchmarks for comparison
+const RETENTION_BENCHMARKS = {
+  avgChurnRate: 24, // Industry average churn rate
+  avgClientTenure: 11.5, // Industry average sessions per client
+  avgSession5Retention: 80, // Industry average % reaching session 5
+  frequencyMultiplierRange: '1.8-2.5x', // Typical range for weekly vs bi-weekly
 };
 
 // Admin Analytics Data
@@ -621,18 +729,17 @@ export const PracticeAnalysis: React.FC = () => {
 
       {activeTab === 'retention' && (
         <RetentionTab
-          timePeriod={timePeriod}
-          onTimePeriodChange={setTimePeriod}
-          timePeriods={timePeriods}
+          cohorts={RETENTION_COHORTS}
           tabs={tabs}
           activeTab={activeTab}
           onTabChange={(tabId) => setActiveTab(tabId as TabType)}
-          getDateRangeLabel={getDateRangeLabel}
           churnByClinicianData={CHURN_BY_CLINICIAN_DATA}
           churnTimingData={CHURN_TIMING_DATA}
-          clientGrowthData={CLIENT_GROWTH_DATA}
-          retentionMetrics={RETENTION_METRICS}
           retentionFunnelData={RETENTION_FUNNEL_DATA}
+          currentHealthData={CURRENT_HEALTH_DATA}
+          firstSessionDropoffData={FIRST_SESSION_DROPOFF_DATA}
+          frequencyRetentionData={FREQUENCY_RETENTION_DATA}
+          benchmarks={RETENTION_BENCHMARKS}
         />
       )}
 
