@@ -299,12 +299,12 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
 
         {/* Tab Navigation */}
         {tabs && tabs.length > 0 && (
-          <div className="flex items-center gap-2 sm:gap-3 mt-6 overflow-x-auto scrollbar-hide pb-2">
+          <div className="flex items-center gap-3 sm:gap-4 mt-8 overflow-x-auto scrollbar-hide pb-2">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => onTabChange?.(tab.id)}
-                className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-sm font-medium transition-all duration-300 whitespace-nowrap flex-shrink-0 ${
+                className={`px-5 sm:px-7 py-2.5 sm:py-3.5 rounded-full text-base sm:text-lg font-semibold transition-all duration-300 whitespace-nowrap flex-shrink-0 ${
                   activeTab === tab.id
                     ? 'bg-white text-stone-900 shadow-lg'
                     : 'text-stone-400 hover:text-white border border-stone-600 hover:border-stone-500 bg-transparent'

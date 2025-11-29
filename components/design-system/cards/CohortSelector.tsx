@@ -299,7 +299,7 @@ export const CohortSelector: React.FC<CohortSelectorProps> = ({
               >
                 {/* Card container with refined shadow and border */}
                 <div
-                  className="relative overflow-hidden rounded-2xl xl:rounded-3xl p-6 sm:p-7 xl:p-8"
+                  className="relative rounded-2xl xl:rounded-3xl p-6 sm:p-7 xl:p-8"
                   style={{
                     background: isSelected
                       ? 'linear-gradient(145deg, #fffbeb 0%, #fef3c7 100%)'
@@ -311,10 +311,10 @@ export const CohortSelector: React.FC<CohortSelectorProps> = ({
                         : '0 4px 16px -4px rgba(0, 0, 0, 0.06), inset 0 0 0 1px rgba(0, 0, 0, 0.04)',
                   }}
                 >
-                  {/* Recommended badge */}
+                  {/* Recommended badge - positioned inside card bounds */}
                   {cohort.recommended && !isSelected && (
                     <div
-                      className="absolute -top-2 -right-2 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-white text-sm font-bold shadow-lg"
+                      className="absolute top-3 right-3 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-white text-sm font-bold shadow-lg"
                       style={{
                         background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
                         transform: isHovered ? 'scale(1.05) rotate(-2deg)' : 'scale(1) rotate(0deg)',

@@ -32,3 +32,6 @@ export type {
   FunnelStage,
   FunnelInsight,
 } from './RetentionFunnelChart';
+
+export { useChartAnimation } from './useChartAnimation';
+export type { ChartAnimationOptions, ChartAnimationResult } from './useChartAnimation';

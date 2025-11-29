@@ -43,7 +43,7 @@ export interface LineChartProps {
   /** Show legend */
   showLegend?: boolean;
   /** Chart height */
-  height?: string;
+  height?: number | `${number}%`;
   /** Show area fill under line */
   showAreaFill?: boolean;
   /** Area fill gradient ID (for custom gradients) */
@@ -92,7 +92,7 @@ export const LineChart: React.FC<LineChartProps> = ({
   yTickFormatter,
   tooltipFormatter,
   showLegend = false,
-  height = '100%',
+  height = '100%' as const,
   showAreaFill = false,
   areaFillId,
 }) => {
@@ -166,7 +166,7 @@ export const LineChart: React.FC<LineChartProps> = ({
           />
         )}
 
-        {lines.map((line) => (
+        {lines.map((line, idx) => (
           <Line
             key={line.dataKey}
             type="monotone"
@@ -177,6 +177,10 @@ export const LineChart: React.FC<LineChartProps> = ({
             dot={{ fill: line.color, r: 7, strokeWidth: 4, stroke: '#fff' }}
             activeDot={{ r: 10, strokeWidth: 4, stroke: '#fff', fill: line.activeColor || line.color }}
             fill={showAreaFill ? `url(#${areaFillId || `lineGradient-${line.dataKey}`})` : undefined}
+            isAnimationActive={true}
+            animationDuration={800}
+            animationBegin={idx * 150}
+            animationEasing="ease-out"
           />
         ))}
       </RechartsLineChart>

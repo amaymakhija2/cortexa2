@@ -16,6 +16,8 @@ import {
   BarChart,
   LineChart,
   ExpandedChartModal,
+  AnimatedGrid,
+  AnimatedSection,
 } from '../design-system';
 import type { HoverInfo } from '../design-system';
 import type { FinancialAnalysisTabProps } from './types';
@@ -351,7 +353,7 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
       <PageContent>
         {/* Hero Stats Row */}
         <Section spacing="md">
-          <Grid cols={4} gap="md">
+          <AnimatedGrid cols={4} gap="md" staggerDelay={60}>
             <StatCard
               title="Total Gross Revenue"
               value={formatCurrency(totalGrossRevenue)}
@@ -372,12 +374,13 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
               value={`${formatCurrencyShort(avgMonthlyRevenue)}/mo`}
               subtitle={`${formatCurrencyShort(avgWeeklyRevenue)}/week`}
             />
-          </Grid>
+          </AnimatedGrid>
         </Section>
 
         {/* Charts Row */}
-        <Section spacing="md">
-          <Grid cols={2} gap="lg">
+        <AnimatedSection delay={280}>
+          <Section spacing="md">
+            <Grid cols={2} gap="lg">
             {/* Revenue Performance Chart */}
             <ChartCard
               title="Revenue Performance"
@@ -486,14 +489,16 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
               expandable
               onExpand={() => setExpandedCard('revenue-distribution')}
             />
-          </Grid>
-        </Section>
+            </Grid>
+          </Section>
+        </AnimatedSection>
 
         {/* Margin & Cost Trend Charts */}
-        <Section spacing="md">
-          <Grid cols={2} gap="lg">
-            {/* Net Revenue Margin Chart */}
-            <SimpleChartCard
+        <AnimatedSection delay={380}>
+          <Section spacing="md">
+            <Grid cols={2} gap="lg">
+              {/* Net Revenue Margin Chart */}
+              <SimpleChartCard
               title="Net Revenue Margin"
               subtitle="Percentage of gross revenue retained"
               valueIndicator={{
@@ -502,7 +507,6 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
                 bgColor: 'bg-emerald-50',
                 textColor: 'text-emerald-600',
               }}
-              height="280px"
             >
               <LineChart
                 data={marginChartData}
@@ -524,7 +528,6 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
                 bgColor: 'bg-stone-100',
                 textColor: 'text-stone-700',
               }}
-              height="280px"
             >
               <LineChart
                 data={costPercentageData}
@@ -542,20 +545,23 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
                 showLegend
               />
             </SimpleChartCard>
-          </Grid>
-        </Section>
+            </Grid>
+          </Section>
+        </AnimatedSection>
 
         {/* Breakdown Table */}
-        <Section spacing="none">
-          <DataTableCard
-            title="Full Breakdown"
-            subtitle="Monthly revenue, costs, and net revenue details"
-            columns={buildTableColumns()}
-            rows={buildTableRows()}
-            expandable
-            onExpand={() => setExpandedCard('breakdown-table')}
-          />
-        </Section>
+        <AnimatedSection delay={480}>
+          <Section spacing="none">
+            <DataTableCard
+              title="Full Breakdown"
+              subtitle="Monthly revenue, costs, and net revenue details"
+              columns={buildTableColumns()}
+              rows={buildTableRows()}
+              expandable
+              onExpand={() => setExpandedCard('breakdown-table')}
+            />
+          </Section>
+        </AnimatedSection>
       </PageContent>
 
       {/* Expanded Modals using centralized ExpandedChartModal */}

@@ -243,7 +243,7 @@ export const SimpleChartCard: React.FC<SimpleChartCardProps> = ({
   valueIndicator,
   expandable = false,
   onExpand,
-  height = '320px',
+  height = '480px',
   className = '',
   children,
 }) => {
@@ -296,7 +296,7 @@ export const SimpleChartCard: React.FC<SimpleChartCardProps> = ({
       </div>
 
       {/* Chart Area - Fills remaining space */}
-      <div className="flex-1 min-h-0">
+      <div className="flex-1 min-h-[280px]">
         {children}
       </div>
     </div>

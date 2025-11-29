@@ -1,5 +1,5 @@
 import React from 'react';
-import { PageHeader, PageContent } from '../design-system';
+import { PageHeader, PageContent, ComingSoonCard } from '../design-system';
 import type { BaseAnalysisTabProps } from './types';
 
 // =============================================================================
@@ -32,7 +32,18 @@ export const InsuranceTab: React.FC<BaseAnalysisTabProps> = ({
       />
 
       <PageContent>
-        {/* Content will be added in future iterations */}
+        <ComingSoonCard
+          accent="violet"
+          title="Insurance Analytics"
+          description="Comprehensive insurance billing and claims analytics are being crafted to give you complete visibility into your practice's payer relationships."
+          features={[
+            'Claims Tracking',
+            'Payer Mix Analysis',
+            'Denial Management',
+            'Reimbursement Rates',
+            'AR Aging Reports',
+          ]}
+        />
       </PageContent>
     </div>
   );

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Maximize2 } from 'lucide-react';
 
 // =============================================================================
@@ -111,6 +111,13 @@ export const DonutChartCard: React.FC<DonutChartCardProps> = ({
   className = '',
 }) => {
   const [hoveredSegment, setHoveredSegment] = useState<string | null>(null);
+  const [isAnimated, setIsAnimated] = useState(false);
+
+  // Trigger animation on mount
+  useEffect(() => {
+    const timer = setTimeout(() => setIsAnimated(true), 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Get size config
   const config = sizeConfig[size];
@@ -225,20 +232,25 @@ export const DonutChartCard: React.FC<DonutChartCardProps> = ({
             />
 
             {/* Segments */}
-            {segmentPaths.map((segment) => {
+            {segmentPaths.map((segment, idx) => {
               const isHovered = hoveredSegment === segment.label;
+              const staggerDelay = idx * 80; // Stagger each segment
               return (
                 <path
                   key={segment.label}
                   d={segment.path}
                   fill={segment.color}
-                  className="cursor-pointer transition-all duration-300"
+                  className="cursor-pointer"
                   style={{
                     filter: isHovered
                       ? `drop-shadow(0 8px 16px ${segment.color}40) brightness(1.1)`
                       : 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1))',
-                    transform: isHovered ? 'scale(1.02)' : 'scale(1)',
+                    transform: isAnimated
+                      ? (isHovered ? 'scale(1.02)' : 'scale(1)')
+                      : 'scale(0)',
+                    opacity: isAnimated ? 1 : 0,
                     transformOrigin: `${centerX}px ${centerY}px`,
+                    transition: `transform 600ms cubic-bezier(0.34, 1.56, 0.64, 1) ${staggerDelay}ms, opacity 400ms ease ${staggerDelay}ms, filter 300ms ease`,
                   }}
                   onMouseEnter={() => handleSegmentHover(segment, segment.percent * 100)}
                   onMouseLeave={() => handleSegmentHover(null, 0)}
@@ -248,7 +260,14 @@ export const DonutChartCard: React.FC<DonutChartCardProps> = ({
           </svg>
 
           {/* Center content */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+          <div
+            className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none"
+            style={{
+              opacity: isAnimated ? 1 : 0,
+              transform: isAnimated ? 'scale(1)' : 'scale(0.8)',
+              transition: 'opacity 400ms ease 300ms, transform 500ms cubic-bezier(0.34, 1.56, 0.64, 1) 300ms',
+            }}
+          >
             {centerLabel && (
               <span className="text-stone-500 text-sm sm:text-base font-medium mb-1">
                 {centerLabel}
@@ -265,14 +284,15 @@ export const DonutChartCard: React.FC<DonutChartCardProps> = ({
 
         {/* Legend */}
         <div className="flex flex-col gap-4 lg:gap-5 flex-1 max-w-[360px]">
-          {segmentPaths.map((segment) => {
+          {segmentPaths.map((segment, idx) => {
             const isHovered = hoveredSegment === segment.label;
             const percentDisplay = (segment.percent * 100).toFixed(1);
+            const legendDelay = 200 + idx * 60; // Stagger after donut animates
 
             return (
               <div
                 key={segment.label}
-                className={`relative rounded-2xl transition-all duration-300 cursor-pointer overflow-hidden ${
+                className={`relative rounded-2xl cursor-pointer overflow-hidden ${
                   isHovered ? 'scale-[1.02]' : 'hover:scale-[1.01]'
                 }`}
                 style={{
@@ -282,6 +302,9 @@ export const DonutChartCard: React.FC<DonutChartCardProps> = ({
                   boxShadow: isHovered
                     ? `0 8px 24px -4px ${segment.color}25, 0 0 0 1px ${segment.color}20`
                     : '0 2px 8px -2px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(0, 0, 0, 0.03)',
+                  opacity: isAnimated ? 1 : 0,
+                  transform: isAnimated ? 'translateX(0)' : 'translateX(20px)',
+                  transition: `opacity 400ms ease ${legendDelay}ms, transform 400ms ease ${legendDelay}ms, background 300ms ease, box-shadow 300ms ease`,
                 }}
                 onMouseEnter={() => handleSegmentHover(segment, segment.percent * 100)}
                 onMouseLeave={() => handleSegmentHover(null, 0)}

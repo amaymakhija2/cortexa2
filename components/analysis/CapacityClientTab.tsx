@@ -24,6 +24,8 @@ import {
   DivergingBarChart,
   LineChart,
   ExpandedChartModal,
+  AnimatedGrid,
+  AnimatedSection,
 } from '../design-system';
 import type { CapacityClientTabProps } from './types';
 
@@ -230,7 +232,7 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
       <PageHeader
         accent="amber"
         label="Detailed Analysis"
-        title="Capacity & Client"
+        title="Client & Capacity"
         subtitle={getDateRangeLabel()}
         showTimePeriod
         timePeriod={timePeriod}
@@ -244,7 +246,7 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
       <PageContent>
         {/* Hero Stats Row */}
         <Section spacing="md">
-          <Grid cols={4} gap="md">
+          <AnimatedGrid cols={4} gap="md" staggerDelay={60}>
             <StatCard
               title="Active Clients"
               value={currentActiveClients.toLocaleString()}
@@ -265,12 +267,13 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
               value={`${avgSessionUtilization.toFixed(0)}%`}
               subtitle={`avg across ${hoursUtilizationData.length} months`}
             />
-          </Grid>
+          </AnimatedGrid>
         </Section>
 
         {/* Main Charts Row */}
-        <Section spacing="md">
-          <Grid cols={2} gap="lg">
+        <AnimatedSection delay={280}>
+          <Section spacing="md">
+            <Grid cols={2} gap="lg">
             {/* Client Utilization - Combo Chart */}
             <ChartCard
               title="Client Utilization"
@@ -363,6 +366,10 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
                       name="Active Clients"
                       maxBarSize={56}
                       style={{ filter: 'url(#barShadow)' }}
+                      isAnimationActive={true}
+                      animationDuration={800}
+                      animationBegin={0}
+                      animationEasing="ease-out"
                     >
                       <LabelList
                         dataKey="activeClients"
@@ -380,6 +387,10 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
                       dot={{ fill: '#059669', strokeWidth: 4, stroke: '#fff', r: 7 }}
                       activeDot={{ r: 10, strokeWidth: 4, stroke: '#fff', fill: '#059669' }}
                       name="Utilization Rate"
+                      isAnimationActive={true}
+                      animationDuration={800}
+                      animationBegin={0}
+                      animationEasing="ease-out"
                     />
                   </ComposedChart>
                 </ResponsiveContainer>
@@ -426,12 +437,14 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
                 height="350px"
               />
             </ChartCard>
-          </Grid>
-        </Section>
+            </Grid>
+          </Section>
+        </AnimatedSection>
 
         {/* Client Demographics Row */}
-        <Section spacing="md">
-          <Grid cols={2} gap="md">
+        <AnimatedSection delay={380}>
+          <Section spacing="md">
+            <Grid cols={2} gap="md">
             {/* Client Gender */}
             <StackedBarCard
               title="Client Gender"
@@ -474,62 +487,63 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
                   color: 'bg-stone-400',
                 },
               ]}
-            />
-          </Grid>
-        </Section>
+              />
+            </Grid>
+          </Section>
+        </AnimatedSection>
 
         {/* Session Utilization & Open Slots Row */}
-        <Section spacing="none">
-          <Grid cols={2} gap="lg">
-            {/* Session Utilization Trend */}
-            <SimpleChartCard
-              title="Session Utilization"
-              subtitle="Percentage of session capacity utilized"
-              valueIndicator={{
-                value: `${avgSessionUtilization.toFixed(0)}%`,
-                label: 'Average',
-                bgColor: 'bg-blue-50',
-                textColor: 'text-blue-600',
-              }}
-              height="320px"
-              expandable
-              onExpand={() => setExpandedCard('session-utilization')}
-            >
-              <LineChart
-                data={sessionUtilizationChartData}
-                xAxisKey="month"
-                lines={[{ dataKey: 'percentage', color: '#3b82f6', activeColor: '#2563eb' }]}
-                yDomain={[70, 100]}
-                yTickFormatter={(v) => `${v}%`}
-                tooltipFormatter={(value: number) => [`${value.toFixed(1)}%`, 'Utilization']}
-                showAreaFill
-              />
-            </SimpleChartCard>
+        <AnimatedSection delay={480}>
+          <Section spacing="none">
+            <Grid cols={2} gap="lg">
+              {/* Session Utilization Trend */}
+              <SimpleChartCard
+                title="Session Utilization"
+                subtitle="Percentage of session capacity utilized"
+                valueIndicator={{
+                  value: `${avgSessionUtilization.toFixed(0)}%`,
+                  label: 'Average',
+                  bgColor: 'bg-blue-50',
+                  textColor: 'text-blue-600',
+                }}
+                expandable
+                onExpand={() => setExpandedCard('session-utilization')}
+              >
+                <LineChart
+                  data={sessionUtilizationChartData}
+                  xAxisKey="month"
+                  lines={[{ dataKey: 'percentage', color: '#3b82f6', activeColor: '#2563eb' }]}
+                  yDomain={[70, 100]}
+                  yTickFormatter={(v) => `${v}%`}
+                  tooltipFormatter={(value: number) => [`${value.toFixed(1)}%`, 'Utilization']}
+                  showAreaFill
+                />
+              </SimpleChartCard>
 
-            {/* Open Slots Trend */}
-            <SimpleChartCard
-              title="Open Slots"
-              subtitle="Unfilled appointment slots per month"
-              valueIndicator={{
-                value: avgOpenSlots.toString(),
-                label: 'Average',
-                bgColor: 'bg-rose-50',
-                textColor: 'text-rose-600',
-              }}
-              height="320px"
-              expandable
-              onExpand={() => setExpandedCard('open-slots')}
-            >
-              <LineChart
-                data={openSlotsChartData}
-                xAxisKey="month"
-                lines={[{ dataKey: 'value', color: '#f43f5e', activeColor: '#e11d48' }]}
-                tooltipFormatter={(value: number) => [String(value), 'Open Slots']}
-                showAreaFill
-              />
-            </SimpleChartCard>
-          </Grid>
-        </Section>
+              {/* Open Slots Trend */}
+              <SimpleChartCard
+                title="Open Slots"
+                subtitle="Unfilled appointment slots per month"
+                valueIndicator={{
+                  value: avgOpenSlots.toString(),
+                  label: 'Average',
+                  bgColor: 'bg-rose-50',
+                  textColor: 'text-rose-600',
+                }}
+                expandable
+                onExpand={() => setExpandedCard('open-slots')}
+              >
+                <LineChart
+                  data={openSlotsChartData}
+                  xAxisKey="month"
+                  lines={[{ dataKey: 'value', color: '#f43f5e', activeColor: '#e11d48' }]}
+                  tooltipFormatter={(value: number) => [String(value), 'Open Slots']}
+                  showAreaFill
+                />
+              </SimpleChartCard>
+            </Grid>
+          </Section>
+        </AnimatedSection>
       </PageContent>
 
       {/* =====================================================================

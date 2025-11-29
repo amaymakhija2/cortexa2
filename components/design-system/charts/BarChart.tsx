@@ -1,4 +1,5 @@
 import React from 'react';
+import { useChartAnimation } from './useChartAnimation';
 
 // =============================================================================
 // BAR CHART COMPONENT
@@ -276,6 +277,9 @@ export const BarChart: React.FC<BarChartProps> = ({
 }) => {
   // Get size configuration
   const sizeConfig = SIZE_CONFIG[size];
+
+  // Chart mount animation
+  const { isAnimated, getStaggerDelay } = useChartAnimation({ duration: 500 });
   // ---------------------------------------------------------------------------
   // COMPUTED VALUES
   // ---------------------------------------------------------------------------
@@ -363,12 +367,17 @@ export const BarChart: React.FC<BarChartProps> = ({
                 {/* Value label */}
                 <span
                   className={`${sizeConfig.valueLabelClass} ${colorConfig.textColor}`}
+                  style={{
+                    opacity: isAnimated ? 1 : 0,
+                    transform: isAnimated ? 'translateY(0)' : 'translateY(8px)',
+                    transition: 'opacity 400ms ease 400ms, transform 400ms ease 400ms',
+                  }}
                 >
                   {formatValue(value)}
                 </span>
                 {/* Bar */}
                 <div
-                  className={`w-full rounded-t-xl transition-all duration-300 cursor-pointer relative overflow-hidden ${
+                  className={`w-full rounded-t-xl cursor-pointer relative overflow-hidden ${
                     isCurrentItem
                       ? 'ring-2 ring-offset-2 ring-current/40'
                       : 'hover:brightness-110'
@@ -377,6 +386,9 @@ export const BarChart: React.FC<BarChartProps> = ({
                     height: `${heightPercent}%`,
                     background: colorConfig.gradient,
                     boxShadow: colorConfig.shadow,
+                    transform: isAnimated ? 'scaleY(1)' : 'scaleY(0)',
+                    transformOrigin: 'bottom',
+                    transition: 'transform 800ms cubic-bezier(0.22, 1, 0.36, 1)',
                   }}
                 >
                   {/* Shine effect */}
@@ -408,20 +420,30 @@ export const BarChart: React.FC<BarChartProps> = ({
             style={{ maxWidth: sizeConfig.stackedBarMaxWidth }}
           >
             {/* Total value label */}
-            <div className="mb-2 z-20">
+            <div
+              className="mb-2 z-20"
+              style={{
+                opacity: isAnimated ? 1 : 0,
+                transform: isAnimated ? 'translateY(0)' : 'translateY(8px)',
+                transition: 'opacity 400ms ease 400ms, transform 400ms ease 400ms',
+              }}
+            >
               <span className={sizeConfig.stackedTotalClass}>
                 {formatValue(total)}
               </span>
             </div>
             {/* Stacked Bar */}
             <div
-              className="relative rounded-t-md overflow-hidden transition-all duration-300 w-full"
+              className="relative rounded-t-md overflow-hidden w-full"
               style={{
                 height: `${totalHeightPercent}%`,
                 maxWidth: sizeConfig.stackedBarInnerWidth,
                 boxShadow: isCurrentItem
                   ? `0 ${4 * sizeConfig.stackedBarShadowScale}px ${12 * sizeConfig.stackedBarShadowScale}px -2px rgba(124, 58, 237, 0.3)`
                   : `0 ${2 * sizeConfig.stackedBarShadowScale}px ${8 * sizeConfig.stackedBarShadowScale}px -2px rgba(0,0,0,0.1)`,
+                transform: isAnimated ? 'scaleY(1)' : 'scaleY(0)',
+                transformOrigin: 'bottom',
+                transition: 'transform 800ms cubic-bezier(0.22, 1, 0.36, 1)',
               }}
             >
               {effectiveStackOrder.map((segmentKey) => {

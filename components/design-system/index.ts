@@ -17,6 +17,9 @@ export type { GridProps, GridColumns, SectionProps, PageContentProps } from './l
 export { SectionHeader } from './layout/SectionHeader';
 export type { SectionHeaderProps, SectionAccent } from './layout/SectionHeader';
 
+export { AnimatedSection, AnimatedGrid, AnimatedPageContent } from './layout/AnimatedSection';
+export type { AnimatedSectionProps, AnimatedGridProps, AnimatedPageContentProps } from './layout/AnimatedSection';
+
 // Card Components
 export { StatCard, StatCardWithBreakdown } from './cards/StatCard';
 export type { StatCardProps, StatVariant, StatCardWithBreakdownProps } from './cards/StatCard';
@@ -40,7 +43,8 @@ export { CohortSelector } from './cards/CohortSelector';
 export type { CohortSelectorProps, CohortOption, CohortMaturity } from './cards/CohortSelector';
 
 export { ActionableClientListCard } from './cards/ActionableClientListCard';
-export type { ActionableClientListCardProps, Badge, ClientRowProps, AccentColor } from './cards/ActionableClientListCard';
+export type { ActionableClientListCardProps, Badge, ClientRowProps } from './cards/ActionableClientListCard';
+export type { AccentColor as ClientListAccentColor } from './cards/ActionableClientListCard';
 
 export { AtRiskClientsCard } from './cards/AtRiskClientsCard';
 export type { AtRiskClientsCardProps, AtRiskClient } from './cards/AtRiskClientsCard';
@@ -56,6 +60,9 @@ export type { FirstSessionDropoffCardProps } from './cards/FirstSessionDropoffCa
 
 export { FrequencyRetentionCard } from './cards/FrequencyRetentionCard';
 export type { FrequencyRetentionCardProps, FrequencyData } from './cards/FrequencyRetentionCard';
+
+export { ComingSoonCard } from './cards/ComingSoonCard';
+export type { ComingSoonCardProps, ComingSoonAccent } from './cards/ComingSoonCard';
 
 // Control Components
 export { ToggleButton, GoalIndicator, ActionButton } from './controls';

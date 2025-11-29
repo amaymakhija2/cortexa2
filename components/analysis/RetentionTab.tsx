@@ -454,7 +454,6 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
                     bgColor: 'bg-emerald-50',
                     textColor: 'text-emerald-600',
                   }}
-                  height="320px"
                   expandable
                   onExpand={() => setExpandedCard('rebook-rate')}
                 >

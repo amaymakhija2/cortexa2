@@ -15,6 +15,8 @@ import {
   ActionButton,
   BarChart,
   ExpandedChartModal,
+  AnimatedGrid,
+  AnimatedSection,
 } from '../design-system';
 import type { HoverInfo, SegmentConfig } from '../design-system';
 import type { SessionsAnalysisTabProps } from './types';
@@ -307,7 +309,7 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
       <PageContent>
         {/* Hero Stats Row */}
         <Section spacing="md">
-          <Grid cols={4} gap="md">
+          <AnimatedGrid cols={4} gap="md" staggerDelay={60}>
             <StatCard
               title="Total Completed"
               value={totalCompleted.toLocaleString()}
@@ -328,12 +330,13 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
               value={`${nonBillableCancelRate.toFixed(1)}%`}
               subtitle="Client + Clinician Cancellations"
             />
-          </Grid>
+          </AnimatedGrid>
         </Section>
 
         {/* Main Charts Row */}
-        <Section spacing="md">
-          <Grid cols={2} gap="lg">
+        <AnimatedSection delay={280}>
+          <Section spacing="md">
+            <Grid cols={2} gap="lg">
             {/* Completed Sessions Chart */}
             <ChartCard
               title="Completed Sessions"
@@ -423,53 +426,58 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
               expandable
               onExpand={() => setExpandedCard('attendance-breakdown')}
             />
-          </Grid>
-        </Section>
+            </Grid>
+          </Section>
+        </AnimatedSection>
 
         {/* Secondary Metrics Row */}
-        <Section spacing="md">
-          <Grid cols={3} gap="md">
-            <StatCard
-              title="Avg Sessions per Client per Month"
-              value={avgSessionsPerClient.toFixed(1)}
-              subtitle="sessions per active client per month"
-            />
-            <StatCard
-              title="Avg Sessions"
-              value={`${avgMonthlyCompleted.toLocaleString()}/mo`}
-              subtitle={`${avgWeeklyCompleted}/week`}
-            />
-            <SplitBarCard
-              title="Session Modality"
-              leftSegment={{
-                label: 'Telehealth',
-                value: totalTelehealth,
-                color: '#0891b2',
-                colorEnd: '#0e7490',
-              }}
-              rightSegment={{
-                label: 'In-Person',
-                value: totalInPerson,
-                color: '#d97706',
-                colorEnd: '#b45309',
-              }}
-              expandable
-              onExpand={() => setExpandedCard('session-modality')}
-            />
-          </Grid>
-        </Section>
+        <AnimatedSection delay={380}>
+          <Section spacing="md">
+            <AnimatedGrid cols={3} gap="md" staggerDelay={60}>
+              <StatCard
+                title="Avg Sessions per Client per Month"
+                value={avgSessionsPerClient.toFixed(1)}
+                subtitle="sessions per active client per month"
+              />
+              <StatCard
+                title="Avg Sessions"
+                value={`${avgMonthlyCompleted.toLocaleString()}/mo`}
+                subtitle={`${avgWeeklyCompleted}/week`}
+              />
+              <SplitBarCard
+                title="Session Modality"
+                leftSegment={{
+                  label: 'Telehealth',
+                  value: totalTelehealth,
+                  color: '#0891b2',
+                  colorEnd: '#0e7490',
+                }}
+                rightSegment={{
+                  label: 'In-Person',
+                  value: totalInPerson,
+                  color: '#d97706',
+                  colorEnd: '#b45309',
+                }}
+                expandable
+                onExpand={() => setExpandedCard('session-modality')}
+              />
+            </AnimatedGrid>
+          </Section>
+        </AnimatedSection>
 
         {/* Monthly Breakdown Table */}
-        <Section spacing="none">
-          <DataTableCard
-            title="Monthly Breakdown"
-            subtitle="Detailed session metrics by month"
-            columns={buildTableColumns()}
-            rows={buildTableRows()}
-            expandable
-            onExpand={() => setExpandedCard('monthly-breakdown')}
-          />
-        </Section>
+        <AnimatedSection delay={480}>
+          <Section spacing="none">
+            <DataTableCard
+              title="Monthly Breakdown"
+              subtitle="Detailed session metrics by month"
+              columns={buildTableColumns()}
+              rows={buildTableRows()}
+              expandable
+              onExpand={() => setExpandedCard('monthly-breakdown')}
+            />
+          </Section>
+        </AnimatedSection>
       </PageContent>
 
       {/* =====================================================================

@@ -1,5 +1,5 @@
 import React from 'react';
-import { PageHeader, PageContent } from '../design-system';
+import { PageHeader, PageContent, ComingSoonCard } from '../design-system';
 import type { BaseAnalysisTabProps } from './types';
 
 // =============================================================================
@@ -32,7 +32,18 @@ export const AdminTab: React.FC<BaseAnalysisTabProps> = ({
       />
 
       <PageContent>
-        {/* Content will be added in future iterations */}
+        <ComingSoonCard
+          accent="blue"
+          title="Administrative Analytics"
+          description="Powerful administrative insights are being developed to streamline your practice operations and enhance team productivity."
+          features={[
+            'Note Compliance',
+            'Reminder Delivery',
+            'Client Balances',
+            'Staff Productivity',
+            'Audit Trails',
+          ]}
+        />
       </PageContent>
     </div>
   );

@@ -465,7 +465,7 @@ export const PracticeAnalysis: React.FC = () => {
   const tabs: { id: TabType; label: string; shortLabel: string }[] = [
     { id: 'financial', label: 'Financial Analysis', shortLabel: 'Financial' },
     { id: 'sessions', label: 'Sessions Analysis', shortLabel: 'Sessions' },
-    { id: 'capacity-client', label: 'Capacity & Client Analysis', shortLabel: 'Capacity & Client' },
+    { id: 'capacity-client', label: 'Client & Capacity Analysis', shortLabel: 'Client & Capacity' },
     { id: 'retention', label: 'Retention Analysis', shortLabel: 'Retention' },
     { id: 'insurance', label: 'Insurance Analysis', shortLabel: 'Insurance' },
     { id: 'admin', label: 'Admin Analysis', shortLabel: 'Admin' }
