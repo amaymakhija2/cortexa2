@@ -184,6 +184,39 @@ export interface ChurnTimingDataPoint {
   lateChurn: number;
 }
 
+/**
+ * Hero metrics for retention analysis
+ */
+export interface RetentionMetrics {
+  /** Average client tenure in months (across discharged clients) */
+  avgTenureMonths: number;
+  /** Average sessions per client before discharge */
+  avgSessionsPerClient: number;
+  /** Percentage of new clients who reach session 5 */
+  session5RetentionRate: number;
+  /** Percentage of new clients who stay 3+ months */
+  threeMonthRetentionRate: number;
+  /** Total number of discharged clients (for context) */
+  totalDischargedClients: number;
+}
+
+/**
+ * Funnel stage data for retention visualization
+ */
+export interface FunnelStageData {
+  label: string;
+  count: number;
+  percentage: number;
+}
+
+/**
+ * Retention funnel data for both sessions and time views
+ */
+export interface RetentionFunnelData {
+  sessionsFunnel: FunnelStageData[];
+  timeFunnel: FunnelStageData[];
+}
+
 // =============================================================================
 // RETENTION TAB PROPS
 // =============================================================================
@@ -192,4 +225,6 @@ export interface RetentionTabProps extends BaseAnalysisTabProps {
   churnByClinicianData: ChurnByClinicianDataPoint[];
   churnTimingData: ChurnTimingDataPoint[];
   clientGrowthData: ClientGrowthDataPoint[]; // For rebook rate calculation
+  retentionMetrics: RetentionMetrics; // Hero stats data
+  retentionFunnelData: RetentionFunnelData; // Funnel visualization data
 }

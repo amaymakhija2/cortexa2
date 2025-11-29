@@ -23,6 +23,7 @@ import {
   BarChart,
   SplitBarCard,
   DivergingBarChart,
+  RetentionFunnelCard,
 } from './';
 import type { HoverInfo } from './charts';
 
@@ -137,6 +138,21 @@ const SAMPLE_CLIENT_MOVEMENT_DATA = [
   { label: 'Apr', positive: 10, negative: 4 },
   { label: 'May', positive: 14, negative: 6 },
   { label: 'Jun', positive: 11, negative: 8 },
+];
+
+// Sample data for RetentionFunnelCard
+const SAMPLE_SESSIONS_FUNNEL = [
+  { label: 'Started', count: 100, percentage: 100 },
+  { label: 'Session 5', count: 76, percentage: 76 },
+  { label: 'Session 12', count: 52, percentage: 52 },
+  { label: 'Session 24', count: 31, percentage: 31 },
+];
+
+const SAMPLE_TIME_FUNNEL = [
+  { label: 'Started', count: 100, percentage: 100 },
+  { label: '1 Month', count: 82, percentage: 82 },
+  { label: '3 Months', count: 62, percentage: 62 },
+  { label: '6 Months', count: 41, percentage: 41 },
 ];
 
 export const Reference: React.FC = () => {
@@ -1569,6 +1585,102 @@ export const Reference: React.FC = () => {
     colorEnd: '#f43f5e',   // rose-500
   }}
   height="340px"
+/>`}
+                </pre>
+              </div>
+            </Section>
+
+            {/* RetentionFunnelCard Component */}
+            <Section>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                RetentionFunnelCard Component
+              </h2>
+              <p className="text-stone-500 mb-6">For visualizing client retention through session milestones or time periods. Shows tapering bars with values outside for clarity.</p>
+
+              {/* Interactive Demo */}
+              <div className="mb-8">
+                <Grid cols={2} gap="lg">
+                  <RetentionFunnelCard
+                    stages={SAMPLE_SESSIONS_FUNNEL}
+                    title="Retention by Sessions"
+                    subtitle="Client milestones reached"
+                    variant="sessions"
+                    insights={[
+                      { value: 100, label: 'Started', bgColor: 'bg-amber-50', textColor: 'text-amber-700' },
+                      { value: '31%', label: 'Final Retention', bgColor: 'bg-amber-50', textColor: 'text-amber-700' },
+                      { value: '69%', label: 'Drop-off', bgColor: 'bg-stone-100', textColor: 'text-stone-700' },
+                    ]}
+                  />
+                  <RetentionFunnelCard
+                    stages={SAMPLE_TIME_FUNNEL}
+                    title="Retention by Time"
+                    subtitle="Duration with practice"
+                    variant="time"
+                    insights={[
+                      { value: 100, label: 'Started', bgColor: 'bg-indigo-50', textColor: 'text-indigo-700' },
+                      { value: '41%', label: 'Final Retention', bgColor: 'bg-indigo-50', textColor: 'text-indigo-700' },
+                      { value: '59%', label: 'Drop-off', bgColor: 'bg-stone-100', textColor: 'text-stone-700' },
+                    ]}
+                  />
+                </Grid>
+              </div>
+
+              {/* Props Reference */}
+              <div className="rounded-xl p-5 bg-stone-100 mb-6">
+                <h4 className="font-semibold text-stone-900 mb-3">Props Reference</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <code className="text-violet-600">stages</code>
+                    <span className="text-stone-500 ml-2">FunnelStage[] - {'{label, count, percentage}'}</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">title</code>
+                    <span className="text-stone-500 ml-2">string - Card title</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">subtitle</code>
+                    <span className="text-stone-500 ml-2">string - Card subtitle</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">variant</code>
+                    <span className="text-stone-500 ml-2">'sessions' | 'time' - Color theme</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">insights</code>
+                    <span className="text-stone-500 ml-2">FunnelInsight[] - Bottom values (3 recommended)</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">expandable</code>
+                    <span className="text-stone-500 ml-2">boolean - Show expand button</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">size</code>
+                    <span className="text-stone-500 ml-2">'md' | 'lg' - Size variant</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Code Example */}
+              <div className="rounded-xl p-5 bg-stone-100">
+                <h4 className="font-semibold text-stone-900 mb-3">Usage Example</h4>
+                <pre className="text-sm text-stone-700 overflow-x-auto">
+{`<RetentionFunnelCard
+  stages={[
+    { label: 'Started', count: 100, percentage: 100 },
+    { label: 'Session 5', count: 76, percentage: 76 },
+    { label: 'Session 12', count: 52, percentage: 52 },
+    { label: 'Session 24', count: 31, percentage: 31 },
+  ]}
+  title="Retention by Sessions"
+  subtitle="Client milestones reached"
+  variant="sessions"
+  insights={[
+    { value: 100, label: 'Started', bgColor: 'bg-amber-50', textColor: 'text-amber-700' },
+    { value: '31%', label: 'Final Retention', bgColor: 'bg-amber-50', textColor: 'text-amber-700' },
+    { value: '69%', label: 'Drop-off', bgColor: 'bg-stone-100', textColor: 'text-stone-700' },
+  ]}
+  expandable
+  onExpand={() => setExpanded('funnel')}
 />`}
                 </pre>
               </div>

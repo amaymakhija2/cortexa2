@@ -5,6 +5,7 @@ import {
   PageContent,
   Grid,
   Section,
+  StatCard,
   ChartCard,
   SimpleChartCard,
   DonutChartCard,
@@ -13,6 +14,7 @@ import {
   BarChart,
   LineChart,
   ExpandedChartModal,
+  RetentionFunnelCard,
 } from '../design-system';
 import type { HoverInfo } from '../design-system';
 import type { RetentionTabProps } from './types';
@@ -43,6 +45,8 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
   churnByClinicianData,
   churnTimingData,
   clientGrowthData,
+  retentionMetrics,
+  retentionFunnelData,
 }) => {
   // =========================================================================
   // LOCAL STATE
@@ -172,6 +176,64 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
       />
 
       <PageContent>
+        {/* Hero Stats Row */}
+        <Section spacing="md">
+          <Grid cols={4} gap="md">
+            <StatCard
+              title="Avg Client Tenure"
+              value={`${retentionMetrics.avgTenureMonths.toFixed(1)} months`}
+              subtitle={`across ${retentionMetrics.totalDischargedClients} discharged clients`}
+            />
+            <StatCard
+              title="Avg Sessions per Client"
+              value={retentionMetrics.avgSessionsPerClient.toFixed(1)}
+              subtitle="before discharge"
+            />
+            <StatCard
+              title="Session 5 Retention"
+              value={`${retentionMetrics.session5RetentionRate.toFixed(0)}%`}
+              subtitle="of new clients reach session 5"
+            />
+            <StatCard
+              title="3-Month Retention"
+              value={`${retentionMetrics.threeMonthRetentionRate.toFixed(0)}%`}
+              subtitle="of new clients stay 3+ months"
+            />
+          </Grid>
+        </Section>
+
+        {/* Retention Funnel Visualizations */}
+        <Section spacing="md">
+          <Grid cols={2} gap="lg">
+            <RetentionFunnelCard
+              stages={retentionFunnelData.sessionsFunnel}
+              title="Retention by Sessions"
+              subtitle="Client milestones reached"
+              variant="sessions"
+              expandable
+              onExpand={() => setExpandedCard('sessions-funnel')}
+              insights={[
+                { value: retentionFunnelData.sessionsFunnel[0]?.count || 0, label: 'Started', bgColor: 'bg-amber-50', textColor: 'text-amber-700' },
+                { value: `${retentionFunnelData.sessionsFunnel[retentionFunnelData.sessionsFunnel.length - 1]?.percentage || 0}%`, label: 'Final Retention', bgColor: 'bg-amber-50', textColor: 'text-amber-700' },
+                { value: `${100 - (retentionFunnelData.sessionsFunnel[retentionFunnelData.sessionsFunnel.length - 1]?.percentage || 0)}%`, label: 'Drop-off', bgColor: 'bg-stone-100', textColor: 'text-stone-700' },
+              ]}
+            />
+            <RetentionFunnelCard
+              stages={retentionFunnelData.timeFunnel}
+              title="Retention by Time"
+              subtitle="Duration with practice"
+              variant="time"
+              expandable
+              onExpand={() => setExpandedCard('time-funnel')}
+              insights={[
+                { value: retentionFunnelData.timeFunnel[0]?.count || 0, label: 'Started', bgColor: 'bg-indigo-50', textColor: 'text-indigo-700' },
+                { value: `${retentionFunnelData.timeFunnel[retentionFunnelData.timeFunnel.length - 1]?.percentage || 0}%`, label: 'Final Retention', bgColor: 'bg-indigo-50', textColor: 'text-indigo-700' },
+                { value: `${100 - (retentionFunnelData.timeFunnel[retentionFunnelData.timeFunnel.length - 1]?.percentage || 0)}%`, label: 'Drop-off', bgColor: 'bg-stone-100', textColor: 'text-stone-700' },
+              ]}
+            />
+          </Grid>
+        </Section>
+
         {/* Main Charts Row */}
         <Section spacing="md">
           <Grid cols={2} gap="lg">
@@ -353,6 +415,48 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
             height="100%"
           />
         )}
+      </ExpandedChartModal>
+
+      {/* Sessions Funnel Expanded */}
+      <ExpandedChartModal
+        isOpen={expandedCard === 'sessions-funnel'}
+        onClose={() => setExpandedCard(null)}
+        title="Retention by Sessions"
+        subtitle="Client milestones reached"
+      >
+        <RetentionFunnelCard
+          stages={retentionFunnelData.sessionsFunnel}
+          title=""
+          subtitle=""
+          variant="sessions"
+          size="lg"
+          insights={[
+            { value: retentionFunnelData.sessionsFunnel[0]?.count || 0, label: 'Started', bgColor: 'bg-amber-50', textColor: 'text-amber-700' },
+            { value: `${retentionFunnelData.sessionsFunnel[retentionFunnelData.sessionsFunnel.length - 1]?.percentage || 0}%`, label: 'Final Retention', bgColor: 'bg-amber-50', textColor: 'text-amber-700' },
+            { value: `${100 - (retentionFunnelData.sessionsFunnel[retentionFunnelData.sessionsFunnel.length - 1]?.percentage || 0)}%`, label: 'Drop-off', bgColor: 'bg-stone-100', textColor: 'text-stone-700' },
+          ]}
+        />
+      </ExpandedChartModal>
+
+      {/* Time Funnel Expanded */}
+      <ExpandedChartModal
+        isOpen={expandedCard === 'time-funnel'}
+        onClose={() => setExpandedCard(null)}
+        title="Retention by Time"
+        subtitle="Duration with practice"
+      >
+        <RetentionFunnelCard
+          stages={retentionFunnelData.timeFunnel}
+          title=""
+          subtitle=""
+          variant="time"
+          size="lg"
+          insights={[
+            { value: retentionFunnelData.timeFunnel[0]?.count || 0, label: 'Started', bgColor: 'bg-indigo-50', textColor: 'text-indigo-700' },
+            { value: `${retentionFunnelData.timeFunnel[retentionFunnelData.timeFunnel.length - 1]?.percentage || 0}%`, label: 'Final Retention', bgColor: 'bg-indigo-50', textColor: 'text-indigo-700' },
+            { value: `${100 - (retentionFunnelData.timeFunnel[retentionFunnelData.timeFunnel.length - 1]?.percentage || 0)}%`, label: 'Drop-off', bgColor: 'bg-stone-100', textColor: 'text-stone-700' },
+          ]}
+        />
       </ExpandedChartModal>
 
       {/* Churn Timing Expanded */}

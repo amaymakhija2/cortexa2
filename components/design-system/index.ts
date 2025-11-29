@@ -38,7 +38,7 @@ export { ToggleButton, GoalIndicator, ActionButton } from './controls';
 export type { ToggleButtonProps, GoalIndicatorProps, GoalIndicatorColor, ActionButtonProps, ActionButtonVariant } from './controls';
 
 // Chart Components
-export { BarChart, LineChart, DivergingBarChart } from './charts';
+export { BarChart, LineChart, DivergingBarChart, RetentionFunnelChart, RetentionFunnelCard } from './charts';
 export type {
   BarChartProps,
   BarChartDataPoint,
@@ -51,6 +51,11 @@ export type {
   DivergingBarChartProps,
   DivergingBarDataPoint,
   DivergingBarConfig,
+  RetentionFunnelChartProps,
+  RetentionFunnelCardProps,
+  RetentionFunnelData,
+  FunnelStage,
+  FunnelInsight,
 } from './charts';
 
 // Reference Page (for viewing in app)

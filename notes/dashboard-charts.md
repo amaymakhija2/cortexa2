@@ -452,6 +452,38 @@ Psychotherapy practice owners and clinical directors who are very poor at readin
 
 ## RETENTION TAB
 
+### Hero Stats Row (4 Cards)
+
+#### 1. Avg Client Tenure
+| Element | Content |
+|---------|---------|
+| **Title** | "Avg Client Tenure" |
+| **Value** | "{X.X} months" |
+| **Subtext** | "across {X} discharged clients" |
+
+#### 2. Avg Sessions per Client
+| Element | Content |
+|---------|---------|
+| **Title** | "Avg Sessions per Client" |
+| **Value** | "{X.X}" |
+| **Subtext** | "before discharge" |
+
+#### 3. Session 5 Retention
+| Element | Content |
+|---------|---------|
+| **Title** | "Session 5 Retention" |
+| **Value** | "{XX}%" |
+| **Subtext** | "of new clients reach session 5" |
+
+#### 4. 3-Month Retention
+| Element | Content |
+|---------|---------|
+| **Title** | "3-Month Retention" |
+| **Value** | "{XX}%" |
+| **Subtext** | "of new clients stay 3+ months" |
+
+---
+
 ### Main Charts Row (2 Charts)
 
 #### Clients Churned Chart (Left)
@@ -500,6 +532,107 @@ Psychotherapy practice owners and clinical directors who are very poor at readin
 | **Line Color** | Emerald (#10b981) |
 | **Expandable** | Yes |
 | **Height** | 320px |
+
+---
+
+### Hero Stats Row — Metric Options (Choose 4)
+
+**Selected metrics: A, B, C, D**
+
+| Option | Metric | Value Example | Subtext | Notes |
+|--------|--------|---------------|---------|-------|
+| A ✓ | Avg Client Tenure | "7.4 months" | "across discharged clients" | Anchor metric for "how long do clients stay?" |
+| B ✓ | Avg Sessions per Client | "14.3" | "before discharge" | Pairs with tenure to show engagement intensity |
+| C ✓ | Session 5 Retention | "76%" | "of new clients reach session 5" | Early stickiness signal, most predictive |
+| D ✓ | 3-Month Retention | "62%" | "of new clients stay 3+ months" | Durability signal, actionable timeframe |
+| E | Median Tenure | "5.2 months" | "half of clients stay longer" | Alternative to avg if outliers skew data |
+| F | Early Dropout Rate | "24%" | "leave before session 5" | Inverse of C, frames as problem to solve |
+| G | 6-Month Retention | "41%" | "of new clients stay 6+ months" | Alternative to D for long-term focused practices |
+
+---
+
+### Retention Funnel Cards (2 Cards in Grid)
+
+Two separate funnel cards side-by-side showing client retention journeys.
+
+**Color Philosophy**: Single solid color per funnel type for clarity and visual impact. Values displayed outside the bars for maximum readability.
+
+---
+
+#### Retention by Sessions Card (Left)
+| Element | Content |
+|---------|---------|
+| **Icon** | Users (amber-700) in amber-50 badge |
+| **Title** | "Retention by Sessions" |
+| **Subtitle** | "Client milestones reached" |
+| **Expandable** | Yes |
+| **Bar Color** | Solid Amber-600 (#d97706) |
+| **Bar Height** | h-12 (md), h-14 (lg) |
+
+**Stages**:
+| Stage | Example Values |
+|-------|----------------|
+| Started | 100 clients · 100% |
+| Session 5 | 76 clients · 76% |
+| Session 12 | 52 clients · 52% |
+| Session 24 | 31 clients · 31% |
+
+**Bar Structure**:
+- Label inside bar (white text with DM Serif Display font)
+- Client count and percentage displayed outside bar to the right
+- Percentage shown in amber-50 pill with amber-700 text
+
+**Insights Row** (3 values at bottom):
+| Value | Label | Style |
+|-------|-------|-------|
+| {count} | "Started" | bg-amber-50, text-amber-700 |
+| "{X}%" | "Final Retention" | bg-amber-50, text-amber-700 |
+| "{X}%" | "Drop-off" | bg-stone-100, text-stone-700 |
+
+---
+
+#### Retention by Time Card (Right)
+| Element | Content |
+|---------|---------|
+| **Icon** | Clock (indigo-700) in indigo-50 badge |
+| **Title** | "Retention by Time" |
+| **Subtitle** | "Duration with practice" |
+| **Expandable** | Yes |
+| **Bar Color** | Solid Indigo-600 (#4f46e5) |
+| **Bar Height** | h-12 (md), h-14 (lg) |
+
+**Stages**:
+| Stage | Example Values |
+|-------|----------------|
+| Started | 100 clients · 100% |
+| 1 Month | 82 clients · 82% |
+| 3 Months | 62 clients · 62% |
+| 6 Months | 41 clients · 41% |
+
+**Bar Structure**:
+- Label inside bar (white text with DM Serif Display font)
+- Client count and percentage displayed outside bar to the right
+- Percentage shown in indigo-50 pill with indigo-700 text
+
+**Insights Row** (3 values at bottom):
+| Value | Label | Style |
+|-------|-------|-------|
+| {count} | "Started" | bg-indigo-50, text-indigo-700 |
+| "{X}%" | "Final Retention" | bg-indigo-50, text-indigo-700 |
+| "{X}%" | "Drop-off" | bg-stone-100, text-stone-700 |
+
+---
+
+**Shared Features**:
+- Staggered entrance animation (100ms delay per stage)
+- Hover: translateX(4px) + enhanced glow shadow
+- Bar width scales with percentage (min 25%)
+- Subtle dot pattern background matching accent color
+- Top highlight gradient inside bar for depth
+
+**Component**: `RetentionFunnelCard` from design system
+
+Scope: Data calculated from cohort within tab time selector period
 
 ---
 

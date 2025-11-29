@@ -177,6 +177,31 @@ const ALL_CHURN_TIMING_DATA = [
   { month: 'Dec', earlyChurn: 1, mediumChurn: 1, lateChurn: 1 }
 ];
 
+// Retention hero metrics - aggregated data for retention analysis
+const RETENTION_METRICS = {
+  avgTenureMonths: 7.4,
+  avgSessionsPerClient: 14.3,
+  session5RetentionRate: 76,
+  threeMonthRetentionRate: 62,
+  totalDischargedClients: 57,
+};
+
+// Retention funnel data - client journey visualization
+const RETENTION_FUNNEL_DATA = {
+  sessionsFunnel: [
+    { label: 'Started', count: 100, percentage: 100 },
+    { label: 'Session 5', count: 76, percentage: 76 },
+    { label: 'Session 12', count: 52, percentage: 52 },
+    { label: 'Session 24', count: 31, percentage: 31 },
+  ],
+  timeFunnel: [
+    { label: 'Started', count: 100, percentage: 100 },
+    { label: '1 Month', count: 82, percentage: 82 },
+    { label: '3 Months', count: 62, percentage: 62 },
+    { label: '6 Months', count: 41, percentage: 41 },
+  ],
+};
+
 // Admin Analytics Data
 
 // Client Balance Aging data
@@ -606,6 +631,8 @@ export const PracticeAnalysis: React.FC = () => {
           churnByClinicianData={CHURN_BY_CLINICIAN_DATA}
           churnTimingData={CHURN_TIMING_DATA}
           clientGrowthData={CLIENT_GROWTH_DATA}
+          retentionMetrics={RETENTION_METRICS}
+          retentionFunnelData={RETENTION_FUNNEL_DATA}
         />
       )}
 

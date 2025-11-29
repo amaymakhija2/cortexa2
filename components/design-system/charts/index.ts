@@ -23,3 +23,12 @@ export type {
   DivergingBarDataPoint,
   DivergingBarConfig,
 } from './DivergingBarChart';
+
+export { RetentionFunnelChart, RetentionFunnelCard } from './RetentionFunnelChart';
+export type {
+  RetentionFunnelChartProps,
+  RetentionFunnelCardProps,
+  RetentionFunnelData,
+  FunnelStage,
+  FunnelInsight,
+} from './RetentionFunnelChart';
