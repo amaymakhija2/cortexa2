@@ -7,6 +7,7 @@
 export { FinancialAnalysisTab } from './FinancialAnalysisTab';
 export { SessionsAnalysisTab } from './SessionsAnalysisTab';
 export { CapacityClientTab } from './CapacityClientTab';
+export { RetentionTab } from './RetentionTab';
 
 // Export all types
 export type {
@@ -23,8 +24,11 @@ export type {
   SessionFrequencyData,
   OpenSlotsDataPoint,
   HoursUtilizationDataPoint,
+  ChurnByClinicianDataPoint,
+  ChurnTimingDataPoint,
   BaseAnalysisTabProps,
   FinancialAnalysisTabProps,
   SessionsAnalysisTabProps,
   CapacityClientTabProps,
+  RetentionTabProps,
 } from './types';

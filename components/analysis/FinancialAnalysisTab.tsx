@@ -442,6 +442,7 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
                   formatValue={formatCurrencyShort}
                   onHover={setHoveredClinicianBar}
                   showLegend
+                  legendPosition="top-right"
                   height="380px"
                 />
               ) : (

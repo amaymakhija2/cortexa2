@@ -162,3 +162,34 @@ export interface CapacityClientTabProps extends BaseAnalysisTabProps {
   openSlotsData: OpenSlotsDataPoint[];
   hoursUtilizationData: HoursUtilizationDataPoint[];
 }
+
+// =============================================================================
+// RETENTION TAB DATA TYPES
+// =============================================================================
+
+export interface ChurnByClinicianDataPoint {
+  month: string;
+  Chen: number;
+  Rodriguez: number;
+  Patel: number;
+  Kim: number;
+  Johnson: number;
+  total: number;
+}
+
+export interface ChurnTimingDataPoint {
+  month: string;
+  earlyChurn: number;
+  mediumChurn: number;
+  lateChurn: number;
+}
+
+// =============================================================================
+// RETENTION TAB PROPS
+// =============================================================================
+
+export interface RetentionTabProps extends BaseAnalysisTabProps {
+  churnByClinicianData: ChurnByClinicianDataPoint[];
+  churnTimingData: ChurnTimingDataPoint[];
+  clientGrowthData: ClientGrowthDataPoint[]; // For rebook rate calculation
+}

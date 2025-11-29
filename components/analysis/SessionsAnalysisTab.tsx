@@ -383,6 +383,8 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
                   formatValue={(v) => v.toString()}
                   onHover={setHoveredClinicianBar}
                   showLegend
+                  legendPosition="top-right"
+                  maxValue={900}
                   height="380px"
                 />
               ) : (
@@ -390,6 +392,7 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
                   data={barChartData}
                   mode="single"
                   goal={{ value: 700 }}
+                  maxValue={900}
                   getBarColor={(value) =>
                     value >= 700
                       ? {
@@ -501,6 +504,8 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
             formatValue={(v) => v.toString()}
             onHover={setHoveredClinicianBar}
             showLegend
+            legendPosition="top-right"
+            maxValue={900}
             size="lg"
             height="100%"
           />
@@ -508,6 +513,7 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
           <BarChart
             data={barChartData}
             mode="single"
+            maxValue={900}
             goal={{ value: 700 }}
             getBarColor={(value) =>
               value >= 700

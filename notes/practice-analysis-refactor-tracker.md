@@ -16,7 +16,7 @@ This document tracks the refactoring of all Practice Analysis tabs to use the de
 | Financial | 🟢 Complete | `FinancialAnalysisTab.tsx` | 611-1672 |
 | Sessions | 🟢 Complete | `SessionsAnalysisTab.tsx` | 1673-3074 |
 | Capacity & Client | 🟢 Complete | `CapacityClientTab.tsx` | 3075-4710 |
-| Retention | 🔴 Not Started | `RetentionTab.tsx` | 4711-5195 |
+| Retention | 🟢 Complete | `RetentionTab.tsx` | 4711-5195 |
 | Insurance | 🔴 Not Started | `InsuranceTab.tsx` | 5196-5377 |
 | Admin | 🔴 Not Started | `AdminTab.tsx` | 5378-5586 |
 | Team Comparison | 🔴 Not Started | `TeamComparisonTab.tsx` | 5587-7388 |
@@ -1071,6 +1071,134 @@ Uses raw Recharts ComposedChart inside ChartCard for combined Bar + Line visuali
 - [x] Phase 5: Remove old code (~1634 lines)
 - [x] Phase 6: Fix TypeScript errors
 - [x] Phase 7: Update tracker
+
+---
+
+# TAB 4: RETENTION ✅ COMPLETE
+
+## Tab Info
+- **Accent Color:** `rose`
+- **Original Lines:** ~485 lines removed from PracticeAnalysis.tsx
+- **Component File:** `RetentionTab.tsx`
+- **Lines of Code:** ~260 lines
+
+## Final Component Structure
+
+```
+RetentionTab.tsx
+├── PageHeader (rose accent)
+├── PageContent
+│   └── Section: Main Charts Row
+│       └── Grid cols={2}
+│           ├── ChartCard: Churn by Clinician (BarChart stacked)
+│           │   ├── headerControls: ActionButton
+│           │   ├── Stacked bars by clinician (teal gradient shades)
+│           │   └── Legend
+│           │
+│           └── Right Column (flex col)
+│               ├── Grid cols={2}: Small Charts
+│               │   ├── DonutChartCard: Churn Timing
+│               │   │   └── Early/Medium/Late segments
+│               │   │
+│               │   └── SimpleChartCard: Rebook Rate
+│               │       └── LineChart (85-100% domain)
+│               │
+│               └── Custom Card: Churn Segment Analysis
+│                   └── 3 vertical bars showing avg churn point
+```
+
+## Key Implementation Details
+
+### 1. Props Interface (in types.ts)
+```tsx
+export interface ChurnByClinicianDataPoint {
+  month: string;
+  Chen: number;
+  Rodriguez: number;
+  Patel: number;
+  Kim: number;
+  Johnson: number;
+  total: number;
+}
+
+export interface ChurnTimingDataPoint {
+  month: string;
+  earlyChurn: number;
+  mediumChurn: number;
+  lateChurn: number;
+}
+
+export interface RetentionTabProps extends BaseAnalysisTabProps {
+  churnByClinicianData: ChurnByClinicianDataPoint[];
+  churnTimingData: ChurnTimingDataPoint[];
+  clientGrowthData: ClientGrowthDataPoint[]; // For rebook rate
+}
+```
+
+### 2. Stacked BarChart Segments
+```tsx
+const CLINICIAN_SEGMENTS = [
+  { key: 'Chen', label: 'Chen', color: '#2d6e7e', gradient: 'linear-gradient(180deg, #2d6e7e 0%, #1d4e5e 100%)' },
+  { key: 'Rodriguez', label: 'Rodriguez', color: '#3d8a9e', gradient: 'linear-gradient(180deg, #3d8a9e 0%, #2d6a7e 100%)' },
+  // ... etc
+];
+
+<BarChart
+  data={churnBarChartData}
+  mode="stacked"
+  segments={CLINICIAN_SEGMENTS}
+  stackOrder={['Chen', 'Rodriguez', 'Patel', 'Kim', 'Johnson']}
+  formatValue={(v) => v.toString()}
+  showLegend
+  height="380px"
+/>
+```
+
+### 3. DonutChartCard for Churn Timing
+```tsx
+<DonutChartCard
+  title="Churn Timing"
+  subtitle="When clients leave"
+  segments={[
+    { label: 'Early (0-3mo)', value: earlyTotal, color: '#ef4444' },
+    { label: 'Medium (4-8mo)', value: mediumTotal, color: '#f59e0b' },
+    { label: 'Late (9+mo)', value: lateTotal, color: '#10b981' },
+  ]}
+  centerLabel="Total"
+  centerValue={totalChurn.toString()}
+  valueFormat="number"
+  size="sm"
+/>
+```
+
+### 4. Custom Churn Segment Card
+Simple custom card with 3 gradient bars showing average session count at churn:
+- Early: 3.5 sessions (rose)
+- Mid: 8 sessions (amber)
+- Late: 30 sessions (emerald)
+
+## Color Reference (Retention Tab)
+
+| Element | Color Code |
+|---------|------------|
+| Chen | `#2d6e7e` (teal) |
+| Rodriguez | `#3d8a9e` |
+| Patel | `#4da6be` |
+| Kim | `#6bc2d8` |
+| Johnson | `#89d4e8` |
+| Early Churn | `#ef4444` (red) |
+| Medium Churn | `#f59e0b` (amber) |
+| Late Churn | `#10b981` (emerald) |
+| Rebook Rate | `#10b981` (emerald) |
+
+## Implementation Checklist ✅
+
+- [x] Phase 1: Analyze tab structure
+- [x] Phase 2: Add types (ChurnByClinicianDataPoint, ChurnTimingDataPoint, RetentionTabProps)
+- [x] Phase 3: Create RetentionTab.tsx
+- [x] Phase 4: Integrate in PracticeAnalysis.tsx
+- [x] Phase 5: Remove old code (~485 lines)
+- [x] Phase 6: Update tracker
 
 ---
 

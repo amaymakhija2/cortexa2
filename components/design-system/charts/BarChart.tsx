@@ -127,8 +127,15 @@ export interface BarChartProps {
   /** Chart height (CSS value) */
   height?: string;
 
-  /** Whether to show the legend below the chart (stacked mode only) */
+  /** Whether to show the legend (stacked mode only) */
   showLegend?: boolean;
+
+  /**
+   * Position of the legend
+   * - 'bottom': Below the chart (default, takes vertical space)
+   * - 'top-right': Floating in top-right corner of chart area (overlaid, no space taken)
+   */
+  legendPosition?: 'bottom' | 'top-right';
 
   /** Additional className for the container */
   className?: string;
@@ -264,6 +271,7 @@ export const BarChart: React.FC<BarChartProps> = ({
   onHover,
   height = '320px',
   showLegend = false,
+  legendPosition = 'bottom',
   className = '',
 }) => {
   // Get size configuration
@@ -488,6 +496,23 @@ export const BarChart: React.FC<BarChartProps> = ({
             </div>
           )}
 
+          {/* Top-right floating legend */}
+          {showLegend && mode === 'stacked' && legendPosition === 'top-right' && segments.length > 0 && (
+            <div className="absolute top-0 right-0 z-20 flex items-center gap-4 bg-white/90 backdrop-blur-sm rounded-xl px-4 py-2.5 shadow-sm border border-stone-100">
+              {segments.map((segment) => (
+                <div key={segment.key} className="flex items-center gap-2">
+                  <div
+                    className="w-3.5 h-3.5 rounded-full"
+                    style={{ backgroundColor: segment.color }}
+                  />
+                  <span className="text-sm font-semibold text-stone-700">
+                    {segment.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+
           {/* Bars */}
           {mode === 'single' ? renderSingleBars() : renderStackedBars()}
         </div>
@@ -519,8 +544,8 @@ export const BarChart: React.FC<BarChartProps> = ({
         </div>
       </div>
 
-      {/* Legend (stacked mode only) */}
-      {showLegend && mode === 'stacked' && segments.length > 0 && (
+      {/* Bottom Legend (stacked mode only) */}
+      {showLegend && mode === 'stacked' && legendPosition === 'bottom' && segments.length > 0 && (
         <div className="flex items-center gap-5 mt-4 pt-3 border-t border-stone-100 flex-wrap justify-center">
           {segments.map((segment) => (
             <div key={segment.key} className="flex items-center gap-2">
