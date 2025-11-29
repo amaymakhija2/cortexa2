@@ -190,36 +190,36 @@ const RETENTION_COHORTS = [
     summary: { clientsAcquired: 847, clientsChurned: 691, activeClients: 156, avgSessionsPerClient: 14.3 }
   },
   {
-    id: 'ytd-2024',
-    label: '2024 YTD',
-    sublabel: 'Jan - Nov 2024',
+    id: 'ytd-2025',
+    label: '2025 YTD',
+    sublabel: 'Jan - Nov 2025',
     clientCount: 312,
     maturity: 'mature' as const,
     summary: { clientsAcquired: 312, clientsChurned: 198, activeClients: 114, avgSessionsPerClient: 11.8 }
   },
   {
-    id: 'q3-2024',
-    label: 'Q3 2024',
+    id: 'q3-2025',
+    label: 'Q3 2025',
     sublabel: 'Jul - Sep',
     clientCount: 142,
     maturity: 'mature' as const,
     summary: { clientsAcquired: 142, clientsChurned: 67, activeClients: 75, avgSessionsPerClient: 9.2 }
   },
   {
-    id: 'q4-2024',
-    label: 'Q4 2024',
+    id: 'q4-2025',
+    label: 'Q4 2025',
     sublabel: 'Oct - Dec',
     clientCount: 89,
     maturity: 'partial' as const,
     summary: { clientsAcquired: 89, clientsChurned: 18, activeClients: 71, avgSessionsPerClient: 5.4 }
   },
   {
-    id: 'nov-2024',
-    label: 'Nov 2024',
+    id: 'nov-2025',
+    label: 'Nov 2025',
     sublabel: '23 clients',
     clientCount: 23,
     maturity: 'immature' as const,
-    availableDate: 'Jan 15, 2025',
+    availableDate: 'Jan 15, 2026',
     summary: { clientsAcquired: 23, clientsChurned: 2, activeClients: 21, avgSessionsPerClient: 2.8 }
   },
 ];
