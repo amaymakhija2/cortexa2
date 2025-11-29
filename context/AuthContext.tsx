@@ -11,9 +11,18 @@ const AuthContext = createContext<AuthContextType | null>(null);
 const VALID_USERNAME = 'cortex';
 const VALID_PASSWORD = 'cortex1234';
 const AUTH_KEY = 'cortexa_auth';
+const BUILD_VERSION_KEY = 'cortexa_build';
+const BUILD_VERSION = import.meta.env.VITE_BUILD_TIME || __BUILD_TIME__;
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    const storedVersion = sessionStorage.getItem(BUILD_VERSION_KEY);
+    if (storedVersion !== BUILD_VERSION) {
+      // New build deployed - clear auth
+      sessionStorage.removeItem(AUTH_KEY);
+      sessionStorage.setItem(BUILD_VERSION_KEY, BUILD_VERSION);
+      return false;
+    }
     return sessionStorage.getItem(AUTH_KEY) === 'true';
   });
 
