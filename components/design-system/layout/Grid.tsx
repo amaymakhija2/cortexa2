@@ -7,7 +7,7 @@ import React from 'react';
 // Uses Tailwind's responsive grid with consistent gaps.
 // =============================================================================
 
-export type GridColumns = 1 | 2 | 3 | 4;
+export type GridColumns = 1 | 2 | 3 | 4 | 5;
 
 export interface GridProps {
   /** Number of columns (responsive: always 1 on mobile, specified on lg+) */
@@ -31,6 +31,7 @@ const COLS_CLASSES: Record<GridColumns, string> = {
   2: 'grid-cols-1 lg:grid-cols-2',
   3: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
   4: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4',
+  5: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5',
 };
 
 /**

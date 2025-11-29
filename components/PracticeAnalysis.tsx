@@ -228,6 +228,7 @@ const RETENTION_COHORTS = [
 const RETENTION_FUNNEL_DATA = {
   sessionsFunnel: [
     { label: 'Started', count: 847, percentage: 100 },
+    { label: 'Session 2', count: 652, percentage: 77 },
     { label: 'Session 5', count: 644, percentage: 76 },
     { label: 'Session 12', count: 440, percentage: 52 },
     { label: 'Session 24', count: 263, percentage: 31 },
@@ -308,6 +309,26 @@ const RETENTION_BENCHMARKS = {
   avgClientTenure: 11.5, // Industry average sessions per client
   avgSession5Retention: 80, // Industry average % reaching session 5
   frequencyMultiplierRange: '1.8-2.5x', // Typical range for weekly vs bi-weekly
+};
+
+// Churn distribution by gender (for comparison with client distribution)
+// Client distribution: Male 33%, Female 62%, Other 5%
+// Churn shows Males slightly over-represented in churn
+const CHURN_BY_GENDER_DATA = {
+  male: 48,    // 38% of churn vs 33% of clients (+5%)
+  female: 72,  // 57% of churn vs 62% of clients (-5%)
+  other: 6,    // 5% of churn vs 5% of clients (=)
+  total: 126
+};
+
+// Churn distribution by frequency (for comparison with client distribution)
+// Client distribution: Weekly 51%, Bi-weekly 40%, Monthly 8%
+// Churn shows Monthly clients massively over-represented
+const CHURN_BY_FREQUENCY_DATA = {
+  weekly: 25,    // 20% of churn vs 51% of clients (-31%) - weekly clients stay!
+  biweekly: 57,  // 45% of churn vs 40% of clients (+5%)
+  monthly: 44,   // 35% of churn vs 8% of clients (+27%) - monthly clients leave!
+  total: 126
 };
 
 // Admin Analytics Data
@@ -738,8 +759,11 @@ export const PracticeAnalysis: React.FC = () => {
           retentionFunnelData={RETENTION_FUNNEL_DATA}
           currentHealthData={CURRENT_HEALTH_DATA}
           firstSessionDropoffData={FIRST_SESSION_DROPOFF_DATA}
-          frequencyRetentionData={FREQUENCY_RETENTION_DATA}
           benchmarks={RETENTION_BENCHMARKS}
+          clientGenderData={CLIENT_GENDER_DATA}
+          churnByGenderData={CHURN_BY_GENDER_DATA}
+          clientFrequencyData={SESSION_FREQUENCY_DATA}
+          churnByFrequencyData={CHURN_BY_FREQUENCY_DATA}
         />
       )}
 

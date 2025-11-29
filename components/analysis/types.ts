@@ -329,6 +329,26 @@ export interface RetentionBenchmarks {
   frequencyMultiplierRange: string;
 }
 
+/**
+ * Churn distribution by gender (for comparison with client distribution)
+ */
+export interface ChurnByGenderData {
+  male: number;
+  female: number;
+  other: number;
+  total: number;
+}
+
+/**
+ * Churn distribution by frequency (for comparison with client distribution)
+ */
+export interface ChurnByFrequencyData {
+  weekly: number;
+  biweekly: number;
+  monthly: number;
+  total: number;
+}
+
 // =============================================================================
 // RETENTION TAB PROPS
 // =============================================================================
@@ -350,8 +370,14 @@ export interface RetentionTabProps {
   currentHealthData: CurrentHealthData;
   /** First session dropoff data */
   firstSessionDropoffData: FirstSessionDropoffData;
-  /** Frequency retention correlation data */
-  frequencyRetentionData: FrequencyRetentionDataPoint[];
   /** Benchmark data for comparisons */
   benchmarks: RetentionBenchmarks;
+  /** Client gender distribution */
+  clientGenderData: GenderData;
+  /** Churn by gender distribution */
+  churnByGenderData: ChurnByGenderData;
+  /** Client frequency distribution */
+  clientFrequencyData: SessionFrequencyData;
+  /** Churn by frequency distribution */
+  churnByFrequencyData: ChurnByFrequencyData;
 }

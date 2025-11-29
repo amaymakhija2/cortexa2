@@ -20,8 +20,6 @@ import {
   AtRiskClientsCard,
   MilestoneOpportunityCard,
   DefinitionsBar,
-  FirstSessionDropoffCard,
-  FrequencyRetentionCard,
 } from '../design-system';
 import type { HoverInfo } from '../design-system';
 import type { RetentionTabProps } from './types';
@@ -64,8 +62,11 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
   retentionFunnelData,
   currentHealthData,
   firstSessionDropoffData,
-  frequencyRetentionData,
   benchmarks,
+  clientGenderData,
+  churnByGenderData,
+  clientFrequencyData,
+  churnByFrequencyData,
 }) => {
   // =========================================================================
   // LOCAL STATE
@@ -393,38 +394,42 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
                 />
               </Grid>
 
-              {/* Session 1→2 Drop-off Card */}
+              {/* Session 1→2 Drop-off Stat */}
               <div className="mt-6">
-                <FirstSessionDropoffCard
-                  session1Count={firstSessionDropoffData.session1Count}
-                  session2Count={firstSessionDropoffData.session2Count}
-                  benchmarkPercentage={firstSessionDropoffData.benchmarkPercentage}
+                <StatCard
+                  title="Session 1→2 Drop-off"
+                  value={`${(100 - (firstSessionDropoffData.session2Count / firstSessionDropoffData.session1Count * 100)).toFixed(0)}%`}
+                  subtitle={`${(firstSessionDropoffData.session2Count / firstSessionDropoffData.session1Count * 100).toFixed(0)}% return rate (industry avg: ${firstSessionDropoffData.benchmarkPercentage}%)`}
+                  variant={(firstSessionDropoffData.session2Count / firstSessionDropoffData.session1Count * 100) < firstSessionDropoffData.benchmarkPercentage ? 'negative' : 'positive'}
                 />
               </div>
             </Section>
 
             {/* ================================================================
-                SECTION 3: WHAT DRIVES RETENTION
+                SECTION 3: WHAT TYPE OF CLIENTS DO WE LOSE
                 ================================================================ */}
             <Section spacing="lg">
               <SectionHeader
                 number={3}
-                question="What keeps clients?"
-                description="Factors that correlate with longer client tenure"
+                question="What type of clients do we lose?"
+                description="Comparing churn rates across client segments"
                 accent="cyan"
               />
               <Grid cols={2} gap="lg">
-                <FrequencyRetentionCard
-                  frequencyData={frequencyRetentionData}
-                  benchmarkRange={benchmarks.frequencyMultiplierRange}
+                {/* Churn by Frequency - The big insight */}
+                <StatCard
+                  title="Session Frequency"
+                  value={`${((churnByFrequencyData.monthly / churnByFrequencyData.total) / (clientFrequencyData.monthly / clientFrequencyData.total)).toFixed(1)}x`}
+                  subtitle={`Monthly clients are ${((churnByFrequencyData.monthly / churnByFrequencyData.total) * 100).toFixed(0)}% of churn but only ${((clientFrequencyData.monthly / clientFrequencyData.total) * 100).toFixed(0)}% of clients`}
+                  variant="negative"
                 />
-                {/* Placeholder for future insights - can add more driver cards here */}
-                <div className="rounded-2xl xl:rounded-3xl p-6 sm:p-7 xl:p-8 border-2 border-dashed border-stone-200 flex items-center justify-center">
-                  <p className="text-stone-400 text-sm text-center">
-                    More retention drivers coming soon<br />
-                    (e.g., referral source, insurance type)
-                  </p>
-                </div>
+
+                {/* Churn by Gender - Minimal signal */}
+                <StatCard
+                  title="Client Gender"
+                  value="Balanced"
+                  subtitle={`No significant difference in churn rates across genders`}
+                />
               </Grid>
             </Section>
 
