@@ -117,7 +117,7 @@ export interface PageContentProps {
   /** Additional className */
   className?: string;
   /** Page content */
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }
 
 /**

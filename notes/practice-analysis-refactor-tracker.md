@@ -3,7 +3,7 @@
 ## Overview
 This document tracks the refactoring of all Practice Analysis tabs to use the design system components.
 
-**Source File:** `components/PracticeAnalysis.tsx` (7,388 lines)
+**Source File:** `components/PracticeAnalysis.tsx` (636 lines after refactor, originally 7,388 lines)
 **Design System:** `components/design-system/`
 **Output Directory:** `components/analysis/`
 
@@ -17,9 +17,9 @@ This document tracks the refactoring of all Practice Analysis tabs to use the de
 | Sessions | 🟢 Complete | `SessionsAnalysisTab.tsx` | 1673-3074 |
 | Capacity & Client | 🟢 Complete | `CapacityClientTab.tsx` | 3075-4710 |
 | Retention | 🟢 Complete | `RetentionTab.tsx` | 4711-5195 |
-| Insurance | 🔴 Not Started | `InsuranceTab.tsx` | 5196-5377 |
-| Admin | 🔴 Not Started | `AdminTab.tsx` | 5378-5586 |
-| Team Comparison | 🔴 Not Started | `TeamComparisonTab.tsx` | 5587-7388 |
+| Insurance | 🟢 Complete | `InsuranceTab.tsx` | 5196-5377 |
+| Admin | 🟢 Complete | `AdminTab.tsx` | 5378-5586 |
+| Team Comparison | ❌ Removed | N/A | 5587-7388 |
 
 **Status Key:** 🔴 Not Started | 🟡 In Progress | 🟢 Complete
 

@@ -1,5 +1,8 @@
 # Cortexa Dashboard - Complete Chart & Metrics Reference
 
+Cortexa Target Audience:
+Psychotherapy practice owners and clinical directors who are very poor at reading charts and managing complex data. They need to understand their practice performance and take action to improve it, without it being too complex for them to understand. It is imperative that data is written in a simple and easy to understand manner, while retaining all the necessary information.
+
 ---
 
 ## OVERVIEW DASHBOARD (Practice Review)
@@ -142,37 +145,62 @@
 | **Title** | "Revenue Performance" |
 | **Subtitle** | "Monthly breakdown" |
 | **Chart Type** | Vertical bar chart |
-| **Y-Axis** | $0 - $160k (in $40k increments) |
+| **Y-Axis** | $0 - $160k (auto-scaled with buffer) |
 | **X-Axis** | Month labels (Jan, Feb, Mar...) |
 | **Goal Line** | Dashed amber line at $150k |
 | **Goal Indicator Pill** | "$150k Goal" |
 | **Bar Colors** | Green gradient (above goal), Blue gradient (below goal) |
 | **Toggle Button** | "By Clinician" - switches to stacked bar view |
+| **Legend Position** | Top-right (clinician view) |
 | **Action Button** | "Revenue Report →" |
 | **Insights Row** | Best Month: {Month} (${X}k) · MoM Trend: +X.X% · Range: $XXk – $XXXk |
 | **Legend (clinician view)** | Chen (purple) · Rodriguez (cyan) · Patel (amber) · Kim (pink) · Johnson (emerald) |
 
 ---
 
-### Cost Breakdown Chart
+### Revenue Distribution Chart
 | Element | Content |
 |---------|---------|
-| **Title** | "Cost Breakdown" |
-| **Subtitle** | "Monthly expense allocation" |
-| **Chart Type** | Stacked bar/area chart |
-| **Categories** | Gross Revenue, Clinician Costs (~70%), Supervisor Costs (~10%), Credit Card Fees (~3%), Net Revenue |
-| **Action Button** | "Full Report →" |
+| **Title** | "Revenue Distribution" |
+| **Subtitle** | "Total across all {X} months" |
+| **Chart Type** | Donut chart |
+| **Center Display** | "Gross Revenue" label + formatted value |
+| **Segments** | |
+| - Clinician Costs | Blue (#3b82f6) |
+| - Supervisor Costs | Amber (#f59e0b) |
+| - CC Fees | Rose (#f43f5e) |
+| - Net Revenue | Emerald (#10b981) |
+| **Value Format** | Currency |
+| **Expandable** | Yes |
 
 ---
 
-### Team Performance Section
+### Net Revenue Margin Chart
 | Element | Content |
 |---------|---------|
-| **Title** | "Team Performance" |
-| **Subtitle** | "Revenue by clinician" |
-| **Display** | 5 ranked cards (1-5) |
-| **Card Content** | Clinician name, Total revenue, % of total, Progress bar |
-| **Badge** | "Top" badge on #1 performer |
+| **Title** | "Net Revenue Margin" |
+| **Subtitle** | "Percentage of gross revenue retained" |
+| **Chart Type** | Line chart with area fill |
+| **Value Indicator** | Average margin % (emerald) |
+| **Y-Axis** | 0 - 30% |
+| **Line Color** | Emerald (#10b981) |
+| **Height** | 280px |
+
+---
+
+### Cost as % of Revenue Chart
+| Element | Content |
+|---------|---------|
+| **Title** | "Cost as % of Revenue" |
+| **Subtitle** | "Clinician and supervisor costs" |
+| **Chart Type** | Multi-line chart |
+| **Value Indicator** | Total average % (stone) |
+| **Y-Axis** | 0 - 80% |
+| **Lines** | |
+| - Clinician | Blue (#3b82f6) |
+| - Supervisor | Amber (#f59e0b) |
+| **Show Legend** | Yes |
+| **Height** | 280px |
 
 ---
 
@@ -181,7 +209,12 @@
 |---------|---------|
 | **Title** | "Full Breakdown" |
 | **Columns** | Each month + Total column |
-| **Rows** | Gross Revenue, Clinician Cost, Supervisor Cost, Credit Card Fees, Net Revenue |
+| **Rows** | |
+| - Gross Revenue | No indicator |
+| - Clinician Cost | Blue indicator (#3b82f6), blue text |
+| - Supervisor Cost | Amber indicator (#f59e0b), amber text |
+| - Credit Card Fees | Rose indicator (#f43f5e), rose text |
+| - Net Revenue | Emerald indicator (#10b981), emerald text, highlighted row |
 
 ---
 
@@ -215,7 +248,7 @@
 |---------|---------|
 | **Title** | "Avg Non-Billable Cancel Rate" |
 | **Value** | "{X.X}%" |
-| **Subtext** | "Client Cancellations + Clinician Cancellations" |
+| **Subtext** | "Client + Clinician Cancellations" |
 
 ---
 
@@ -225,15 +258,17 @@
 | **Title** | "Completed Sessions" |
 | **Subtitle** | "Monthly performance" |
 | **Chart Type** | Vertical bar chart |
-| **Y-Axis** | 0 - 800 (in 200 increments) |
+| **Y-Axis** | 0 - 900 (maxValue: 900) |
 | **X-Axis** | Month labels |
 | **Goal Line** | Dashed amber line at 700 |
 | **Goal Indicator Pill** | "700 Goal" |
 | **Bar Colors** | Green gradient (≥700), Blue gradient (<700) |
 | **Toggle Button** | "By Clinician" - switches to stacked view |
+| **Legend Position** | Top-right (clinician view) |
 | **Action Button** | "Sessions Report →" |
 | **Insights Row** | Best Month: {Month} ({X}) · MoM Trend: +X.X% · Range: XXX – XXX |
 | **Legend (clinician view)** | Chen (purple) · Rodriguez (cyan) · Patel (amber) · Kim (pink) · Johnson (emerald) |
+| **Height** | 380px |
 
 ---
 
@@ -242,7 +277,7 @@
 |---------|---------|
 | **Title** | "Attendance Breakdown" |
 | **Subtitle** | "Session outcomes" |
-| **Chart Type** | Donut chart (SVG arc paths) |
+| **Chart Type** | Donut chart |
 | **Center Display** | "Show Rate" label + "{XX.X}%" value |
 | **Segments** | |
 | - Attended | Green (#10b981) |
@@ -250,7 +285,8 @@
 | - Clinician Cancelled | Blue (#3b82f6) |
 | - Late Cancelled | Amber (#f59e0b) |
 | - No Show | Gray (#6b7280) |
-| **Legend** | Each segment with color dot, label, count, and percentage |
+| **Value Format** | Number |
+| **Expandable** | Yes |
 
 ---
 
@@ -274,10 +310,10 @@
 | Element | Content |
 |---------|---------|
 | **Title** | "Session Modality" |
-| **Chart Type** | Split horizontal bar |
-| **Left Segment** | Telehealth - Cyan (#0891b2) with video icon + percentage |
-| **Right Segment** | In-Person - Amber (#d97706) with building icon + percentage |
-| **Labels Below** | "Telehealth ({X,XXX})" and "In-Person ({X,XXX})" with color dots |
+| **Chart Type** | Split horizontal bar (SplitBarCard) |
+| **Left Segment** | Telehealth - Cyan (#0891b2 to #0e7490) |
+| **Right Segment** | In-Person - Amber (#d97706 to #b45309) |
+| **Expandable** | Yes |
 
 ---
 
@@ -287,128 +323,183 @@
 | **Title** | "Monthly Breakdown" |
 | **Columns** | Each month + Total column |
 | **Rows** | |
-| - Booked | Cyan dot |
-| - Completed | Green dot, green text |
-| - Cancelled | Rose dot, rose text |
-| - Clinician Cancelled | Blue dot, blue text |
-| - Late Cancelled | Amber dot, amber text |
-| - No Show | Gray dot |
+| - Booked | Cyan indicator (#06b6d4) |
+| - Completed | Green indicator (#10b981), green text, highlighted row |
+| - Client Cancelled | Rose indicator (#ef4444), rose text |
+| - Clinician Cancelled | Blue indicator (#3b82f6), blue text |
+| - Late Cancelled | Amber indicator (#f59e0b), amber text |
+| - No Show | Gray indicator (#6b7280), stone text |
 
 ---
 
 ## CAPACITY & CLIENT TAB
 
-### Client Capacity Chart (Main Left)
+### Hero Stats Row (4 Cards)
+
+#### 1. Active Clients
 | Element | Content |
 |---------|---------|
-| **Category Label** | "ANALYTICS" |
-| **Title** | "Client Capacity" |
-| **Info Tooltip Title** | "Client Capacity Tracking" |
-| **Info Tooltip Text** | "Compare your active client count versus your practice capacity. The percentage above shows how much of your capacity is being utilized. Higher utilization means you're closer to your practice limits." |
-| **Chart Type** | Grouped bar chart |
-| **Legend** | Client Capacity (gray) · Active Clients (teal) |
-| **Bar 1** | Gray - Capacity |
-| **Bar 2** | Teal (#2d6e7e) - Active Clients |
-| **Pills Above Bars** | Utilization % (green <70%, amber 70-85%, red >85%) |
+| **Title** | "Active Clients" |
+| **Value** | "{XXX}" (current active clients count) |
+| **Subtext** | "of {XXX} capacity" |
+
+#### 2. Net Growth
+| Element | Content |
+|---------|---------|
+| **Title** | "Net Growth" |
+| **Value** | "+{X}" or "-{X}" (new - churned) |
+| **Subtext** | "+{X} new, -{X} churned" |
+
+#### 3. Client Utilization
+| Element | Content |
+|---------|---------|
+| **Title** | "Client Utilization" |
+| **Value** | "{XX}%" (active/capacity) |
+| **Subtext** | "of client capacity filled" |
+
+#### 4. Session Utilization
+| Element | Content |
+|---------|---------|
+| **Title** | "Session Utilization" |
+| **Value** | "{XX}%" (average) |
+| **Subtext** | "avg across {X} months" |
 
 ---
 
-### Hours Utilization Chart (Top Right Small)
+### Client Utilization Chart (Main Left)
 | Element | Content |
 |---------|---------|
-| **Category Label** | "ANALYTICS" |
-| **Title** | "Hours Utilization" |
-| **Info Tooltip Title** | "Practice Hours Utilization" |
-| **Info Tooltip Text** | "Shows the percentage of billable hours utilized across the practice over time (based on 800 hrs/month = 5 clinicians × 160 hrs). Higher percentage indicates better capacity usage." |
-| **Header Value** | "{XX.X}%" (avg or hovered value) |
-| **Chart Type** | Line chart with area fill |
-| **Line Color** | Teal (#2d6e7e) |
-| **Data Labels** | Percentage on each point |
+| **Title** | "Client Utilization" |
+| **Subtitle** | "Active clients & utilization rate over time" |
+| **Chart Type** | Combo chart (Bar + Line) |
+| **Legend** | Active Clients (amber bar) · Utilization % (emerald line) |
+| **Bar** | Amber gradient - Active Clients (left Y-axis, 0-200) |
+| **Line** | Emerald (#059669) - Utilization Rate % (right Y-axis, 0-100%) |
+| **Bar Labels** | Inside top of bars, white text |
+| **Action Button** | "View Report →" |
+| **Insights Row** | Avg Clients: {X} · Avg Utilization: {X}% · Peak: {Month} ({X}%) |
+| **Expandable** | Yes |
+| **Height** | 350px |
 
 ---
 
-### Unfilled Client Slots Chart (Top Right Small)
+### Client Movement Chart (Main Right)
 | Element | Content |
 |---------|---------|
-| **Category Label** | "ANALYTICS" |
-| **Title** | "Unfilled Client Slots" |
-| **Info Tooltip Title** | "Unfilled Client Slots" |
-| **Info Tooltip Text** | "Shows how many more clients clinicians can take on based on their capacity goals. If a clinician's goal is 25 clients and they have 20, they have 5 unfilled slots. Higher numbers indicate more room for growth." |
-| **Header Value** | "{XX}" (avg or hovered value) |
-| **Chart Type** | Line chart with area fill |
-| **Line Color** | Teal (#2d6e7e) |
-
----
-
-### Client Movement Chart (Bottom Right)
-| Element | Content |
-|---------|---------|
-| **Category Label** | "ANALYTICS" |
 | **Title** | "Client Movement" |
-| **Info Tooltip Title** | "Client Movement Analysis" |
-| **Info Tooltip Text** | "Visualizes the flow of clients in and out of your practice. New clients appear as positive bars (green) above the center line, while churned clients appear as negative bars (red) below. This helps you understand client retention and growth patterns." |
+| **Subtitle** | "New acquisitions vs churned clients" |
 | **Chart Type** | Diverging bar chart |
-| **Legend** | New Clients (green) · Churned Clients (red) |
-| **Positive Bars** | Green - New clients (above center) |
-| **Negative Bars** | Red - Churned clients (below center) |
+| **Legend** | New Clients (emerald) · Churned (rose) |
+| **Positive Bars** | Green gradient (#34d399 → #10b981) - New clients (above center) |
+| **Negative Bars** | Rose gradient (#fb7185 → #f43f5e) - Churned clients (below center) |
+| **Action Button** | "View Report →" |
+| **Insights Row** | Net Change: +/-{X} · Avg New/mo: +{X.X} · Avg Churn/mo: -{X.X} |
+| **Expandable** | Yes |
+| **Height** | 350px |
+
+---
+
+### Client Demographics Row (2 Cards)
+
+#### 1. Client Gender
+| Element | Content |
+|---------|---------|
+| **Title** | "Client Gender" |
+| **Chart Type** | Stacked horizontal bar (StackedBarCard) |
+| **Segments** | |
+| - Male | Blue (#3b82f6) |
+| - Female | Pink (#ec4899) |
+| - Other | Violet (#8b5cf6) |
+
+#### 2. Client Session Frequency
+| Element | Content |
+|---------|---------|
+| **Title** | "Client Session Frequency" |
+| **Chart Type** | Stacked horizontal bar (StackedBarCard) |
+| **Segments** | |
+| - Weekly | Emerald (#10b981) |
+| - Bi-weekly | Amber (#f59e0b) |
+| - Monthly | Stone (#a8a29e) |
+
+---
+
+### Utilization & Slots Row (2 Charts)
+
+#### 1. Session Utilization
+| Element | Content |
+|---------|---------|
+| **Title** | "Session Utilization" |
+| **Subtitle** | "Percentage of session capacity utilized" |
+| **Chart Type** | Line chart with area fill |
+| **Value Indicator** | Average % (blue) |
+| **Y-Axis** | 70 - 100% |
+| **Line Color** | Blue (#3b82f6) |
+| **Expandable** | Yes |
+| **Height** | 320px |
+
+#### 2. Open Slots
+| Element | Content |
+|---------|---------|
+| **Title** | "Open Slots" |
+| **Subtitle** | "Unfilled appointment slots per month" |
+| **Chart Type** | Line chart with area fill |
+| **Value Indicator** | Average count (rose) |
+| **Line Color** | Rose (#f43f5e) |
+| **Expandable** | Yes |
+| **Height** | 320px |
 
 ---
 
 ## RETENTION TAB
 
-### Churn Analysis by Clinician Chart (Main Left)
+### Main Charts Row (2 Charts)
+
+#### Clients Churned Chart (Left)
 | Element | Content |
 |---------|---------|
-| **Category Label** | "ANALYTICS" |
-| **Title** | "Churn Analysis by Clinician" |
-| **Info Tooltip Title** | "Client Churn by Clinician" |
-| **Info Tooltip Text** | "Shows the breakdown of churned clients each month by clinician. Stacked bars reveal which clinicians are experiencing client loss and help identify retention issues that may require intervention." |
-| **Chart Type** | Stacked bar chart |
-| **Legend** | Chen · Rodriguez · Patel · Kim · Johnson (teal gradient shades) |
-| **Labels Above Bars** | Total churn count |
+| **Title** | "Clients Churned" |
+| **Subtitle** | "Monthly churn breakdown" |
+| **Chart Type** | Vertical bar chart |
+| **Y-Axis** | 0 - 15 (maxValue: 15) |
+| **X-Axis** | Month labels |
+| **Bar Colors (single mode)** | Rose gradient (#fb7185 → #e11d48) |
+| **Toggle Button** | "By Clinician" - switches to stacked view |
+| **Legend Position** | Top-right (clinician view) |
+| **Clinician Colors (stacked)** | Chen (cyan #0891b2) · Rodriguez (teal #0d9488) · Patel (sky #0284c7) · Kim (violet #7c3aed) · Johnson (pink #db2777) |
+| **Action Button** | "Retention Report →" |
+| **Insights Row** | Total Churned: {X} · Avg/month: {X.X} · Peak: {Month} ({X}) |
+| **Expandable** | Yes |
+| **Height** | 380px |
 
 ---
 
-### Churn Timing Chart (Top Right Small)
+#### Churn Timing Chart (Right)
 | Element | Content |
 |---------|---------|
-| **Category Label** | "ANALYTICS" |
 | **Title** | "Churn Timing" |
-| **Info Tooltip Title** | "Client Churn Timing" |
-| **Info Tooltip Text** | "Early (0-3mo), Medium (4-8mo), Late (9+mo)" |
-| **Chart Type** | Donut/Pie chart |
-| **Center Display** | Total churned count + "Total" label |
+| **Subtitle** | "When clients leave by session count" |
+| **Chart Type** | Donut chart |
+| **Center Display** | "Total Churned" label + count value |
 | **Segments** | |
-| - Early (0-3mo) | Red (#ef4444) |
-| - Medium (4-8mo) | Amber (#f59e0b) |
-| - Late (9+mo) | Green (#10b981) |
-| **Labels** | Segment name + percentage |
+| - Early (<5 sessions) | Red (#ef4444) |
+| - Medium (5-15) | Amber (#f59e0b) |
+| - Late (>15) | Green (#10b981) |
+| **Value Format** | Number |
+| **Expandable** | Yes |
 
 ---
 
-### Rebook Rate Chart (Top Right Small)
+### Rebook Rate Chart
 | Element | Content |
 |---------|---------|
-| **Category Label** | "ANALYTICS" |
 | **Title** | "Rebook Rate" |
-| **Info Tooltip Title** | "Rebook Rate" |
-| **Info Tooltip Text** | "Of the active clients, this is the percentage that have their next appointment scheduled" |
-| **Header Value** | "{XX.X}%" (average) |
+| **Subtitle** | "% of clients with next appointment scheduled" |
 | **Chart Type** | Line chart with area fill |
-| **Line Color** | Green (#10b981) |
-| **Data Labels** | Percentage on each point |
-
----
-
-### Average Churn Point by Segment (Bottom Right)
-| Element | Content |
-|---------|---------|
-| **Category Label** | "CHURN ANALYSIS" |
-| **Title** | "Average Churn Point by Segment" |
-| **Info Tooltip Title** | "Where Clients Drop Off" |
-| **Info Tooltip Text** | "Shows the average session count at which clients churn within each segment: Early (<5 sessions), Mid (5-25 sessions), and Late (>25 sessions). Helps identify critical intervention points." |
-| **Legend** | Early Churn (<5 sessions) red · Mid Churn (5-25 sessions) amber · Late Churn (>25 sessions) green |
-| **Display** | Visual bars showing avg session count per segment |
+| **Value Indicator** | Average % (emerald) |
+| **Y-Axis** | 80 - 100% |
+| **Line Color** | Emerald (#10b981) |
+| **Expandable** | Yes |
+| **Height** | 320px |
 
 ---
 
@@ -545,7 +636,7 @@
 | Warning/Attention | Amber | #f59e0b, #d97706 |
 | Critical/Bad | Rose/Red | #ef4444, #dc2626 |
 
-### Clinician Colors
+### Clinician Colors (Financial/Sessions)
 | Clinician | Color | Hex |
 |-----------|-------|-----|
 | Chen | Purple | #7c3aed |
@@ -553,6 +644,15 @@
 | Patel | Amber | #d97706 |
 | Kim | Pink | #db2777 |
 | Johnson | Emerald | #059669 |
+
+### Clinician Colors (Retention - Teal Shades)
+| Clinician | Color | Hex |
+|-----------|-------|-----|
+| Chen | Cyan | #0891b2 |
+| Rodriguez | Teal | #0d9488 |
+| Patel | Sky | #0284c7 |
+| Kim | Violet | #7c3aed |
+| Johnson | Pink | #db2777 |
 
 ### Brand/UI Colors
 | Usage | Color | Hex |

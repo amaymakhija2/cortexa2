@@ -8,6 +8,8 @@ export { FinancialAnalysisTab } from './FinancialAnalysisTab';
 export { SessionsAnalysisTab } from './SessionsAnalysisTab';
 export { CapacityClientTab } from './CapacityClientTab';
 export { RetentionTab } from './RetentionTab';
+export { InsuranceTab } from './InsuranceTab';
+export { AdminTab } from './AdminTab';
 
 // Export all types
 export type {
