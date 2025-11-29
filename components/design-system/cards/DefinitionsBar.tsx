@@ -39,22 +39,22 @@ export const DefinitionsBar: React.FC<DefinitionsBarProps> = ({
 }) => {
   return (
     <div
-      className={`rounded-xl px-5 py-3.5 flex items-center gap-6 ${className}`}
+      className={`rounded-2xl px-6 py-4 flex items-center gap-8 ${className}`}
       style={{
         background: 'linear-gradient(135deg, #f5f5f4 0%, #fafaf9 100%)',
         boxShadow: 'inset 0 0 0 1px rgba(0, 0, 0, 0.04)',
       }}
     >
-      <div className="flex items-center gap-2 text-stone-400">
-        <Info size={16} />
-        <span className="text-sm font-medium">Definitions</span>
+      <div className="flex items-center gap-2.5 text-stone-400 flex-shrink-0">
+        <Info size={18} />
+        <span className="text-sm font-semibold uppercase tracking-wide">Definitions</span>
       </div>
 
-      <div className="flex items-center gap-6 flex-wrap">
+      <div className="flex items-center gap-8 flex-wrap">
         {definitions.map((def, idx) => (
-          <div key={idx} className="flex items-center gap-2 text-sm">
-            <span className="font-semibold text-stone-700">{def.term}:</span>
-            <span className="text-stone-500">{def.definition}</span>
+          <div key={idx} className="flex items-center gap-2">
+            <span className="font-bold text-stone-700 text-base">{def.term}:</span>
+            <span className="text-stone-500 text-base">{def.definition}</span>
           </div>
         ))}
       </div>

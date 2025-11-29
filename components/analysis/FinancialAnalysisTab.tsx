@@ -549,6 +549,7 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
         <Section spacing="none">
           <DataTableCard
             title="Full Breakdown"
+            subtitle="Monthly revenue, costs, and net revenue details"
             columns={buildTableColumns()}
             rows={buildTableRows()}
             expandable

@@ -4,8 +4,8 @@ import { Maximize2 } from 'lucide-react';
 // =============================================================================
 // DATA TABLE CARD COMPONENT
 // =============================================================================
-// Premium data table with responsive card view for mobile.
-// Features row indicators, hover states, totals column, and highlighted rows.
+// Premium data table with luxury-level typography for excellent readability.
+// Features large, scannable values with clear visual hierarchy.
 // =============================================================================
 
 export interface TableColumn {
@@ -66,81 +66,48 @@ export interface DataTableCardProps {
   className?: string;
 }
 
-// Size-based styling configurations
+// Size-based styling configurations - SIGNIFICANTLY LARGER for readability
 const SIZE_CONFIG = {
   default: {
     // Container
-    containerPadding: 'p-5 sm:p-6 xl:p-8',
-    headerMargin: 'mb-6 xl:mb-8',
+    containerPadding: 'p-6 sm:p-8 xl:p-10',
+    headerMargin: 'mb-8 xl:mb-10',
     // Header text
     titleClass: 'text-2xl sm:text-3xl xl:text-4xl',
-    subtitleClass: 'text-base sm:text-lg',
-    // Table header
-    thClass: 'py-4 px-3 text-xs',
-    // Table cells
-    tdPadding: 'py-4 px-3',
-    cellTextClass: 'text-sm',
-    labelTextClass: 'text-sm',
-    // Indicator
-    indicatorSize: 'w-2.5 h-2.5',
-    indicatorGap: 'gap-2.5',
+    subtitleClass: 'text-base sm:text-lg xl:text-xl',
+    // Table header - MUCH LARGER
+    thClass: 'py-4 sm:py-5 px-4 sm:px-5 text-sm sm:text-base',
+    thFirstClass: 'py-4 sm:py-5 px-4 sm:px-5 text-sm sm:text-base',
+    // Table cells - SIGNIFICANTLY LARGER
+    tdPadding: 'py-5 sm:py-6 px-4 sm:px-5',
+    cellTextClass: 'text-base sm:text-lg xl:text-xl',
+    labelTextClass: 'text-base sm:text-lg xl:text-xl',
+    // Indicator - LARGER
+    indicatorSize: 'w-3 h-3 sm:w-4 sm:h-4',
+    indicatorGap: 'gap-3 sm:gap-4',
   },
   lg: {
-    // Container - more padding for expanded view
-    containerPadding: 'p-0', // No padding when inside ExpandedChartModal (it provides its own)
-    headerMargin: 'mb-8',
+    // Container - no padding when inside ExpandedChartModal
+    containerPadding: 'p-0',
+    headerMargin: 'mb-10',
     // Header text - larger for expanded view
     titleClass: 'text-3xl sm:text-4xl xl:text-5xl',
-    subtitleClass: 'text-lg sm:text-xl',
-    // Table header - larger
-    thClass: 'py-5 px-4 text-sm',
-    // Table cells - larger text and more padding
-    tdPadding: 'py-5 px-4',
-    cellTextClass: 'text-base sm:text-lg',
-    labelTextClass: 'text-base sm:text-lg',
-    // Indicator - larger
-    indicatorSize: 'w-3.5 h-3.5',
-    indicatorGap: 'gap-3',
+    subtitleClass: 'text-lg sm:text-xl xl:text-2xl',
+    // Table header - EXTRA LARGE for expanded
+    thClass: 'py-6 px-6 text-base sm:text-lg',
+    thFirstClass: 'py-6 px-6 text-base sm:text-lg',
+    // Table cells - HERO SIZED for expanded view
+    tdPadding: 'py-6 sm:py-7 px-5 sm:px-6',
+    cellTextClass: 'text-lg sm:text-xl xl:text-2xl',
+    labelTextClass: 'text-lg sm:text-xl xl:text-2xl',
+    // Indicator - LARGER
+    indicatorSize: 'w-4 h-4 sm:w-5 sm:h-5',
+    indicatorGap: 'gap-4 sm:gap-5',
   },
 } as const;
 
 /**
- * DataTableCard - Premium data table with responsive design
- *
- * @example
- * <DataTableCard
- *   title="Revenue Breakdown"
- *   subtitle="Monthly financial summary"
- *   columns={[
- *     { key: 'jan', header: 'Jan', align: 'right' },
- *     { key: 'feb', header: 'Feb', align: 'right' },
- *     { key: 'total', header: 'Total', align: 'right', isTotals: true },
- *   ]}
- *   rows={[
- *     {
- *       id: 'gross',
- *       label: 'Gross Revenue',
- *       values: { jan: '$142k', feb: '$156k', total: '$298k' },
- *     },
- *     {
- *       id: 'costs',
- *       label: 'Clinician Cost',
- *       indicator: { color: '#3b82f6' },
- *       values: { jan: '$63k', feb: '$69k', total: '$132k' },
- *       valueColor: 'text-blue-600',
- *     },
- *     {
- *       id: 'net',
- *       label: 'Net Revenue',
- *       indicator: { color: '#10b981' },
- *       values: { jan: '$79k', feb: '$87k', total: '$166k' },
- *       valueColor: 'text-emerald-600',
- *       isHighlighted: true,
- *       highlightColor: 'emerald',
- *     },
- *   ]}
- *   expandable
- * />
+ * DataTableCard - Premium data table with excellent readability
  */
 export const DataTableCard: React.FC<DataTableCardProps> = ({
   title,
@@ -153,7 +120,6 @@ export const DataTableCard: React.FC<DataTableCardProps> = ({
   forceMobileView = false,
   className = '',
 }) => {
-  // Get size configuration
   const sizeConfig = SIZE_CONFIG[size];
 
   const getAlignClass = (align?: 'left' | 'right' | 'center') => {
@@ -166,11 +132,21 @@ export const DataTableCard: React.FC<DataTableCardProps> = ({
 
   const getHighlightBg = (color?: string) => {
     switch (color) {
-      case 'emerald': return 'bg-emerald-50/60';
-      case 'blue': return 'bg-blue-50/60';
-      case 'amber': return 'bg-amber-50/60';
-      case 'rose': return 'bg-rose-50/60';
-      default: return 'bg-stone-50/60';
+      case 'emerald': return 'bg-emerald-50/70';
+      case 'blue': return 'bg-blue-50/70';
+      case 'amber': return 'bg-amber-50/70';
+      case 'rose': return 'bg-rose-50/70';
+      default: return 'bg-stone-50/70';
+    }
+  };
+
+  const getHighlightTextColor = (color?: string) => {
+    switch (color) {
+      case 'emerald': return 'text-emerald-800';
+      case 'blue': return 'text-blue-800';
+      case 'amber': return 'text-amber-800';
+      case 'rose': return 'text-rose-800';
+      default: return 'text-stone-800';
     }
   };
 
@@ -187,7 +163,7 @@ export const DataTableCard: React.FC<DataTableCardProps> = ({
       className={`${size === 'lg' ? '' : 'rounded-2xl xl:rounded-3xl'} ${sizeConfig.containerPadding} overflow-hidden ${className}`}
       style={containerStyle}
     >
-      {/* Header - only show if title exists */}
+      {/* Header */}
       {title && (
         <div className={`flex items-start justify-between ${sizeConfig.headerMargin}`}>
           <div>
@@ -198,17 +174,17 @@ export const DataTableCard: React.FC<DataTableCardProps> = ({
               {title}
             </h3>
             {subtitle && (
-              <p className={`text-stone-500 ${sizeConfig.subtitleClass} mt-2`}>{subtitle}</p>
+              <p className={`text-stone-500 ${sizeConfig.subtitleClass} mt-2 sm:mt-3`}>{subtitle}</p>
             )}
           </div>
 
           {expandable && (
             <button
               onClick={onExpand}
-              className="p-2.5 rounded-xl bg-stone-100/80 hover:bg-stone-200 text-stone-500 hover:text-stone-700 transition-all duration-200 hover:scale-105 active:scale-95"
+              className="p-3 sm:p-3.5 rounded-xl bg-stone-100/80 hover:bg-stone-200 text-stone-500 hover:text-stone-700 transition-all duration-200 hover:scale-105 active:scale-95"
               title="Expand table"
             >
-              <Maximize2 size={18} strokeWidth={2} />
+              <Maximize2 size={20} strokeWidth={2} />
             </button>
           )}
         </div>
@@ -216,18 +192,37 @@ export const DataTableCard: React.FC<DataTableCardProps> = ({
 
       {/* Desktop Table View */}
       <div className={`${forceMobileView ? 'hidden' : 'hidden sm:block'}`}>
-        <div className="overflow-x-auto -mx-2">
+        <div
+          className="overflow-x-auto rounded-xl"
+          style={{
+            background: 'rgba(250, 250, 249, 0.5)',
+            boxShadow: 'inset 0 0 0 1px rgba(0, 0, 0, 0.04)',
+          }}
+        >
           <table className="w-full">
             <thead>
-              <tr className="border-b-2 border-stone-200/80">
+              <tr
+                style={{
+                  background: 'linear-gradient(180deg, rgba(245, 245, 244, 0.8) 0%, rgba(250, 250, 249, 0.4) 100%)',
+                }}
+              >
                 {/* Empty header for label column */}
-                <th className={`text-left ${sizeConfig.thClass} font-bold text-stone-400 uppercase tracking-wider`}></th>
-                {columns.map((col) => (
+                <th
+                  className={`text-left ${sizeConfig.thFirstClass} font-bold text-stone-400 uppercase tracking-wider`}
+                  style={{ borderBottom: '2px solid rgba(214, 211, 209, 0.5)' }}
+                ></th>
+                {columns.map((col, index) => (
                   <th
                     key={col.key}
                     className={`${sizeConfig.thClass} font-bold uppercase tracking-wider ${getAlignClass(col.align)} ${
-                      col.isTotals ? 'text-stone-900' : 'text-stone-400'
+                      col.isTotals ? 'text-stone-700' : 'text-stone-400'
                     }`}
+                    style={{
+                      borderBottom: '2px solid rgba(214, 211, 209, 0.5)',
+                      ...(col.isTotals && {
+                        background: 'rgba(245, 245, 244, 0.6)',
+                      }),
+                    }}
                   >
                     {col.header}
                   </th>
@@ -238,28 +233,32 @@ export const DataTableCard: React.FC<DataTableCardProps> = ({
               {rows.map((row, rowIndex) => {
                 const isLast = rowIndex === rows.length - 1;
                 const rowBg = row.isHighlighted ? getHighlightBg(row.highlightColor) : '';
+                const highlightTextColor = row.isHighlighted ? getHighlightTextColor(row.highlightColor) : '';
 
                 return (
                   <tr
                     key={row.id}
-                    className={`${!isLast ? 'border-b border-stone-100' : ''} ${rowBg} hover:bg-stone-50/80 transition-colors duration-150`}
+                    className={`${rowBg} transition-colors duration-150 group`}
+                    style={{
+                      borderBottom: !isLast ? '1px solid rgba(231, 229, 228, 0.7)' : undefined,
+                    }}
                   >
                     {/* Row label with optional indicator */}
-                    <td className={sizeConfig.tdPadding}>
+                    <td className={`${sizeConfig.tdPadding} group-hover:bg-stone-50/50`}>
                       <div className={`flex items-center ${sizeConfig.indicatorGap}`}>
                         {row.indicator && (
                           <div
                             className={`${sizeConfig.indicatorSize} rounded-full flex-shrink-0`}
                             style={{
                               backgroundColor: row.indicator.color,
-                              boxShadow: `0 0 8px ${row.indicator.color}40`,
+                              boxShadow: `0 0 12px ${row.indicator.color}50, 0 2px 4px ${row.indicator.color}30`,
                             }}
                           />
                         )}
                         <span
                           className={`${sizeConfig.labelTextClass} font-semibold ${
-                            row.isHighlighted && row.highlightColor
-                              ? `text-${row.highlightColor}-700`
+                            row.isHighlighted && highlightTextColor
+                              ? highlightTextColor
                               : 'text-stone-800'
                           }`}
                           style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
@@ -273,11 +272,16 @@ export const DataTableCard: React.FC<DataTableCardProps> = ({
                     {columns.map((col) => (
                       <td
                         key={col.key}
-                        className={`${sizeConfig.tdPadding} ${sizeConfig.cellTextClass} tabular-nums ${getAlignClass(col.align)} ${
+                        className={`${sizeConfig.tdPadding} ${sizeConfig.cellTextClass} tabular-nums ${getAlignClass(col.align)} group-hover:bg-stone-50/50 ${
                           col.isTotals
                             ? `font-bold ${row.valueColor || 'text-stone-900'}`
-                            : `${row.isHighlighted ? 'font-bold' : 'font-medium'} ${row.valueColor || 'text-stone-600'}`
+                            : `${row.isHighlighted ? 'font-bold' : 'font-semibold'} ${row.valueColor || 'text-stone-600'}`
                         }`}
+                        style={{
+                          ...(col.isTotals && !row.isHighlighted && {
+                            background: 'rgba(245, 245, 244, 0.4)',
+                          }),
+                        }}
                       >
                         {row.values[col.key]}
                       </td>
@@ -290,8 +294,8 @@ export const DataTableCard: React.FC<DataTableCardProps> = ({
         </div>
       </div>
 
-      {/* Mobile Card View */}
-      <div className={`${forceMobileView ? 'block' : 'block sm:hidden'} space-y-3`}>
+      {/* Mobile Card View - Also improved */}
+      <div className={`${forceMobileView ? 'block' : 'block sm:hidden'} space-y-4`}>
         {rows.map((row) => {
           const cardBg = row.isHighlighted && row.highlightColor
             ? `bg-${row.highlightColor}-50 border-${row.highlightColor}-200`
@@ -300,21 +304,26 @@ export const DataTableCard: React.FC<DataTableCardProps> = ({
           return (
             <div
               key={row.id}
-              className={`rounded-xl p-4 border shadow-sm ${cardBg}`}
+              className={`rounded-2xl p-5 border-2 ${cardBg}`}
+              style={{
+                boxShadow: row.isHighlighted
+                  ? '0 4px 16px -4px rgba(0, 0, 0, 0.1)'
+                  : '0 2px 8px -2px rgba(0, 0, 0, 0.06)',
+              }}
             >
               {/* Card Header with Label */}
-              <div className="flex items-center gap-2.5 mb-3">
+              <div className="flex items-center gap-3 mb-4">
                 {row.indicator && (
                   <div
-                    className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                    className="w-4 h-4 rounded-full flex-shrink-0"
                     style={{
                       backgroundColor: row.indicator.color,
-                      boxShadow: `0 0 8px ${row.indicator.color}40`,
+                      boxShadow: `0 0 10px ${row.indicator.color}40`,
                     }}
                   />
                 )}
                 <span
-                  className={`text-sm font-semibold ${
+                  className={`text-lg font-bold ${
                     row.isHighlighted && row.highlightColor
                       ? `text-${row.highlightColor}-800`
                       : 'text-stone-800'
@@ -325,18 +334,21 @@ export const DataTableCard: React.FC<DataTableCardProps> = ({
                 </span>
               </div>
 
-              {/* Values Grid */}
-              <div className="grid grid-cols-2 gap-2 text-sm">
+              {/* Values Grid - LARGER text */}
+              <div className="grid grid-cols-2 gap-3">
                 {columns.map((col) => (
-                  <div key={col.key} className="flex justify-between items-center">
-                    <span className="text-stone-500 text-xs uppercase tracking-wide">
+                  <div
+                    key={col.key}
+                    className={`flex flex-col ${col.isTotals ? 'bg-stone-50 rounded-xl p-3 -m-1' : ''}`}
+                  >
+                    <span className="text-stone-400 text-sm font-semibold uppercase tracking-wide mb-1">
                       {col.header}
                     </span>
                     <span
-                      className={`tabular-nums ${
+                      className={`text-lg tabular-nums ${
                         col.isTotals
                           ? `font-bold ${row.valueColor || 'text-stone-900'}`
-                          : `font-medium ${row.valueColor || 'text-stone-700'}`
+                          : `font-semibold ${row.valueColor || 'text-stone-700'}`
                       }`}
                     >
                       {row.values[col.key]}

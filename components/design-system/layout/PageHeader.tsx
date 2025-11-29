@@ -144,7 +144,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
               {title}
             </h1>
             {subtitle && (
-              <p className="text-stone-400 text-sm mt-2">{subtitle}</p>
+              <p className="text-stone-400 text-base sm:text-lg mt-2">{subtitle}</p>
             )}
           </div>
 

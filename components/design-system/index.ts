@@ -39,6 +39,9 @@ export type { SplitBarCardProps, SplitBarSegment } from './cards/SplitBarCard';
 export { CohortSelector } from './cards/CohortSelector';
 export type { CohortSelectorProps, CohortOption, CohortMaturity } from './cards/CohortSelector';
 
+export { ActionableClientListCard } from './cards/ActionableClientListCard';
+export type { ActionableClientListCardProps, Badge, ClientRowProps, AccentColor } from './cards/ActionableClientListCard';
+
 export { AtRiskClientsCard } from './cards/AtRiskClientsCard';
 export type { AtRiskClientsCardProps, AtRiskClient } from './cards/AtRiskClientsCard';
 

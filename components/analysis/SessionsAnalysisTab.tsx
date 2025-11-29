@@ -463,6 +463,7 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
         <Section spacing="none">
           <DataTableCard
             title="Monthly Breakdown"
+            subtitle="Detailed session metrics by month"
             columns={buildTableColumns()}
             rows={buildTableRows()}
             expandable

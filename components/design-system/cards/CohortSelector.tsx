@@ -106,7 +106,7 @@ export const CohortSelector: React.FC<CohortSelectorProps> = ({
   };
 
   // =========================================================================
-  // COLLAPSED STATE - Compact summary bar
+  // COLLAPSED STATE - Bold summary bar
   // =========================================================================
   if (selectedCohort && selectedCohortData && !isExpanded) {
     const maturityConfig = MATURITY_CONFIG[selectedCohortData.maturity];
@@ -115,68 +115,75 @@ export const CohortSelector: React.FC<CohortSelectorProps> = ({
     return (
       <div
         ref={containerRef}
-        className={`relative overflow-hidden rounded-2xl ${className}`}
+        className={`relative overflow-hidden rounded-2xl xl:rounded-3xl ${className}`}
         style={{
-          background: 'linear-gradient(145deg, #ffffff 0%, #fefefe 100%)',
-          boxShadow: '0 2px 12px -2px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(217, 119, 6, 0.15)',
+          background: 'linear-gradient(145deg, #fffbeb 0%, #fef3c7 100%)',
+          boxShadow: '0 4px 20px -4px rgba(217, 119, 6, 0.15), 0 0 0 1px rgba(217, 119, 6, 0.2)',
           opacity: isVisible ? 1 : 0,
           transform: isVisible ? 'translateY(0)' : 'translateY(-10px)',
           transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
         }}
       >
-        {/* Amber accent bar on left */}
+        {/* Bold amber accent bar on left */}
         <div
-          className="absolute left-0 top-0 bottom-0 w-1"
+          className="absolute left-0 top-0 bottom-0 w-1.5"
           style={{
             background: 'linear-gradient(180deg, #f59e0b 0%, #d97706 100%)',
+            boxShadow: '2px 0 8px -2px rgba(217, 119, 6, 0.3)',
           }}
         />
 
-        <div className="flex items-center justify-between gap-4 px-6 py-4 pl-7">
+        <div className="flex items-center justify-between gap-6 px-7 py-5 sm:py-6 pl-8">
           <div className="flex items-center gap-5 min-w-0">
+            {/* Bold icon badge */}
             <div
-              className="flex-shrink-0 w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center"
-              style={{ boxShadow: '0 2px 8px -2px rgba(217, 119, 6, 0.25)' }}
+              className="flex-shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center"
+              style={{
+                background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+                boxShadow: '0 4px 12px -2px rgba(217, 119, 6, 0.25), inset 0 1px 0 rgba(255,255,255,0.8)'
+              }}
             >
-              <Users size={20} className="text-amber-600" />
+              <Users size={24} className="text-amber-600" />
             </div>
 
             <div className="min-w-0">
-              <div className="flex items-center gap-3">
+              {/* Prominent cohort label */}
+              <div className="flex items-center gap-4">
                 <h3
-                  className="text-lg font-bold text-stone-900 truncate"
+                  className="text-xl sm:text-2xl xl:text-3xl font-bold text-stone-900 truncate"
                   style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
                   {selectedCohortData.label}
                 </h3>
                 {selectedCohortData.sublabel && (
-                  <span className="text-stone-400 text-sm hidden sm:inline">
+                  <span className="text-stone-500 text-base hidden sm:inline">
                     {selectedCohortData.sublabel}
                   </span>
                 )}
               </div>
-              <div className="flex items-center gap-3 mt-0.5">
-                <span className="text-stone-600 text-sm font-medium">
+              {/* Clear metadata row */}
+              <div className="flex items-center gap-4 mt-1.5">
+                <span className="text-amber-700 text-base sm:text-lg font-semibold">
                   {selectedCohortData.clientCount.toLocaleString()} clients
                 </span>
-                <span className="text-stone-300">·</span>
-                <div className={`inline-flex items-center gap-1 text-xs font-medium ${maturityConfig.textColor}`}>
-                  <MaturityIcon size={10} />
+                <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-sm font-medium ${maturityConfig.bgColor} ${maturityConfig.textColor}`}>
+                  <MaturityIcon size={14} />
                   <span>{maturityConfig.label}</span>
                 </div>
               </div>
             </div>
           </div>
 
+          {/* Prominent change button */}
           <button
             onClick={handleExpand}
-            className="flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-stone-600 hover:text-amber-700 hover:bg-amber-50 transition-all duration-200 group"
+            className="flex-shrink-0 flex items-center gap-2.5 px-5 py-3 rounded-xl bg-white text-amber-700 hover:bg-amber-50 transition-all duration-200 group"
             style={{
-              boxShadow: 'inset 0 0 0 1px rgba(0, 0, 0, 0.06)',
+              boxShadow: '0 2px 8px -2px rgba(0, 0, 0, 0.1), inset 0 0 0 1px rgba(217, 119, 6, 0.2)',
             }}
           >
-            <Pencil size={14} className="group-hover:scale-110 transition-transform" />
-            <span className="text-sm font-semibold">Change</span>
+            <Pencil size={16} className="group-hover:rotate-12 transition-transform duration-300" />
+            <span className="text-base font-semibold">Change</span>
           </button>
         </div>
       </div>

@@ -394,8 +394,8 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
                 />
               </Grid>
 
-              {/* Session 1→2 Drop-off Stat */}
-              <div className="mt-6">
+              {/* Session 1→2 Drop-off Insight - Critical first-session metric */}
+              <div className="mt-8 xl:mt-10 max-w-md">
                 <StatCard
                   title="Session 1→2 Drop-off"
                   value={`${(100 - (firstSessionDropoffData.session2Count / firstSessionDropoffData.session1Count * 100)).toFixed(0)}%`}

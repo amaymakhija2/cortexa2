@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Maximize2, Users, Clock } from 'lucide-react';
+import { Maximize2 } from 'lucide-react';
 
 // =============================================================================
 // RETENTION FUNNEL CHART COMPONENT
@@ -109,7 +109,6 @@ export const RetentionFunnelCard: React.FC<RetentionFunnelCardProps> = ({
 
   const colors = FUNNEL_COLORS[variant];
   const isLarge = size === 'lg';
-  const Icon = variant === 'sessions' ? Users : Clock;
 
   // Calculate widths - minimum 25% to keep readable
   const stageWidths = useMemo(() => {
@@ -133,31 +132,22 @@ export const RetentionFunnelCard: React.FC<RetentionFunnelCardProps> = ({
         }}
       />
 
-      {/* Header */}
+      {/* Header - matches ChartCard design system */}
       <div className="relative flex items-start justify-between mb-8">
-        <div className="flex items-center gap-4">
-          <div
-            className="p-3 rounded-xl"
-            style={{
-              background: colors.accentBg,
-              boxShadow: `0 2px 8px -2px ${colors.accent}20`
-            }}
+        <div className="flex-1 min-w-0">
+          <h3
+            className={`text-stone-900 font-bold tracking-tight ${
+              isLarge ? 'text-3xl sm:text-4xl xl:text-5xl' : 'text-2xl sm:text-3xl xl:text-4xl'
+            }`}
+            style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
           >
-            <Icon size={isLarge ? 24 : 20} style={{ color: colors.accent }} />
-          </div>
-          <div>
-            <h3
-              className={`text-stone-900 font-bold tracking-tight ${
-                isLarge ? 'text-2xl sm:text-3xl' : 'text-xl sm:text-2xl'
-              }`}
-              style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-            >
-              {title}
-            </h3>
-            <p className={`text-stone-500 ${isLarge ? 'text-base' : 'text-sm'} mt-0.5`}>
+            {title}
+          </h3>
+          {subtitle && (
+            <p className={`text-stone-500 mt-2 ${isLarge ? 'text-lg sm:text-xl' : 'text-base sm:text-lg xl:text-xl'}`}>
               {subtitle}
             </p>
-          </div>
+          )}
         </div>
 
         {expandable && (

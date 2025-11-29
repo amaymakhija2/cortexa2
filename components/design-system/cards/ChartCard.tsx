@@ -225,7 +225,7 @@ export interface SimpleChartCardProps {
 }
 
 /**
- * SimpleChartCard - Simpler chart container
+ * SimpleChartCard - Simpler chart container with maximum space utilization
  *
  * @example
  * <SimpleChartCard
@@ -249,53 +249,54 @@ export const SimpleChartCard: React.FC<SimpleChartCardProps> = ({
 }) => {
   return (
     <div
-      className={`rounded-2xl xl:rounded-3xl p-6 sm:p-8 xl:p-10 overflow-hidden ${className}`}
+      className={`rounded-2xl xl:rounded-3xl p-5 sm:p-6 xl:p-8 overflow-hidden flex flex-col ${className}`}
       style={{
         background: 'linear-gradient(145deg, #ffffff 0%, #fafaf9 100%)',
         boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)',
+        minHeight: height,
       }}
     >
-      {/* Header */}
-      <div className="flex items-start justify-between mb-6">
+      {/* Header - Compact */}
+      <div className="flex items-start justify-between mb-4 flex-shrink-0">
         <div>
           <h3
-            className="text-stone-900 text-2xl sm:text-3xl xl:text-4xl font-bold mb-2 tracking-tight"
+            className="text-stone-900 text-xl sm:text-2xl xl:text-3xl font-bold mb-1 tracking-tight"
             style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
           >
             {title}
           </h3>
           {subtitle && (
-            <p className="text-stone-500 text-base sm:text-lg xl:text-xl">{subtitle}</p>
+            <p className="text-stone-500 text-sm sm:text-base xl:text-lg">{subtitle}</p>
           )}
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           {valueIndicator && (
-            <div className={`${valueIndicator.bgColor || 'bg-stone-50'} rounded-xl px-5 py-3 text-center`}>
+            <div className={`${valueIndicator.bgColor || 'bg-stone-50'} rounded-lg sm:rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-center`}>
               <div
-                className={`${valueIndicator.textColor || 'text-stone-900'} text-2xl sm:text-3xl font-bold`}
+                className={`${valueIndicator.textColor || 'text-stone-900'} text-xl sm:text-2xl font-bold`}
                 style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
               >
                 {valueIndicator.value}
               </div>
-              <div className="text-stone-500 text-sm font-medium">{valueIndicator.label}</div>
+              <div className="text-stone-500 text-xs sm:text-sm font-medium">{valueIndicator.label}</div>
             </div>
           )}
 
           {expandable && (
             <button
               onClick={onExpand}
-              className="p-2.5 rounded-xl bg-stone-100/80 hover:bg-stone-200 text-stone-500 hover:text-stone-700 transition-all duration-200 hover:scale-105 active:scale-95"
+              className="p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-stone-100/80 hover:bg-stone-200 text-stone-500 hover:text-stone-700 transition-all duration-200 hover:scale-105 active:scale-95"
               title="Expand chart"
             >
-              <Maximize2 size={18} strokeWidth={2} />
+              <Maximize2 size={16} strokeWidth={2} />
             </button>
           )}
         </div>
       </div>
 
-      {/* Chart Area */}
-      <div style={{ height }}>
+      {/* Chart Area - Fills remaining space */}
+      <div className="flex-1 min-h-0">
         {children}
       </div>
     </div>
