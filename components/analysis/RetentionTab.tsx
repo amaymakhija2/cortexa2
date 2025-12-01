@@ -256,6 +256,8 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
             }))}
             selectedCohort={selectedCohort}
             onSelect={setSelectedCohort}
+            title=""
+            subtitle=""
           />
         </SectionContainer>
 

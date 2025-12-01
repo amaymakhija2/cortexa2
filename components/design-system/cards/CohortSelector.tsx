@@ -245,40 +245,48 @@ export const CohortSelector: React.FC<CohortSelectorProps> = ({
         />
 
         <div className="relative p-8 sm:p-10 xl:p-14">
-          {/* Header */}
-          <div
-            className="mb-10 xl:mb-14"
-            style={{
-              opacity: isVisible ? 1 : 0,
-              transform: isVisible ? 'translateY(0)' : 'translateY(-10px)',
-              transition: 'all 0.5s ease-out',
-            }}
-          >
-            <div className="flex items-start justify-between gap-6">
-              <div className="max-w-3xl">
-                <h2
-                  className="text-3xl sm:text-4xl xl:text-5xl text-stone-900 tracking-tight mb-4"
-                  style={{ fontFamily: "'DM Serif Display', Georgia, serif", lineHeight: 1.1 }}
-                >
-                  {title}
-                </h2>
-                <p className="text-stone-500 text-lg xl:text-xl leading-relaxed">
-                  {subtitle}
-                </p>
-              </div>
+          {/* Header - only show if title or subtitle are provided */}
+          {(title || subtitle || (selectedCohort && selectedCohortData)) && (
+            <div
+              className={title || subtitle ? "mb-10 xl:mb-14" : "mb-6 flex justify-end"}
+              style={{
+                opacity: isVisible ? 1 : 0,
+                transform: isVisible ? 'translateY(0)' : 'translateY(-10px)',
+                transition: 'all 0.5s ease-out',
+              }}
+            >
+              <div className="flex items-start justify-between gap-6 w-full">
+                {(title || subtitle) && (
+                  <div className="max-w-3xl">
+                    {title && (
+                      <h2
+                        className="text-3xl sm:text-4xl xl:text-5xl text-stone-900 tracking-tight mb-4"
+                        style={{ fontFamily: "'DM Serif Display', Georgia, serif", lineHeight: 1.1 }}
+                      >
+                        {title}
+                      </h2>
+                    )}
+                    {subtitle && (
+                      <p className="text-stone-500 text-lg xl:text-xl leading-relaxed">
+                        {subtitle}
+                      </p>
+                    )}
+                  </div>
+                )}
 
-              {/* Collapse button if a cohort was previously selected */}
-              {selectedCohort && selectedCohortData && (
-                <button
-                  onClick={() => setIsExpanded(false)}
-                  className="flex-shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-xl text-stone-500 hover:text-stone-700 hover:bg-stone-100 transition-all duration-200"
-                >
-                  <ChevronDown size={18} className="rotate-180" />
-                  <span className="text-sm font-semibold">Collapse</span>
-                </button>
-              )}
+                {/* Collapse button if a cohort was previously selected */}
+                {selectedCohort && selectedCohortData && (
+                  <button
+                    onClick={() => setIsExpanded(false)}
+                    className="flex-shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-xl text-stone-500 hover:text-stone-700 hover:bg-stone-100 transition-all duration-200 ml-auto"
+                  >
+                    <ChevronDown size={18} className="rotate-180" />
+                    <span className="text-sm font-semibold">Collapse</span>
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Cohort Cards Grid - Sophisticated hero-sized cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5 xl:gap-6">
