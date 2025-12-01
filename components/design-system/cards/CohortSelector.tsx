@@ -410,17 +410,6 @@ export const CohortSelector: React.FC<CohortSelectorProps> = ({
                         </span>
                       </div>
 
-                      {/* Maturity badge - refined size */}
-                      <div
-                        className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold ${maturityConfig.bgColor} ${maturityConfig.textColor} border ${maturityConfig.borderColor}`}
-                        style={{
-                          boxShadow: `0 2px 8px -2px ${maturityConfig.glowColor}`,
-                        }}
-                      >
-                        <MaturityIcon size={16} />
-                        <span>{maturityConfig.label}</span>
-                      </div>
-
                       {/* Availability message for immature cohorts */}
                       {cohort.maturity === 'immature' && cohort.availableDate && (
                         <p className="text-stone-400 text-sm font-medium">
