@@ -502,11 +502,29 @@ const CLINICIANS_DATA: ClinicianData[] = [
 type SessionGoalView = 'weekly' | 'monthly';
 type CaseloadFrequency = 'weekly' | 'biweekly' | 'monthly';
 
+// Default time periods per metric group
+const DEFAULT_TIME_PERIODS: Record<MetricGroupId, TimePeriod> = {
+  revenue: 'this-month',
+  caseload: 'this-month',
+  growth: 'this-month',
+  sessions: 'this-month',
+  attendance: 'this-month',
+  engagement: 'this-month',
+  retention: 'this-year',
+  documentation: 'this-month',
+};
+
 export const ClinicianOverview: React.FC = () => {
   const [selectedGroupId, setSelectedGroupId] = useState<MetricGroupId>('revenue');
-  const [timePeriod, setTimePeriod] = useState<TimePeriod>('last-12-months');
+  const [timePeriod, setTimePeriod] = useState<TimePeriod>('this-month');
   const [sessionGoalView, setSessionGoalView] = useState<SessionGoalView>('weekly');
   const [caseloadFrequency, setCaseloadFrequency] = useState<CaseloadFrequency>('weekly');
+
+  // Update time period when switching tabs to use sensible defaults
+  const handleGroupChange = (groupId: MetricGroupId) => {
+    setSelectedGroupId(groupId);
+    setTimePeriod(DEFAULT_TIME_PERIODS[groupId]);
+  };
 
   const selectedGroup = METRIC_GROUPS.find(g => g.id === selectedGroupId)!;
 
@@ -656,7 +674,7 @@ export const ClinicianOverview: React.FC = () => {
 
                 {/* Time Period Selector */}
                 <div className="relative">
-                  {selectedGroupId === 'caseload' ? (
+                  {(selectedGroupId === 'caseload' || selectedGroupId === 'documentation') ? (
                     /* Caseload: Show disabled "Current Month" only */
                     <>
                       {/* Mobile */}
@@ -721,7 +739,7 @@ export const ClinicianOverview: React.FC = () => {
                 return (
                   <button
                     key={group.id}
-                    onClick={() => setSelectedGroupId(group.id)}
+                    onClick={() => handleGroupChange(group.id)}
                     className={`relative px-4 py-4 rounded-xl font-semibold text-sm transition-all duration-300 text-left ${
                       isSelected
                         ? 'bg-white text-stone-900 shadow-xl scale-[1.02]'
