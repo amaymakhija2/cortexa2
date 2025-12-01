@@ -112,7 +112,7 @@ export const InsightCard: React.FC<InsightCardProps> = ({
       style={{
         background: 'white',
         borderRadius: '20px',
-        padding: '1.75rem 2rem',
+        padding: '2rem 2.5rem',
         boxShadow: `
           0 1px 2px rgba(0, 0, 0, 0.04),
           0 2px 4px rgba(0, 0, 0, 0.03),
@@ -121,8 +121,8 @@ export const InsightCard: React.FC<InsightCardProps> = ({
         `,
         display: 'flex',
         flexDirection: 'column',
-        gap: '1rem',
-        minHeight: '160px',
+        gap: '1.25rem',
+        minHeight: '180px',
       }}
     >
       {/* Top row: category + metric */}
@@ -182,11 +182,11 @@ export const InsightCard: React.FC<InsightCardProps> = ({
 
       {/* The insight statement - THE headline */}
       <p
-        className="text-lg sm:text-xl leading-relaxed text-stone-700 flex-1"
+        className="text-xl sm:text-2xl xl:text-[1.75rem] leading-relaxed text-stone-700 flex-1"
         style={{
           fontFamily: "'DM Serif Display', Georgia, serif",
           fontWeight: 400,
-          lineHeight: 1.5,
+          lineHeight: 1.45,
         }}
       >
         {renderStatement()}

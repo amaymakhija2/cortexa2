@@ -17,6 +17,7 @@ import {
   ExpandedChartModal,
   AnimatedGrid,
   AnimatedSection,
+  ExecutiveSummary,
 } from '../design-system';
 import type { HoverInfo, SegmentConfig } from '../design-system';
 import type { SessionsAnalysisTabProps } from './types';
@@ -307,6 +308,15 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
       />
 
       <PageContent>
+        {/* Executive Summary */}
+        <Section spacing="md">
+          <ExecutiveSummary
+            headline="Sessions On Track, Monitor Cancellations"
+            summary={`Your practice completed **${totalCompleted.toLocaleString()} sessions** this period with a **${showRate.toFixed(1)}% show rate**. You hit the 700-session goal in **${monthsAtGoal} of ${sessionsData.length} months**. The non-billable cancellation rate stands at **${nonBillableCancelRate.toFixed(1)}%**—${nonBillableCancelRate <= 10 ? 'well within healthy range' : 'consider reviewing scheduling practices to reduce lost revenue'}.`}
+            accent="indigo"
+          />
+        </Section>
+
         {/* Hero Stats Row */}
         <Section spacing="md">
           <AnimatedGrid cols={4} gap="md" staggerDelay={60}>

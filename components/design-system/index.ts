@@ -71,7 +71,7 @@ export { InsightCard } from './cards/InsightCard';
 export type { InsightCardProps, InsightSentiment } from './cards/InsightCard';
 
 export { ExecutiveSummary } from './cards/ExecutiveSummary';
-export type { ExecutiveSummaryProps } from './cards/ExecutiveSummary';
+export type { ExecutiveSummaryProps, KeyMetric } from './cards/ExecutiveSummary';
 
 // Control Components
 export { ToggleButton, GoalIndicator, ActionButton } from './controls';

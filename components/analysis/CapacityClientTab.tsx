@@ -26,6 +26,7 @@ import {
   ExpandedChartModal,
   AnimatedGrid,
   AnimatedSection,
+  ExecutiveSummary,
 } from '../design-system';
 import type { CapacityClientTabProps } from './types';
 
@@ -244,6 +245,15 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
       />
 
       <PageContent>
+        {/* Executive Summary */}
+        <Section spacing="md">
+          <ExecutiveSummary
+            headline="Capacity Healthy, Room to Grow"
+            summary={`You currently have **${currentActiveClients} active clients** out of **${currentCapacity} capacity** (**${clientUtilization.toFixed(0)}% utilization**). Net growth this period is **${netGrowth >= 0 ? '+' : ''}${netGrowth} clients** (+${totalNew} new, -${totalChurned} churned). Session utilization averages **${avgSessionUtilization.toFixed(0)}%**—${avgSessionUtilization >= 85 ? 'excellent efficiency' : avgSessionUtilization >= 75 ? 'healthy levels with room for optimization' : 'consider strategies to improve slot fill rates'}.`}
+            accent="cyan"
+          />
+        </Section>
+
         {/* Hero Stats Row */}
         <Section spacing="md">
           <AnimatedGrid cols={4} gap="md" staggerDelay={60}>

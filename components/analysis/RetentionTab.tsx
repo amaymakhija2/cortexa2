@@ -8,7 +8,6 @@ import {
   SectionHeader,
   SectionContainer,
   ChartCard,
-  SimpleChartCard,
   DonutChartCard,
   StatCard,
   ActionButton,
@@ -19,7 +18,6 @@ import {
   RetentionFunnelCard,
   CohortSelector,
   AtRiskClientsCard,
-  MilestoneOpportunityCard,
   InsightCard,
 } from '../design-system';
 import type { HoverInfo } from '../design-system';
@@ -28,12 +26,9 @@ import type { RetentionTabProps } from './types';
 // =============================================================================
 // RETENTION TAB COMPONENT
 // =============================================================================
-// Redesigned with cohort-first approach and clear section organization.
-// Section order:
-//   1. Churn Patterns - "When do clients leave?"
-//   2. Retention Journey - "How far do they get?" (funnels + Session 1→2)
-//   3. What Drives Retention - "What keeps clients?"
-//   4. Current Health - "Who needs attention now?"
+// Two clear sections:
+//   1. Track Current Retention - Real-time actionable items
+//   2. Cohort Analysis - Historical cohort exploration
 // =============================================================================
 
 // Clinician colors for churn chart (teal shades)
@@ -67,7 +62,6 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
   // LOCAL STATE
   // =========================================================================
 
-  // No cohort selected by default - user must choose before seeing data
   const [selectedCohort, setSelectedCohort] = useState<string | null>(null);
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const [showClinicianBreakdown, setShowClinicianBreakdown] = useState(false);
@@ -158,18 +152,13 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
     },
   ], [totalChurn, avgMonthlyChurn, highestChurnMonth]);
 
-  // Session 5 success rate from funnel data
-  const session5SuccessRate = retentionFunnelData.sessionsFunnel.find(
-    (s) => s.label === 'Session 5'
-  )?.percentage || 76;
-
   // =========================================================================
   // RENDER
   // =========================================================================
 
   return (
     <div className="min-h-full">
-      {/* Simplified header - no time period selector */}
+      {/* Page Header */}
       <PageHeader
         accent="rose"
         label="Detailed Analysis"
@@ -182,9 +171,79 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
 
       <PageContent>
         {/* ================================================================
-            COHORT SELECTOR - THE PRIMARY QUESTION
+            SECTION 1: TRACK CURRENT RETENTION
             ================================================================ */}
-        <Section spacing="lg">
+        <SectionContainer accent="rose" index={0} isFirst>
+          <SectionHeader
+            number={1}
+            question="Track Current Retention"
+            description="Real-time indicators and clients who need attention today"
+            accent="rose"
+            showAccentLine={false}
+            compact
+          />
+
+          {/* Current Health Cards - 2 Column Grid */}
+          <Grid cols={2} gap="lg">
+            {/* Rebook Rate */}
+            <ChartCard
+              title="Rebook Rate"
+              subtitle="% of clients with next appointment scheduled"
+              expandable
+              onExpand={() => setExpandedCard('rebook-rate')}
+              insights={[
+                {
+                  value: `${Math.round(currentHealthData.avgRebookRate)}%`,
+                  label: 'Average',
+                  bgColor: 'bg-emerald-50',
+                  textColor: 'text-emerald-600',
+                },
+                {
+                  value: '85%',
+                  label: 'Industry Avg',
+                  bgColor: 'bg-stone-100',
+                  textColor: 'text-stone-700',
+                },
+              ]}
+              minHeight="520px"
+            >
+              <LineChart
+                data={currentHealthData.rebookRateData}
+                xAxisKey="month"
+                lines={[{ dataKey: 'rate', color: '#10b981', activeColor: '#059669' }]}
+                yDomain={[70, 100]}
+                yTickFormatter={(v) => `${v}%`}
+                tooltipFormatter={(value: number) => [`${value.toFixed(1)}%`, 'Rebook Rate']}
+                showAreaFill
+                height={380}
+              />
+            </ChartCard>
+
+            {/* At-Risk Clients */}
+            <AtRiskClientsCard
+              clients={currentHealthData.atRiskClients}
+              totalActiveClients={currentHealthData.totalActiveClients}
+              maxPreview={6}
+              onViewAll={() => console.log('View all at-risk')}
+              onClientClick={(id) => console.log('Client clicked:', id)}
+            />
+          </Grid>
+        </SectionContainer>
+
+        {/* ================================================================
+            SECTION 2: COHORT ANALYSIS
+            ================================================================ */}
+        <SectionContainer accent="indigo" index={1}>
+          <SectionHeader
+            number={2}
+            question="Cohort Analysis"
+            description="Select a cohort to explore retention patterns and churn drivers"
+            accent="indigo"
+            showAccentLine={false}
+            compact
+          />
+
+          {/* Cohort Selector */}
           <CohortSelector
             cohorts={cohorts.map((c) => ({
               id: c.id,
@@ -198,7 +257,7 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
             selectedCohort={selectedCohort}
             onSelect={setSelectedCohort}
           />
-        </Section>
+        </SectionContainer>
 
         {/* Only show data sections if a cohort is selected */}
         {selectedCohort && selectedCohortData && (
@@ -236,7 +295,7 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
             )}
 
             {/* ================================================================
-                SECTION 1: CHURN PATTERNS
+                SECTION: CHURN PATTERNS
                 ================================================================ */}
             <SectionContainer accent="rose" index={1} isFirst>
               <SectionHeader
@@ -344,7 +403,7 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
             </SectionContainer>
 
             {/* ================================================================
-                SECTION 2: RETENTION JOURNEY
+                SECTION: RETENTION JOURNEY
                 ================================================================ */}
             <SectionContainer accent="amber" index={2}>
               <SectionHeader
@@ -386,7 +445,7 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
                 />
               </Grid>
 
-              {/* Session 1→2 Drop-off Insight - Critical first-session metric */}
+              {/* Session 1→2 Drop-off Insight */}
               <div className="mt-8 xl:mt-10 max-w-md">
                 <StatCard
                   title="Session 1→2 Drop-off"
@@ -398,9 +457,9 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
             </SectionContainer>
 
             {/* ================================================================
-                SECTION 3: WHAT TYPE OF CLIENTS DO WE LOSE
+                SECTION: WHAT TYPE OF CLIENTS DO WE LOSE
                 ================================================================ */}
-            <SectionContainer accent="cyan" index={3}>
+            <SectionContainer accent="cyan" index={3} isLast>
               <SectionHeader
                 number={3}
                 question="What type of clients do we lose?"
@@ -425,67 +484,6 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
                   statement="No significant difference in churn rates across client genders"
                   sentiment="neutral"
                   category="Demographics"
-                />
-              </Grid>
-            </SectionContainer>
-
-            {/* ================================================================
-                SECTION 4: CURRENT HEALTH
-                ================================================================ */}
-            <SectionContainer accent="emerald" index={4} isLast>
-              <SectionHeader
-                number={4}
-                question="Who needs attention now?"
-                description="Real-time indicators of client engagement and risk"
-                accent="emerald"
-                showAccentLine={false}
-                compact
-              />
-              <Grid cols={3} gap="lg">
-                {/* Rebook Rate */}
-                <SimpleChartCard
-                  title="Rebook Rate"
-                  subtitle="% of clients with next appointment"
-                  metrics={[
-                    {
-                      value: `${Math.round(currentHealthData.avgRebookRate)}%`,
-                      label: 'Average',
-                      bgColor: '#ecfdf5',
-                      textColor: '#059669',
-                      isPrimary: true,
-                    },
-                  ]}
-                  expandable
-                  onExpand={() => setExpandedCard('rebook-rate')}
-                >
-                  <LineChart
-                    data={currentHealthData.rebookRateData}
-                    xAxisKey="month"
-                    lines={[{ dataKey: 'rate', color: '#10b981', activeColor: '#059669' }]}
-                    yDomain={[70, 100]}
-                    yTickFormatter={(v) => `${v}%`}
-                    tooltipFormatter={(value: number) => [`${value.toFixed(1)}%`, 'Rebook Rate']}
-                    showAreaFill
-                  />
-                </SimpleChartCard>
-
-                {/* At-Risk Clients */}
-                <AtRiskClientsCard
-                  clients={currentHealthData.atRiskClients}
-                  totalActiveClients={currentHealthData.totalActiveClients}
-                  maxPreview={4}
-                  onViewAll={() => console.log('View all at-risk')}
-                  onClientClick={(id) => console.log('Client clicked:', id)}
-                />
-
-                {/* Approaching Session 5 */}
-                <MilestoneOpportunityCard
-                  milestone={5}
-                  clients={currentHealthData.approachingSession5}
-                  successRate={session5SuccessRate}
-                  maxPreview={4}
-                  onViewAll={() => console.log('View all approaching')}
-                  onClientClick={(id) => console.log('Client clicked:', id)}
                 />
               </Grid>
             </SectionContainer>
@@ -628,6 +626,7 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
           height="100%"
         />
       </ExpandedChartModal>
+
     </div>
   );
 };

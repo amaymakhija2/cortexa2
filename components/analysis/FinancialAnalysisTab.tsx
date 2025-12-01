@@ -369,7 +369,8 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
         {/* Executive Summary */}
         <Section spacing="md">
           <ExecutiveSummary
-            summary="Placeholder summary text. Revenue is **up XX%** this month, exceeding the **$XXXk target** for the Xth consecutive month. However, **net margins are at XX%**, slightly below the industry average of XX%. Your top performer generated **$XXk** this period. Consider reviewing **clinician compensation costs** which represent XX% of gross revenue."
+            headline="Strong Revenue, Watch Your Margins"
+            summary={`Revenue is **${momChange >= 0 ? 'up' : 'down'} ${Math.abs(momChange).toFixed(1)}%** this month, with **${monthsAtGoal} of ${revenueData.length} months** exceeding the **$150k target**. Your net margin stands at **${avgMargin.toFixed(1)}%**, ${avgMargin >= 18 ? 'meeting' : 'slightly below'} the industry average of 18%. Clinician compensation costs represent **${avgClinicianPct.toFixed(0)}%** of gross revenue—consider reviewing if margins need improvement.`}
             accent="amber"
           />
         </Section>

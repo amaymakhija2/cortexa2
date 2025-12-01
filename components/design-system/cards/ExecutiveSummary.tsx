@@ -4,252 +4,294 @@ import { ChevronDown, Sparkles } from 'lucide-react';
 // =============================================================================
 // EXECUTIVE SUMMARY COMPONENT
 // =============================================================================
-// The crown jewel of the dashboard - an editorial-style collapsible summary
-// that leads the page with authority. Premium financial publication aesthetic
-// with perfect integration into the Cortexa design system.
+// A commanding editorial-style summary card designed for maximum impact and
+// effortless readability. Inspired by premium financial publications -
+// The Economist meets Bloomberg meets luxury annual reports.
 //
 // Design principles:
-// - Typography matches ChartCard exactly (DM Serif Display, same sizes)
-// - Card styling matches design system (gradients, shadows, rounded corners)
-// - Bold, readable collapse button that invites interaction
-// - Summary text that tells a story with strategic highlights
+// - BOLD, generous typography - nothing small, nothing to squint at
+// - Dramatic visual hierarchy with clear information architecture
+// - Refined warm color palette with strategic accent highlights
+// - Purposeful whitespace - let the content breathe
+// - Sophisticated depth through layered shadows and refined borders
 // =============================================================================
 
 export interface ExecutiveSummaryProps {
-  /** The summary text - use **bold** for emphasis (markdown-style) */
+  /** The headline - a single powerful statement */
+  headline: string;
+  /** The detailed summary text - use **bold** for emphasis */
   summary: string;
   /** Whether the summary starts expanded (default: true) */
   defaultExpanded?: boolean;
-  /** Optional accent color */
-  accent?: 'amber' | 'indigo' | 'rose' | 'emerald' | 'cyan' | 'stone';
+  /** Accent color theme */
+  accent?: 'amber' | 'emerald' | 'rose' | 'indigo' | 'cyan';
   /** Additional className */
   className?: string;
 }
 
-const ACCENT_CONFIG: Record<string, {
-  primary: string;
-  gradient: string;
-  lightBg: string;
-  glow: string;
-  border: string;
-}> = {
+// Premium accent configurations with sophisticated color relationships
+const ACCENT_THEMES = {
   amber: {
-    primary: '#d97706',
-    gradient: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
-    lightBg: 'rgba(251, 191, 36, 0.08)',
-    glow: '0 0 40px rgba(251, 191, 36, 0.2)',
-    border: 'rgba(251, 191, 36, 0.3)',
-  },
-  indigo: {
-    primary: '#4f46e5',
-    gradient: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%)',
-    lightBg: 'rgba(129, 140, 248, 0.08)',
-    glow: '0 0 40px rgba(129, 140, 248, 0.2)',
-    border: 'rgba(129, 140, 248, 0.3)',
-  },
-  rose: {
-    primary: '#e11d48',
-    gradient: 'linear-gradient(135deg, #ffe4e6 0%, #fecdd3 100%)',
-    lightBg: 'rgba(251, 113, 133, 0.08)',
-    glow: '0 0 40px rgba(251, 113, 133, 0.2)',
-    border: 'rgba(251, 113, 133, 0.3)',
+    primary: '#b45309',
+    secondary: '#d97706',
+    light: '#fef3c7',
+    ultraLight: 'rgba(251, 191, 36, 0.06)',
+    gradient: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 50%, #fcd34d 100%)',
+    glow: '0 0 60px rgba(251, 191, 36, 0.15)',
+    border: 'rgba(217, 119, 6, 0.2)',
   },
   emerald: {
-    primary: '#059669',
-    gradient: 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)',
-    lightBg: 'rgba(52, 211, 153, 0.08)',
-    glow: '0 0 40px rgba(52, 211, 153, 0.2)',
-    border: 'rgba(52, 211, 153, 0.3)',
+    primary: '#047857',
+    secondary: '#059669',
+    light: '#d1fae5',
+    ultraLight: 'rgba(16, 185, 129, 0.06)',
+    gradient: 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 50%, #6ee7b7 100%)',
+    glow: '0 0 60px rgba(16, 185, 129, 0.15)',
+    border: 'rgba(5, 150, 105, 0.2)',
+  },
+  rose: {
+    primary: '#be123c',
+    secondary: '#e11d48',
+    light: '#ffe4e6',
+    ultraLight: 'rgba(244, 63, 94, 0.06)',
+    gradient: 'linear-gradient(135deg, #ffe4e6 0%, #fecdd3 50%, #fda4af 100%)',
+    glow: '0 0 60px rgba(244, 63, 94, 0.15)',
+    border: 'rgba(225, 29, 72, 0.2)',
+  },
+  indigo: {
+    primary: '#4338ca',
+    secondary: '#4f46e5',
+    light: '#e0e7ff',
+    ultraLight: 'rgba(99, 102, 241, 0.06)',
+    gradient: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 50%, #a5b4fc 100%)',
+    glow: '0 0 60px rgba(99, 102, 241, 0.15)',
+    border: 'rgba(79, 70, 229, 0.2)',
   },
   cyan: {
-    primary: '#0891b2',
-    gradient: 'linear-gradient(135deg, #cffafe 0%, #a5f3fc 100%)',
-    lightBg: 'rgba(34, 211, 238, 0.08)',
-    glow: '0 0 40px rgba(34, 211, 238, 0.2)',
-    border: 'rgba(34, 211, 238, 0.3)',
-  },
-  stone: {
-    primary: '#57534e',
-    gradient: 'linear-gradient(135deg, #f5f5f4 0%, #e7e5e4 100%)',
-    lightBg: 'rgba(168, 162, 158, 0.08)',
-    glow: '0 0 40px rgba(168, 162, 158, 0.15)',
-    border: 'rgba(168, 162, 158, 0.25)',
+    primary: '#0e7490',
+    secondary: '#0891b2',
+    light: '#cffafe',
+    ultraLight: 'rgba(34, 211, 238, 0.06)',
+    gradient: 'linear-gradient(135deg, #cffafe 0%, #a5f3fc 50%, #67e8f9 100%)',
+    glow: '0 0 60px rgba(34, 211, 238, 0.15)',
+    border: 'rgba(8, 145, 178, 0.2)',
   },
 };
 
 /**
- * Parses markdown-style **bold** text into React nodes with accent color
+ * Parses markdown-style **bold** text into styled React nodes
  */
-const parseBoldText = (text: string, accentColor: string): React.ReactNode[] => {
+const parseHighlightedText = (text: string, accentColor: string): React.ReactNode[] => {
   const parts = text.split(/(\*\*[^*]+\*\*)/g);
   return parts.map((part, idx) => {
     if (part.startsWith('**') && part.endsWith('**')) {
-      const boldText = part.slice(2, -2);
+      const highlightedText = part.slice(2, -2);
       return (
         <span
           key={idx}
-          className="font-semibold"
-          style={{ color: accentColor }}
+          className="relative inline-block font-semibold"
+          style={{
+            color: accentColor,
+          }}
         >
-          {boldText}
+          {highlightedText}
         </span>
       );
     }
-    return part;
+    return <span key={idx}>{part}</span>;
   });
 };
 
 /**
- * ExecutiveSummary - The commanding presence at the top of every tab
+ * ExecutiveSummary - The commanding presence at the top of the dashboard
  *
- * @example
- * <ExecutiveSummary
- *   summary="Revenue is **up 12%** this month, exceeding the **$150k target** for the third consecutive month. However, **client retention dropped to 82%**, warranting attention. Your top performer generated **$45k** this period."
- *   accent="amber"
- * />
+ * A premium editorial-style card that delivers key insights with authority.
+ * Designed for maximum readability and visual impact.
  */
 export const ExecutiveSummary: React.FC<ExecutiveSummaryProps> = ({
+  headline,
   summary,
   defaultExpanded = true,
   accent = 'amber',
   className = '',
 }) => {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
-  const colors = ACCENT_CONFIG[accent];
+  const theme = ACCENT_THEMES[accent];
 
   return (
     <div
-      className={`executive-summary ${className}`}
+      className={`executive-summary-card ${className}`}
       style={{
-        animation: 'summarySlideIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) both',
+        animation: 'summaryFadeIn 0.8s cubic-bezier(0.22, 1, 0.36, 1) both',
       }}
     >
-      {/* Main Card - matches ChartCard styling exactly */}
+      {/* Main Card Container */}
       <div
-        className="rounded-2xl xl:rounded-3xl relative overflow-hidden transition-all duration-500"
+        className="relative rounded-[28px] overflow-hidden transition-all duration-700 ease-out"
         style={{
-          background: 'linear-gradient(145deg, #ffffff 0%, #fafaf9 100%)',
+          background: '#ffffff',
           boxShadow: isExpanded
-            ? `0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03), ${colors.glow}`
-            : '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)',
+            ? `
+                0 1px 2px rgba(0, 0, 0, 0.03),
+                0 4px 8px rgba(0, 0, 0, 0.04),
+                0 16px 32px rgba(0, 0, 0, 0.06),
+                0 32px 64px rgba(0, 0, 0, 0.04),
+                inset 0 0 0 1px rgba(0, 0, 0, 0.04),
+                ${theme.glow}
+              `
+            : `
+                0 1px 2px rgba(0, 0, 0, 0.03),
+                0 4px 8px rgba(0, 0, 0, 0.04),
+                0 8px 16px rgba(0, 0, 0, 0.03),
+                inset 0 0 0 1px rgba(0, 0, 0, 0.04)
+              `,
         }}
       >
-        {/* Accent gradient bar at top - distinctive identifier */}
+        {/* Premium Accent Bar - Thick and Bold */}
         <div
-          className="h-1.5 xl:h-2"
-          style={{ background: colors.gradient }}
+          className="h-2"
+          style={{
+            background: theme.gradient,
+          }}
         />
 
-        {/* Header Section - clickable, matches ChartCard header styling */}
+        {/* Header Section - Always Visible */}
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-6 p-6 sm:p-8 xl:p-10 text-left group transition-colors duration-200 hover:bg-stone-50/30"
+          className="w-full text-left group focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-4 focus-visible:ring-amber-400"
         >
-          {/* Left side - Title area */}
-          <div className="flex items-center gap-4 sm:gap-5">
-            {/* Icon badge */}
-            <div
-              className="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 xl:w-16 xl:h-16 rounded-2xl flex items-center justify-center transition-all duration-300"
-              style={{
-                background: colors.lightBg,
-                border: `1px solid ${colors.border}`,
-                boxShadow: isExpanded ? colors.glow : 'none',
-              }}
-            >
-              <Sparkles
-                className="w-6 h-6 sm:w-7 sm:h-7 xl:w-8 xl:h-8 transition-transform duration-300"
+          <div className="px-10 py-6 sm:px-12 sm:py-7 transition-colors duration-300 hover:bg-stone-50/40">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 lg:gap-10">
+
+              {/* Left: Icon + Headline */}
+              <div className="flex items-start gap-5 sm:gap-6 flex-1 min-w-0">
+                {/* Decorative Icon Badge */}
+                <div
+                  className="flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center transition-all duration-500"
+                  style={{
+                    background: theme.ultraLight,
+                    border: `2px solid ${theme.border}`,
+                    boxShadow: isExpanded ? theme.glow : 'none',
+                  }}
+                >
+                  <Sparkles
+                    className="w-7 h-7 sm:w-8 sm:h-8 transition-all duration-500"
+                    style={{
+                      color: theme.secondary,
+                      transform: isExpanded ? 'rotate(0deg) scale(1)' : 'rotate(-10deg) scale(0.95)',
+                    }}
+                    strokeWidth={1.5}
+                  />
+                </div>
+
+                {/* Headline Text */}
+                <div className="flex-1 min-w-0 pt-1">
+                  <h2
+                    className="text-stone-900 leading-tight tracking-tight"
+                    style={{
+                      fontFamily: "'DM Serif Display', Georgia, 'Times New Roman', serif",
+                      fontSize: 'clamp(1.75rem, 4vw, 2.5rem)',
+                      fontWeight: 400,
+                      letterSpacing: '-0.02em',
+                    }}
+                  >
+                    {headline}
+                  </h2>
+                  <p
+                    className="text-stone-500 mt-2 font-medium"
+                    style={{ fontSize: 'clamp(1rem, 2vw, 1.25rem)' }}
+                  >
+                    {isExpanded ? 'Executive Summary' : 'Tap to expand insights'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Right: Collapse/Expand Control */}
+              <div
+                className="flex items-center gap-4 px-6 py-4 rounded-2xl transition-all duration-300 flex-shrink-0"
                 style={{
-                  color: colors.primary,
-                  transform: isExpanded ? 'rotate(0deg)' : 'rotate(-15deg)',
+                  background: isExpanded
+                    ? theme.gradient
+                    : 'linear-gradient(135deg, #f5f5f4 0%, #e7e5e4 100%)',
+                  boxShadow: isExpanded
+                    ? `0 4px 12px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.6)`
+                    : '0 2px 8px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
                 }}
-              />
-            </div>
-
-            {/* Title - matches ChartCard title exactly */}
-            <div>
-              <h3
-                className="text-stone-900 text-2xl sm:text-3xl xl:text-4xl font-bold tracking-tight"
-                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
               >
-                Summary
-              </h3>
-              <p className="text-stone-500 text-base sm:text-lg xl:text-xl mt-1">
-                {isExpanded ? 'Key insights at a glance' : 'Click to view insights'}
-              </p>
+                <span
+                  className="text-lg sm:text-xl font-semibold tracking-tight transition-colors duration-300"
+                  style={{
+                    fontFamily: "'DM Serif Display', Georgia, serif",
+                    color: isExpanded ? theme.primary : '#57534e',
+                  }}
+                >
+                  {isExpanded ? 'Collapse' : 'Expand'}
+                </span>
+                <ChevronDown
+                  className="w-6 h-6 transition-all duration-500 ease-out"
+                  style={{
+                    color: isExpanded ? theme.primary : '#78716c',
+                    transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                  }}
+                  strokeWidth={2.5}
+                />
+              </div>
             </div>
-          </div>
-
-          {/* Collapse/Expand button - BOLD and readable */}
-          <div
-            className="flex items-center gap-3 px-5 sm:px-6 py-3 sm:py-3.5 rounded-xl sm:rounded-2xl transition-all duration-300 flex-shrink-0"
-            style={{
-              background: isExpanded ? colors.gradient : 'linear-gradient(135deg, #f5f5f4 0%, #e7e5e4 100%)',
-              boxShadow: isExpanded
-                ? `0 2px 8px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.5)`
-                : '0 2px 8px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
-            }}
-          >
-            <span
-              className="text-base sm:text-lg font-bold tracking-tight transition-colors duration-200"
-              style={{
-                color: isExpanded ? colors.primary : '#57534e',
-                fontFamily: "'DM Serif Display', Georgia, serif",
-              }}
-            >
-              {isExpanded ? 'Collapse' : 'Expand'}
-            </span>
-            <ChevronDown
-              className="w-5 h-5 sm:w-6 sm:h-6 transition-transform duration-300"
-              style={{
-                color: isExpanded ? colors.primary : '#78716c',
-                transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
-              }}
-            />
           </div>
         </button>
 
         {/* Expandable Content */}
         <div
-          className="overflow-hidden transition-all duration-500 ease-out"
+          className="overflow-hidden transition-all duration-700 ease-out"
           style={{
-            maxHeight: isExpanded ? '600px' : '0px',
+            maxHeight: isExpanded ? '1200px' : '0px',
             opacity: isExpanded ? 1 : 0,
           }}
         >
-          {/* Divider - elegant separation */}
-          <div className="px-6 sm:px-8 xl:px-10">
+          {/* Summary Prose - Editorial Style */}
+          <div className="px-10 sm:px-12 pb-8 sm:pb-10">
             <div
-              className="h-px"
+              className="relative rounded-2xl p-8 sm:p-10"
               style={{
-                background: `linear-gradient(90deg, ${colors.border} 0%, rgba(0,0,0,0.04) 50%, transparent 100%)`,
-              }}
-            />
-          </div>
-
-          {/* Summary Text - editorial prose styling */}
-          <div className="p-6 sm:p-8 xl:p-10 pt-6 sm:pt-8 xl:pt-8">
-            <p
-              className="text-stone-700 leading-relaxed"
-              style={{
-                fontFamily: "'DM Serif Display', Georgia, serif",
-                fontSize: 'clamp(1.125rem, 2.5vw, 1.5rem)',
-                lineHeight: 1.75,
-                fontWeight: 400,
-                letterSpacing: '-0.01em',
+                background: 'linear-gradient(135deg, #fafaf9 0%, #f5f5f4 100%)',
+                border: '1px solid rgba(0, 0, 0, 0.04)',
               }}
             >
-              {parseBoldText(summary, colors.primary)}
-            </p>
+              {/* Decorative Quote Mark */}
+              <div
+                className="absolute -top-2 left-8 text-8xl leading-none select-none pointer-events-none"
+                style={{
+                  fontFamily: "'DM Serif Display', Georgia, serif",
+                  color: theme.border,
+                  opacity: 0.5,
+                }}
+              >
+                "
+              </div>
+
+              <p
+                className="relative text-stone-700 leading-relaxed"
+                style={{
+                  fontFamily: "'DM Serif Display', Georgia, 'Times New Roman', serif",
+                  fontSize: 'clamp(1.25rem, 2.5vw, 1.625rem)',
+                  lineHeight: 1.8,
+                  fontWeight: 400,
+                  letterSpacing: '-0.01em',
+                }}
+              >
+                {parseHighlightedText(summary, theme.primary)}
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Keyframe animations */}
+      {/* Keyframe Animations */}
       <style>{`
-        @keyframes summarySlideIn {
+        @keyframes summaryFadeIn {
           from {
             opacity: 0;
-            transform: translateY(-12px);
+            transform: translateY(-16px);
           }
           to {
             opacity: 1;
@@ -260,5 +302,13 @@ export const ExecutiveSummary: React.FC<ExecutiveSummaryProps> = ({
     </div>
   );
 };
+
+// Keep KeyMetric export for backwards compatibility but it's no longer used
+export interface KeyMetric {
+  value: string;
+  label: string;
+  trend?: 'up' | 'down' | 'neutral';
+  comparison?: string;
+}
 
 export default ExecutiveSummary;
