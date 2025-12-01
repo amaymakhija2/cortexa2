@@ -418,7 +418,7 @@ export const ClinicianRankingTab: React.FC<ClinicianRankingTabProps> = ({
               </div>
             </div>
 
-            {/* Clinician Rows */}
+            {/* Clinician Rows with Team Average */}
             {rankedClinicians.sorted.map((clinician, index) => {
               const rank = index + 1;
               const value = clinician.metrics[selectedMetric];
@@ -426,13 +426,14 @@ export const ClinicianRankingTab: React.FC<ClinicianRankingTabProps> = ({
               const rankStyle = getRankBadgeStyle(rank);
               const { isAbove, percentDiff } = getPerformanceStatus(value);
 
-              // Insert team average row at the right position
+              // Determine where to show team average
               const showAverageBefore = index === rankedClinicians.avgRankIndex;
-              const showAverageAfter = index === rankedClinicians.sorted.length - 1 && rankedClinicians.avgRankIndex === rankedClinicians.sorted.length;
+              const isLastItem = index === rankedClinicians.sorted.length - 1;
+              const showAverageAfter = isLastItem && rankedClinicians.avgRankIndex === rankedClinicians.sorted.length;
 
               return (
                 <React.Fragment key={clinician.id}>
-                  {/* Team Average Row (before) */}
+                  {/* Team Average Row (before this clinician if this is where avg belongs) */}
                   {showAverageBefore && (
                     <div
                       className="grid grid-cols-[60px_1fr_140px_100px] sm:grid-cols-[80px_1fr_160px_120px] gap-4 px-4 sm:px-6 py-4 items-center"
@@ -475,11 +476,8 @@ export const ClinicianRankingTab: React.FC<ClinicianRankingTabProps> = ({
                   {/* Clinician Row */}
                   <div
                     className={`grid grid-cols-[60px_1fr_140px_100px] sm:grid-cols-[80px_1fr_160px_120px] gap-4 px-4 sm:px-6 py-4 items-center transition-all duration-200 hover:bg-stone-50 cursor-pointer ${
-                      index < rankedClinicians.sorted.length - 1 ? 'border-b border-stone-100' : ''
+                      !isLastItem && !showAverageAfter ? 'border-b border-stone-100' : ''
                     }`}
-                    style={{
-                      animationDelay: `${index * 50}ms`,
-                    }}
                   >
                     {/* Rank Badge */}
                     <div className="flex items-center justify-center">
@@ -555,7 +553,7 @@ export const ClinicianRankingTab: React.FC<ClinicianRankingTabProps> = ({
                     </div>
                   </div>
 
-                  {/* Team Average Row (after last item if avg is lowest) */}
+                  {/* Team Average Row (after last item if all clinicians are above average) */}
                   {showAverageAfter && (
                     <div
                       className="grid grid-cols-[60px_1fr_140px_100px] sm:grid-cols-[80px_1fr_160px_120px] gap-4 px-4 sm:px-6 py-4 items-center"

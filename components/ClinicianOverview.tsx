@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { TrendingUp, TrendingDown, ChevronRight } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { TrendingUp, TrendingDown, Users } from 'lucide-react';
 
 type TimePeriod = 'last-12-months' | 'this-year' | 'this-quarter' | 'last-quarter' | 'this-month' | 'last-month';
 
@@ -171,12 +171,28 @@ export const ClinicianOverview: React.FC = () => {
 
   const metric = METRICS[selectedMetric];
 
-  // Sort clinicians
-  const sortedClinicians = [...CLINICIANS_DATA].sort((a, b) => {
-    const aVal = a.metrics[selectedMetric];
-    const bVal = b.metrics[selectedMetric];
-    return metric.higherIsBetter ? bVal - aVal : aVal - bVal;
-  });
+  // Calculate team average
+  const teamAvg = useMemo(() => {
+    return CLINICIANS_DATA.reduce((sum, c) => sum + c.metrics[selectedMetric], 0) / CLINICIANS_DATA.length;
+  }, [selectedMetric]);
+
+  // Sort clinicians and find where team average belongs
+  const { sortedClinicians, avgRankIndex } = useMemo(() => {
+    const sorted = [...CLINICIANS_DATA].sort((a, b) => {
+      const aVal = a.metrics[selectedMetric];
+      const bVal = b.metrics[selectedMetric];
+      return metric.higherIsBetter ? bVal - aVal : aVal - bVal;
+    });
+
+    // Find where team average would rank
+    let avgIndex = sorted.findIndex(c => {
+      const val = c.metrics[selectedMetric];
+      return metric.higherIsBetter ? val < teamAvg : val > teamAvg;
+    });
+    if (avgIndex === -1) avgIndex = sorted.length;
+
+    return { sortedClinicians: sorted, avgRankIndex: avgIndex };
+  }, [selectedMetric, metric.higherIsBetter, teamAvg]);
 
   // Calculate bar widths
   const maxVal = Math.max(...sortedClinicians.map(c => c.metrics[selectedMetric]));
@@ -191,10 +207,6 @@ export const ClinicianOverview: React.FC = () => {
       return ((maxVal - value) / range) * 80 + 20;
     }
   };
-
-  const teamAvg = Math.round(
-    CLINICIANS_DATA.reduce((sum, c) => sum + c.metrics[selectedMetric], 0) / CLINICIANS_DATA.length
-  );
 
   return (
     <div className="flex-1 overflow-y-auto h-[calc(100vh-80px)] bg-gradient-to-b from-stone-100 to-stone-50">
@@ -272,16 +284,6 @@ export const ClinicianOverview: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Team Average */}
-                <div className="flex items-center gap-3 text-stone-400">
-                  <span className="text-sm">Team Average:</span>
-                  <span
-                    className="text-2xl sm:text-3xl text-white font-bold"
-                    style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-                  >
-                    {metric.format(teamAvg)}
-                  </span>
-                </div>
               </div>
             </div>
 
@@ -362,6 +364,62 @@ export const ClinicianOverview: React.FC = () => {
               const isLast = idx === sortedClinicians.length - 1;
               const rank = idx + 1;
               const value = clinician.metrics[selectedMetric];
+
+              // Determine if team average row should appear before this clinician
+              const showAverageBefore = idx === avgRankIndex;
+              const showAverageAfter = isLast && avgRankIndex === sortedClinicians.length;
+
+              // Team Average Row Component
+              const TeamAverageRow = () => (
+                <div
+                  className="bg-stone-100 rounded-xl lg:rounded-2xl overflow-hidden"
+                  style={{
+                    border: '2px dashed #d6d3d1',
+                  }}
+                >
+                  <div className="px-4 sm:px-6 py-4 lg:py-5">
+                    <div className="grid grid-cols-12 gap-3 lg:gap-4 items-center">
+                      {/* Icon instead of rank */}
+                      <div className="col-span-2 lg:col-span-1 flex justify-center">
+                        <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-stone-300 flex items-center justify-center">
+                          <Users className="w-5 h-5 lg:w-6 lg:h-6 text-stone-600" />
+                        </div>
+                      </div>
+
+                      {/* Label */}
+                      <div className="col-span-6 lg:col-span-3">
+                        <h3
+                          className="text-base lg:text-lg text-stone-700 font-bold"
+                          style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                        >
+                          Team Average
+                        </h3>
+                        <p className="text-stone-500 text-xs lg:text-sm">
+                          {CLINICIANS_DATA.length} clinicians
+                        </p>
+                      </div>
+
+                      {/* Empty bar space - Desktop */}
+                      <div className="hidden lg:block lg:col-span-5" />
+
+                      {/* Value */}
+                      <div className="col-span-3 lg:col-span-2 text-right">
+                        <span
+                          className="text-xl lg:text-2xl font-black text-stone-600"
+                          style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                        >
+                          {metric.format(Math.round(teamAvg))}
+                        </span>
+                      </div>
+
+                      {/* Empty trend */}
+                      <div className="col-span-1 flex items-center justify-end">
+                        <span className="text-stone-400">—</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
               const barWidth = getBarWidth(value);
 
               // Color theming
@@ -392,11 +450,14 @@ export const ClinicianOverview: React.FC = () => {
               const theme = getTheme();
 
               return (
-                <div
-                  key={clinician.id}
-                  className="group bg-white rounded-xl lg:rounded-2xl overflow-hidden transition-all duration-300 hover:scale-[1.01] cursor-pointer"
-                  style={{ boxShadow: theme.shadow }}
-                >
+                <React.Fragment key={clinician.id}>
+                  {/* Team Average Row - shown before this clinician if appropriate */}
+                  {showAverageBefore && <TeamAverageRow />}
+
+                  <div
+                    className="group bg-white rounded-xl lg:rounded-2xl overflow-hidden transition-all duration-300 hover:scale-[1.01] cursor-pointer"
+                    style={{ boxShadow: theme.shadow }}
+                  >
                   {/* Accent bar - thin and elegant */}
                   <div className="h-0.5" style={{ background: theme.bar }} />
 
@@ -500,6 +561,10 @@ export const ClinicianOverview: React.FC = () => {
                     </div>
                   </div>
                 </div>
+
+                  {/* Team Average Row - shown after last clinician if all are above average */}
+                  {showAverageAfter && <TeamAverageRow />}
+                </React.Fragment>
               );
             })}
           </div>

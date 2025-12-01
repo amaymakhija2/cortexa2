@@ -1381,7 +1381,7 @@ export const Reference: React.FC = () => {
                   insights={
                     barChartMode === 'stacked'
                       ? [
-                          { value: 'Chen', label: 'Top ($35k)', bgColor: 'bg-violet-50', textColor: 'text-violet-600' },
+                          { value: 'S Chen', label: 'Top ($35k)', bgColor: 'bg-violet-50', textColor: 'text-violet-600' },
                           { value: '$172k', label: 'Best Month', bgColor: 'bg-indigo-50', textColor: 'text-indigo-600' },
                           { value: '5', label: 'Clinicians', bgColor: 'bg-stone-100', textColor: 'text-stone-700' }
                         ]
