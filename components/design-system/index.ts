@@ -73,6 +73,9 @@ export type { InsightCardProps, InsightSentiment } from './cards/InsightCard';
 export { ExecutiveSummary } from './cards/ExecutiveSummary';
 export type { ExecutiveSummaryProps, KeyMetric } from './cards/ExecutiveSummary';
 
+export { MetricCard, ExpandableBarChart } from './cards/MetricCard';
+export type { MetricCardProps, MetricStatus, ExpandableBarChartProps, BarChartItem } from './cards/MetricCard';
+
 // Control Components
 export { ToggleButton, GoalIndicator, ActionButton } from './controls';
 export type { ToggleButtonProps, GoalIndicatorProps, GoalIndicatorColor, ActionButtonProps, ActionButtonVariant } from './controls';

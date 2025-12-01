@@ -28,6 +28,8 @@ import {
   CohortSelector,
   AtRiskClientsCard,
   MilestoneOpportunityCard,
+  MetricCard,
+  ExpandableBarChart,
 } from './';
 import type { HoverInfo } from './charts';
 
@@ -53,6 +55,7 @@ import type { HoverInfo } from './charts';
 //     │   └── Grid.tsx          - Grid, Section, PageContent
 //     ├── cards/
 //     │   ├── StatCard.tsx      - Hero stat cards
+//     │   ├── MetricCard.tsx    - Key metric cards with status & expandable content
 //     │   ├── ChartCard.tsx     - Chart containers (with headerControls prop)
 //     │   └── CompactCard.tsx   - Smaller cards
 //     ├── controls/
@@ -556,6 +559,99 @@ export const Reference: React.FC = () => {
                   <div>
                     <code className="text-violet-600">variant</code>
                     <span className="text-stone-500 ml-2">'default' | 'positive' | 'negative'</span>
+                  </div>
+                </div>
+              </div>
+            </Section>
+
+            {/* MetricCard */}
+            <Section>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                MetricCard
+              </h2>
+              <p className="text-stone-500 mb-6">Key metric card with status indicator and optional expandable content. Used in Practice Overview dashboard.</p>
+
+              <Grid cols={4} gap="md">
+                <MetricCard
+                  label="Revenue"
+                  value="$153.4k"
+                  subtext="Goal: $160k · $6.6k left"
+                  status="Needs attention"
+                  tooltip={{ title: 'Revenue', description: 'Total money collected this month.' }}
+                  expandableContent={
+                    <ExpandableBarChart
+                      data={[
+                        { label: 'Week 1', value: 38200, displayValue: '$38.2k' },
+                        { label: 'Week 2', value: 41500, displayValue: '$41.5k' },
+                        { label: 'Week 3', value: 36800, displayValue: '$36.8k' },
+                        { label: 'Week 4', value: 36900, displayValue: '$36.9k' },
+                      ]}
+                      totalLabel="total this month"
+                    />
+                  }
+                  expandButtonLabel="Weekly Breakdown"
+                  expandButtonLabelMobile="Weekly"
+                />
+                <MetricCard
+                  label="Sessions"
+                  value="698"
+                  valueLabel="completed"
+                  subtext="82% of goal"
+                  status="Healthy"
+                  tooltip={{ title: 'Sessions', description: 'Sessions completed this month.' }}
+                />
+                <MetricCard
+                  label="Clients"
+                  value="156"
+                  valueLabel="active"
+                  subtext="17 new, 5 discharged"
+                  status="Healthy"
+                  tooltip={{ title: 'Clients', description: 'Active clients in the practice.' }}
+                />
+                <MetricCard
+                  label="Outstanding Notes"
+                  value="12"
+                  valueLabel="overdue"
+                  subtext="3 clinicians with overdue notes"
+                  status="Critical"
+                  tooltip={{ title: 'Notes', description: 'Sessions with overdue notes.' }}
+                />
+              </Grid>
+
+              <div className="mt-6 rounded-xl p-5 bg-stone-100">
+                <h4 className="font-semibold text-stone-900 mb-3">Props Reference</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <code className="text-violet-600">label</code>
+                    <span className="text-stone-500 ml-2">string - Card label/title</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">value</code>
+                    <span className="text-stone-500 ml-2">string - Main metric value</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">valueLabel</code>
+                    <span className="text-stone-500 ml-2">string - Label after value (optional)</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">subtext</code>
+                    <span className="text-stone-500 ml-2">string - Description text</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">status</code>
+                    <span className="text-stone-500 ml-2">'Healthy' | 'Needs attention' | 'Critical'</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">tooltip</code>
+                    <span className="text-stone-500 ml-2">{`{ title, description }`} - Info tooltip</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">expandableContent</code>
+                    <span className="text-stone-500 ml-2">ReactNode - Expandable panel content</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">expandButtonLabel</code>
+                    <span className="text-stone-500 ml-2">string - Expand button text</span>
                   </div>
                 </div>
               </div>
