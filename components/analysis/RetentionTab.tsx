@@ -288,7 +288,7 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
                     variant="positive"
                   />
                   <StatCard
-                    title="Avg Client Tenure"
+                    title="Avg Sessions Completed"
                     value={`${selectedCohortData.summary.avgSessionsPerClient.toFixed(1)}`}
                     subtitle="sessions per client"
                   />

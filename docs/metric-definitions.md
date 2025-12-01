@@ -93,7 +93,7 @@ The total number of clients who started (had their first session) during a speci
 ### Clients Churned
 The number of clients from a cohort who have churned (no appointment in 30+ days and none scheduled).
 
-### Avg Client Tenure
+### Avg Sessions Completed
 The average number of sessions across ALL clients in a cohort. This measures overall client engagement depth.
 
 **Note:** This includes both active and churned clients to provide an accurate view of typical client journey length.
