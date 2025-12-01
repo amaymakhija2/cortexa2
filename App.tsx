@@ -8,6 +8,7 @@ import { BottomNav } from './components/BottomNav';
 import { Dashboard } from './components/Dashboard';
 import { PracticeAnalysis } from './components/PracticeAnalysis';
 import { ClinicianOverview } from './components/ClinicianOverview';
+import { ClinicianDetails } from './components/ClinicianDetails';
 import { SettingsPage } from './components/SettingsPage';
 import { Reference as Components } from './components/design-system';
 
@@ -42,6 +43,7 @@ const ProtectedApp: React.FC = () => {
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/practice-analysis" element={<PracticeAnalysis />} />
                 <Route path="/clinician-overview" element={<ClinicianOverview />} />
+                <Route path="/clinician-details" element={<ClinicianDetails />} />
                 <Route path="/components" element={<Components />} />
                 <Route path="/settings" element={<SettingsPage />} />
               </Routes>

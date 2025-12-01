@@ -33,6 +33,8 @@ export const Header: React.FC<HeaderProps> = ({ onMobileMenuOpen }) => {
         return 'Practice Analysis';
       case '/clinician-overview':
         return 'Clinicians';
+      case '/clinician-details':
+        return 'Clinician Details';
       case '/components':
         return 'Components';
       default:
@@ -72,6 +74,7 @@ export const Header: React.FC<HeaderProps> = ({ onMobileMenuOpen }) => {
         <NavPill label="Practice Overview" to="/dashboard" />
         <NavPill label="Practice Detailed Analysis" to="/practice-analysis" />
         <NavPill label="Clinician Overview" to="/clinician-overview" />
+        <NavPill label="Clinician Details" to="/clinician-details" />
         <NavPill label="Components" to="/components" />
       </div>
 
