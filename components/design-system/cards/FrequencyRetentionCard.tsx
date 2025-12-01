@@ -81,12 +81,12 @@ export const FrequencyRetentionCard: React.FC<FrequencyRetentionCardProps> = ({
           </div>
           <div>
             <h3
-              className="text-stone-800 text-lg sm:text-xl font-bold"
+              className="text-stone-900 text-2xl sm:text-3xl xl:text-4xl font-bold tracking-tight"
               style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
             >
               Frequency & Retention
             </h3>
-            <p className="text-stone-500 text-sm mt-1">
+            <p className="text-stone-500 text-base sm:text-lg xl:text-xl mt-2">
               How session frequency affects client tenure
             </p>
           </div>

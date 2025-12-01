@@ -8,13 +8,15 @@ Psychotherapy practice owners and clinical directors who are very poor at readin
 ## OVERVIEW DASHBOARD (Practice Review)
 
 ### Page Header
-- **Breadcrumb**: Practice / Overview
-- **Title**: "{Month} {Year} Practice Review" (e.g., "November 2025 Practice Review")
+- **Label**: "Practice Overview" (amber, uppercase)
+- **Title**: "{Month} {Year}" (e.g., "November 2025")
 - **Toggle**: Live | Historical (with month picker when Historical selected)
 
 ---
 
-### Top Metrics Row (5 KPI Cards)
+### Key Metrics Row (5 KPI Cards)
+
+**Section Title**: "Key Metrics"
 
 #### 1. Revenue
 | Element | Content |
@@ -201,6 +203,24 @@ Psychotherapy practice owners and clinical directors who are very poor at readin
 | - Supervisor | Amber (#f59e0b) |
 | **Show Legend** | Yes |
 | **Height** | 280px |
+
+---
+
+### Client Lifetime Value Chart
+| Element | Content |
+|---------|---------|
+| **Title** | "Client Lifetime Value" |
+| **Subtitle** | "Average revenue per client by months since first session" |
+| **Chart Type** | Multi-line chart |
+| **Metrics Row** | Current year LTV (emerald, primary) · Prior year LTV (blue) |
+| **X-Axis** | M0, M1, M2... M12 (months since cohort start) |
+| **Y-Axis** | $0 - auto-scaled |
+| **Lines** | |
+| - Current Year (e.g., 2025) | Emerald (#10b981) |
+| - Prior Year (e.g., 2024) | Blue (#3b82f6) |
+| **Show Legend** | Yes |
+| **Date Picker** | Disconnected - always shows current year vs prior year |
+| **Purpose** | Compare client quality year-over-year. If lines track closely, client unit economics are healthy regardless of volume changes. |
 
 ---
 
@@ -527,10 +547,10 @@ The cohort selector has two visual states with luxury-level typography matching 
 | Cohort | Sublabel | Maturity |
 |--------|----------|----------|
 | All Time | "Since practice opened" | Mature (recommended) |
-| 2024 YTD | "Jan - Nov 2024" | Mature |
-| Q3 2024 | "Jul - Sep" | Mature |
-| Q4 2024 | "Oct - Dec" | Partial |
-| Nov 2024 | "23 clients" | Immature (grayed out, shows "Data available Jan 15, 2025") |
+| 2025 YTD | "Jan - Nov 2025" | Mature |
+| Q3 2025 | "Jul - Sep" | Mature |
+| Q4 2025 | "Oct - Dec" | Partial |
+| Nov 2025 | "23 clients" | Immature (grayed out, shows "Data available Jan 15, 2026") |
 
 **Maturity Badge Styles**:
 | Maturity | Background | Text | Border | Glow |
@@ -657,53 +677,47 @@ See Retention Funnel Cards section below for funnel details.
 #### Retention by Time Funnel (Right)
 See Retention Funnel Cards section below for funnel details.
 
-#### First Session Drop-off Card (Below Funnels)
+#### First Session Drop-off StatCard (Below Funnels)
 | Element | Content |
 |---------|---------|
-| **Title** | "First Session Drop-off" |
-| **Subtitle** | "Clients who don't return after session 1" |
-| **Visual** | Two-step mini funnel (Session 1 → Session 2) |
-| **Key Metric** | Return rate percentage (e.g., "77%") |
-| **Benchmark** | "Your X% vs Y% industry avg" |
-| **Status Indicator** | Alert badge if below benchmark |
-| **Drop-off Display** | Shows count and percentage lost between sessions |
-
-**Component**: `FirstSessionDropoffCard`
+| **Component** | `StatCard` |
+| **Title** | "Session 1→2 Drop-off" |
+| **Value** | "{X}%" (drop-off percentage) |
+| **Subtitle** | "{Y}% return rate (industry avg: {Z}%)" |
+| **Variant** | negative if below benchmark, positive if above |
+| **Layout** | Single compact card (max-w-md) |
 
 **Why This Matters**: The Session 1→2 transition is often the steepest cliff in client retention. Highlighting it separately ensures practice owners don't miss this critical insight.
 
 ---
 
-### Section 3: What Drives Retention (Cyan)
+### Section 3: What Type of Clients Do We Lose (Cyan)
 
 | Element | Content |
 |---------|---------|
-| **Section Header** | Question: "What keeps clients?" |
-| **Description** | "Factors that correlate with longer client tenure" |
+| **Section Header** | Question: "What type of clients do we lose?" |
+| **Description** | "Comparing churn rates across client segments" |
 | **Number** | 3 |
 | **Accent** | Cyan |
 
-#### Frequency & Retention Card (Left)
+#### Churn by Frequency InsightCard (Left)
 | Element | Content |
 |---------|---------|
-| **Title** | "Frequency & Retention" |
-| **Subtitle** | "How session frequency affects client tenure" |
-| **Icon** | Calendar (cyan) |
-| **Key Insight Box** | "Weekly clients stay {X}x longer than bi-weekly clients" |
-| **Benchmark** | "Similar practices see {range} difference" |
-| **Comparison Bars** | |
-| - Weekly | Emerald bar, avg sessions count |
-| - Bi-weekly | Amber bar, avg sessions count |
-| - Monthly | Stone bar, avg sessions count |
-| **Recommendation** | "Encourage new clients to start with weekly sessions for the first 2-3 months to improve retention." |
+| **Component** | `InsightCard` |
+| **Statement** | "Monthly clients are {X}% of churn but only {Y}% of your client base" |
+| **Emphasis** | "{X}% of churn" |
+| **Metric** | "{Z}×" |
+| **Metric Label** | "overrepresented" |
+| **Sentiment** | negative |
+| **Category** | "Session Frequency" |
 
-**Component**: `FrequencyRetentionCard`
-
-#### Future Driver Cards (Right - Placeholder)
+#### Churn by Gender InsightCard (Right)
 | Element | Content |
 |---------|---------|
-| **Style** | Dashed border placeholder |
-| **Text** | "More retention drivers coming soon (e.g., referral source, insurance type)" |
+| **Component** | `InsightCard` |
+| **Statement** | "No significant difference in churn rates across client genders" |
+| **Sentiment** | neutral |
+| **Category** | "Demographics" |
 
 ---
 
@@ -836,25 +850,40 @@ Scope: Data calculated for the selected cohort (clients who STARTED during that 
 
 ## INSURANCE TAB
 
-### Health Tiles (2 Cards)
+> **🚧 COMING SOON** - This tab currently shows a placeholder card. Full implementation is planned.
 
-#### 1. Outstanding Insurance
+### Current Implementation
+
+| Element | Content |
+|---------|---------|
+| **Component** | `ComingSoonCard` |
+| **Accent** | violet |
+| **Title** | "Insurance Analytics" |
+| **Description** | "Comprehensive insurance billing and claims analytics are being crafted to give you complete visibility into your practice's payer relationships." |
+| **Planned Features** | Claims Tracking, Payer Mix Analysis, Denial Management, Reimbursement Rates, AR Aging Reports |
+
+### Planned Features (Not Yet Implemented)
+
+<details>
+<summary>Click to see planned Insurance Tab features</summary>
+
+#### Health Tiles (2 Cards)
+
+##### 1. Outstanding Insurance
 | Element | Content |
 |---------|---------|
 | **Category Label** | "OUTSTANDING INSURANCE" |
 | **Value** | "${XX.X}K" |
 | **Subtext** | "Unpaid by insurance payers" |
 
-#### 2. Needs Attention
+##### 2. Needs Attention
 | Element | Content |
 |---------|---------|
 | **Category Label** | "NEEDS ATTENTION" |
 | **Value** | "{XX}" (rejected + denied count) |
 | **Subtext** | "Rejected ({X}) + Denied ({X}) claims" |
 
----
-
-### Claims Status Section
+#### Claims Status Section
 | Element | Content |
 |---------|---------|
 | **Category Label** | "CLAIMS STATUS" |
@@ -875,9 +904,7 @@ Scope: Data calculated for the selected cohort (clients who STARTED during that 
 | **Chart Type** | Multi-line chart |
 | **Lines** | Paid (green), Rejected (red), Denied (orange) |
 
----
-
-### Outstanding Claims by Aging Section
+#### Outstanding Claims by Aging Section
 | Element | Content |
 |---------|---------|
 | **Category Label** | "OUTSTANDING CLAIMS" |
@@ -898,48 +925,74 @@ Scope: Data calculated for the selected cohort (clients who STARTED during that 
 | 60 Days | "Claims due in 60 days" | Orange |
 | 90+ Days | "Claims overdue 90+ days" | Red |
 
+</details>
+
 ---
 
 ## ADMIN TAB
 
-### Health Tiles (3 Cards)
+> **🚧 COMING SOON** - This tab currently shows a placeholder card. Full implementation is planned.
 
-#### 1. Billing
+### Current Implementation
+
+| Element | Content |
+|---------|---------|
+| **Component** | `ComingSoonCard` |
+| **Accent** | blue |
+| **Title** | "Administrative Analytics" |
+| **Description** | "Powerful administrative insights are being developed to streamline your practice operations and enhance team productivity." |
+| **Planned Features** | Note Compliance, Reminder Delivery, Client Balances, Staff Productivity, Audit Trails |
+
+### Planned Features (Not Yet Implemented)
+
+<details>
+<summary>Click to see planned Admin Tab features</summary>
+
+#### Health Tiles (3 Cards)
+
+##### 1. Billing
 | Element | Content |
 |---------|---------|
 | **Category Label** | "BILLING" |
 | **Value** | "${XX.X}K" |
 | **Subtext** | "Clients still owe after invoices" |
 
-#### 2. Compliance
+##### 2. Compliance
 | Element | Content |
 |---------|---------|
 | **Category Label** | "COMPLIANCE" |
 | **Value** | Notes status indicator |
 | **Subtext** | Status description |
 
-#### 3. Reminders
+##### 3. Reminders
 | Element | Content |
 |---------|---------|
 | **Category Label** | "REMINDERS" |
 | **Value** | Success rate or count |
 | **Subtext** | Delivery status |
 
----
-
-### Client Balance Aging
+#### Client Balance Aging
 - **Chart Type**: Stacked bar or area chart
 - **Categories**: Current, 1-30 days, 31-60 days, 61+ days
 
-### Notes Status
+#### Notes Status
 - **Chart Type**: Stacked bar chart
 - **Categories**: No Note, Unlocked, Locked
+
+</details>
 
 ---
 
 ## TEAM COMPARISON TAB
 
-### Comparison Tables (3 Views)
+> **⚠️ NOT IMPLEMENTED** - This tab is planned but has not yet been built. The current dashboard does not include a Team Comparison tab.
+
+### Planned Features (Not Yet Implemented)
+
+<details>
+<summary>Click to see planned Team Comparison Tab features</summary>
+
+#### Comparison Tables (3 Views)
 
 **Sortable Columns**:
 - Location/Supervisor/Clinician name
@@ -955,6 +1008,8 @@ Scope: Data calculated for the selected cohort (clients who STARTED during that 
 **Location Data**: Durham, Chapel Hill, Remote, Chicago
 **Supervisor Data**: Barbara Downs, Eugene Miller
 **Clinician Data**: All 5 clinicians with expandable detail view
+
+</details>
 
 ---
 

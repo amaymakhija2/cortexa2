@@ -311,6 +311,30 @@ const RETENTION_BENCHMARKS = {
   frequencyMultiplierRange: '1.8-2.5x', // Typical range for weekly vs bi-weekly
 };
 
+// Cohort LTV data - comparing current year vs prior year
+// Based on actual cohort analysis: 2024 vs 2025 cohorts
+const COHORT_LTV_DATA = {
+  currentYearLabel: '2025',
+  priorYearLabel: '2024',
+  currentYearAvgLTV: 3576, // Latest available (month 9 average for 2025 H1 cohorts)
+  priorYearAvgLTV: 4390, // Month 12 average for 2024 cohorts
+  data: [
+    { month: 0, currentYear: 479, priorYear: 499 },
+    { month: 1, currentYear: 987, priorYear: 1046 },
+    { month: 2, currentYear: 1532, priorYear: 1587 },
+    { month: 3, currentYear: 2031, priorYear: 2084 },
+    { month: 4, currentYear: 2456, priorYear: 2531 },
+    { month: 5, currentYear: 2812, priorYear: 2789 },
+    { month: 6, currentYear: 3057, priorYear: 3067 },
+    { month: 7, currentYear: 3298, priorYear: 3312 },
+    { month: 8, currentYear: 3489, priorYear: 3556 },
+    { month: 9, currentYear: 3576, priorYear: 3800 },
+    { month: 10, currentYear: null, priorYear: 4012 },
+    { month: 11, currentYear: null, priorYear: 4201 },
+    { month: 12, currentYear: null, priorYear: 4390 },
+  ],
+};
+
 // Churn distribution by gender (for comparison with client distribution)
 // Client distribution: Male 33%, Female 62%, Other 5%
 // Churn shows Males slightly over-represented in churn
@@ -711,6 +735,7 @@ export const PracticeAnalysis: React.FC = () => {
           revenueData={REVENUE_DATA}
           revenueBreakdownData={REVENUE_BREAKDOWN_DATA}
           clinicianRevenueData={CLINICIAN_REVENUE_DATA}
+          cohortLTVData={COHORT_LTV_DATA}
         />
       )}
 

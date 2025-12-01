@@ -500,12 +500,15 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
               <SimpleChartCard
                 title="Session Utilization"
                 subtitle="Percentage of session capacity utilized"
-                valueIndicator={{
-                  value: `${avgSessionUtilization.toFixed(0)}%`,
-                  label: 'Average',
-                  bgColor: 'bg-blue-50',
-                  textColor: 'text-blue-600',
-                }}
+                metrics={[
+                  {
+                    value: `${Math.round(avgSessionUtilization)}%`,
+                    label: 'Average',
+                    bgColor: '#eff6ff',
+                    textColor: '#2563eb',
+                    isPrimary: true,
+                  },
+                ]}
                 expandable
                 onExpand={() => setExpandedCard('session-utilization')}
               >
@@ -524,12 +527,15 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
               <SimpleChartCard
                 title="Open Slots"
                 subtitle="Unfilled appointment slots per month"
-                valueIndicator={{
-                  value: avgOpenSlots.toString(),
-                  label: 'Average',
-                  bgColor: 'bg-rose-50',
-                  textColor: 'text-rose-600',
-                }}
+                metrics={[
+                  {
+                    value: avgOpenSlots.toString(),
+                    label: 'Average',
+                    bgColor: '#fff1f2',
+                    textColor: '#e11d48',
+                    isPrimary: true,
+                  },
+                ]}
                 expandable
                 onExpand={() => setExpandedCard('open-slots')}
               >

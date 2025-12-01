@@ -17,6 +17,9 @@ export type { GridProps, GridColumns, SectionProps, PageContentProps } from './l
 export { SectionHeader } from './layout/SectionHeader';
 export type { SectionHeaderProps, SectionAccent } from './layout/SectionHeader';
 
+export { SectionContainer, SectionDivider } from './layout/SectionContainer';
+export type { SectionContainerProps, SectionDividerProps } from './layout/SectionContainer';
+
 export { AnimatedSection, AnimatedGrid, AnimatedPageContent } from './layout/AnimatedSection';
 export type { AnimatedSectionProps, AnimatedGridProps, AnimatedPageContentProps } from './layout/AnimatedSection';
 
@@ -25,7 +28,7 @@ export { StatCard, StatCardWithBreakdown } from './cards/StatCard';
 export type { StatCardProps, StatVariant, StatCardWithBreakdownProps } from './cards/StatCard';
 
 export { ChartCard, SimpleChartCard, ExpandedChartModal } from './cards/ChartCard';
-export type { ChartCardProps, SimpleChartCardProps, ExpandedChartModalProps, LegendItem, InsightItem } from './cards/ChartCard';
+export type { ChartCardProps, SimpleChartCardProps, ExpandedChartModalProps, LegendItem, InsightItem, MetricIndicator } from './cards/ChartCard';
 
 export { CompactCard, StackedBarCard, MetricListCard } from './cards/CompactCard';
 export type { CompactCardProps, StackedBarCardProps, StackedBarSegment, MetricListCardProps, MetricItem } from './cards/CompactCard';
@@ -64,6 +67,12 @@ export type { FrequencyRetentionCardProps, FrequencyData } from './cards/Frequen
 export { ComingSoonCard } from './cards/ComingSoonCard';
 export type { ComingSoonCardProps, ComingSoonAccent } from './cards/ComingSoonCard';
 
+export { InsightCard } from './cards/InsightCard';
+export type { InsightCardProps, InsightSentiment } from './cards/InsightCard';
+
+export { ExecutiveSummary } from './cards/ExecutiveSummary';
+export type { ExecutiveSummaryProps } from './cards/ExecutiveSummary';
+
 // Control Components
 export { ToggleButton, GoalIndicator, ActionButton } from './controls';
 export type { ToggleButtonProps, GoalIndicatorProps, GoalIndicatorColor, ActionButtonProps, ActionButtonVariant } from './controls';
@@ -79,6 +88,7 @@ export type {
   HoverInfo,
   LineChartProps,
   LineConfig,
+  ReferenceLineConfig,
   DivergingBarChartProps,
   DivergingBarDataPoint,
   DivergingBarConfig,

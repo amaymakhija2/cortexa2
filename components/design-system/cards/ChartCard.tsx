@@ -200,18 +200,28 @@ export const ChartCard: React.FC<ChartCardProps> = ({
 // Simpler version without legend/insights for basic charts
 // =============================================================================
 
+export interface MetricIndicator {
+  /** The metric value */
+  value: string | number;
+  /** Label for the metric */
+  label: string;
+  /** Background color (hex) */
+  bgColor?: string;
+  /** Text color (hex) */
+  textColor?: string;
+  /** Accent color for subtle left border (hex) */
+  accentColor?: string;
+  /** Whether this is the primary/highlighted metric */
+  isPrimary?: boolean;
+}
+
 export interface SimpleChartCardProps {
   /** Card title */
   title: string;
   /** Subtitle/description */
   subtitle?: string;
-  /** Value indicator box */
-  valueIndicator?: {
-    value: string | number;
-    label: string;
-    bgColor?: string;
-    textColor?: string;
-  };
+  /** Metric indicators displayed as elegant boxes (e.g., Your Avg, Industry, Last Year) */
+  metrics?: MetricIndicator[];
   /** Show expand button */
   expandable?: boolean;
   /** Callback when expand is clicked */
@@ -240,10 +250,10 @@ export interface SimpleChartCardProps {
 export const SimpleChartCard: React.FC<SimpleChartCardProps> = ({
   title,
   subtitle,
-  valueIndicator,
+  metrics,
   expandable = false,
   onExpand,
-  height = '480px',
+  height = '620px',
   className = '',
   children,
 }) => {
@@ -256,33 +266,67 @@ export const SimpleChartCard: React.FC<SimpleChartCardProps> = ({
         minHeight: height,
       }}
     >
-      {/* Header - Compact */}
+      {/* Header */}
       <div className="flex items-start justify-between mb-4 flex-shrink-0">
-        <div>
+        <div className="flex-1 min-w-0">
           <h3
-            className="text-stone-900 text-xl sm:text-2xl xl:text-3xl font-bold mb-1 tracking-tight"
+            className="text-stone-900 text-2xl sm:text-3xl xl:text-4xl font-bold mb-2 tracking-tight"
             style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
           >
             {title}
           </h3>
           {subtitle && (
-            <p className="text-stone-500 text-sm sm:text-base xl:text-lg">{subtitle}</p>
+            <p className="text-stone-500 text-base sm:text-lg xl:text-xl">{subtitle}</p>
           )}
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-3">
-          {valueIndicator && (
-            <div className={`${valueIndicator.bgColor || 'bg-stone-50'} rounded-lg sm:rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-center`}>
-              <div
-                className={`${valueIndicator.textColor || 'text-stone-900'} text-xl sm:text-2xl font-bold`}
-                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-              >
-                {valueIndicator.value}
-              </div>
-              <div className="text-stone-500 text-xs sm:text-sm font-medium">{valueIndicator.label}</div>
+        <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+          {/* Metrics row - elegant comparison boxes */}
+          {metrics && metrics.length > 0 && (
+            <div className="flex items-stretch gap-2.5 sm:gap-3">
+              {metrics.map((metric, idx) => (
+                <div
+                  key={idx}
+                  className={`relative rounded-xl sm:rounded-2xl px-4 sm:px-5 py-2.5 sm:py-3 text-center overflow-hidden transition-all duration-200 hover:scale-[1.02] ${
+                    metric.isPrimary ? 'ring-1 ring-stone-200/60' : ''
+                  }`}
+                  style={{
+                    background: metric.bgColor || '#f5f5f4',
+                    minWidth: '90px',
+                  }}
+                >
+                  {/* Subtle left accent bar for non-primary metrics */}
+                  {metric.accentColor && !metric.isPrimary && (
+                    <div
+                      className="absolute left-0 top-3 bottom-3 w-1 rounded-full"
+                      style={{
+                        backgroundColor: metric.accentColor,
+                        opacity: 0.8,
+                      }}
+                    />
+                  )}
+
+                  {/* Value */}
+                  <div
+                    className="text-xl sm:text-2xl xl:text-3xl font-bold leading-none"
+                    style={{
+                      fontFamily: "'DM Serif Display', Georgia, serif",
+                      color: metric.textColor || '#44403c',
+                    }}
+                  >
+                    {metric.value}
+                  </div>
+
+                  {/* Label */}
+                  <div className="text-stone-500 text-sm sm:text-base font-medium mt-1.5">
+                    {metric.label}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
 
+          {/* Expand button */}
           {expandable && (
             <button
               onClick={onExpand}
@@ -295,7 +339,7 @@ export const SimpleChartCard: React.FC<SimpleChartCardProps> = ({
         </div>
       </div>
 
-      {/* Chart Area - Fills remaining space */}
+      {/* Chart Area */}
       <div className="flex-1 min-h-[280px]">
         {children}
       </div>

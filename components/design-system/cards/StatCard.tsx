@@ -75,7 +75,7 @@ export const StatCard: React.FC<StatCardProps> = ({
       )}
 
       <h3
-        className="text-stone-800 text-xl sm:text-2xl xl:text-2xl font-bold mb-3 xl:mb-4"
+        className="text-stone-900 text-2xl sm:text-3xl xl:text-4xl font-bold mb-2 tracking-tight"
         style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
       >
         {title}
@@ -154,7 +154,7 @@ export const StatCardWithBreakdown: React.FC<StatCardWithBreakdownProps> = ({
       )}
 
       <h3
-        className="text-stone-800 text-xl sm:text-2xl xl:text-2xl font-bold mb-3 xl:mb-4"
+        className="text-stone-900 text-2xl sm:text-3xl xl:text-4xl font-bold mb-2 tracking-tight"
         style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
       >
         {title}

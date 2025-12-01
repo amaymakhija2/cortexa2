@@ -18,6 +18,7 @@ import {
   ExpandedChartModal,
   AnimatedGrid,
   AnimatedSection,
+  ExecutiveSummary,
 } from '../design-system';
 import type { HoverInfo } from '../design-system';
 import type { FinancialAnalysisTabProps } from './types';
@@ -54,6 +55,7 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
   revenueData,
   revenueBreakdownData,
   clinicianRevenueData,
+  cohortLTVData,
 }) => {
   // =========================================================================
   // LOCAL STATE
@@ -158,6 +160,19 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
       supervisorPct: item.grossRevenue > 0 ? (item.supervisorCosts / item.grossRevenue) * 100 : 0,
     }));
   }, [revenueBreakdownData]);
+
+  // LTV chart data formatted for LineChart
+  // Only include data points where current year has data (to avoid null rendering issues)
+  const ltvChartData = useMemo(() => {
+    if (!cohortLTVData) return [];
+    return cohortLTVData.data
+      .filter((item) => item.currentYear !== null)
+      .map((item) => ({
+        month: `M${item.month}`,
+        currentYear: item.currentYear,
+        priorYear: item.priorYear,
+      }));
+  }, [cohortLTVData]);
 
   // Average cost percentages for indicators
   const avgClinicianPct = useMemo(() => {
@@ -351,6 +366,14 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
       />
 
       <PageContent>
+        {/* Executive Summary */}
+        <Section spacing="md">
+          <ExecutiveSummary
+            summary="Placeholder summary text. Revenue is **up XX%** this month, exceeding the **$XXXk target** for the Xth consecutive month. However, **net margins are at XX%**, slightly below the industry average of XX%. Your top performer generated **$XXk** this period. Consider reviewing **clinician compensation costs** which represent XX% of gross revenue."
+            accent="amber"
+          />
+        </Section>
+
         {/* Hero Stats Row */}
         <Section spacing="md">
           <AnimatedGrid cols={4} gap="md" staggerDelay={60}>
@@ -501,12 +524,29 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
               <SimpleChartCard
               title="Net Revenue Margin"
               subtitle="Percentage of gross revenue retained"
-              valueIndicator={{
-                value: `${avgMargin.toFixed(1)}%`,
-                label: 'Average',
-                bgColor: 'bg-emerald-50',
-                textColor: 'text-emerald-600',
-              }}
+              metrics={[
+                {
+                  value: `${Math.round(avgMargin)}%`,
+                  label: 'Your Avg',
+                  bgColor: '#ecfdf5',
+                  textColor: '#059669',
+                  isPrimary: true,
+                },
+                {
+                  value: '18%',
+                  label: 'Industry',
+                  bgColor: '#eef2ff',
+                  textColor: '#6366f1',
+                  accentColor: '#6366f1',
+                },
+                {
+                  value: '15%',
+                  label: '2024',
+                  bgColor: '#fefce8',
+                  textColor: '#ca8a04',
+                  accentColor: '#eab308',
+                },
+              ]}
             >
               <LineChart
                 data={marginChartData}
@@ -522,12 +562,29 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
             <SimpleChartCard
               title="Cost as % of Revenue"
               subtitle="Clinician and supervisor costs"
-              valueIndicator={{
-                value: `${(avgClinicianPct + avgSupervisorPct).toFixed(1)}%`,
-                label: 'Total Avg',
-                bgColor: 'bg-stone-100',
-                textColor: 'text-stone-700',
-              }}
+              metrics={[
+                {
+                  value: `${Math.round(avgClinicianPct + avgSupervisorPct)}%`,
+                  label: 'Total Avg',
+                  bgColor: '#f5f5f4',
+                  textColor: '#57534e',
+                  isPrimary: true,
+                },
+                {
+                  value: `${Math.round(avgClinicianPct)}%`,
+                  label: 'Clinician',
+                  bgColor: '#eff6ff',
+                  textColor: '#2563eb',
+                  accentColor: '#3b82f6',
+                },
+                {
+                  value: `${Math.round(avgSupervisorPct)}%`,
+                  label: 'Supervisor',
+                  bgColor: '#fefce8',
+                  textColor: '#ca8a04',
+                  accentColor: '#f59e0b',
+                },
+              ]}
             >
               <LineChart
                 data={costPercentageData}
@@ -542,9 +599,62 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
                   `${value.toFixed(1)}%`,
                   name === 'clinicianPct' ? 'Clinician' : 'Supervisor',
                 ]}
-                showLegend
               />
             </SimpleChartCard>
+            </Grid>
+          </Section>
+        </AnimatedSection>
+
+        {/* Client Lifetime Value Chart */}
+        <AnimatedSection delay={430}>
+          <Section spacing="md">
+            <Grid cols={2} gap="lg">
+              <SimpleChartCard
+                title="Client Lifetime Value"
+                subtitle="Average revenue per client by months since first session"
+                metrics={[
+                  {
+                    value: '$3.6k',
+                    label: '2025',
+                    bgColor: '#ecfdf5',
+                    textColor: '#059669',
+                    isPrimary: true,
+                  },
+                  {
+                    value: '$4.4k',
+                    label: '2024',
+                    bgColor: '#eff6ff',
+                    textColor: '#2563eb',
+                    accentColor: '#3b82f6',
+                  },
+                ]}
+              >
+                <LineChart
+                  data={[
+                    { month: 'M0', currentYear: 479, priorYear: 499 },
+                    { month: 'M1', currentYear: 987, priorYear: 1046 },
+                    { month: 'M2', currentYear: 1532, priorYear: 1587 },
+                    { month: 'M3', currentYear: 2031, priorYear: 2084 },
+                    { month: 'M4', currentYear: 2456, priorYear: 2531 },
+                    { month: 'M5', currentYear: 2812, priorYear: 2789 },
+                    { month: 'M6', currentYear: 3057, priorYear: 3067 },
+                    { month: 'M7', currentYear: 3298, priorYear: 3312 },
+                    { month: 'M8', currentYear: 3489, priorYear: 3556 },
+                    { month: 'M9', currentYear: 3576, priorYear: 3800 },
+                  ]}
+                  xAxisKey="month"
+                  lines={[
+                    { dataKey: 'currentYear', color: '#10b981', activeColor: '#059669', name: '2025' },
+                    { dataKey: 'priorYear', color: '#3b82f6', activeColor: '#2563eb', name: '2024' },
+                  ]}
+                  yDomain={[0, 5000]}
+                  yTickFormatter={(v) => `$${(v / 1000).toFixed(1)}k`}
+                  tooltipFormatter={(value: number, name: string) => [
+                    `$${value.toLocaleString()}`,
+                    name,
+                  ]}
+                />
+              </SimpleChartCard>
             </Grid>
           </Section>
         </AnimatedSection>

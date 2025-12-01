@@ -133,6 +133,32 @@ export interface BaseAnalysisTabProps {
 }
 
 // =============================================================================
+// COHORT LTV DATA TYPES
+// =============================================================================
+
+export interface CohortLTVDataPoint {
+  /** Month since cohort start (0, 1, 2, etc.) */
+  month: number;
+  /** LTV for current year cohorts */
+  currentYear: number | null;
+  /** LTV for prior year cohorts */
+  priorYear: number | null;
+}
+
+export interface CohortLTVData {
+  /** Current year label (e.g., "2025") */
+  currentYearLabel: string;
+  /** Prior year label (e.g., "2024") */
+  priorYearLabel: string;
+  /** LTV data points by month since start */
+  data: CohortLTVDataPoint[];
+  /** Current year average LTV (latest available month) */
+  currentYearAvgLTV: number;
+  /** Prior year average LTV at month 12 */
+  priorYearAvgLTV: number;
+}
+
+// =============================================================================
 // FINANCIAL TAB PROPS
 // =============================================================================
 
@@ -140,6 +166,8 @@ export interface FinancialAnalysisTabProps extends BaseAnalysisTabProps {
   revenueData: RevenueDataPoint[];
   revenueBreakdownData: RevenueBreakdownDataPoint[];
   clinicianRevenueData: ClinicianRevenueDataPoint[];
+  /** Cohort LTV comparison data (current year vs prior year) */
+  cohortLTVData?: CohortLTVData;
 }
 
 // =============================================================================

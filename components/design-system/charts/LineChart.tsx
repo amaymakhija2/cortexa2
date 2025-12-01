@@ -8,6 +8,7 @@ import {
   Tooltip,
   ResponsiveContainer,
   Legend,
+  ReferenceLine,
 } from 'recharts';
 
 // =============================================================================
@@ -25,6 +26,17 @@ export interface LineConfig {
   activeColor?: string;
   /** Display name for legend/tooltip */
   name?: string;
+}
+
+export interface ReferenceLineConfig {
+  /** Y-axis value for the reference line */
+  value: number;
+  /** Label to display (used for accessibility, not shown on chart) */
+  label: string;
+  /** Line color (defaults to stone-400) */
+  color?: string;
+  /** Whether to use dashed line (defaults to true) */
+  dashed?: boolean;
 }
 
 export interface LineChartProps {
@@ -48,6 +60,10 @@ export interface LineChartProps {
   showAreaFill?: boolean;
   /** Area fill gradient ID (for custom gradients) */
   areaFillId?: string;
+  /** Reference lines (horizontal lines, e.g., industry average, last year) */
+  referenceLines?: ReferenceLineConfig[];
+  /** Whether to show reference lines on the chart (defaults to true) */
+  showReferenceLines?: boolean;
 }
 
 /**
@@ -95,6 +111,8 @@ export const LineChart: React.FC<LineChartProps> = ({
   height = '100%' as const,
   showAreaFill = false,
   areaFillId,
+  referenceLines = [],
+  showReferenceLines = true,
 }) => {
   return (
     <ResponsiveContainer width="100%" height={height}>
@@ -119,6 +137,21 @@ export const LineChart: React.FC<LineChartProps> = ({
         )}
 
         <CartesianGrid strokeDasharray="4 4" stroke="#e7e5e4" vertical={false} />
+
+        {/* Clean reference lines without labels (legend shown in card header) */}
+        {showReferenceLines && referenceLines.map((refLine, idx) => {
+          const color = refLine.color || '#a8a29e';
+          return (
+            <ReferenceLine
+              key={`ref-${idx}`}
+              y={refLine.value}
+              stroke={color}
+              strokeWidth={2}
+              strokeDasharray={refLine.dashed !== false ? '8 5' : undefined}
+              strokeOpacity={0.8}
+            />
+          );
+        })}
 
         <XAxis
           dataKey={xAxisKey}

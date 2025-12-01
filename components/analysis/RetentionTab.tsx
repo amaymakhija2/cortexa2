@@ -6,6 +6,7 @@ import {
   Grid,
   Section,
   SectionHeader,
+  SectionContainer,
   ChartCard,
   SimpleChartCard,
   DonutChartCard,
@@ -19,7 +20,7 @@ import {
   CohortSelector,
   AtRiskClientsCard,
   MilestoneOpportunityCard,
-  DefinitionsBar,
+  InsightCard,
 } from '../design-system';
 import type { HoverInfo } from '../design-system';
 import type { RetentionTabProps } from './types';
@@ -45,12 +46,6 @@ const CLINICIAN_SEGMENTS = [
 ];
 
 const CLINICIAN_STACK_ORDER = ['Johnson', 'Kim', 'Patel', 'Rodriguez', 'Chen'];
-
-// Retention definitions
-const RETENTION_DEFINITIONS = [
-  { term: 'Churned', definition: 'No appointment in 30+ days and none scheduled' },
-  { term: 'Retained', definition: 'Active or has appointment scheduled within 30 days' },
-];
 
 export const RetentionTab: React.FC<RetentionTabProps> = ({
   cohorts,
@@ -209,13 +204,6 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
         {selectedCohort && selectedCohortData && (
           <>
             {/* ================================================================
-                DEFINITIONS BAR
-                ================================================================ */}
-            <Section spacing="md">
-              <DefinitionsBar definitions={RETENTION_DEFINITIONS} />
-            </Section>
-
-            {/* ================================================================
                 COHORT SUMMARY - HERO STATS WITH BENCHMARKS
                 ================================================================ */}
             {selectedCohortData.summary && (
@@ -250,12 +238,14 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
             {/* ================================================================
                 SECTION 1: CHURN PATTERNS
                 ================================================================ */}
-            <Section spacing="lg">
+            <SectionContainer accent="rose" index={1} isFirst>
               <SectionHeader
                 number={1}
                 question="When do clients leave?"
                 description="Monthly churn trends and timing breakdown"
                 accent="rose"
+                showAccentLine={false}
+                compact
               />
               <Grid cols={2} gap="lg">
                 {/* Clients Churned - Bar Chart with Clinician Toggle */}
@@ -351,17 +341,19 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
                   onExpand={() => setExpandedCard('churn-timing')}
                 />
               </Grid>
-            </Section>
+            </SectionContainer>
 
             {/* ================================================================
                 SECTION 2: RETENTION JOURNEY
                 ================================================================ */}
-            <Section spacing="lg">
+            <SectionContainer accent="amber" index={2}>
               <SectionHeader
                 number={2}
                 question="How far do clients get?"
                 description="Session milestones and time-based retention"
                 accent="amber"
+                showAccentLine={false}
+                compact
               />
 
               {/* Both funnels side by side */}
@@ -403,57 +395,66 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
                   variant={(firstSessionDropoffData.session2Count / firstSessionDropoffData.session1Count * 100) < firstSessionDropoffData.benchmarkPercentage ? 'negative' : 'positive'}
                 />
               </div>
-            </Section>
+            </SectionContainer>
 
             {/* ================================================================
                 SECTION 3: WHAT TYPE OF CLIENTS DO WE LOSE
                 ================================================================ */}
-            <Section spacing="lg">
+            <SectionContainer accent="cyan" index={3}>
               <SectionHeader
                 number={3}
                 question="What type of clients do we lose?"
                 description="Comparing churn rates across client segments"
                 accent="cyan"
+                showAccentLine={false}
+                compact
               />
               <Grid cols={2} gap="lg">
-                {/* Churn by Frequency - The big insight */}
-                <StatCard
-                  title="Session Frequency"
-                  value={`${((churnByFrequencyData.monthly / churnByFrequencyData.total) / (clientFrequencyData.monthly / clientFrequencyData.total)).toFixed(1)}x`}
-                  subtitle={`Monthly clients are ${((churnByFrequencyData.monthly / churnByFrequencyData.total) * 100).toFixed(0)}% of churn but only ${((clientFrequencyData.monthly / clientFrequencyData.total) * 100).toFixed(0)}% of clients`}
-                  variant="negative"
+                {/* Churn by Frequency - Direct insight */}
+                <InsightCard
+                  statement={`Monthly clients are ${((churnByFrequencyData.monthly / churnByFrequencyData.total) * 100).toFixed(0)}% of churn but only ${((clientFrequencyData.monthly / clientFrequencyData.total) * 100).toFixed(0)}% of your client base`}
+                  emphasis={`${((churnByFrequencyData.monthly / churnByFrequencyData.total) * 100).toFixed(0)}% of churn`}
+                  metric={`${((churnByFrequencyData.monthly / churnByFrequencyData.total) / (clientFrequencyData.monthly / clientFrequencyData.total)).toFixed(1)}×`}
+                  metricLabel="overrepresented"
+                  sentiment="negative"
+                  category="Session Frequency"
                 />
 
-                {/* Churn by Gender - Minimal signal */}
-                <StatCard
-                  title="Client Gender"
-                  value="Balanced"
-                  subtitle={`No significant difference in churn rates across genders`}
+                {/* Churn by Gender - Direct insight */}
+                <InsightCard
+                  statement="No significant difference in churn rates across client genders"
+                  sentiment="neutral"
+                  category="Demographics"
                 />
               </Grid>
-            </Section>
+            </SectionContainer>
 
             {/* ================================================================
                 SECTION 4: CURRENT HEALTH
                 ================================================================ */}
-            <Section spacing="lg">
+            <SectionContainer accent="emerald" index={4} isLast>
               <SectionHeader
                 number={4}
                 question="Who needs attention now?"
                 description="Real-time indicators of client engagement and risk"
                 accent="emerald"
+                showAccentLine={false}
+                compact
               />
               <Grid cols={3} gap="lg">
                 {/* Rebook Rate */}
                 <SimpleChartCard
                   title="Rebook Rate"
                   subtitle="% of clients with next appointment"
-                  valueIndicator={{
-                    value: `${currentHealthData.avgRebookRate.toFixed(1)}%`,
-                    label: 'Average',
-                    bgColor: 'bg-emerald-50',
-                    textColor: 'text-emerald-600',
-                  }}
+                  metrics={[
+                    {
+                      value: `${Math.round(currentHealthData.avgRebookRate)}%`,
+                      label: 'Average',
+                      bgColor: '#ecfdf5',
+                      textColor: '#059669',
+                      isPrimary: true,
+                    },
+                  ]}
                   expandable
                   onExpand={() => setExpandedCard('rebook-rate')}
                 >
@@ -487,7 +488,7 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
                   onClientClick={(id) => console.log('Client clicked:', id)}
                 />
               </Grid>
-            </Section>
+            </SectionContainer>
           </>
         )}
       </PageContent>

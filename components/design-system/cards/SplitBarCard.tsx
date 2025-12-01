@@ -110,13 +110,13 @@ export const SplitBarCard: React.FC<SplitBarCardProps> = ({
       <div className="flex items-start justify-between mb-5">
         <div>
           <h3
-            className="text-stone-800 text-2xl font-semibold"
+            className="text-stone-900 text-2xl sm:text-3xl xl:text-4xl font-bold tracking-tight"
             style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
           >
             {title}
           </h3>
           {subtitle && (
-            <p className="text-stone-500 text-sm mt-1">{subtitle}</p>
+            <p className="text-stone-500 text-base sm:text-lg xl:text-xl mt-2">{subtitle}</p>
           )}
         </div>
 

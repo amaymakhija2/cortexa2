@@ -55,12 +55,12 @@ export const FirstSessionDropoffCard: React.FC<FirstSessionDropoffCardProps> = (
       <div className="flex items-start justify-between mb-5">
         <div>
           <h3
-            className="text-stone-800 text-lg sm:text-xl font-bold"
+            className="text-stone-900 text-2xl sm:text-3xl xl:text-4xl font-bold tracking-tight"
             style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
           >
             First Session Drop-off
           </h3>
-          <p className="text-stone-500 text-sm mt-1">
+          <p className="text-stone-500 text-base sm:text-lg xl:text-xl mt-2">
             Clients who don&apos;t return after session 1
           </p>
         </div>

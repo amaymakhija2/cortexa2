@@ -606,7 +606,9 @@ export const Reference: React.FC = () => {
                 <SimpleChartCard
                   title="SimpleChartCard"
                   subtitle="Lighter version without insights"
-                  valueIndicator={{ value: '85%', label: 'Average', bgColor: 'bg-blue-50', textColor: 'text-blue-600' }}
+                  metrics={[
+                    { value: '85%', label: 'Average', bgColor: '#eff6ff', textColor: '#2563eb', isPrimary: true },
+                  ]}
                   expandable
                   height="280px"
                 >

@@ -15,7 +15,7 @@ export type {
 } from './BarChart';
 
 export { LineChart } from './LineChart';
-export type { LineChartProps, LineConfig } from './LineChart';
+export type { LineChartProps, LineConfig, ReferenceLineConfig } from './LineChart';
 
 export { DivergingBarChart } from './DivergingBarChart';
 export type {
