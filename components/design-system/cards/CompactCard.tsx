@@ -189,7 +189,7 @@ export interface MetricListCardProps {
  *   metrics={[
  *     { label: 'Active Clients', value: 156 },
  *     { label: 'This Month', value: '+12', valueColor: 'text-emerald-600' },
- *     { label: 'Utilization', value: '87%' }
+ *     { label: 'Caseload', value: '87%' }
  *   ]}
  * />
  */

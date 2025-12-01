@@ -39,4 +39,7 @@ export type {
   ClinicianTrends,
   ClinicianData,
   ClinicianRankingTabProps,
+  MetricGroupId,
+  MetricConfig,
+  MetricGroupConfig,
 } from './types';

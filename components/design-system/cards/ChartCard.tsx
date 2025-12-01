@@ -62,17 +62,17 @@ export interface ChartCardProps {
  *
  * @example
  * <ChartCard
- *   title="Client Utilization"
- *   subtitle="Active clients & utilization rate over time"
+ *   title="Caseload Capacity"
+ *   subtitle="Active clients & capacity rate over time"
  *   legend={[
  *     { label: 'Active Clients', type: 'box', color: 'bg-gradient-to-b from-amber-400 to-amber-500' },
- *     { label: 'Utilization %', type: 'line', color: 'bg-emerald-500' }
+ *     { label: 'Capacity %', type: 'line', color: 'bg-emerald-500' }
  *   ]}
  *   expandable
- *   onExpand={() => setExpanded('utilization')}
+ *   onExpand={() => setExpanded('capacity')}
  *   insights={[
  *     { value: 148, label: 'Avg Clients', bgColor: 'bg-amber-50', textColor: 'text-amber-600' },
- *     { value: '84%', label: 'Avg Utilization', bgColor: 'bg-emerald-50', textColor: 'text-emerald-600' },
+ *     { value: '84%', label: 'Avg Capacity', bgColor: 'bg-emerald-50', textColor: 'text-emerald-600' },
  *     { value: 'Jun', label: 'Peak (87%)', bgColor: 'bg-stone-100', textColor: 'text-stone-800' }
  *   ]}
  * >
@@ -239,8 +239,8 @@ export interface SimpleChartCardProps {
  *
  * @example
  * <SimpleChartCard
- *   title="Session Utilization"
- *   subtitle="Percentage of session capacity utilized"
+ *   title="Session Goal %"
+ *   subtitle="Percentage of session goal achieved"
  *   valueIndicator={{ value: '85%', label: 'Average', bgColor: 'bg-blue-50', textColor: 'text-blue-600' }}
  *   expandable
  * >

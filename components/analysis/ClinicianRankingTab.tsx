@@ -1,155 +1,228 @@
 import React, { useState, useMemo } from 'react';
-import { TrendingUp, TrendingDown, Minus, ChevronDown, Users, DollarSign, Calendar, UserCheck, AlertTriangle, Clock, FileText } from 'lucide-react';
+import {
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  ChevronDown,
+  Users,
+  DollarSign,
+  Target,
+  CalendarX,
+  Heart,
+  UserMinus,
+  FileText,
+  AlertTriangle,
+  Check
+} from 'lucide-react';
 import {
   PageHeader,
   PageContent,
-  SectionHeader,
   SectionContainer,
 } from '../design-system';
-import type { ClinicianRankingTabProps, RankingMetric, ClinicianData } from './types';
+import type {
+  ClinicianRankingTabProps,
+  RankingMetric,
+  ClinicianData,
+  MetricGroupId,
+  MetricGroupConfig,
+  MetricConfig
+} from './types';
 
 // =============================================================================
 // CLINICIAN RANKING TAB COMPONENT
 // =============================================================================
-// Allows practice owners to select a metric and see clinicians ranked by it.
-// Team average is displayed as a row in the ranking for easy comparison.
+// Simplified approach: 6 "questions" practice managers ask, each showing
+// a primary metric for ranking + supporting metrics for context.
 // =============================================================================
 
-// Metric category configuration
-const METRIC_CATEGORIES = {
-  financial: {
-    label: 'Financial',
-    icon: DollarSign,
-    color: '#f59e0b',
-  },
-  sessions: {
-    label: 'Sessions',
-    icon: Calendar,
-    color: '#6366f1',
-  },
-  clients: {
-    label: 'Clients',
-    icon: Users,
-    color: '#06b6d4',
-  },
-  retention: {
-    label: 'Retention',
-    icon: UserCheck,
-    color: '#10b981',
-  },
-  compliance: {
-    label: 'Compliance',
-    icon: FileText,
-    color: '#8b5cf6',
-  },
+// Icon components map
+const ICONS = {
+  DollarSign,
+  Target,
+  CalendarX,
+  Heart,
+  UserMinus,
+  FileText,
 };
 
-// Metric definitions with formatting and direction
-const METRIC_CONFIG: Record<RankingMetric, {
-  label: string;
-  shortLabel: string;
-  category: keyof typeof METRIC_CATEGORIES;
-  format: (value: number) => string;
-  higherIsBetter: boolean;
-  description: string;
-}> = {
-  revenue: {
-    label: 'Revenue Generated',
+// =============================================================================
+// METRIC GROUP CONFIGURATIONS
+// =============================================================================
+// Each group represents a question practice managers ask
+
+const METRIC_GROUPS: MetricGroupConfig[] = [
+  {
+    id: 'revenue',
+    question: 'Who\'s generating the most revenue?',
     shortLabel: 'Revenue',
-    category: 'financial',
-    format: (v) => `$${(v / 1000).toFixed(1)}k`,
-    higherIsBetter: true,
-    description: 'Total revenue generated this period',
+    description: 'Revenue performance and efficiency',
+    icon: 'DollarSign',
+    color: '#f59e0b', // amber
+    primary: {
+      key: 'revenue',
+      label: 'Gross Revenue',
+      shortLabel: 'Revenue',
+      format: (v) => `$${(v / 1000).toFixed(1)}k`,
+      higherIsBetter: true,
+    },
+    supporting: [
+      {
+        key: 'completedSessions',
+        label: 'Sessions',
+        shortLabel: 'Sessions',
+        format: (v) => v.toLocaleString(),
+        higherIsBetter: true,
+      },
+      {
+        key: 'revenuePerSession',
+        label: 'Per Session',
+        shortLabel: '$/Session',
+        format: (v) => `$${v.toFixed(0)}`,
+        higherIsBetter: true,
+      },
+    ],
   },
-  completedSessions: {
-    label: 'Completed Sessions',
-    shortLabel: 'Sessions',
-    category: 'sessions',
-    format: (v) => v.toLocaleString(),
-    higherIsBetter: true,
-    description: 'Number of sessions completed',
+  {
+    id: 'goals',
+    question: 'Who\'s meeting their goals?',
+    shortLabel: 'Goals',
+    description: 'Session goal achievement',
+    icon: 'Target',
+    color: '#6366f1', // indigo
+    primary: {
+      key: 'sessionGoalPercent',
+      label: 'Session Goal %',
+      shortLabel: 'Goal %',
+      format: (v) => `${v.toFixed(0)}%`,
+      higherIsBetter: true,
+    },
+    supporting: [
+      {
+        key: 'completedSessions',
+        label: 'Completed',
+        shortLabel: 'Sessions',
+        format: (v) => v.toLocaleString(),
+        higherIsBetter: true,
+      },
+      {
+        key: 'utilizationRate',
+        label: 'Capacity',
+        shortLabel: 'Capacity',
+        format: (v) => `${v.toFixed(0)}%`,
+        higherIsBetter: true,
+      },
+    ],
   },
-  utilizationRate: {
-    label: 'Utilization Rate',
-    shortLabel: 'Utilization',
-    category: 'clients',
-    format: (v) => `${v.toFixed(0)}%`,
-    higherIsBetter: true,
-    description: 'Percentage of client capacity filled',
+  {
+    id: 'attendance',
+    question: 'Who\'s losing appointments?',
+    shortLabel: 'Attendance',
+    description: 'Cancellations and no-shows',
+    icon: 'CalendarX',
+    color: '#ef4444', // red
+    primary: {
+      key: 'nonBillableCancelRate',
+      label: 'Non-Billable Cancel Rate',
+      shortLabel: 'Cancel Rate',
+      format: (v) => `${v.toFixed(1)}%`,
+      higherIsBetter: false,
+    },
+    supporting: [
+      {
+        key: 'clientCancelRate',
+        label: 'Client Cancels',
+        shortLabel: 'Client',
+        format: (v) => `${v.toFixed(1)}%`,
+        higherIsBetter: false,
+      },
+      {
+        key: 'noShowRate',
+        label: 'No-Shows',
+        shortLabel: 'No-Show',
+        format: (v) => `${v.toFixed(1)}%`,
+        higherIsBetter: false,
+      },
+    ],
   },
-  retentionRate: {
-    label: 'Retention Rate',
+  {
+    id: 'engagement',
+    question: 'Who\'s keeping clients engaged?',
+    shortLabel: 'Engagement',
+    description: 'Rebooking and session depth',
+    icon: 'Heart',
+    color: '#10b981', // emerald
+    primary: {
+      key: 'rebookRate',
+      label: 'Rebook Rate',
+      shortLabel: 'Rebook',
+      format: (v) => `${v.toFixed(0)}%`,
+      higherIsBetter: true,
+    },
+    supporting: [
+      {
+        key: 'atRiskClients',
+        label: 'At-Risk',
+        shortLabel: 'At-Risk',
+        format: (v) => v.toString(),
+        higherIsBetter: false,
+      },
+      {
+        key: 'avgSessionsPerClient',
+        label: 'Avg Sessions',
+        shortLabel: 'Avg Sess',
+        format: (v) => v.toFixed(1),
+        higherIsBetter: true,
+      },
+    ],
+  },
+  {
+    id: 'retention',
+    question: 'Who\'s losing clients?',
     shortLabel: 'Retention',
-    category: 'retention',
-    format: (v) => `${v.toFixed(0)}%`,
-    higherIsBetter: true,
-    description: 'Percentage of clients retained',
+    description: 'Churn and drop-off patterns',
+    icon: 'UserMinus',
+    color: '#f43f5e', // rose
+    primary: {
+      key: 'churnRate',
+      label: 'Churn Rate',
+      shortLabel: 'Churn',
+      format: (v) => `${v.toFixed(1)}%`,
+      higherIsBetter: false,
+    },
+    supporting: [
+      {
+        key: 'clientsChurned',
+        label: 'Clients Lost',
+        shortLabel: 'Lost',
+        format: (v) => v.toString(),
+        higherIsBetter: false,
+      },
+      {
+        key: 'session1to2Dropoff',
+        label: '1→2 Drop-off',
+        shortLabel: '1→2 Drop',
+        format: (v) => `${v.toFixed(0)}%`,
+        higherIsBetter: false,
+      },
+    ],
   },
-  cancellationRate: {
-    label: 'Cancellation Rate',
-    shortLabel: 'Cancellations',
-    category: 'sessions',
-    format: (v) => `${v.toFixed(1)}%`,
-    higherIsBetter: false,
-    description: 'Rate of client cancellations',
+  {
+    id: 'documentation',
+    question: 'Who needs to catch up on notes?',
+    shortLabel: 'Notes',
+    description: 'Documentation compliance',
+    icon: 'FileText',
+    color: '#8b5cf6', // violet
+    primary: {
+      key: 'outstandingNotes',
+      label: 'Outstanding Notes',
+      shortLabel: 'Notes Due',
+      format: (v) => v.toString(),
+      higherIsBetter: false,
+    },
+    supporting: [], // No supporting metrics for this one
   },
-  rebookRate: {
-    label: 'Rebook Rate',
-    shortLabel: 'Rebook',
-    category: 'retention',
-    format: (v) => `${v.toFixed(0)}%`,
-    higherIsBetter: true,
-    description: 'Clients with next appointment scheduled',
-  },
-  newClients: {
-    label: 'New Clients Acquired',
-    shortLabel: 'New Clients',
-    category: 'clients',
-    format: (v) => `+${v}`,
-    higherIsBetter: true,
-    description: 'New clients acquired this period',
-  },
-  churnRate: {
-    label: 'Churn Rate',
-    shortLabel: 'Churn',
-    category: 'retention',
-    format: (v) => `${v.toFixed(1)}%`,
-    higherIsBetter: false,
-    description: 'Percentage of clients lost',
-  },
-  outstandingNotes: {
-    label: 'Outstanding Notes',
-    shortLabel: 'Notes Due',
-    category: 'compliance',
-    format: (v) => v.toString(),
-    higherIsBetter: false,
-    description: 'Overdue documentation',
-  },
-  showRate: {
-    label: 'Show Rate',
-    shortLabel: 'Show Rate',
-    category: 'sessions',
-    format: (v) => `${v.toFixed(0)}%`,
-    higherIsBetter: true,
-    description: 'Percentage of booked sessions attended',
-  },
-  activeClients: {
-    label: 'Active Clients',
-    shortLabel: 'Active',
-    category: 'clients',
-    format: (v) => v.toString(),
-    higherIsBetter: true,
-    description: 'Current active caseload',
-  },
-  avgSessionsPerClient: {
-    label: 'Avg Sessions/Client',
-    shortLabel: 'Avg Sessions',
-    category: 'retention',
-    format: (v) => v.toFixed(1),
-    higherIsBetter: true,
-    description: 'Average sessions per client',
-  },
-};
+];
 
 // Clinician avatar colors
 const CLINICIAN_COLORS: Record<string, string> = {
@@ -160,74 +233,342 @@ const CLINICIAN_COLORS: Record<string, string> = {
   Johnson: '#059669',
 };
 
+// =============================================================================
+// MOCK DATA - Extended with new metrics
+// =============================================================================
+const MOCK_CLINICIANS: ClinicianData[] = [
+  {
+    id: '1',
+    name: 'Chen',
+    metrics: {
+      revenue: 33000,
+      revenuePerSession: 232,
+      completedSessions: 142,
+      sessionGoalPercent: 95,
+      showRate: 96,
+      nonBillableCancelRate: 6.2,
+      clientCancelRate: 4.1,
+      clinicianCancelRate: 0.9,
+      noShowRate: 1.2,
+      utilizationRate: 92,
+      activeClients: 34,
+      newClients: 8,
+      rebookRate: 94,
+      atRiskClients: 2,
+      avgSessionsPerClient: 4.2,
+      churnRate: 3.2,
+      clientsChurned: 1,
+      session1to2Dropoff: 8,
+      earlyChurnPercent: 25,
+      outstandingNotes: 0,
+    },
+    trends: {
+      revenue: 5.2,
+      revenuePerSession: 1.1,
+      completedSessions: 4.8,
+      sessionGoalPercent: 3.2,
+      showRate: 0.5,
+      nonBillableCancelRate: -1.2,
+      clientCancelRate: -0.8,
+      clinicianCancelRate: -0.2,
+      noShowRate: -0.3,
+      utilizationRate: 2.1,
+      activeClients: 3.0,
+      newClients: 12.5,
+      rebookRate: 1.5,
+      atRiskClients: -15,
+      avgSessionsPerClient: 2.3,
+      churnRate: -0.8,
+      clientsChurned: -25,
+      session1to2Dropoff: -2.1,
+      earlyChurnPercent: -5,
+      outstandingNotes: 0,
+    },
+  },
+  {
+    id: '2',
+    name: 'Rodriguez',
+    metrics: {
+      revenue: 30500,
+      revenuePerSession: 235,
+      completedSessions: 130,
+      sessionGoalPercent: 87,
+      showRate: 94,
+      nonBillableCancelRate: 7.8,
+      clientCancelRate: 5.3,
+      clinicianCancelRate: 0.7,
+      noShowRate: 1.8,
+      utilizationRate: 89,
+      activeClients: 32,
+      newClients: 6,
+      rebookRate: 91,
+      atRiskClients: 3,
+      avgSessionsPerClient: 4.1,
+      churnRate: 4.5,
+      clientsChurned: 2,
+      session1to2Dropoff: 12,
+      earlyChurnPercent: 30,
+      outstandingNotes: 2,
+    },
+    trends: {
+      revenue: 3.1,
+      revenuePerSession: 0.8,
+      completedSessions: 2.4,
+      sessionGoalPercent: 1.5,
+      showRate: -0.3,
+      nonBillableCancelRate: 0.5,
+      clientCancelRate: 0.3,
+      clinicianCancelRate: 0.1,
+      noShowRate: 0.2,
+      utilizationRate: 1.2,
+      activeClients: 2.0,
+      newClients: 8.3,
+      rebookRate: 0.8,
+      atRiskClients: 5,
+      avgSessionsPerClient: 1.2,
+      churnRate: 0.3,
+      clientsChurned: 10,
+      session1to2Dropoff: 1.5,
+      earlyChurnPercent: 2,
+      outstandingNotes: 50,
+    },
+  },
+  {
+    id: '3',
+    name: 'Patel',
+    metrics: {
+      revenue: 27000,
+      revenuePerSession: 235,
+      completedSessions: 115,
+      sessionGoalPercent: 77,
+      showRate: 91,
+      nonBillableCancelRate: 11.3,
+      clientCancelRate: 7.2,
+      clinicianCancelRate: 0.6,
+      noShowRate: 3.5,
+      utilizationRate: 85,
+      activeClients: 30,
+      newClients: 5,
+      rebookRate: 82,
+      atRiskClients: 6,
+      avgSessionsPerClient: 3.8,
+      churnRate: 8.2,
+      clientsChurned: 4,
+      session1to2Dropoff: 22,
+      earlyChurnPercent: 45,
+      outstandingNotes: 5,
+    },
+    trends: {
+      revenue: -2.1,
+      revenuePerSession: 0.2,
+      completedSessions: -1.8,
+      sessionGoalPercent: -3.5,
+      showRate: -1.2,
+      nonBillableCancelRate: 2.8,
+      clientCancelRate: 1.9,
+      clinicianCancelRate: 0.1,
+      noShowRate: 1.1,
+      utilizationRate: -1.5,
+      activeClients: -2.0,
+      newClients: -5.2,
+      rebookRate: -2.3,
+      atRiskClients: 25,
+      avgSessionsPerClient: -0.5,
+      churnRate: 1.8,
+      clientsChurned: 33,
+      session1to2Dropoff: 4.2,
+      earlyChurnPercent: 8,
+      outstandingNotes: 25,
+    },
+  },
+  {
+    id: '4',
+    name: 'Kim',
+    metrics: {
+      revenue: 28500,
+      revenuePerSession: 228,
+      completedSessions: 125,
+      sessionGoalPercent: 83,
+      showRate: 93,
+      nonBillableCancelRate: 8.5,
+      clientCancelRate: 6.1,
+      clinicianCancelRate: 0.3,
+      noShowRate: 2.1,
+      utilizationRate: 88,
+      activeClients: 31,
+      newClients: 7,
+      rebookRate: 88,
+      atRiskClients: 4,
+      avgSessionsPerClient: 4.0,
+      churnRate: 5.1,
+      clientsChurned: 2,
+      session1to2Dropoff: 15,
+      earlyChurnPercent: 35,
+      outstandingNotes: 1,
+    },
+    trends: {
+      revenue: 4.5,
+      revenuePerSession: 1.5,
+      completedSessions: 3.2,
+      sessionGoalPercent: 2.8,
+      showRate: 0.8,
+      nonBillableCancelRate: -0.6,
+      clientCancelRate: -0.4,
+      clinicianCancelRate: -0.1,
+      noShowRate: -0.2,
+      utilizationRate: 1.8,
+      activeClients: 2.5,
+      newClients: 10.1,
+      rebookRate: 1.2,
+      atRiskClients: -10,
+      avgSessionsPerClient: 1.8,
+      churnRate: -0.5,
+      clientsChurned: -15,
+      session1to2Dropoff: -1.8,
+      earlyChurnPercent: -3,
+      outstandingNotes: -50,
+    },
+  },
+  {
+    id: '5',
+    name: 'Johnson',
+    metrics: {
+      revenue: 23500,
+      revenuePerSession: 218,
+      completedSessions: 108,
+      sessionGoalPercent: 72,
+      showRate: 89,
+      nonBillableCancelRate: 12.1,
+      clientCancelRate: 8.4,
+      clinicianCancelRate: 0.5,
+      noShowRate: 3.2,
+      utilizationRate: 83,
+      activeClients: 29,
+      newClients: 4,
+      rebookRate: 79,
+      atRiskClients: 7,
+      avgSessionsPerClient: 3.7,
+      churnRate: 9.8,
+      clientsChurned: 5,
+      session1to2Dropoff: 28,
+      earlyChurnPercent: 52,
+      outstandingNotes: 4,
+    },
+    trends: {
+      revenue: -1.5,
+      revenuePerSession: -0.3,
+      completedSessions: -2.1,
+      sessionGoalPercent: -4.2,
+      showRate: -1.5,
+      nonBillableCancelRate: 3.2,
+      clientCancelRate: 2.1,
+      clinicianCancelRate: 0.2,
+      noShowRate: 1.4,
+      utilizationRate: -2.3,
+      activeClients: -2.5,
+      newClients: -8.5,
+      rebookRate: -3.1,
+      atRiskClients: 35,
+      avgSessionsPerClient: -0.8,
+      churnRate: 2.5,
+      clientsChurned: 45,
+      session1to2Dropoff: 5.8,
+      earlyChurnPercent: 12,
+      outstandingNotes: 100,
+    },
+  },
+];
+
 /**
- * ClinicianRankingTab - Clinician performance ranking by selected metric
+ * ClinicianRankingTab - Simplified clinician comparison using 6 metric groups
  */
 export const ClinicianRankingTab: React.FC<ClinicianRankingTabProps> = ({
-  clinicians,
+  clinicians: _clinicians, // We'll use mock data for now
   tabs,
   activeTab,
   onTabChange,
 }) => {
-  const [selectedMetric, setSelectedMetric] = useState<RankingMetric>('revenue');
-  const [isMetricSelectorOpen, setIsMetricSelectorOpen] = useState(false);
+  // Use mock data until real data is wired up
+  const clinicians = MOCK_CLINICIANS;
 
-  const metricConfig = METRIC_CONFIG[selectedMetric];
-  const categoryConfig = METRIC_CATEGORIES[metricConfig.category];
+  const [selectedGroupId, setSelectedGroupId] = useState<MetricGroupId>('revenue');
+  const [isGroupSelectorOpen, setIsGroupSelectorOpen] = useState(false);
 
-  // Calculate team average
+  const selectedGroup = METRIC_GROUPS.find(g => g.id === selectedGroupId)!;
+  const IconComponent = ICONS[selectedGroup.icon as keyof typeof ICONS];
+
+  // Calculate team average for primary metric
   const teamAverage = useMemo(() => {
-    const values = clinicians.map(c => c.metrics[selectedMetric]);
+    const values = clinicians.map(c => c.metrics[selectedGroup.primary.key]);
     return values.reduce((sum, v) => sum + v, 0) / values.length;
-  }, [clinicians, selectedMetric]);
+  }, [clinicians, selectedGroup]);
 
-  // Sort clinicians by selected metric
+  // Sort clinicians by primary metric
   const rankedClinicians = useMemo(() => {
     const sorted = [...clinicians].sort((a, b) => {
-      const aVal = a.metrics[selectedMetric];
-      const bVal = b.metrics[selectedMetric];
-      return metricConfig.higherIsBetter ? bVal - aVal : aVal - bVal;
+      const aVal = a.metrics[selectedGroup.primary.key];
+      const bVal = b.metrics[selectedGroup.primary.key];
+      return selectedGroup.primary.higherIsBetter ? bVal - aVal : aVal - bVal;
     });
 
     // Find where team average would rank
     let avgRankIndex = sorted.findIndex(c => {
-      const val = c.metrics[selectedMetric];
-      return metricConfig.higherIsBetter ? val < teamAverage : val > teamAverage;
+      const val = c.metrics[selectedGroup.primary.key];
+      return selectedGroup.primary.higherIsBetter ? val < teamAverage : val > teamAverage;
     });
     if (avgRankIndex === -1) avgRankIndex = sorted.length;
 
     return { sorted, avgRankIndex };
-  }, [clinicians, selectedMetric, teamAverage, metricConfig.higherIsBetter]);
+  }, [clinicians, selectedGroup, teamAverage]);
 
-  // Get trend icon
-  const getTrendIcon = (trend: number) => {
-    if (trend > 2) return <TrendingUp className="w-4 h-4" />;
-    if (trend < -2) return <TrendingDown className="w-4 h-4" />;
-    return <Minus className="w-4 h-4" />;
-  };
-
-  // Get trend color
-  const getTrendColor = (trend: number, higherIsBetter: boolean) => {
+  // Get trend display
+  const getTrendDisplay = (trend: number, higherIsBetter: boolean) => {
     const isPositive = higherIsBetter ? trend > 0 : trend < 0;
     const isNegative = higherIsBetter ? trend < 0 : trend > 0;
-    if (isPositive) return 'text-emerald-600 bg-emerald-50';
-    if (isNegative) return 'text-rose-600 bg-rose-50';
-    return 'text-stone-500 bg-stone-100';
+
+    let icon = <Minus className="w-3.5 h-3.5" />;
+    let colorClass = 'text-stone-500 bg-stone-100';
+
+    if (Math.abs(trend) > 1) {
+      if (isPositive) {
+        icon = <TrendingUp className="w-3.5 h-3.5" />;
+        colorClass = 'text-emerald-600 bg-emerald-50';
+      } else if (isNegative) {
+        icon = <TrendingDown className="w-3.5 h-3.5" />;
+        colorClass = 'text-rose-600 bg-rose-50';
+      }
+    }
+
+    return { icon, colorClass };
   };
 
   // Get rank badge style
-  const getRankBadgeStyle = (rank: number) => {
-    if (rank === 1) return { bg: 'bg-amber-100', text: 'text-amber-700', border: 'border-amber-200' };
-    if (rank === 2) return { bg: 'bg-stone-200', text: 'text-stone-700', border: 'border-stone-300' };
-    if (rank === 3) return { bg: 'bg-orange-100', text: 'text-orange-700', border: 'border-orange-200' };
-    return { bg: 'bg-stone-100', text: 'text-stone-600', border: 'border-stone-200' };
+  const getRankStyle = (rank: number, isTop: boolean, isBottom: boolean) => {
+    if (isTop) return {
+      bg: 'bg-emerald-100',
+      text: 'text-emerald-700',
+      border: 'border-emerald-200',
+      accent: '#10b981'
+    };
+    if (isBottom) return {
+      bg: 'bg-rose-100',
+      text: 'text-rose-700',
+      border: 'border-rose-200',
+      accent: '#f43f5e'
+    };
+    return {
+      bg: 'bg-stone-100',
+      text: 'text-stone-600',
+      border: 'border-stone-200',
+      accent: '#78716c'
+    };
   };
 
   // Check if value is above/below average
-  const getPerformanceStatus = (value: number) => {
+  const getPerformanceVsAvg = (value: number) => {
     const diff = value - teamAverage;
-    const percentDiff = (diff / teamAverage) * 100;
-    const isAbove = metricConfig.higherIsBetter ? diff > 0 : diff < 0;
+    const percentDiff = teamAverage !== 0 ? (diff / teamAverage) * 100 : 0;
+    const isAbove = selectedGroup.primary.higherIsBetter ? diff > 0 : diff < 0;
     return { isAbove, percentDiff: Math.abs(percentDiff) };
   };
 
@@ -238,7 +579,7 @@ export const ClinicianRankingTab: React.FC<ClinicianRankingTabProps> = ({
         accent="violet"
         label="Team Performance"
         title="Clinician Rankings"
-        subtitle="Compare clinician performance across key metrics"
+        subtitle="Compare your team across key performance areas"
         tabs={tabs}
         activeTab={activeTab}
         onTabChange={onTabChange}
@@ -246,121 +587,104 @@ export const ClinicianRankingTab: React.FC<ClinicianRankingTabProps> = ({
 
       <PageContent>
         <SectionContainer accent="indigo" index={0} isFirst>
-          {/* Metric Selector */}
+          {/* Question Selector */}
           <div className="mb-8">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <div className="flex flex-col gap-4 mb-6">
               <div>
-                <h2
-                  className="text-2xl sm:text-3xl text-stone-900 mb-1"
-                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-                >
-                  Rank by Metric
-                </h2>
-                <p className="text-stone-500 text-base">
-                  Select a metric to see how your team compares
+                <p className="text-stone-500 text-sm font-medium mb-2 uppercase tracking-wider">
+                  What do you want to know?
                 </p>
               </div>
 
-              {/* Metric Dropdown */}
+              {/* Question Dropdown */}
               <div className="relative">
                 <button
-                  onClick={() => setIsMetricSelectorOpen(!isMetricSelectorOpen)}
-                  className="flex items-center gap-3 px-5 py-3.5 rounded-2xl bg-white border border-stone-200 hover:border-stone-300 transition-all duration-200 shadow-sm hover:shadow-md min-w-[240px]"
+                  onClick={() => setIsGroupSelectorOpen(!isGroupSelectorOpen)}
+                  className="w-full sm:w-auto flex items-center gap-4 px-5 py-4 rounded-2xl bg-white border border-stone-200 hover:border-stone-300 transition-all duration-200 shadow-sm hover:shadow-md text-left"
                   style={{
                     boxShadow: '0 2px 8px -2px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04)',
                   }}
                 >
                   <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center"
-                    style={{ backgroundColor: `${categoryConfig.color}15` }}
+                    className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                    style={{ backgroundColor: `${selectedGroup.color}15` }}
                   >
-                    <categoryConfig.icon
-                      className="w-5 h-5"
-                      style={{ color: categoryConfig.color }}
+                    <IconComponent
+                      className="w-6 h-6"
+                      style={{ color: selectedGroup.color }}
                     />
                   </div>
-                  <div className="flex-1 text-left">
-                    <p className="text-stone-900 font-semibold text-base">
-                      {metricConfig.label}
+                  <div className="flex-1 min-w-0">
+                    <p
+                      className="text-stone-900 text-xl sm:text-2xl font-bold truncate"
+                      style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                    >
+                      {selectedGroup.question}
                     </p>
-                    <p className="text-stone-500 text-sm">
-                      {categoryConfig.label}
+                    <p className="text-stone-500 text-sm mt-0.5">
+                      Ranked by {selectedGroup.primary.label.toLowerCase()}
                     </p>
                   </div>
                   <ChevronDown
-                    className={`w-5 h-5 text-stone-400 transition-transform duration-200 ${
-                      isMetricSelectorOpen ? 'rotate-180' : ''
+                    className={`w-5 h-5 text-stone-400 transition-transform duration-200 flex-shrink-0 ${
+                      isGroupSelectorOpen ? 'rotate-180' : ''
                     }`}
                   />
                 </button>
 
                 {/* Dropdown Menu */}
-                {isMetricSelectorOpen && (
+                {isGroupSelectorOpen && (
                   <>
                     <div
                       className="fixed inset-0 z-40"
-                      onClick={() => setIsMetricSelectorOpen(false)}
+                      onClick={() => setIsGroupSelectorOpen(false)}
                     />
                     <div
-                      className="absolute top-full left-0 right-0 mt-2 z-50 rounded-2xl bg-white border border-stone-200 overflow-hidden"
+                      className="absolute top-full left-0 right-0 sm:right-auto mt-2 z-50 rounded-2xl bg-white border border-stone-200 overflow-hidden sm:min-w-[400px]"
                       style={{
                         boxShadow: '0 20px 40px -8px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05)',
-                        maxHeight: '400px',
-                        overflowY: 'auto',
                       }}
                     >
-                      {Object.entries(METRIC_CATEGORIES).map(([catKey, catConfig]) => {
-                        const metrics = Object.entries(METRIC_CONFIG).filter(
-                          ([, config]) => config.category === catKey
-                        );
-                        if (metrics.length === 0) return null;
+                      {METRIC_GROUPS.map((group) => {
+                        const GroupIcon = ICONS[group.icon as keyof typeof ICONS];
+                        const isSelected = selectedGroupId === group.id;
 
                         return (
-                          <div key={catKey}>
+                          <button
+                            key={group.id}
+                            onClick={() => {
+                              setSelectedGroupId(group.id);
+                              setIsGroupSelectorOpen(false);
+                            }}
+                            className={`w-full px-4 py-4 text-left hover:bg-stone-50 transition-colors flex items-center gap-4 border-b border-stone-100 last:border-b-0 ${
+                              isSelected ? 'bg-violet-50' : ''
+                            }`}
+                          >
                             <div
-                              className="px-4 py-2.5 bg-stone-50 border-b border-stone-100 flex items-center gap-2"
+                              className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                              style={{ backgroundColor: `${group.color}15` }}
                             >
-                              <catConfig.icon
-                                className="w-4 h-4"
-                                style={{ color: catConfig.color }}
+                              <GroupIcon
+                                className="w-5 h-5"
+                                style={{ color: group.color }}
                               />
-                              <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
-                                {catConfig.label}
-                              </span>
                             </div>
-                            {metrics.map(([metricKey, config]) => (
-                              <button
-                                key={metricKey}
-                                onClick={() => {
-                                  setSelectedMetric(metricKey as RankingMetric);
-                                  setIsMetricSelectorOpen(false);
-                                }}
-                                className={`w-full px-4 py-3 text-left hover:bg-stone-50 transition-colors flex items-center justify-between ${
-                                  selectedMetric === metricKey ? 'bg-violet-50' : ''
+                            <div className="flex-1 min-w-0">
+                              <p
+                                className={`font-semibold text-base ${
+                                  isSelected ? 'text-violet-700' : 'text-stone-900'
                                 }`}
                               >
-                                <div>
-                                  <p
-                                    className={`font-medium ${
-                                      selectedMetric === metricKey
-                                        ? 'text-violet-700'
-                                        : 'text-stone-900'
-                                    }`}
-                                  >
-                                    {config.label}
-                                  </p>
-                                  <p className="text-stone-500 text-sm">
-                                    {config.description}
-                                  </p>
-                                </div>
-                                {!config.higherIsBetter && (
-                                  <span className="text-xs px-2 py-1 rounded-full bg-stone-100 text-stone-500">
-                                    Lower is better
-                                  </span>
-                                )}
-                              </button>
-                            ))}
-                          </div>
+                                {group.question}
+                              </p>
+                              <p className="text-stone-500 text-sm">
+                                {group.description}
+                              </p>
+                            </div>
+                            {isSelected && (
+                              <Check className="w-5 h-5 text-violet-600 flex-shrink-0" />
+                            )}
+                          </button>
                         );
                       })}
                     </div>
@@ -373,25 +697,25 @@ export const ClinicianRankingTab: React.FC<ClinicianRankingTabProps> = ({
             <div
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl"
               style={{
-                backgroundColor: metricConfig.higherIsBetter ? '#ecfdf5' : '#fef2f2',
+                backgroundColor: selectedGroup.primary.higherIsBetter ? '#ecfdf5' : '#fef2f2',
               }}
             >
-              {metricConfig.higherIsBetter ? (
+              {selectedGroup.primary.higherIsBetter ? (
                 <TrendingUp className="w-4 h-4 text-emerald-600" />
               ) : (
                 <TrendingDown className="w-4 h-4 text-rose-600" />
               )}
               <span
                 className={`text-sm font-medium ${
-                  metricConfig.higherIsBetter ? 'text-emerald-700' : 'text-rose-700'
+                  selectedGroup.primary.higherIsBetter ? 'text-emerald-700' : 'text-rose-700'
                 }`}
               >
-                {metricConfig.higherIsBetter ? 'Higher is better' : 'Lower is better'}
+                {selectedGroup.primary.higherIsBetter ? 'Higher is better' : 'Lower is better'}
               </span>
             </div>
           </div>
 
-          {/* Ranking List */}
+          {/* Ranking Table */}
           <div
             className="rounded-2xl overflow-hidden"
             style={{
@@ -401,7 +725,13 @@ export const ClinicianRankingTab: React.FC<ClinicianRankingTabProps> = ({
           >
             {/* Header Row */}
             <div
-              className="grid grid-cols-[60px_1fr_140px_100px] sm:grid-cols-[80px_1fr_160px_120px] gap-4 px-4 sm:px-6 py-4 border-b border-stone-100"
+              className={`grid gap-4 px-4 sm:px-6 py-4 border-b border-stone-100 ${
+                selectedGroup.supporting.length === 2
+                  ? 'grid-cols-[50px_1fr_100px_80px_80px_90px]'
+                  : selectedGroup.supporting.length === 1
+                    ? 'grid-cols-[50px_1fr_100px_80px_90px]'
+                    : 'grid-cols-[50px_1fr_100px_90px]'
+              }`}
               style={{ backgroundColor: '#fafaf9' }}
             >
               <div className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
@@ -411,81 +741,116 @@ export const ClinicianRankingTab: React.FC<ClinicianRankingTabProps> = ({
                 Clinician
               </div>
               <div className="text-xs font-semibold text-stone-500 uppercase tracking-wider text-right">
-                {metricConfig.shortLabel}
+                {selectedGroup.primary.shortLabel}
               </div>
+              {selectedGroup.supporting.map((metric) => (
+                <div
+                  key={metric.key}
+                  className="text-xs font-semibold text-stone-400 uppercase tracking-wider text-right hidden sm:block"
+                >
+                  {metric.shortLabel}
+                </div>
+              ))}
               <div className="text-xs font-semibold text-stone-500 uppercase tracking-wider text-right">
                 Trend
               </div>
             </div>
 
-            {/* Clinician Rows with Team Average */}
+            {/* Clinician Rows */}
             {rankedClinicians.sorted.map((clinician, index) => {
               const rank = index + 1;
-              const value = clinician.metrics[selectedMetric];
-              const trend = clinician.trends[selectedMetric];
-              const rankStyle = getRankBadgeStyle(rank);
-              const { isAbove, percentDiff } = getPerformanceStatus(value);
+              const primaryValue = clinician.metrics[selectedGroup.primary.key];
+              const primaryTrend = clinician.trends[selectedGroup.primary.key];
+              const isTop = index === 0;
+              const isBottom = index === rankedClinicians.sorted.length - 1;
+              const rankStyle = getRankStyle(rank, isTop, isBottom);
+              const { isAbove, percentDiff } = getPerformanceVsAvg(primaryValue);
+              const { icon: trendIcon, colorClass: trendColorClass } = getTrendDisplay(
+                primaryTrend,
+                selectedGroup.primary.higherIsBetter
+              );
 
-              // Determine where to show team average
+              // Check if team average row should appear
               const showAverageBefore = index === rankedClinicians.avgRankIndex;
               const isLastItem = index === rankedClinicians.sorted.length - 1;
               const showAverageAfter = isLastItem && rankedClinicians.avgRankIndex === rankedClinicians.sorted.length;
 
+              // Team Average Row Component
+              const TeamAverageRow = () => (
+                <div
+                  className={`grid gap-4 px-4 sm:px-6 py-4 items-center ${
+                    selectedGroup.supporting.length === 2
+                      ? 'grid-cols-[50px_1fr_100px_80px_80px_90px]'
+                      : selectedGroup.supporting.length === 1
+                        ? 'grid-cols-[50px_1fr_100px_80px_90px]'
+                        : 'grid-cols-[50px_1fr_100px_90px]'
+                  }`}
+                  style={{
+                    background: 'linear-gradient(90deg, #f5f5f4 0%, #fafaf9 50%, #f5f5f4 100%)',
+                    borderTop: '2px dashed #d6d3d1',
+                    borderBottom: '2px dashed #d6d3d1',
+                  }}
+                >
+                  <div className="flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-full bg-stone-200 flex items-center justify-center">
+                      <Users className="w-4 h-4 text-stone-500" />
+                    </div>
+                  </div>
+                  <div>
+                    <p
+                      className="text-stone-600 font-semibold text-base"
+                      style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                    >
+                      Team Average
+                    </p>
+                    <p className="text-stone-500 text-xs">
+                      {clinicians.length} clinicians
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p
+                      className="text-stone-600 font-bold text-lg"
+                      style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                    >
+                      {selectedGroup.primary.format(teamAverage)}
+                    </p>
+                  </div>
+                  {selectedGroup.supporting.map((metric) => {
+                    const avgValue = clinicians.reduce((sum, c) => sum + c.metrics[metric.key], 0) / clinicians.length;
+                    return (
+                      <div key={metric.key} className="text-right hidden sm:block">
+                        <p className="text-stone-500 text-sm font-medium">
+                          {metric.format(avgValue)}
+                        </p>
+                      </div>
+                    );
+                  })}
+                  <div className="text-right">
+                    <span className="text-stone-400 text-sm">—</span>
+                  </div>
+                </div>
+              );
+
               return (
                 <React.Fragment key={clinician.id}>
-                  {/* Team Average Row (before this clinician if this is where avg belongs) */}
-                  {showAverageBefore && (
-                    <div
-                      className="grid grid-cols-[60px_1fr_140px_100px] sm:grid-cols-[80px_1fr_160px_120px] gap-4 px-4 sm:px-6 py-4 items-center"
-                      style={{
-                        background: 'linear-gradient(90deg, #f5f5f4 0%, #fafaf9 50%, #f5f5f4 100%)',
-                        borderTop: '2px dashed #d6d3d1',
-                        borderBottom: '2px dashed #d6d3d1',
-                      }}
-                    >
-                      <div className="flex items-center justify-center">
-                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-stone-200 flex items-center justify-center">
-                          <Users className="w-4 h-4 sm:w-5 sm:h-5 text-stone-500" />
-                        </div>
-                      </div>
-                      <div>
-                        <p
-                          className="text-stone-600 font-semibold text-base sm:text-lg"
-                          style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-                        >
-                          Team Average
-                        </p>
-                        <p className="text-stone-500 text-sm">
-                          {clinicians.length} clinicians
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p
-                          className="text-stone-700 font-bold text-xl sm:text-2xl"
-                          style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-                        >
-                          {metricConfig.format(teamAverage)}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-stone-400 text-sm">—</span>
-                      </div>
-                    </div>
-                  )}
+                  {showAverageBefore && <TeamAverageRow />}
 
-                  {/* Clinician Row */}
                   <div
-                    className={`grid grid-cols-[60px_1fr_140px_100px] sm:grid-cols-[80px_1fr_160px_120px] gap-4 px-4 sm:px-6 py-4 items-center transition-all duration-200 hover:bg-stone-50 cursor-pointer ${
-                      !isLastItem && !showAverageAfter ? 'border-b border-stone-100' : ''
-                    }`}
+                    className={`grid gap-4 px-4 sm:px-6 py-4 items-center transition-all duration-200 hover:bg-stone-50 cursor-pointer ${
+                      selectedGroup.supporting.length === 2
+                        ? 'grid-cols-[50px_1fr_100px_80px_80px_90px]'
+                        : selectedGroup.supporting.length === 1
+                          ? 'grid-cols-[50px_1fr_100px_80px_90px]'
+                          : 'grid-cols-[50px_1fr_100px_90px]'
+                    } ${!isLastItem && !showAverageAfter ? 'border-b border-stone-100' : ''}`}
                   >
-                    {/* Rank Badge */}
+                    {/* Rank */}
                     <div className="flex items-center justify-center">
                       <div
-                        className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full ${rankStyle.bg} ${rankStyle.border} border-2 flex items-center justify-center`}
+                        className={`w-8 h-8 rounded-full ${rankStyle.bg} ${rankStyle.border} border flex items-center justify-center`}
                       >
                         <span
-                          className={`${rankStyle.text} font-bold text-sm sm:text-base`}
+                          className={`${rankStyle.text} font-bold text-sm`}
                           style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                         >
                           {rank}
@@ -493,10 +858,10 @@ export const ClinicianRankingTab: React.FC<ClinicianRankingTabProps> = ({
                       </div>
                     </div>
 
-                    {/* Clinician Info */}
-                    <div className="flex items-center gap-3 sm:gap-4">
+                    {/* Clinician */}
+                    <div className="flex items-center gap-3">
                       <div
-                        className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center text-white font-bold text-lg sm:text-xl flex-shrink-0"
+                        className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-lg flex-shrink-0"
                         style={{
                           backgroundColor: CLINICIAN_COLORS[clinician.name] || '#6b7280',
                           fontFamily: "'DM Serif Display', Georgia, serif",
@@ -506,91 +871,61 @@ export const ClinicianRankingTab: React.FC<ClinicianRankingTabProps> = ({
                       </div>
                       <div className="min-w-0">
                         <p
-                          className="text-stone-900 font-semibold text-base sm:text-lg truncate"
+                          className="text-stone-900 font-semibold text-base truncate"
                           style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                         >
                           {clinician.name}
                         </p>
-                        <div className="flex items-center gap-2">
-                          <span
-                            className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                              isAbove
-                                ? 'bg-emerald-50 text-emerald-700'
-                                : 'bg-rose-50 text-rose-700'
-                            }`}
-                          >
-                            {isAbove ? '+' : '-'}{percentDiff.toFixed(0)}% vs avg
-                          </span>
-                        </div>
+                        <span
+                          className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                            isAbove
+                              ? 'bg-emerald-50 text-emerald-700'
+                              : 'bg-rose-50 text-rose-700'
+                          }`}
+                        >
+                          {isAbove ? '+' : '-'}{percentDiff.toFixed(0)}% vs avg
+                        </span>
                       </div>
                     </div>
 
-                    {/* Metric Value */}
+                    {/* Primary Metric */}
                     <div className="text-right">
                       <p
-                        className={`font-bold text-xl sm:text-2xl ${
-                          isAbove ? 'text-stone-900' : 'text-stone-600'
+                        className={`font-bold text-xl ${
+                          isTop ? 'text-emerald-700' : isBottom ? 'text-rose-700' : 'text-stone-900'
                         }`}
                         style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                       >
-                        {metricConfig.format(value)}
+                        {selectedGroup.primary.format(primaryValue)}
                       </p>
                     </div>
+
+                    {/* Supporting Metrics */}
+                    {selectedGroup.supporting.map((metric) => {
+                      const value = clinician.metrics[metric.key];
+                      return (
+                        <div key={metric.key} className="text-right hidden sm:block">
+                          <p className="text-stone-600 text-sm font-medium">
+                            {metric.format(value)}
+                          </p>
+                        </div>
+                      );
+                    })}
 
                     {/* Trend */}
                     <div className="flex justify-end">
                       <div
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full ${getTrendColor(
-                          trend,
-                          metricConfig.higherIsBetter
-                        )}`}
+                        className={`flex items-center gap-1 px-2.5 py-1 rounded-full ${trendColorClass}`}
                       >
-                        {getTrendIcon(trend)}
-                        <span className="text-sm font-semibold">
-                          {trend > 0 ? '+' : ''}{trend.toFixed(0)}%
+                        {trendIcon}
+                        <span className="text-xs font-semibold">
+                          {primaryTrend > 0 ? '+' : ''}{primaryTrend.toFixed(0)}%
                         </span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Team Average Row (after last item if all clinicians are above average) */}
-                  {showAverageAfter && (
-                    <div
-                      className="grid grid-cols-[60px_1fr_140px_100px] sm:grid-cols-[80px_1fr_160px_120px] gap-4 px-4 sm:px-6 py-4 items-center"
-                      style={{
-                        background: 'linear-gradient(90deg, #f5f5f4 0%, #fafaf9 50%, #f5f5f4 100%)',
-                        borderTop: '2px dashed #d6d3d1',
-                      }}
-                    >
-                      <div className="flex items-center justify-center">
-                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-stone-200 flex items-center justify-center">
-                          <Users className="w-4 h-4 sm:w-5 sm:h-5 text-stone-500" />
-                        </div>
-                      </div>
-                      <div>
-                        <p
-                          className="text-stone-600 font-semibold text-base sm:text-lg"
-                          style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-                        >
-                          Team Average
-                        </p>
-                        <p className="text-stone-500 text-sm">
-                          {clinicians.length} clinicians
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p
-                          className="text-stone-700 font-bold text-xl sm:text-2xl"
-                          style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-                        >
-                          {metricConfig.format(teamAverage)}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-stone-400 text-sm">—</span>
-                      </div>
-                    </div>
-                  )}
+                  {showAverageAfter && <TeamAverageRow />}
                 </React.Fragment>
               );
             })}
@@ -602,67 +937,71 @@ export const ClinicianRankingTab: React.FC<ClinicianRankingTabProps> = ({
             <div
               className="rounded-2xl p-5 sm:p-6"
               style={{
-                background: 'linear-gradient(135deg, #fef3c7 0%, #fef9c3 100%)',
-                boxShadow: '0 2px 12px -2px rgba(245, 158, 11, 0.15)',
-              }}
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-6 h-6 rounded-full bg-amber-500 flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">1</span>
-                </div>
-                <span className="text-amber-700 text-sm font-semibold uppercase tracking-wider">
-                  Top Performer
-                </span>
-              </div>
-              <p
-                className="text-amber-900 text-xl sm:text-2xl font-bold"
-                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-              >
-                {rankedClinicians.sorted[0]?.name}
-              </p>
-              <p className="text-amber-700 text-base mt-1">
-                {metricConfig.format(rankedClinicians.sorted[0]?.metrics[selectedMetric] || 0)}
-              </p>
-            </div>
-
-            {/* Biggest Improvement */}
-            <div
-              className="rounded-2xl p-5 sm:p-6"
-              style={{
                 background: 'linear-gradient(135deg, #d1fae5 0%, #ecfdf5 100%)',
                 boxShadow: '0 2px 12px -2px rgba(16, 185, 129, 0.15)',
               }}
             >
               <div className="flex items-center gap-2 mb-2">
-                <TrendingUp className="w-5 h-5 text-emerald-600" />
+                <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">1</span>
+                </div>
                 <span className="text-emerald-700 text-sm font-semibold uppercase tracking-wider">
+                  Top Performer
+                </span>
+              </div>
+              <p
+                className="text-emerald-900 text-xl sm:text-2xl font-bold"
+                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+              >
+                {rankedClinicians.sorted[0]?.name}
+              </p>
+              <p className="text-emerald-700 text-base mt-1">
+                {selectedGroup.primary.format(rankedClinicians.sorted[0]?.metrics[selectedGroup.primary.key] || 0)}
+              </p>
+            </div>
+
+            {/* Most Improved */}
+            <div
+              className="rounded-2xl p-5 sm:p-6"
+              style={{
+                background: 'linear-gradient(135deg, #fef3c7 0%, #fef9c3 100%)',
+                boxShadow: '0 2px 12px -2px rgba(245, 158, 11, 0.15)',
+              }}
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <TrendingUp className="w-5 h-5 text-amber-600" />
+                <span className="text-amber-700 text-sm font-semibold uppercase tracking-wider">
                   Most Improved
                 </span>
               </div>
               {(() => {
                 const mostImproved = [...clinicians].sort((a, b) => {
-                  const aTrend = metricConfig.higherIsBetter ? a.trends[selectedMetric] : -a.trends[selectedMetric];
-                  const bTrend = metricConfig.higherIsBetter ? b.trends[selectedMetric] : -b.trends[selectedMetric];
+                  const aTrend = selectedGroup.primary.higherIsBetter
+                    ? a.trends[selectedGroup.primary.key]
+                    : -a.trends[selectedGroup.primary.key];
+                  const bTrend = selectedGroup.primary.higherIsBetter
+                    ? b.trends[selectedGroup.primary.key]
+                    : -b.trends[selectedGroup.primary.key];
                   return bTrend - aTrend;
                 })[0];
+                const trend = mostImproved?.trends[selectedGroup.primary.key] || 0;
                 return (
                   <>
                     <p
-                      className="text-emerald-900 text-xl sm:text-2xl font-bold"
+                      className="text-amber-900 text-xl sm:text-2xl font-bold"
                       style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                     >
                       {mostImproved?.name}
                     </p>
-                    <p className="text-emerald-700 text-base mt-1">
-                      {mostImproved?.trends[selectedMetric] > 0 ? '+' : ''}
-                      {mostImproved?.trends[selectedMetric].toFixed(0)}% this period
+                    <p className="text-amber-700 text-base mt-1">
+                      {trend > 0 ? '+' : ''}{trend.toFixed(0)}% this period
                     </p>
                   </>
                 );
               })()}
             </div>
 
-            {/* Needs Attention */}
+            {/* Needs Support */}
             <div
               className="rounded-2xl p-5 sm:p-6"
               style={{
@@ -678,7 +1017,7 @@ export const ClinicianRankingTab: React.FC<ClinicianRankingTabProps> = ({
               </div>
               {(() => {
                 const needsSupport = rankedClinicians.sorted[rankedClinicians.sorted.length - 1];
-                const { percentDiff } = getPerformanceStatus(needsSupport?.metrics[selectedMetric] || 0);
+                const { percentDiff } = getPerformanceVsAvg(needsSupport?.metrics[selectedGroup.primary.key] || 0);
                 return (
                   <>
                     <p

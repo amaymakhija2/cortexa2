@@ -385,7 +385,7 @@ Psychotherapy practice owners and clinical directors who are very poor at readin
 | **Component** | `ExecutiveSummary` |
 | **Accent** | cyan |
 | **Headline** | "Healthy Growth, Room to Expand" |
-| **Summary** | Dynamic text including client utilization, net growth trends, and capacity insights |
+| **Summary** | Dynamic text including caseload capacity, net growth trends, and capacity insights |
 | **Style** | Editorial typography with DM Serif Display, collapsible design |
 
 ---
@@ -406,34 +406,34 @@ Psychotherapy practice owners and clinical directors who are very poor at readin
 | **Value** | "+{X}" or "-{X}" (new - churned) |
 | **Subtext** | "+{X} new, -{X} churned" |
 
-#### 3. Client Utilization
+#### 3. Caseload Capacity
 | Element | Content |
 |---------|---------|
-| **Title** | "Client Utilization" |
+| **Title** | "Caseload Capacity" |
 | **Value** | "{XX}%" (active/capacity) |
 | **Subtext** | "of client capacity filled" |
 
-#### 4. Session Utilization
+#### 4. Session Goal %
 | Element | Content |
 |---------|---------|
-| **Title** | "Session Utilization" |
+| **Title** | "Session Goal %" |
 | **Value** | "{XX}%" (average) |
 | **Subtext** | "avg across {X} months" |
 
 ---
 
-### Client Utilization Chart (Main Left)
+### Caseload Capacity Chart (Main Left)
 | Element | Content |
 |---------|---------|
-| **Title** | "Client Utilization" |
-| **Subtitle** | "Active clients & utilization rate over time" |
+| **Title** | "Caseload Capacity" |
+| **Subtitle** | "Active clients & capacity rate over time" |
 | **Chart Type** | Combo chart (Bar + Line) |
-| **Legend** | Active Clients (amber bar) · Utilization % (emerald line) |
+| **Legend** | Active Clients (amber bar) · Capacity % (emerald line) |
 | **Bar** | Amber gradient - Active Clients (left Y-axis, 0-200) |
-| **Line** | Emerald (#059669) - Utilization Rate % (right Y-axis, 0-100%) |
+| **Line** | Emerald (#059669) - Capacity Rate % (right Y-axis, 0-100%) |
 | **Bar Labels** | Inside top of bars, white text |
 | **Action Button** | "View Report →" |
-| **Insights Row** | Avg Clients: {X} · Avg Utilization: {X}% · Peak: {Month} ({X}%) |
+| **Insights Row** | Avg Clients: {X} · Avg Capacity: {X}% · Peak: {Month} ({X}%) |
 | **Expandable** | Yes |
 | **Height** | 350px |
 
@@ -479,13 +479,13 @@ Psychotherapy practice owners and clinical directors who are very poor at readin
 
 ---
 
-### Utilization & Slots Row (2 Charts)
+### Goal Progress & Slots Row (2 Charts)
 
-#### 1. Session Utilization
+#### 1. Session Goal %
 | Element | Content |
 |---------|---------|
-| **Title** | "Session Utilization" |
-| **Subtitle** | "Percentage of session capacity utilized" |
+| **Title** | "Session Goal %" |
+| **Subtitle** | "Percentage of session goal achieved" |
 | **Chart Type** | Line chart with area fill |
 | **Value Indicator** | Average % (blue) |
 | **Y-Axis** | 70 - 100% |

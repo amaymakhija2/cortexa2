@@ -1,5 +1,13 @@
 import React, { useState, useMemo } from 'react';
-import { TrendingUp, TrendingDown, Users } from 'lucide-react';
+import { Users } from 'lucide-react';
+
+// =============================================================================
+// CLINICIAN OVERVIEW COMPONENT
+// =============================================================================
+// Simplified approach: 6 "questions" practice managers ask, each showing
+// a primary metric for ranking + supporting metrics for context.
+// Uses the original card-based UI with horizontal bars.
+// =============================================================================
 
 type TimePeriod = 'last-12-months' | 'this-year' | 'this-quarter' | 'last-quarter' | 'this-month' | 'last-month';
 
@@ -12,8 +20,293 @@ const TIME_PERIODS: { id: TimePeriod; label: string }[] = [
   { id: 'last-month', label: 'Last Month' },
 ];
 
-// Clinician data
-const CLINICIANS_DATA = [
+// Metric group IDs - the 6 "questions" practice managers ask
+type MetricGroupId = 'revenue' | 'caseload' | 'growth' | 'sessions' | 'attendance' | 'engagement' | 'retention' | 'documentation';
+
+// Metric configuration
+interface MetricConfig {
+  key: string;
+  label: string;
+  shortLabel: string;
+  format: (value: number) => string;
+  higherIsBetter: boolean;
+}
+
+interface MetricGroupConfig {
+  id: MetricGroupId;
+  label: string;
+  description: string;
+  primary: MetricConfig;
+  supporting: MetricConfig[];
+}
+
+// =============================================================================
+// METRIC GROUP CONFIGURATIONS
+// =============================================================================
+
+const METRIC_GROUPS: MetricGroupConfig[] = [
+  {
+    id: 'revenue',
+    label: 'Revenue',
+    description: 'Who\'s generating the most revenue?',
+    primary: {
+      key: 'revenue',
+      label: 'Gross Revenue',
+      shortLabel: 'Revenue',
+      format: (v) => `$${(v / 1000).toFixed(1)}K`,
+      higherIsBetter: true,
+    },
+    supporting: [
+      {
+        key: 'completedSessions',
+        label: 'Sessions',
+        shortLabel: 'Sessions',
+        format: (v) => v.toLocaleString(),
+        higherIsBetter: true,
+      },
+      {
+        key: 'revenuePerSession',
+        label: 'Avg Revenue/Session',
+        shortLabel: 'Avg $/Sess',
+        format: (v) => `$${v.toFixed(0)}`,
+        higherIsBetter: true,
+      },
+    ],
+  },
+  {
+    id: 'caseload',
+    label: 'Caseload',
+    description: 'Who has capacity for new clients?',
+    primary: {
+      key: 'caseloadPercent',
+      label: 'Caseload %',
+      shortLabel: 'Caseload %',
+      format: (v) => `${v.toFixed(0)}%`,
+      higherIsBetter: true,
+    },
+    supporting: [
+      {
+        key: 'activeClients',
+        label: 'Active Clients',
+        shortLabel: 'Active',
+        format: (v) => v.toLocaleString(),
+        higherIsBetter: true,
+      },
+      {
+        key: 'caseloadCapacity',
+        label: 'Client Goal',
+        shortLabel: 'Goal',
+        format: (v) => v.toLocaleString(),
+        higherIsBetter: true,
+      },
+    ],
+  },
+  {
+    id: 'growth',
+    label: 'Growth',
+    description: 'Who\'s bringing in new clients?',
+    primary: {
+      key: 'newClients',
+      label: 'New Clients',
+      shortLabel: 'New Clients',
+      format: (v) => v.toLocaleString(),
+      higherIsBetter: true,
+    },
+    supporting: [],
+  },
+  {
+    id: 'sessions',
+    label: 'Sessions',
+    description: 'Who\'s meeting session goals?',
+    primary: {
+      key: 'sessionGoalPercent',
+      label: 'Session Goal %',
+      shortLabel: 'Goal %',
+      format: (v) => `${v.toFixed(0)}%`,
+      higherIsBetter: true,
+    },
+    supporting: [
+      {
+        key: 'completedSessions',
+        label: 'Completed Sessions',
+        shortLabel: 'Sessions',
+        format: (v) => v.toLocaleString(),
+        higherIsBetter: true,
+      },
+      {
+        key: 'weeklySessionGoal',
+        label: 'Session Goal',
+        shortLabel: 'Goal',
+        format: (v) => v.toLocaleString(),
+        higherIsBetter: true,
+      },
+    ],
+  },
+  {
+    id: 'attendance',
+    label: 'Attendance',
+    description: 'Who\'s losing appointments?',
+    primary: {
+      key: 'nonBillableCancelRate',
+      label: 'Non-Billable Cancel Rate',
+      shortLabel: 'Cancel Rate',
+      format: (v) => `${v.toFixed(1)}%`,
+      higherIsBetter: false,
+    },
+    supporting: [
+      {
+        key: 'clientCancelRate',
+        label: 'Client Cancels',
+        shortLabel: 'Client',
+        format: (v) => `${v.toFixed(1)}%`,
+        higherIsBetter: false,
+      },
+      {
+        key: 'clinicianCancelRate',
+        label: 'Clinician Cancels',
+        shortLabel: 'Clinician',
+        format: (v) => `${v.toFixed(1)}%`,
+        higherIsBetter: false,
+      },
+      {
+        key: 'noShowRate',
+        label: 'No-Shows',
+        shortLabel: 'No-Show',
+        format: (v) => `${v.toFixed(1)}%`,
+        higherIsBetter: false,
+      },
+    ],
+  },
+  {
+    id: 'engagement',
+    label: 'Engagement',
+    description: 'Who\'s keeping clients engaged?',
+    primary: {
+      key: 'rebookRate',
+      label: 'Rebook Rate',
+      shortLabel: 'Rebook',
+      format: (v) => `${v.toFixed(0)}%`,
+      higherIsBetter: true,
+    },
+    supporting: [
+      {
+        key: 'avgSessionsPerClient',
+        label: 'Avg Sessions Per Client Per Month',
+        shortLabel: 'Avg/Client/Mo',
+        format: (v) => v.toFixed(1),
+        higherIsBetter: true,
+      },
+    ],
+  },
+  {
+    id: 'retention',
+    label: 'Retention',
+    description: 'Who\'s losing clients?',
+    primary: {
+      key: 'churnRate',
+      label: 'Churn Rate',
+      shortLabel: 'Churn',
+      format: (v) => `${v.toFixed(1)}%`,
+      higherIsBetter: false,
+    },
+    supporting: [
+      {
+        key: 'clientsChurned',
+        label: 'Clients Lost',
+        shortLabel: 'Lost',
+        format: (v) => v.toString(),
+        higherIsBetter: false,
+      },
+      {
+        key: 'atRiskClients',
+        label: 'Clients at Churn Risk',
+        shortLabel: 'At Risk',
+        format: (v) => v.toString(),
+        higherIsBetter: false,
+      },
+      {
+        key: 'session1to2Retention',
+        label: 'Session 1→2 Retention',
+        shortLabel: '1→2 Ret.',
+        format: (v) => `${v.toFixed(0)}%`,
+        higherIsBetter: true,
+      },
+      {
+        key: 'session5Retention',
+        label: 'Session 5 Retention',
+        shortLabel: 'Sess 5',
+        format: (v) => `${v.toFixed(0)}%`,
+        higherIsBetter: true,
+      },
+      {
+        key: 'session12Retention',
+        label: 'Session 12 Retention',
+        shortLabel: 'Sess 12',
+        format: (v) => `${v.toFixed(0)}%`,
+        higherIsBetter: true,
+      },
+    ],
+  },
+  {
+    id: 'documentation',
+    label: 'Notes',
+    description: 'Who needs to catch up on notes?',
+    primary: {
+      key: 'outstandingNotes',
+      label: 'Outstanding Notes',
+      shortLabel: 'Notes Due',
+      format: (v) => v.toString(),
+      higherIsBetter: false,
+    },
+    supporting: [],
+  },
+];
+
+// Clinician data structure
+interface ClinicianMetrics {
+  revenue: number;
+  revenuePerSession: number;
+  completedSessions: number;
+  weeklySessionGoal: number;
+  sessionGoalPercent: number;
+  caseloadCapacity: number;
+  caseloadPercent: number;
+  weeklyClients: number;
+  biweeklyClients: number;
+  monthlyClients: number;
+  showRate: number;
+  nonBillableCancelRate: number;
+  clientCancelRate: number;
+  clinicianCancelRate: number;
+  noShowRate: number;
+  utilizationRate: number;
+  activeClients: number;
+  newClients: number;
+  rebookRate: number;
+  atRiskClients: number;
+  newClientRevenue: number;
+  avgSessionsPerClient: number;
+  churnRate: number;
+  clientsChurned: number;
+  session1to2Retention: number;
+  session5Retention: number;
+  session12Retention: number;
+  earlyChurnPercent: number;
+  outstandingNotes: number;
+  [key: string]: number;
+}
+
+interface ClinicianData {
+  id: number;
+  name: string;
+  shortName: string;
+  role: string;
+  avatar: string;
+  metrics: ClinicianMetrics;
+}
+
+// Mock clinician data with extended metrics
+const CLINICIANS_DATA: ClinicianData[] = [
   {
     id: 1,
     name: 'Dr. Sarah Chen',
@@ -22,16 +315,35 @@ const CLINICIANS_DATA = [
     avatar: 'SC',
     metrics: {
       revenue: 33000,
-      sessions: 142,
-      utilization: 92,
+      revenuePerSession: 232,
+      completedSessions: 142,
+      weeklySessionGoal: 28,
+      sessionGoalPercent: 95,
+      caseloadCapacity: 38,
+      caseloadPercent: 89,
+      weeklyClients: 22,
+      biweeklyClients: 8,
+      monthlyClients: 4,
       showRate: 96,
-      cancelRate: 6.2,
-      retention: 94,
-      clients: 34,
-      newClients: 8
+      nonBillableCancelRate: 6.2,
+      clientCancelRate: 4.1,
+      clinicianCancelRate: 0.9,
+      noShowRate: 1.2,
+      utilizationRate: 92,
+      activeClients: 34,
+      newClients: 8,
+      rebookRate: 94,
+      atRiskClients: 2,
+      newClientRevenue: 5600,
+      avgSessionsPerClient: 4.2,
+      churnRate: 3.2,
+      clientsChurned: 1,
+      session1to2Retention: 92,
+      session5Retention: 78,
+      session12Retention: 65,
+      earlyChurnPercent: 25,
+      outstandingNotes: 0,
     },
-    trend: 'up' as const,
-    trendValue: 3.2
   },
   {
     id: 2,
@@ -41,16 +353,35 @@ const CLINICIANS_DATA = [
     avatar: 'MR',
     metrics: {
       revenue: 30500,
-      sessions: 130,
-      utilization: 89,
+      revenuePerSession: 235,
+      completedSessions: 130,
+      weeklySessionGoal: 28,
+      sessionGoalPercent: 87,
+      caseloadCapacity: 36,
+      caseloadPercent: 89,
+      weeklyClients: 20,
+      biweeklyClients: 7,
+      monthlyClients: 5,
       showRate: 94,
-      cancelRate: 7.8,
-      retention: 91,
-      clients: 32,
-      newClients: 6
+      nonBillableCancelRate: 7.8,
+      clientCancelRate: 5.3,
+      clinicianCancelRate: 0.7,
+      noShowRate: 1.8,
+      utilizationRate: 89,
+      activeClients: 32,
+      newClients: 6,
+      rebookRate: 91,
+      atRiskClients: 3,
+      newClientRevenue: 4200,
+      avgSessionsPerClient: 4.1,
+      churnRate: 4.5,
+      clientsChurned: 2,
+      session1to2Retention: 88,
+      session5Retention: 72,
+      session12Retention: 58,
+      earlyChurnPercent: 30,
+      outstandingNotes: 2,
     },
-    trend: 'up' as const,
-    trendValue: 1.8
   },
   {
     id: 3,
@@ -60,16 +391,35 @@ const CLINICIANS_DATA = [
     avatar: 'AP',
     metrics: {
       revenue: 27000,
-      sessions: 115,
-      utilization: 85,
+      revenuePerSession: 235,
+      completedSessions: 115,
+      weeklySessionGoal: 28,
+      sessionGoalPercent: 77,
+      caseloadCapacity: 35,
+      caseloadPercent: 86,
+      weeklyClients: 18,
+      biweeklyClients: 6,
+      monthlyClients: 6,
       showRate: 91,
-      cancelRate: 11.3,
-      retention: 88,
-      clients: 30,
-      newClients: 5
+      nonBillableCancelRate: 11.3,
+      clientCancelRate: 7.2,
+      clinicianCancelRate: 0.6,
+      noShowRate: 3.5,
+      utilizationRate: 85,
+      activeClients: 30,
+      newClients: 5,
+      rebookRate: 82,
+      atRiskClients: 6,
+      newClientRevenue: 3500,
+      avgSessionsPerClient: 3.8,
+      churnRate: 8.2,
+      clientsChurned: 4,
+      session1to2Retention: 78,
+      session5Retention: 55,
+      session12Retention: 38,
+      earlyChurnPercent: 45,
+      outstandingNotes: 5,
     },
-    trend: 'down' as const,
-    trendValue: 2.1
   },
   {
     id: 4,
@@ -78,17 +428,36 @@ const CLINICIANS_DATA = [
     role: 'Therapist',
     avatar: 'JK',
     metrics: {
-      revenue: 24000,
-      sessions: 125,
-      utilization: 88,
+      revenue: 28500,
+      revenuePerSession: 228,
+      completedSessions: 125,
+      weeklySessionGoal: 28,
+      sessionGoalPercent: 83,
+      caseloadCapacity: 36,
+      caseloadPercent: 86,
+      weeklyClients: 19,
+      biweeklyClients: 7,
+      monthlyClients: 5,
       showRate: 93,
-      cancelRate: 8.5,
-      retention: 90,
-      clients: 31,
-      newClients: 7
+      nonBillableCancelRate: 8.5,
+      clientCancelRate: 6.1,
+      clinicianCancelRate: 0.3,
+      noShowRate: 2.1,
+      utilizationRate: 88,
+      activeClients: 31,
+      newClients: 7,
+      rebookRate: 88,
+      atRiskClients: 4,
+      newClientRevenue: 4900,
+      avgSessionsPerClient: 4.0,
+      churnRate: 5.1,
+      clientsChurned: 2,
+      session1to2Retention: 85,
+      session5Retention: 68,
+      session12Retention: 52,
+      earlyChurnPercent: 35,
+      outstandingNotes: 1,
     },
-    trend: 'up' as const,
-    trendValue: 2.5
   },
   {
     id: 5,
@@ -98,105 +467,111 @@ const CLINICIANS_DATA = [
     avatar: 'MJ',
     metrics: {
       revenue: 23500,
-      sessions: 108,
-      utilization: 83,
+      revenuePerSession: 218,
+      completedSessions: 108,
+      weeklySessionGoal: 28,
+      sessionGoalPercent: 72,
+      caseloadCapacity: 35,
+      caseloadPercent: 83,
+      weeklyClients: 16,
+      biweeklyClients: 8,
+      monthlyClients: 5,
       showRate: 89,
-      cancelRate: 12.1,
-      retention: 86,
-      clients: 29,
-      newClients: 4
+      nonBillableCancelRate: 12.1,
+      clientCancelRate: 8.4,
+      clinicianCancelRate: 0.5,
+      noShowRate: 3.2,
+      utilizationRate: 83,
+      activeClients: 29,
+      newClients: 4,
+      rebookRate: 79,
+      atRiskClients: 7,
+      newClientRevenue: 2800,
+      avgSessionsPerClient: 3.7,
+      churnRate: 9.8,
+      clientsChurned: 5,
+      session1to2Retention: 72,
+      session5Retention: 48,
+      session12Retention: 32,
+      earlyChurnPercent: 52,
+      outstandingNotes: 4,
     },
-    trend: 'down' as const,
-    trendValue: 1.5
   }
 ];
 
-// Metric configurations
-const METRICS = {
-  revenue: {
-    key: 'revenue',
-    label: 'Revenue',
-    format: (v: number) => `$${(v / 1000).toFixed(1)}K`,
-    higherIsBetter: true
-  },
-  sessions: {
-    key: 'sessions',
-    label: 'Sessions',
-    format: (v: number) => v.toString(),
-    higherIsBetter: true
-  },
-  utilization: {
-    key: 'utilization',
-    label: 'Utilization',
-    format: (v: number) => `${v}%`,
-    higherIsBetter: true
-  },
-  showRate: {
-    key: 'showRate',
-    label: 'Show Rate',
-    format: (v: number) => `${v}%`,
-    higherIsBetter: true
-  },
-  cancelRate: {
-    key: 'cancelRate',
-    label: 'Cancel Rate',
-    format: (v: number) => `${v.toFixed(1)}%`,
-    higherIsBetter: false
-  },
-  retention: {
-    key: 'retention',
-    label: 'Retention',
-    format: (v: number) => `${v}%`,
-    higherIsBetter: true
-  },
-  clients: {
-    key: 'clients',
-    label: 'Caseload',
-    format: (v: number) => v.toString(),
-    higherIsBetter: true
-  },
-  newClients: {
-    key: 'newClients',
-    label: 'New Clients',
-    format: (v: number) => v.toString(),
-    higherIsBetter: true
-  }
-} as const;
-
-type MetricKey = keyof typeof METRICS;
+type SessionGoalView = 'weekly' | 'monthly';
+type CaseloadFrequency = 'weekly' | 'biweekly' | 'monthly';
 
 export const ClinicianOverview: React.FC = () => {
-  const [selectedMetric, setSelectedMetric] = useState<MetricKey>('utilization');
+  const [selectedGroupId, setSelectedGroupId] = useState<MetricGroupId>('revenue');
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('last-12-months');
+  const [sessionGoalView, setSessionGoalView] = useState<SessionGoalView>('weekly');
+  const [caseloadFrequency, setCaseloadFrequency] = useState<CaseloadFrequency>('weekly');
 
-  const metric = METRICS[selectedMetric];
+  const selectedGroup = METRIC_GROUPS.find(g => g.id === selectedGroupId)!;
+
+  // For sessions tab, dynamically adjust all labels and values based on weekly/monthly toggle
+  const getSessionsGroup = (): MetricGroupConfig => {
+    if (selectedGroupId !== 'sessions') return selectedGroup;
+
+    const isMonthly = sessionGoalView === 'monthly';
+    const goalMultiplier = isMonthly ? 4 : 1;
+    // Sessions multiplier: weekly shows ~1/4 of completed, monthly shows full completed
+    const sessionsMultiplier = isMonthly ? 1 : 0.25;
+
+    return {
+      ...selectedGroup,
+      primary: {
+        ...selectedGroup.primary,
+        label: isMonthly ? 'Monthly Goal %' : 'Weekly Goal %',
+        shortLabel: 'Goal %',
+      },
+      supporting: [
+        {
+          ...selectedGroup.supporting[0],
+          label: isMonthly ? 'Monthly Sessions' : 'Weekly Sessions',
+          shortLabel: isMonthly ? 'Sessions' : 'Sessions',
+          format: (v) => Math.round(v * sessionsMultiplier).toLocaleString(),
+        },
+        {
+          ...selectedGroup.supporting[1],
+          label: isMonthly ? 'Monthly Goal' : 'Weekly Goal',
+          shortLabel: isMonthly ? 'Goal' : 'Goal',
+          format: (v) => (v * goalMultiplier).toLocaleString(),
+        },
+      ],
+    };
+  };
+
+  const displayGroup = getSessionsGroup();
+  const metric = displayGroup.primary;
 
   // Calculate team average
   const teamAvg = useMemo(() => {
-    return CLINICIANS_DATA.reduce((sum, c) => sum + c.metrics[selectedMetric], 0) / CLINICIANS_DATA.length;
-  }, [selectedMetric]);
+    return CLINICIANS_DATA.reduce((sum, c) => sum + c.metrics[metric.key], 0) / CLINICIANS_DATA.length;
+  }, [metric.key]);
 
   // Sort clinicians and find where team average belongs
   const { sortedClinicians, avgRankIndex } = useMemo(() => {
     const sorted = [...CLINICIANS_DATA].sort((a, b) => {
-      const aVal = a.metrics[selectedMetric];
-      const bVal = b.metrics[selectedMetric];
+      const aVal = a.metrics[metric.key];
+      const bVal = b.metrics[metric.key];
       return metric.higherIsBetter ? bVal - aVal : aVal - bVal;
     });
 
     // Find where team average would rank
     let avgIndex = sorted.findIndex(c => {
-      const val = c.metrics[selectedMetric];
+      const val = c.metrics[metric.key];
       return metric.higherIsBetter ? val < teamAvg : val > teamAvg;
     });
     if (avgIndex === -1) avgIndex = sorted.length;
 
     return { sortedClinicians: sorted, avgRankIndex: avgIndex };
-  }, [selectedMetric, metric.higherIsBetter, teamAvg]);
+  }, [metric.key, metric.higherIsBetter, teamAvg]);
 
   // Calculate bar widths
-  const maxVal = Math.max(...sortedClinicians.map(c => c.metrics[selectedMetric]));
-  const minVal = Math.min(...sortedClinicians.map(c => c.metrics[selectedMetric]));
+  const maxVal = Math.max(...sortedClinicians.map(c => c.metrics[metric.key]));
+  const minVal = Math.min(...sortedClinicians.map(c => c.metrics[metric.key]));
 
   const getBarWidth = (value: number) => {
     if (metric.higherIsBetter) {
@@ -253,37 +628,80 @@ export const ClinicianOverview: React.FC = () => {
               </div>
 
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                {/* Sessions: Weekly/Monthly Toggle */}
+                {selectedGroupId === 'sessions' && (
+                  <div className="flex items-center gap-1 p-1 rounded-xl bg-white/10 backdrop-blur-sm">
+                    <button
+                      onClick={() => setSessionGoalView('weekly')}
+                      className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
+                        sessionGoalView === 'weekly'
+                          ? 'bg-amber-500 text-white shadow-lg'
+                          : 'text-white/70 hover:text-white hover:bg-white/10'
+                      }`}
+                    >
+                      Weekly
+                    </button>
+                    <button
+                      onClick={() => setSessionGoalView('monthly')}
+                      className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
+                        sessionGoalView === 'monthly'
+                          ? 'bg-amber-500 text-white shadow-lg'
+                          : 'text-white/70 hover:text-white hover:bg-white/10'
+                      }`}
+                    >
+                      Monthly
+                    </button>
+                  </div>
+                )}
+
                 {/* Time Period Selector */}
                 <div className="relative">
-                  {/* Mobile: Select dropdown */}
-                  <select
-                    value={timePeriod}
-                    onChange={(e) => setTimePeriod(e.target.value as TimePeriod)}
-                    className="lg:hidden px-3 py-2 rounded-xl border border-white/20 bg-white/10 text-sm font-medium text-white"
-                  >
-                    {TIME_PERIODS.map((period) => (
-                      <option key={period.id} value={period.id} className="text-stone-900">{period.label}</option>
-                    ))}
-                  </select>
-
-                  {/* Desktop: Button group */}
-                  <div className="hidden lg:flex items-center gap-1 p-1 rounded-xl bg-white/10 backdrop-blur-sm">
-                    {TIME_PERIODS.map((period) => (
-                      <button
-                        key={period.id}
-                        onClick={() => setTimePeriod(period.id)}
-                        className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
-                          timePeriod === period.id
-                            ? 'bg-white text-stone-900 shadow-lg'
-                            : 'text-white/70 hover:text-white hover:bg-white/10'
-                        }`}
+                  {selectedGroupId === 'caseload' ? (
+                    /* Caseload: Show disabled "Current Month" only */
+                    <>
+                      {/* Mobile */}
+                      <div className="lg:hidden px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-sm font-medium text-white/50 cursor-not-allowed">
+                        Current Month
+                      </div>
+                      {/* Desktop */}
+                      <div className="hidden lg:flex items-center gap-1 p-1 rounded-xl bg-white/5">
+                        <div className="px-4 py-2.5 rounded-lg text-sm font-semibold bg-white/10 text-white/50 cursor-not-allowed">
+                          Current Month
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      {/* Mobile: Select dropdown */}
+                      <select
+                        value={timePeriod}
+                        onChange={(e) => setTimePeriod(e.target.value as TimePeriod)}
+                        className="lg:hidden px-3 py-2 rounded-xl border border-white/20 bg-white/10 text-sm font-medium text-white"
                       >
-                        {period.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                        {TIME_PERIODS.map((period) => (
+                          <option key={period.id} value={period.id} className="text-stone-900">{period.label}</option>
+                        ))}
+                      </select>
 
+                      {/* Desktop: Button group */}
+                      <div className="hidden lg:flex items-center gap-1 p-1 rounded-xl bg-white/10 backdrop-blur-sm">
+                        {TIME_PERIODS.map((period) => (
+                          <button
+                            key={period.id}
+                            onClick={() => setTimePeriod(period.id)}
+                            className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
+                              timePeriod === period.id
+                                ? 'bg-white text-stone-900 shadow-lg'
+                                : 'text-white/70 hover:text-white hover:bg-white/10'
+                            }`}
+                          >
+                            {period.label}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -295,46 +713,30 @@ export const ClinicianOverview: React.FC = () => {
               )}
             </p>
 
-            {/* Metric buttons - LARGE and PROMINENT */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
-              {(Object.keys(METRICS) as MetricKey[]).map((key) => {
-                const m = METRICS[key];
-                const isSelected = selectedMetric === key;
+            {/* Metric buttons - 6 metric groups */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+              {METRIC_GROUPS.map((group) => {
+                const isSelected = selectedGroupId === group.id;
 
                 return (
                   <button
-                    key={key}
-                    onClick={() => setSelectedMetric(key)}
-                    className={`
-                      relative px-4 py-4 rounded-xl text-left
-                      transition-all duration-300 ease-out
-                      ${isSelected
-                        ? 'bg-white shadow-2xl shadow-white/20 scale-[1.02]'
-                        : 'bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20'
-                      }
-                    `}
+                    key={group.id}
+                    onClick={() => setSelectedGroupId(group.id)}
+                    className={`relative px-4 py-4 rounded-xl font-semibold text-sm transition-all duration-300 text-left ${
+                      isSelected
+                        ? 'bg-white text-stone-900 shadow-xl scale-[1.02]'
+                        : 'bg-white/10 text-white/80 hover:bg-white/20 hover:text-white'
+                    }`}
                   >
-                    {/* Active indicator */}
-                    {isSelected && (
-                      <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-8 h-1 bg-amber-500 rounded-full" />
-                    )}
-
-                    <span
-                      className={`block text-lg font-bold tracking-tight ${
-                        isSelected ? 'text-stone-900' : 'text-white'
-                      }`}
-                    >
-                      {m.label}
+                    <span className="block text-base font-bold">{group.label}</span>
+                    <span className={`block text-xs mt-1 ${isSelected ? 'text-stone-500' : 'text-white/50'}`}>
+                      {group.description}
                     </span>
-
-                    {!m.higherIsBetter && (
-                      <span
-                        className={`text-xs mt-1 block ${
-                          isSelected ? 'text-amber-600' : 'text-amber-500/70'
-                        }`}
-                      >
-                        Lower is better
-                      </span>
+                    {isSelected && (
+                      <div
+                        className="absolute bottom-0 left-4 right-4 h-1 rounded-full"
+                        style={{ background: 'linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%)' }}
+                      />
                     )}
                   </button>
                 );
@@ -349,12 +751,32 @@ export const ClinicianOverview: React.FC = () => {
         <div className="px-6 sm:px-8 lg:px-12 py-6 lg:py-8">
 
           {/* Column headers */}
-          <div className="hidden lg:grid lg:grid-cols-12 gap-4 px-6 py-3 text-xs font-bold text-stone-400 uppercase tracking-wider border-b border-stone-200 mb-2">
-            <div className="col-span-1">Rank</div>
-            <div className="col-span-3">Clinician</div>
-            <div className="col-span-5">Performance</div>
-            <div className="col-span-2 text-right">{metric.label}</div>
-            <div className="col-span-1 text-right">Trend</div>
+          <div className="hidden lg:grid gap-4 py-4 text-sm font-bold text-stone-700 uppercase tracking-wide border-b-2 border-stone-300 mb-3"
+            style={{
+              gridTemplateColumns: displayGroup.supporting.length === 6
+                ? '60px 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr'
+                : displayGroup.supporting.length === 5
+                  ? '60px 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr'
+                  : displayGroup.supporting.length === 4
+                    ? '60px 1fr 1fr 1fr 1fr 1fr 1fr 1fr'
+                    : displayGroup.supporting.length === 3
+                      ? '60px 1fr 1fr 1fr 1fr 1fr 1fr'
+                      : displayGroup.supporting.length === 2
+                        ? '60px 1fr 1fr 1fr 1fr 1fr'
+                        : displayGroup.supporting.length === 1
+                          ? '60px 1.5fr 1fr 1fr 1fr'
+                          : '60px 2fr 1fr 1fr'
+            }}
+          >
+            <div>Rank</div>
+            <div>Clinician</div>
+            <div>{metric.label}</div>
+            <div className="text-right">{metric.label}</div>
+            {displayGroup.supporting.map((s) => (
+              <div key={s.key} className="text-right text-stone-500">
+                {s.label}
+              </div>
+            ))}
           </div>
 
           {/* Ranking rows */}
@@ -363,7 +785,7 @@ export const ClinicianOverview: React.FC = () => {
               const isFirst = idx === 0;
               const isLast = idx === sortedClinicians.length - 1;
               const rank = idx + 1;
-              const value = clinician.metrics[selectedMetric];
+              const value = clinician.metrics[metric.key];
 
               // Determine if team average row should appear before this clinician
               const showAverageBefore = idx === avgRankIndex;
@@ -378,48 +800,87 @@ export const ClinicianOverview: React.FC = () => {
                   }}
                 >
                   <div className="px-4 sm:px-6 py-4 lg:py-5">
-                    <div className="grid grid-cols-12 gap-3 lg:gap-4 items-center">
+                    {/* Mobile layout */}
+                    <div className="lg:hidden grid grid-cols-12 gap-3 items-center">
+                      <div className="col-span-2 flex justify-center">
+                        <div className="w-10 h-10 rounded-full bg-stone-300 flex items-center justify-center">
+                          <Users className="w-5 h-5 text-stone-600" />
+                        </div>
+                      </div>
+                      <div className="col-span-6">
+                        <h3 className="text-base text-stone-700 font-bold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                          Team Average
+                        </h3>
+                        <p className="text-stone-500 text-xs">{CLINICIANS_DATA.length} clinicians</p>
+                      </div>
+                      <div className="col-span-4 text-right">
+                        <span className="text-xl font-black text-stone-600" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                          {metric.format(Math.round(teamAvg))}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Desktop layout */}
+                    <div className="hidden lg:grid gap-4 items-center"
+                      style={{
+                        gridTemplateColumns: displayGroup.supporting.length === 6
+                          ? '60px 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr'
+                          : displayGroup.supporting.length === 5
+                            ? '60px 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr'
+                            : displayGroup.supporting.length === 4
+                              ? '60px 1fr 1fr 1fr 1fr 1fr 1fr 1fr'
+                              : displayGroup.supporting.length === 3
+                                ? '60px 1fr 1fr 1fr 1fr 1fr 1fr'
+                                : displayGroup.supporting.length === 2
+                                  ? '60px 1fr 1fr 1fr 1fr 1fr'
+                                  : displayGroup.supporting.length === 1
+                                    ? '60px 1.5fr 1fr 1fr 1fr'
+                                    : '60px 2fr 1fr 1fr'
+                      }}
+                    >
                       {/* Icon instead of rank */}
-                      <div className="col-span-2 lg:col-span-1 flex justify-center">
-                        <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-stone-300 flex items-center justify-center">
-                          <Users className="w-5 h-5 lg:w-6 lg:h-6 text-stone-600" />
+                      <div className="flex justify-center">
+                        <div className="w-10 h-10 rounded-full bg-stone-300 flex items-center justify-center">
+                          <Users className="w-5 h-5 text-stone-600" />
                         </div>
                       </div>
 
                       {/* Label */}
-                      <div className="col-span-6 lg:col-span-3">
-                        <h3
-                          className="text-base lg:text-lg text-stone-700 font-bold"
-                          style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-                        >
+                      <div>
+                        <h3 className="text-base text-stone-700 font-bold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
                           Team Average
                         </h3>
-                        <p className="text-stone-500 text-xs lg:text-sm">
-                          {CLINICIANS_DATA.length} clinicians
-                        </p>
+                        <p className="text-stone-500 text-xs">{CLINICIANS_DATA.length} clinicians</p>
                       </div>
 
-                      {/* Empty bar space - Desktop */}
-                      <div className="hidden lg:block lg:col-span-5" />
+                      {/* Bar space */}
+                      <div className="flex items-center">
+                        <div className="h-4 bg-stone-200 rounded-full w-full" />
+                      </div>
 
-                      {/* Value */}
-                      <div className="col-span-3 lg:col-span-2 text-right">
-                        <span
-                          className="text-xl lg:text-2xl font-black text-stone-600"
-                          style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-                        >
+                      {/* Primary Value */}
+                      <div className="text-right">
+                        <span className="text-xl font-black text-stone-600" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
                           {metric.format(Math.round(teamAvg))}
                         </span>
                       </div>
 
-                      {/* Empty trend */}
-                      <div className="col-span-1 flex items-center justify-end">
-                        <span className="text-stone-400">—</span>
-                      </div>
+                      {/* Supporting metrics - each in own column */}
+                      {displayGroup.supporting.map((s) => {
+                        const avg = CLINICIANS_DATA.reduce((sum, c) => sum + c.metrics[s.key], 0) / CLINICIANS_DATA.length;
+                        return (
+                          <div key={s.key} className="text-right">
+                            <span className="text-lg font-semibold text-stone-500">
+                              {s.format(avg)}
+                            </span>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
               );
+
               const barWidth = getBarWidth(value);
 
               // Color theming
@@ -458,109 +919,157 @@ export const ClinicianOverview: React.FC = () => {
                     className="group bg-white rounded-xl lg:rounded-2xl overflow-hidden transition-all duration-300 hover:scale-[1.01] cursor-pointer"
                     style={{ boxShadow: theme.shadow }}
                   >
-                  {/* Accent bar - thin and elegant */}
-                  <div className="h-0.5" style={{ background: theme.bar }} />
+                    {/* Accent bar - thin and elegant */}
+                    <div className="h-0.5" style={{ background: theme.bar }} />
 
-                  <div className="px-4 sm:px-6 py-4 lg:py-5">
-                    <div className="grid grid-cols-12 gap-3 lg:gap-4 items-center">
-
-                      {/* RANK */}
-                      <div className="col-span-2 lg:col-span-1">
-                        <span
-                          className="text-3xl lg:text-4xl font-black"
-                          style={{
-                            fontFamily: "'DM Serif Display', Georgia, serif",
-                            color: theme.text
-                          }}
-                        >
-                          {rank}
-                        </span>
-                      </div>
-
-                      {/* CLINICIAN */}
-                      <div className="col-span-6 lg:col-span-3 flex items-center gap-3">
-                        <div
-                          className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl flex items-center justify-center text-sm lg:text-base font-bold text-white flex-shrink-0"
-                          style={{
-                            background: isFirst
-                              ? 'linear-gradient(135deg, #059669 0%, #10b981 100%)'
-                              : isLast
-                                ? 'linear-gradient(135deg, #dc2626 0%, #ef4444 100%)'
-                                : 'linear-gradient(135deg, #57534e 0%, #78716c 100%)'
-                          }}
-                        >
-                          {clinician.avatar}
+                    <div className="px-4 sm:px-6 py-4 lg:py-5">
+                      {/* Mobile layout */}
+                      <div className="lg:hidden">
+                        <div className="grid grid-cols-12 gap-3 items-center">
+                          <div className="col-span-2">
+                            <span className="text-3xl font-black" style={{ fontFamily: "'DM Serif Display', Georgia, serif", color: theme.text }}>
+                              {rank}
+                            </span>
+                          </div>
+                          <div className="col-span-6 flex items-center gap-3">
+                            <div
+                              className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
+                              style={{
+                                background: isFirst
+                                  ? 'linear-gradient(135deg, #059669 0%, #10b981 100%)'
+                                  : isLast
+                                    ? 'linear-gradient(135deg, #dc2626 0%, #ef4444 100%)'
+                                    : 'linear-gradient(135deg, #57534e 0%, #78716c 100%)'
+                              }}
+                            >
+                              {clinician.avatar}
+                            </div>
+                            <div className="min-w-0">
+                              <h3 className="text-base text-stone-900 font-bold truncate" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                                {clinician.shortName}
+                              </h3>
+                              <p className="text-stone-500 text-xs truncate">{clinician.role}</p>
+                            </div>
+                          </div>
+                          <div className="col-span-4 text-right">
+                            <span className="text-xl font-black" style={{ fontFamily: "'DM Serif Display', Georgia, serif", color: theme.text }}>
+                              {metric.format(value)}
+                            </span>
+                          </div>
                         </div>
-                        <div className="min-w-0">
-                          <h3
-                            className="text-base lg:text-lg text-stone-900 font-bold truncate"
-                            style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-                          >
-                            {clinician.shortName}
-                          </h3>
-                          <p className="text-stone-500 text-xs lg:text-sm truncate">
-                            {clinician.role}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* BAR - Desktop only */}
-                      <div className="hidden lg:block lg:col-span-5">
-                        <div className="h-6 bg-stone-100 rounded-lg overflow-hidden">
-                          <div
-                            className="h-full rounded-lg transition-all duration-500 ease-out"
-                            style={{
-                              width: `${barWidth}%`,
-                              background: theme.bar
-                            }}
-                          />
-                        </div>
-                      </div>
-
-                      {/* VALUE */}
-                      <div className="col-span-3 lg:col-span-2 text-right">
-                        <span
-                          className="text-xl lg:text-2xl font-black"
-                          style={{
-                            fontFamily: "'DM Serif Display', Georgia, serif",
-                            color: theme.text
-                          }}
-                        >
-                          {metric.format(value)}
-                        </span>
-                      </div>
-
-                      {/* TREND */}
-                      <div className="col-span-1 flex items-center justify-end gap-1">
-                        {clinician.trend === 'up' ? (
-                          <TrendingUp className="w-4 h-4 text-emerald-500" />
-                        ) : (
-                          <TrendingDown className="w-4 h-4 text-rose-500" />
+                        {/* Mobile: Supporting metrics */}
+                        {displayGroup.supporting.length > 0 && (
+                          <div className="mt-2 flex gap-4 text-xs text-stone-500">
+                            {displayGroup.supporting.map((s) => (
+                              <span key={s.key}>
+                                {s.label}: {s.format(clinician.metrics[s.key])}
+                              </span>
+                            ))}
+                          </div>
                         )}
-                        <span
-                          className={`text-sm font-bold hidden sm:inline ${
-                            clinician.trend === 'up' ? 'text-emerald-600' : 'text-rose-600'
-                          }`}
-                        >
-                          {clinician.trendValue}%
-                        </span>
+                        {/* Mobile bar */}
+                        <div className="mt-3">
+                          <div className="h-2 bg-stone-100 rounded-full overflow-hidden">
+                            <div className="h-full rounded-full transition-all duration-500" style={{ width: `${barWidth}%`, background: theme.bar }} />
+                          </div>
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Mobile bar */}
-                    <div className="lg:hidden mt-3">
-                      <div className="h-2 bg-stone-100 rounded-full overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-all duration-500"
-                          style={{
-                            width: `${barWidth}%`,
-                            background: theme.bar
-                          }}
-                        />
+                      {/* Desktop layout */}
+                      <div className="hidden lg:grid gap-4 items-center"
+                        style={{
+                          gridTemplateColumns: displayGroup.supporting.length === 6
+                            ? '60px 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr'
+                            : displayGroup.supporting.length === 5
+                              ? '60px 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr'
+                              : displayGroup.supporting.length === 4
+                                ? '60px 1fr 1fr 1fr 1fr 1fr 1fr 1fr'
+                                : displayGroup.supporting.length === 3
+                                  ? '60px 1fr 1fr 1fr 1fr 1fr 1fr'
+                                  : displayGroup.supporting.length === 2
+                                    ? '60px 1fr 1fr 1fr 1fr 1fr'
+                                    : displayGroup.supporting.length === 1
+                                      ? '60px 1.5fr 1fr 1fr 1fr'
+                                      : '60px 2fr 1fr 1fr'
+                        }}
+                      >
+                        {/* RANK */}
+                        <div className="flex justify-center">
+                          <span
+                            className="text-3xl font-black"
+                            style={{
+                              fontFamily: "'DM Serif Display', Georgia, serif",
+                              color: theme.text
+                            }}
+                          >
+                            {rank}
+                          </span>
+                        </div>
+
+                        {/* CLINICIAN */}
+                        <div className="flex items-center gap-3">
+                          <div
+                            className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
+                            style={{
+                              background: isFirst
+                                ? 'linear-gradient(135deg, #059669 0%, #10b981 100%)'
+                                : isLast
+                                  ? 'linear-gradient(135deg, #dc2626 0%, #ef4444 100%)'
+                                  : 'linear-gradient(135deg, #57534e 0%, #78716c 100%)'
+                            }}
+                          >
+                            {clinician.avatar}
+                          </div>
+                          <div className="min-w-0">
+                            <h3
+                              className="text-base text-stone-900 font-bold truncate"
+                              style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                            >
+                              {clinician.shortName}
+                            </h3>
+                            <p className="text-stone-500 text-xs truncate">
+                              {clinician.role}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* BAR */}
+                        <div className="flex items-center">
+                          <div className="h-4 bg-stone-100 rounded-full overflow-hidden w-full">
+                            <div
+                              className="h-full rounded-full transition-all duration-500 ease-out"
+                              style={{
+                                width: `${barWidth}%`,
+                                background: theme.bar
+                              }}
+                            />
+                          </div>
+                        </div>
+
+                        {/* PRIMARY VALUE */}
+                        <div className="text-right">
+                          <span
+                            className="text-xl font-black"
+                            style={{
+                              fontFamily: "'DM Serif Display', Georgia, serif",
+                              color: theme.text
+                            }}
+                          >
+                            {metric.format(value)}
+                          </span>
+                        </div>
+
+                        {/* SUPPORTING METRICS - each in own column */}
+                        {displayGroup.supporting.map((s) => (
+                          <div key={s.key} className="text-right">
+                            <span className="text-lg font-semibold text-stone-600">
+                              {s.format(clinician.metrics[s.key])}
+                            </span>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   </div>
-                </div>
 
                   {/* Team Average Row - shown after last clinician if all are above average */}
                   {showAverageAfter && <TeamAverageRow />}
@@ -578,14 +1087,6 @@ export const ClinicianOverview: React.FC = () => {
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-rose-500" />
               <span>Needs attention</span>
-            </div>
-            <div className="flex items-center gap-2 ml-auto">
-              <TrendingUp className="w-4 h-4 text-emerald-500" />
-              <span>Improving</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <TrendingDown className="w-4 h-4 text-rose-500" />
-              <span>Declining</span>
             </div>
           </div>
         </div>

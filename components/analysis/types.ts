@@ -416,55 +416,98 @@ export interface RetentionTabProps {
 
 /**
  * Available metrics for ranking clinicians
+ * Extended to include all metrics needed for the 6 metric groups
  */
 export type RankingMetric =
+  // Financial
   | 'revenue'
+  | 'revenuePerSession'
+  // Sessions
   | 'completedSessions'
-  | 'utilizationRate'
-  | 'retentionRate'
-  | 'cancellationRate'
-  | 'rebookRate'
-  | 'newClients'
-  | 'churnRate'
-  | 'outstandingNotes'
+  | 'sessionGoalPercent'
   | 'showRate'
+  // Attendance/Cancellations
+  | 'nonBillableCancelRate'
+  | 'clientCancelRate'
+  | 'clinicianCancelRate'
+  | 'noShowRate'
+  // Clients
+  | 'utilizationRate'
   | 'activeClients'
-  | 'avgSessionsPerClient';
+  | 'newClients'
+  // Retention
+  | 'rebookRate'
+  | 'atRiskClients'
+  | 'avgSessionsPerClient'
+  | 'churnRate'
+  | 'clientsChurned'
+  | 'session1to2Dropoff'
+  | 'earlyChurnPercent'
+  // Compliance
+  | 'outstandingNotes';
 
 /**
  * Clinician metrics for all rankable dimensions
  */
 export interface ClinicianMetrics {
+  // Financial
   revenue: number;
+  revenuePerSession: number;
+  // Sessions
   completedSessions: number;
-  utilizationRate: number;
-  retentionRate: number;
-  cancellationRate: number;
-  rebookRate: number;
-  newClients: number;
-  churnRate: number;
-  outstandingNotes: number;
+  sessionGoalPercent: number;
   showRate: number;
+  // Attendance/Cancellations
+  nonBillableCancelRate: number;
+  clientCancelRate: number;
+  clinicianCancelRate: number;
+  noShowRate: number;
+  // Clients
+  utilizationRate: number;
   activeClients: number;
+  newClients: number;
+  // Retention
+  rebookRate: number;
+  atRiskClients: number;
   avgSessionsPerClient: number;
+  churnRate: number;
+  clientsChurned: number;
+  session1to2Dropoff: number;
+  earlyChurnPercent: number;
+  // Compliance
+  outstandingNotes: number;
 }
 
 /**
  * Clinician trends (percentage change from previous period)
  */
 export interface ClinicianTrends {
+  // Financial
   revenue: number;
+  revenuePerSession: number;
+  // Sessions
   completedSessions: number;
-  utilizationRate: number;
-  retentionRate: number;
-  cancellationRate: number;
-  rebookRate: number;
-  newClients: number;
-  churnRate: number;
-  outstandingNotes: number;
+  sessionGoalPercent: number;
   showRate: number;
+  // Attendance/Cancellations
+  nonBillableCancelRate: number;
+  clientCancelRate: number;
+  clinicianCancelRate: number;
+  noShowRate: number;
+  // Clients
+  utilizationRate: number;
   activeClients: number;
+  newClients: number;
+  // Retention
+  rebookRate: number;
+  atRiskClients: number;
   avgSessionsPerClient: number;
+  churnRate: number;
+  clientsChurned: number;
+  session1to2Dropoff: number;
+  earlyChurnPercent: number;
+  // Compliance
+  outstandingNotes: number;
 }
 
 /**
@@ -475,6 +518,43 @@ export interface ClinicianData {
   name: string;
   metrics: ClinicianMetrics;
   trends: ClinicianTrends;
+}
+
+/**
+ * Metric group IDs - the 6 "questions" practice managers ask
+ */
+export type MetricGroupId =
+  | 'revenue'
+  | 'goals'
+  | 'attendance'
+  | 'engagement'
+  | 'retention'
+  | 'documentation';
+
+/**
+ * Configuration for a single metric within a group
+ */
+export interface MetricConfig {
+  key: RankingMetric;
+  label: string;
+  shortLabel: string;
+  format: (value: number) => string;
+  higherIsBetter: boolean;
+  description?: string;
+}
+
+/**
+ * Configuration for a metric group
+ */
+export interface MetricGroupConfig {
+  id: MetricGroupId;
+  question: string;
+  shortLabel: string;
+  description: string;
+  icon: string; // Icon name from lucide-react
+  color: string;
+  primary: MetricConfig;
+  supporting: MetricConfig[];
 }
 
 // =============================================================================

@@ -835,14 +835,14 @@ CapacityClientTab.tsx
 │   │   └── Grid cols={4}
 │   │       ├── StatCard: Active Clients (of capacity)
 │   │       ├── StatCard: Net Growth (+new -churned)
-│   │       ├── StatCard: Client Utilization %
-│   │       └── StatCard: Session Utilization %
+│   │       ├── StatCard: Caseload Capacity %
+│   │       └── StatCard: Session Goal %
 │   │
 │   ├── Section: Main Charts Row
 │   │   └── Grid cols={2}
-│   │       ├── ChartCard: Client Utilization (ComposedChart)
+│   │       ├── ChartCard: Caseload Capacity (ComposedChart)
 │   │       │   ├── headerControls: ActionButton
-│   │       │   ├── Bar (Active Clients) + Line (Utilization %)
+│   │       │   ├── Bar (Active Clients) + Line (Capacity %)
 │   │       │   └── expandable
 │   │       │
 │   │       └── ChartCard: Client Movement (DivergingBarChart)
@@ -857,16 +857,16 @@ CapacityClientTab.tsx
 │   │
 │   └── Section: Trend Charts Row
 │       └── Grid cols={2}
-│           ├── SimpleChartCard: Session Utilization Trend
+│           ├── SimpleChartCard: Session Goal % Trend
 │           │   └── LineChart (percentage 70-100% domain)
 │           │
 │           └── SimpleChartCard: Open Slots Trend
 │               └── LineChart (with area fill)
 │
 └── Expanded Modals
-    ├── ExpandedChartModal: Client Utilization
+    ├── ExpandedChartModal: Caseload Capacity
     ├── ExpandedChartModal: Client Movement
-    ├── ExpandedChartModal: Session Utilization
+    ├── ExpandedChartModal: Session Goal %
     └── ExpandedChartModal: Open Slots
 ```
 
@@ -1000,10 +1000,10 @@ import { DivergingBarChart } from '../design-system';
 
 > **Important:** StackedBarCard uses Tailwind class names (e.g., `bg-blue-500`), NOT hex colors!
 
-### 5. ComposedChart Pattern (Client Utilization)
+### 5. ComposedChart Pattern (Caseload Capacity)
 Uses raw Recharts ComposedChart inside ChartCard for combined Bar + Line visualization:
 ```tsx
-<ChartCard title="Client Utilization" ...>
+<ChartCard title="Caseload Capacity" ...>
   <ResponsiveContainer width="100%" height={380}>
     <ComposedChart data={chartData}>
       <Bar dataKey="activeClients" fill="url(#clientsGradient)" radius={[8, 8, 0, 0]} />
@@ -1036,7 +1036,7 @@ Uses raw Recharts ComposedChart inside ChartCard for combined Bar + Line visuali
 | Element | Color Code |
 |---------|------------|
 | Active Clients Bar | `#60a5fa` → `#3b82f6` (blue gradient) |
-| Utilization Line | `#f59e0b` (amber) |
+| Capacity Line | `#f59e0b` (amber) |
 | New Clients | `#34d399` → `#10b981` (emerald gradient) |
 | Churned Clients | `#fb7185` → `#f43f5e` (rose gradient) |
 | Male | `bg-blue-500` |
@@ -1045,7 +1045,7 @@ Uses raw Recharts ComposedChart inside ChartCard for combined Bar + Line visuali
 | Weekly | `bg-emerald-500` |
 | Bi-weekly | `bg-amber-500` |
 | Monthly | `bg-stone-400` |
-| Session Utilization | `#10b981` (emerald) |
+| Session Goal % | `#10b981` (emerald) |
 | Open Slots | `#f43f5e` (rose) |
 
 ## Bug Fixes & Lessons Learned

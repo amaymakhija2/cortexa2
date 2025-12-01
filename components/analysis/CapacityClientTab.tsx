@@ -144,7 +144,7 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
   // CHART DATA
   // =========================================================================
 
-  // Client Utilization combo chart data
+  // Caseload Capacity combo chart data
   const clientUtilizationChartData = useMemo(() => {
     return clientGrowthData.map(item => ({
       ...item,
@@ -190,7 +190,7 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
     },
     {
       value: `${avgUtilization.toFixed(0)}%`,
-      label: 'Avg Utilization',
+      label: 'Avg Capacity',
       bgColor: 'bg-emerald-50',
       textColor: 'text-emerald-600',
     },
@@ -268,12 +268,12 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
               subtitle={`+${totalNew} new, -${totalChurned} churned`}
             />
             <StatCard
-              title="Client Utilization"
+              title="Caseload Capacity"
               value={`${clientUtilization.toFixed(0)}%`}
               subtitle="of client capacity filled"
             />
             <StatCard
-              title="Session Utilization"
+              title="Session Goal %"
               value={`${avgSessionUtilization.toFixed(0)}%`}
               subtitle={`avg across ${hoursUtilizationData.length} months`}
             />
@@ -284,10 +284,10 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
         <AnimatedSection delay={280}>
           <Section spacing="md">
             <Grid cols={2} gap="lg">
-            {/* Client Utilization - Combo Chart */}
+            {/* Caseload Capacity - Combo Chart */}
             <ChartCard
-              title="Client Utilization"
-              subtitle="Active clients & utilization rate over time"
+              title="Caseload Capacity"
+              subtitle="Active clients & capacity rate over time"
               headerControls={
                 <>
                   <div className="flex items-center gap-6 bg-stone-50 rounded-xl px-5 py-3">
@@ -298,7 +298,7 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
                     <div className="w-px h-6 bg-stone-200" />
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-1 bg-emerald-500 rounded-full"></div>
-                      <span className="text-stone-700 text-base font-semibold">Utilization %</span>
+                      <span className="text-stone-700 text-base font-semibold">Capacity %</span>
                     </div>
                   </div>
                   <ActionButton label="View Report" icon={<ArrowRight size={16} />} />
@@ -364,7 +364,7 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
                       labelStyle={{ color: '#a8a29e', fontSize: '14px', fontWeight: 600, marginBottom: '8px' }}
                       itemStyle={{ color: '#fff', fontSize: '18px', fontWeight: 700, padding: '4px 0' }}
                       formatter={(value: number, name: string) => {
-                        if (name === 'utilizationRate') return [`${value}%`, 'Utilization Rate'];
+                        if (name === 'utilizationRate') return [`${value}%`, 'Capacity Rate'];
                         return [value, 'Active Clients'];
                       }}
                     />
@@ -396,7 +396,7 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
                       strokeWidth={4}
                       dot={{ fill: '#059669', strokeWidth: 4, stroke: '#fff', r: 7 }}
                       activeDot={{ r: 10, strokeWidth: 4, stroke: '#fff', fill: '#059669' }}
-                      name="Utilization Rate"
+                      name="Capacity Rate"
                       isAnimationActive={true}
                       animationDuration={800}
                       animationBegin={0}
@@ -502,14 +502,14 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
           </Section>
         </AnimatedSection>
 
-        {/* Session Utilization & Open Slots Row */}
+        {/* Session Goal % & Open Slots Row */}
         <AnimatedSection delay={480}>
           <Section spacing="none">
             <Grid cols={2} gap="lg">
-              {/* Session Utilization Trend */}
+              {/* Session Goal % Trend */}
               <SimpleChartCard
-                title="Session Utilization"
-                subtitle="Percentage of session capacity utilized"
+                title="Session Goal %"
+                subtitle="Percentage of session goal achieved"
                 metrics={[
                   {
                     value: `${Math.round(avgSessionUtilization)}%`,
@@ -528,7 +528,7 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
                   lines={[{ dataKey: 'percentage', color: '#3b82f6', activeColor: '#2563eb' }]}
                   yDomain={[70, 100]}
                   yTickFormatter={(v) => `${v}%`}
-                  tooltipFormatter={(value: number) => [`${value.toFixed(1)}%`, 'Utilization']}
+                  tooltipFormatter={(value: number) => [`${value.toFixed(1)}%`, 'Goal Progress']}
                   showAreaFill
                 />
               </SimpleChartCard>
@@ -566,12 +566,12 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
           EXPANDED MODALS
           ===================================================================== */}
 
-      {/* Client Utilization Expanded */}
+      {/* Caseload Capacity Expanded */}
       <ExpandedChartModal
         isOpen={expandedCard === 'client-utilization'}
         onClose={() => setExpandedCard(null)}
-        title="Client Utilization"
-        subtitle="Active clients & utilization rate over time"
+        title="Caseload Capacity"
+        subtitle="Active clients & capacity rate over time"
         headerControls={
           <>
             <div className="flex items-center gap-6 bg-stone-50 rounded-xl px-5 py-3">
@@ -582,7 +582,7 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
               <div className="w-px h-6 bg-stone-200" />
               <div className="flex items-center gap-3">
                 <div className="w-8 h-1 bg-emerald-500 rounded-full"></div>
-                <span className="text-stone-700 text-base font-semibold">Utilization %</span>
+                <span className="text-stone-700 text-base font-semibold">Capacity %</span>
               </div>
             </div>
             <ActionButton label="View Report" icon={<ArrowRight size={16} />} />
@@ -642,7 +642,7 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
                 labelStyle={{ color: '#a8a29e', fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}
                 itemStyle={{ color: '#fff', fontSize: '22px', fontWeight: 700 }}
                 formatter={(value: number, name: string) => {
-                  if (name === 'utilizationRate') return [`${value}%`, 'Utilization Rate'];
+                  if (name === 'utilizationRate') return [`${value}%`, 'Capacity Rate'];
                   return [value, 'Active Clients'];
                 }}
               />
@@ -669,7 +669,7 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
                 strokeWidth={5}
                 dot={{ fill: '#059669', strokeWidth: 5, stroke: '#fff', r: 10 }}
                 activeDot={{ r: 14, strokeWidth: 5, stroke: '#fff', fill: '#059669' }}
-                name="Utilization Rate"
+                name="Capacity Rate"
               />
             </ComposedChart>
           </ResponsiveContainer>
@@ -715,12 +715,12 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
         />
       </ExpandedChartModal>
 
-      {/* Session Utilization Expanded */}
+      {/* Session Goal % Expanded */}
       <ExpandedChartModal
         isOpen={expandedCard === 'session-utilization'}
         onClose={() => setExpandedCard(null)}
-        title="Session Utilization"
-        subtitle="Percentage of session capacity utilized"
+        title="Session Goal %"
+        subtitle="Percentage of session goal achieved"
       >
         <LineChart
           data={sessionUtilizationChartData}
@@ -728,7 +728,7 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
           lines={[{ dataKey: 'percentage', color: '#3b82f6', activeColor: '#2563eb' }]}
           yDomain={[70, 100]}
           yTickFormatter={(v) => `${v}%`}
-          tooltipFormatter={(value: number) => [`${value.toFixed(1)}%`, 'Utilization']}
+          tooltipFormatter={(value: number) => [`${value.toFixed(1)}%`, 'Goal Progress']}
           showAreaFill
           height="100%"
         />

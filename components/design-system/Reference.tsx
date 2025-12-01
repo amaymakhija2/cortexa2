@@ -580,7 +580,7 @@ export const Reference: React.FC = () => {
                   onExpand={() => setExpandedChart('demo')}
                   insights={[
                     { value: 148, label: 'Average', bgColor: 'bg-amber-50', textColor: 'text-amber-600' },
-                    { value: '84%', label: 'Utilization', bgColor: 'bg-emerald-50', textColor: 'text-emerald-600' },
+                    { value: '84%', label: 'Capacity', bgColor: 'bg-emerald-50', textColor: 'text-emerald-600' },
                     { value: 'Jun', label: 'Peak', bgColor: 'bg-stone-100', textColor: 'text-stone-800' }
                   ]}
                   minHeight="400px"
@@ -758,7 +758,7 @@ export const Reference: React.FC = () => {
                   <MetricListCard
                     title="Performance"
                     metrics={[
-                      { label: 'Utilization', value: '87%' },
+                      { label: 'Caseload', value: '87%' },
                       { label: 'Show Rate', value: '94%', valueColor: 'text-emerald-600' },
                       { label: 'Open Slots', value: '23', valueColor: 'text-amber-600' },
                       { label: 'Capacity', value: '180' }
@@ -2197,11 +2197,11 @@ export const Reference: React.FC = () => {
         <ExpandedChartModal
           isOpen={expandedChart === 'demo'}
           onClose={() => setExpandedChart(null)}
-          title="Client Utilization"
-          subtitle="Active clients & utilization rate over time"
+          title="Caseload Capacity"
+          subtitle="Active clients & capacity rate over time"
           legend={[
             { label: 'Active Clients', type: 'box', color: 'bg-gradient-to-b from-amber-400 to-amber-500' },
-            { label: 'Utilization %', type: 'line', color: 'bg-emerald-500' }
+            { label: 'Capacity %', type: 'line', color: 'bg-emerald-500' }
           ]}
         >
           <ResponsiveContainer width="100%" height="100%">

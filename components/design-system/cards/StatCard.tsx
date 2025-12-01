@@ -46,7 +46,7 @@ const VALUE_COLORS: Record<StatVariant, string> = {
  *
  * @example
  * // Percentage stat
- * <StatCard title="Utilization" value="87%" subtitle="of client capacity" />
+ * <StatCard title="Caseload Capacity" value="87%" subtitle="of client capacity" />
  */
 export const StatCard: React.FC<StatCardProps> = ({
   title,
