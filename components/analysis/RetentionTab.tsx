@@ -422,7 +422,7 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
                 <RetentionFunnelCard
                   stages={retentionFunnelData.sessionsFunnel}
                   title="Retention by Sessions"
-                  subtitle={`${selectedCohortData.clientCount.toLocaleString()} clients from ${selectedCohortData.label}`}
+                  subtitle={`${selectedCohortData.clientCount.toLocaleString()} clients (${selectedCohortData.label})`}
                   variant="sessions"
                   expandable
                   onExpand={() => setExpandedCard('sessions-funnel')}
@@ -435,7 +435,7 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
                 <RetentionFunnelCard
                   stages={retentionFunnelData.timeFunnel}
                   title="Retention by Time"
-                  subtitle={`${selectedCohortData.clientCount.toLocaleString()} clients from ${selectedCohortData.label}`}
+                  subtitle={`${selectedCohortData.clientCount.toLocaleString()} clients (${selectedCohortData.label})`}
                   variant="time"
                   expandable
                   onExpand={() => setExpandedCard('time-funnel')}
