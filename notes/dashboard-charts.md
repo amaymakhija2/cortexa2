@@ -109,6 +109,18 @@ Psychotherapy practice owners and clinical directors who are very poor at readin
 
 ## FINANCIAL TAB
 
+### Executive Summary
+
+| Element | Content |
+|---------|---------|
+| **Component** | `ExecutiveSummary` |
+| **Accent** | amber |
+| **Headline** | "Strong Revenue, Watch Your Margins" |
+| **Summary** | Dynamic text including MoM change, months meeting goal, net margin %, and clinician compensation insights |
+| **Style** | Editorial typography with DM Serif Display, collapsible design |
+
+---
+
 ### Hero Stats Row (4 Cards)
 
 #### 1. Total Gross Revenue
@@ -240,6 +252,18 @@ Psychotherapy practice owners and clinical directors who are very poor at readin
 
 ## SESSIONS TAB
 
+### Executive Summary
+
+| Element | Content |
+|---------|---------|
+| **Component** | `ExecutiveSummary` |
+| **Accent** | indigo |
+| **Headline** | "Sessions Strong, Monitor Cancellations" |
+| **Summary** | Dynamic text including show rate performance, goal achievement, and non-billable cancellation insights |
+| **Style** | Editorial typography with DM Serif Display, collapsible design |
+
+---
+
 ### Hero Stats Row (4 Cards)
 
 #### 1. Total Completed
@@ -353,6 +377,18 @@ Psychotherapy practice owners and clinical directors who are very poor at readin
 ---
 
 ## CAPACITY & CLIENT TAB
+
+### Executive Summary
+
+| Element | Content |
+|---------|---------|
+| **Component** | `ExecutiveSummary` |
+| **Accent** | cyan |
+| **Headline** | "Healthy Growth, Room to Expand" |
+| **Summary** | Dynamic text including client utilization, net growth trends, and capacity insights |
+| **Style** | Editorial typography with DM Serif Display, collapsible design |
+
+---
 
 ### Hero Stats Row (4 Cards)
 
@@ -472,24 +508,76 @@ Psychotherapy practice owners and clinical directors who are very poor at readin
 
 ## RETENTION TAB
 
-The Retention tab uses a **cohort-first approach**. Users must first select a cohort (clients who STARTED during a specific period) before any data is displayed. This ensures retention metrics are calculated accurately for a defined group of clients.
+The Retention tab is organized into **two main sections** for clarity:
+
+1. **Track Current Retention** - Real-time actionable items (always visible)
+2. **Cohort Analysis** - Historical cohort exploration (requires cohort selection)
 
 ### UX Flow
 
-1. **Initial State**: No cohort is selected. The page shows only the cohort selector.
-2. **Cohort Selection**: User selects a cohort (All Time, YTD, Quarter, etc.)
-3. **Definitions Bar**: Shows definitions of "Churned" and "Retained"
-4. **Data Display**: Hero stats with benchmarks and all data sections appear.
+1. **Section 1 (Always Visible)**: Track Current Retention shows real-time metrics
+2. **Section 2 (Cohort Selection)**: User selects a cohort to explore historical patterns
+3. **Cohort Data Display**: Hero stats with benchmarks and analysis sections appear
 
-### Section Order (Narrative Flow)
+### Section Order (After Cohort Selection)
 1. **Churn Patterns** → "When do clients leave?" (see the problem first)
 2. **Retention Journey** → "How far do they get?" (understand the mechanics)
-3. **What Drives Retention** → "What keeps clients?" (identify actionable drivers)
-4. **Current Health** → "Who needs attention now?" (take action today)
+3. **What Type of Clients** → "What type of clients do we lose?" (identify patterns)
 
 ---
 
-### Cohort Selector (Primary Question)
+### Section 1: Track Current Retention (Rose)
+
+| Element | Content |
+|---------|---------|
+| **Section Header** | Question: "Track Current Retention" |
+| **Description** | "Real-time indicators and clients who need attention today" |
+| **Number** | 1 |
+| **Accent** | Rose |
+| **Component** | `SectionContainer` + `SectionHeader` |
+
+#### Layout
+2-column grid with consistent card sizing.
+
+#### 1.1 Rebook Rate Chart (Left)
+| Element | Content |
+|---------|---------|
+| **Component** | `ChartCard` |
+| **Title** | "Rebook Rate" |
+| **Subtitle** | "% of clients with next appointment scheduled" |
+| **Chart Type** | Line chart with area fill |
+| **Y-Axis** | 70 - 100% |
+| **Line Color** | Emerald (#10b981) |
+| **Insights Row** | Average % (emerald) · Industry Avg 85% (stone) |
+| **Expandable** | Yes |
+| **Min Height** | 520px |
+
+#### 1.2 At-Risk Clients Card (Right)
+| Element | Content |
+|---------|---------|
+| **Component** | `AtRiskClientsCard` |
+| **Title** | "At-Risk Clients" |
+| **Description** | Clients without upcoming appointments |
+| **Risk Levels** | High (21+ days), Medium (14-21 days), Low (7-14 days) |
+| **List Display** | Client name, days since last session, clinician |
+| **Max Preview** | 6 clients |
+| **Action** | "View All" link to full list |
+
+---
+
+### Section 2: Cohort Analysis (Indigo)
+
+| Element | Content |
+|---------|---------|
+| **Section Header** | Question: "Cohort Analysis" |
+| **Description** | "Select a cohort to explore retention patterns and churn drivers" |
+| **Number** | 2 |
+| **Accent** | Indigo |
+| **Component** | `SectionContainer` + `SectionHeader` |
+
+---
+
+### Cohort Selector
 
 The cohort selector has two visual states with luxury-level typography matching the design system.
 
@@ -617,7 +705,7 @@ Uses the standard `StatCard` component from the design system. Displayed in a 4-
 
 ---
 
-### Section 1: Churn Patterns (Rose)
+### Cohort Section 1: Churn Patterns (Rose)
 
 | Element | Content |
 |---------|---------|
@@ -625,6 +713,7 @@ Uses the standard `StatCard` component from the design system. Displayed in a 4-
 | **Description** | "Monthly churn trends and timing breakdown" |
 | **Number** | 1 |
 | **Accent** | Rose |
+| **Visibility** | Only shown after cohort selection |
 
 #### Clients Churned Chart (Left)
 | Element | Content |
@@ -659,7 +748,7 @@ Uses the standard `StatCard` component from the design system. Displayed in a 4-
 
 ---
 
-### Section 2: Retention Journey (Amber)
+### Cohort Section 2: Retention Journey (Amber)
 
 | Element | Content |
 |---------|---------|
@@ -667,6 +756,7 @@ Uses the standard `StatCard` component from the design system. Displayed in a 4-
 | **Description** | "Session milestones and time-based retention" |
 | **Number** | 2 |
 | **Accent** | Amber |
+| **Visibility** | Only shown after cohort selection |
 
 #### Layout
 Both funnel cards displayed **side-by-side** in a 2-column grid, followed by the First Session Drop-off card below.
@@ -691,7 +781,7 @@ See Retention Funnel Cards section below for funnel details.
 
 ---
 
-### Section 3: What Type of Clients Do We Lose (Cyan)
+### Cohort Section 3: What Type of Clients Do We Lose (Cyan)
 
 | Element | Content |
 |---------|---------|
@@ -710,6 +800,7 @@ See Retention Funnel Cards section below for funnel details.
 | **Metric Label** | "overrepresented" |
 | **Sentiment** | negative |
 | **Category** | "Session Frequency" |
+| **Text Size** | text-xl sm:text-2xl xl:text-[1.75rem] (large, readable) |
 
 #### Churn by Gender InsightCard (Right)
 | Element | Content |
@@ -718,48 +809,7 @@ See Retention Funnel Cards section below for funnel details.
 | **Statement** | "No significant difference in churn rates across client genders" |
 | **Sentiment** | neutral |
 | **Category** | "Demographics" |
-
----
-
-### Section 4: Current Health (Emerald)
-
-| Element | Content |
-|---------|---------|
-| **Section Header** | Question: "Who needs attention now?" |
-| **Description** | "Real-time indicators of client engagement and risk" |
-| **Number** | 4 |
-| **Accent** | Emerald |
-
-#### 4.1 Rebook Rate Chart
-| Element | Content |
-|---------|---------|
-| **Title** | "Rebook Rate" |
-| **Subtitle** | "% of clients with next appointment" |
-| **Chart Type** | Line chart with area fill |
-| **Value Indicator** | Average % (emerald) |
-| **Y-Axis** | 70 - 100% |
-| **Line Color** | Emerald (#10b981) |
-| **Expandable** | Yes |
-| **Height** | 320px |
-
-#### 4.2 At-Risk Clients Card
-| Element | Content |
-|---------|---------|
-| **Title** | "At-Risk Clients" |
-| **Description** | Clients without upcoming appointments |
-| **Risk Levels** | High (21+ days), Medium (14-21 days), Low (7-14 days) |
-| **List Display** | Client name, days since last session, clinician |
-| **Action** | "View All" link to full list |
-
-#### 4.3 Approaching Session 5 Card
-| Element | Content |
-|---------|---------|
-| **Title** | "Approaching Session 5" |
-| **Description** | Key retention milestone opportunity |
-| **Breakdown** | Shows clients 1 session away, 2 sessions away, 3+ sessions away |
-| **Success Rate** | Historical percentage reaching session 5 |
-| **List Display** | Client name, current session count, next appointment, clinician |
-| **Action** | "View All" link to full list |
+| **Text Size** | text-xl sm:text-2xl xl:text-[1.75rem] (large, readable) |
 
 ---
 
