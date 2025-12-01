@@ -32,11 +32,11 @@ import type { FinancialAnalysisTabProps } from './types';
 
 // Clinician segment configuration for BarChart
 const CLINICIAN_SEGMENTS = [
-  { key: 'Chen', label: 'Chen', color: '#7c3aed', gradient: 'linear-gradient(180deg, #a78bfa 0%, #7c3aed 100%)' },
-  { key: 'Rodriguez', label: 'Rodriguez', color: '#0891b2', gradient: 'linear-gradient(180deg, #22d3ee 0%, #0891b2 100%)' },
-  { key: 'Patel', label: 'Patel', color: '#d97706', gradient: 'linear-gradient(180deg, #fbbf24 0%, #d97706 100%)' },
-  { key: 'Kim', label: 'Kim', color: '#db2777', gradient: 'linear-gradient(180deg, #f472b6 0%, #db2777 100%)' },
-  { key: 'Johnson', label: 'Johnson', color: '#059669', gradient: 'linear-gradient(180deg, #34d399 0%, #059669 100%)' },
+  { key: 'Chen', label: 'S Chen', color: '#7c3aed', gradient: 'linear-gradient(180deg, #a78bfa 0%, #7c3aed 100%)' },
+  { key: 'Rodriguez', label: 'M Rodriguez', color: '#0891b2', gradient: 'linear-gradient(180deg, #22d3ee 0%, #0891b2 100%)' },
+  { key: 'Patel', label: 'A Patel', color: '#d97706', gradient: 'linear-gradient(180deg, #fbbf24 0%, #d97706 100%)' },
+  { key: 'Kim', label: 'J Kim', color: '#db2777', gradient: 'linear-gradient(180deg, #f472b6 0%, #db2777 100%)' },
+  { key: 'Johnson', label: 'M Johnson', color: '#059669', gradient: 'linear-gradient(180deg, #34d399 0%, #059669 100%)' },
 ];
 
 // Order for stacking (bottom to top)

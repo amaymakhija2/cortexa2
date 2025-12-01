@@ -409,3 +409,83 @@ export interface RetentionTabProps {
   /** Churn by frequency distribution */
   churnByFrequencyData: ChurnByFrequencyData;
 }
+
+// =============================================================================
+// CLINICIAN RANKING TAB DATA TYPES
+// =============================================================================
+
+/**
+ * Available metrics for ranking clinicians
+ */
+export type RankingMetric =
+  | 'revenue'
+  | 'completedSessions'
+  | 'utilizationRate'
+  | 'retentionRate'
+  | 'cancellationRate'
+  | 'rebookRate'
+  | 'newClients'
+  | 'churnRate'
+  | 'outstandingNotes'
+  | 'showRate'
+  | 'activeClients'
+  | 'avgSessionsPerClient';
+
+/**
+ * Clinician metrics for all rankable dimensions
+ */
+export interface ClinicianMetrics {
+  revenue: number;
+  completedSessions: number;
+  utilizationRate: number;
+  retentionRate: number;
+  cancellationRate: number;
+  rebookRate: number;
+  newClients: number;
+  churnRate: number;
+  outstandingNotes: number;
+  showRate: number;
+  activeClients: number;
+  avgSessionsPerClient: number;
+}
+
+/**
+ * Clinician trends (percentage change from previous period)
+ */
+export interface ClinicianTrends {
+  revenue: number;
+  completedSessions: number;
+  utilizationRate: number;
+  retentionRate: number;
+  cancellationRate: number;
+  rebookRate: number;
+  newClients: number;
+  churnRate: number;
+  outstandingNotes: number;
+  showRate: number;
+  activeClients: number;
+  avgSessionsPerClient: number;
+}
+
+/**
+ * Individual clinician data for ranking
+ */
+export interface ClinicianData {
+  id: string;
+  name: string;
+  metrics: ClinicianMetrics;
+  trends: ClinicianTrends;
+}
+
+// =============================================================================
+// CLINICIAN RANKING TAB PROPS
+// =============================================================================
+
+export interface ClinicianRankingTabProps {
+  /** Clinician data for ranking */
+  clinicians: ClinicianData[];
+  /** Tab navigation */
+  tabs: TabConfig[];
+  activeTab: string;
+  onTabChange: (tabId: string) => void;
+}

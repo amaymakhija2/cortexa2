@@ -10,6 +10,7 @@ export { CapacityClientTab } from './CapacityClientTab';
 export { RetentionTab } from './RetentionTab';
 export { InsuranceTab } from './InsuranceTab';
 export { AdminTab } from './AdminTab';
+export { ClinicianRankingTab } from './ClinicianRankingTab';
 
 // Export all types
 export type {
@@ -33,4 +34,9 @@ export type {
   SessionsAnalysisTabProps,
   CapacityClientTabProps,
   RetentionTabProps,
+  RankingMetric,
+  ClinicianMetrics,
+  ClinicianTrends,
+  ClinicianData,
+  ClinicianRankingTabProps,
 } from './types';

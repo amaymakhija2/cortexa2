@@ -1033,14 +1033,158 @@ Scope: Data calculated for the selected cohort (clients who STARTED during that 
 
 ---
 
-## TEAM COMPARISON TAB
+## CLINICIAN RANKING TAB
 
-> **⚠️ NOT IMPLEMENTED** - This tab is planned but has not yet been built. The current dashboard does not include a Team Comparison tab.
+The Clinician Ranking tab allows practice owners to **select a metric** and see clinicians **ranked/ordered** by that metric. This enables quick identification of top performers and those needing support.
 
-### Planned Features (Not Yet Implemented)
+### Page Header
+
+| Element | Content |
+|---------|---------|
+| **Accent** | Indigo |
+| **Label** | "Team Performance" (uppercase) |
+| **Title** | "Clinician Rankings" |
+| **Subtitle** | "Compare clinician performance across key metrics" |
+
+---
+
+### Metric Selector
+
+| Element | Content |
+|---------|---------|
+| **Component** | Dropdown with category grouping |
+| **Default Selection** | Revenue Generated |
+| **Display** | Category icon + Metric name + Category label |
+
+#### Available Metrics by Category
+
+**Financial**:
+| Metric | Format | Direction |
+|--------|--------|-----------|
+| Revenue Generated | $XX.Xk | Higher is better |
+
+**Sessions**:
+| Metric | Format | Direction |
+|--------|--------|-----------|
+| Completed Sessions | X,XXX | Higher is better |
+| Cancellation Rate | X.X% | Lower is better |
+| Show Rate | XX% | Higher is better |
+
+**Clients**:
+| Metric | Format | Direction |
+|--------|--------|-----------|
+| Utilization Rate | XX% | Higher is better |
+| New Clients Acquired | +X | Higher is better |
+| Active Clients | XX | Higher is better |
+
+**Retention**:
+| Metric | Format | Direction |
+|--------|--------|-----------|
+| Retention Rate | XX% | Higher is better |
+| Rebook Rate | XX% | Higher is better |
+| Churn Rate | X.X% | Lower is better |
+| Avg Sessions/Client | X.X | Higher is better |
+
+**Compliance**:
+| Metric | Format | Direction |
+|--------|--------|-----------|
+| Outstanding Notes | X | Lower is better |
+
+---
+
+### Ranking List
+
+| Element | Content |
+|---------|---------|
+| **Component** | Table-style list with header row |
+| **Columns** | Rank, Clinician, Metric Value, Trend |
+
+#### Row Components
+
+**Rank Badge**:
+| Rank | Style |
+|------|-------|
+| 1st | Gold circle (amber-100, amber-700 text) |
+| 2nd | Silver circle (stone-200, stone-700 text) |
+| 3rd | Bronze circle (orange-100, orange-700 text) |
+| 4th+ | Stone circle (stone-100, stone-600 text) |
+
+**Clinician Info**:
+| Element | Content |
+|---------|---------|
+| **Avatar** | Colored square with initial (clinician-specific color) |
+| **Name** | DM Serif Display font |
+| **Performance Badge** | "+X% vs avg" (emerald) or "-X% vs avg" (rose) |
+
+**Metric Value**:
+- Large, bold DM Serif Display
+- Formatted according to metric type
+
+**Trend Indicator**:
+| Trend | Style |
+|-------|-------|
+| Positive (good direction) | Emerald pill with up arrow |
+| Negative (bad direction) | Rose pill with down arrow |
+| Neutral | Stone pill with dash |
+
+---
+
+### Team Average Row
+
+| Element | Content |
+|---------|---------|
+| **Position** | Inserted in ranking at correct position |
+| **Visual Style** | Dashed border top/bottom, stone background gradient |
+| **Icon** | Users icon in stone circle |
+| **Label** | "Team Average" |
+| **Sublabel** | "X clinicians" |
+| **Purpose** | Divides above-average from below-average clinicians |
+
+---
+
+### Quick Stats Summary (3 Cards)
+
+#### 1. Top Performer
+| Element | Content |
+|---------|---------|
+| **Background** | Amber gradient (#fef3c7 → #fef9c3) |
+| **Icon** | Gold rank badge "1" |
+| **Content** | Clinician name + metric value |
+
+#### 2. Most Improved
+| Element | Content |
+|---------|---------|
+| **Background** | Emerald gradient (#d1fae5 → #ecfdf5) |
+| **Icon** | TrendingUp (emerald) |
+| **Content** | Clinician name + trend percentage |
+
+#### 3. Needs Support
+| Element | Content |
+|---------|---------|
+| **Background** | Rose gradient (#fee2e2 → #fef2f2) |
+| **Icon** | AlertTriangle (rose) |
+| **Content** | Clinician name + % below average |
+
+---
+
+### Clinician Colors
+
+| Clinician | Color | Hex |
+|-----------|-------|-----|
+| Chen | Purple | #7c3aed |
+| Rodriguez | Cyan | #0891b2 |
+| Patel | Amber | #d97706 |
+| Kim | Pink | #db2777 |
+| Johnson | Emerald | #059669 |
+
+---
+
+## TEAM COMPARISON TAB (Legacy)
+
+> **⚠️ SUPERSEDED** - The Team Comparison tab concept has been replaced by the Clinician Ranking tab above, which provides a cleaner metric-focused comparison experience.
 
 <details>
-<summary>Click to see planned Team Comparison Tab features</summary>
+<summary>Click to see original Team Comparison Tab plans</summary>
 
 #### Comparison Tables (3 Views)
 

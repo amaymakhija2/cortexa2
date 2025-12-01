@@ -424,11 +424,11 @@ const ALL_NOTES_STATUS_DATA = [
 
 // At-Risk Compliance List (oldest appointments without notes)
 const AT_RISK_COMPLIANCE = [
-  { date: '2025-11-15', clientInitials: 'J.D.', clinician: 'Chen' },
-  { date: '2025-11-18', clientInitials: 'M.S.', clinician: 'Rodriguez' },
-  { date: '2025-11-20', clientInitials: 'A.K.', clinician: 'Patel' },
-  { date: '2025-11-22', clientInitials: 'L.B.', clinician: 'Kim' },
-  { date: '2025-11-25', clientInitials: 'R.T.', clinician: 'Johnson' }
+  { date: '2025-11-15', clientInitials: 'J.D.', clinician: 'S Chen' },
+  { date: '2025-11-18', clientInitials: 'M.S.', clinician: 'M Rodriguez' },
+  { date: '2025-11-20', clientInitials: 'A.K.', clinician: 'A Patel' },
+  { date: '2025-11-22', clientInitials: 'L.B.', clinician: 'J Kim' },
+  { date: '2025-11-25', clientInitials: 'R.T.', clinician: 'M Johnson' }
 ];
 
 // Reminder Delivery data

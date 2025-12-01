@@ -127,11 +127,11 @@ const SAMPLE_CLINICIAN_REVENUE_DATA = [
 ];
 
 const CLINICIAN_SEGMENTS = [
-  { key: 'Chen', label: 'Chen', color: '#7c3aed', gradient: 'linear-gradient(180deg, #a78bfa 0%, #7c3aed 100%)' },
-  { key: 'Rodriguez', label: 'Rodriguez', color: '#0891b2', gradient: 'linear-gradient(180deg, #22d3ee 0%, #0891b2 100%)' },
-  { key: 'Patel', label: 'Patel', color: '#d97706', gradient: 'linear-gradient(180deg, #fbbf24 0%, #d97706 100%)' },
-  { key: 'Kim', label: 'Kim', color: '#db2777', gradient: 'linear-gradient(180deg, #f472b6 0%, #db2777 100%)' },
-  { key: 'Johnson', label: 'Johnson', color: '#059669', gradient: 'linear-gradient(180deg, #34d399 0%, #059669 100%)' },
+  { key: 'Chen', label: 'S Chen', color: '#7c3aed', gradient: 'linear-gradient(180deg, #a78bfa 0%, #7c3aed 100%)' },
+  { key: 'Rodriguez', label: 'M Rodriguez', color: '#0891b2', gradient: 'linear-gradient(180deg, #22d3ee 0%, #0891b2 100%)' },
+  { key: 'Patel', label: 'A Patel', color: '#d97706', gradient: 'linear-gradient(180deg, #fbbf24 0%, #d97706 100%)' },
+  { key: 'Kim', label: 'J Kim', color: '#db2777', gradient: 'linear-gradient(180deg, #f472b6 0%, #db2777 100%)' },
+  { key: 'Johnson', label: 'M Johnson', color: '#059669', gradient: 'linear-gradient(180deg, #34d399 0%, #059669 100%)' },
 ];
 
 // Sample data for DivergingBarChart (Client Movement)
@@ -659,7 +659,7 @@ export const Reference: React.FC = () => {
                 insights={
                   toggleDemo
                     ? [
-                        { value: 'Chen', label: 'Top (157)', bgColor: 'bg-violet-50', textColor: 'text-violet-600' },
+                        { value: 'S Chen', label: 'Top (157)', bgColor: 'bg-violet-50', textColor: 'text-violet-600' },
                         { value: '698', label: 'Team Total', bgColor: 'bg-indigo-50', textColor: 'text-indigo-600' },
                         { value: '5', label: 'Clinicians', bgColor: 'bg-stone-100', textColor: 'text-stone-700' }
                       ]
@@ -1266,7 +1266,7 @@ export const Reference: React.FC = () => {
                 insights={
                   toggleDemo
                     ? [
-                        { value: 'Chen', label: 'Top (148)', bgColor: 'bg-indigo-50', textColor: 'text-indigo-600' },
+                        { value: 'S Chen', label: 'Top (148)', bgColor: 'bg-indigo-50', textColor: 'text-indigo-600' },
                         { value: '125', label: 'Average', bgColor: 'bg-stone-100', textColor: 'text-stone-700' },
                         { value: '5', label: 'Clinicians', bgColor: 'bg-stone-100', textColor: 'text-stone-700' }
                       ]

@@ -1,12 +1,23 @@
 import React, { useState } from 'react';
 import { TrendingUp, TrendingDown, ChevronRight } from 'lucide-react';
 
+type TimePeriod = 'last-12-months' | 'this-year' | 'this-quarter' | 'last-quarter' | 'this-month' | 'last-month';
+
+const TIME_PERIODS: { id: TimePeriod; label: string }[] = [
+  { id: 'last-12-months', label: 'Last 12 months' },
+  { id: 'this-year', label: 'This Year' },
+  { id: 'this-quarter', label: 'This Quarter' },
+  { id: 'last-quarter', label: 'Last Quarter' },
+  { id: 'this-month', label: 'This Month' },
+  { id: 'last-month', label: 'Last Month' },
+];
+
 // Clinician data
 const CLINICIANS_DATA = [
   {
     id: 1,
     name: 'Dr. Sarah Chen',
-    shortName: 'Chen',
+    shortName: 'S Chen',
     role: 'Clinical Director',
     avatar: 'SC',
     metrics: {
@@ -25,7 +36,7 @@ const CLINICIANS_DATA = [
   {
     id: 2,
     name: 'Dr. Maria Rodriguez',
-    shortName: 'Rodriguez',
+    shortName: 'M Rodriguez',
     role: 'Senior Therapist',
     avatar: 'MR',
     metrics: {
@@ -44,7 +55,7 @@ const CLINICIANS_DATA = [
   {
     id: 3,
     name: 'Dr. Anil Patel',
-    shortName: 'Patel',
+    shortName: 'A Patel',
     role: 'Therapist',
     avatar: 'AP',
     metrics: {
@@ -63,7 +74,7 @@ const CLINICIANS_DATA = [
   {
     id: 4,
     name: 'Dr. Jennifer Kim',
-    shortName: 'Kim',
+    shortName: 'J Kim',
     role: 'Therapist',
     avatar: 'JK',
     metrics: {
@@ -82,7 +93,7 @@ const CLINICIANS_DATA = [
   {
     id: 5,
     name: 'Dr. Michael Johnson',
-    shortName: 'Johnson',
+    shortName: 'M Johnson',
     role: 'Associate Therapist',
     avatar: 'MJ',
     metrics: {
@@ -156,6 +167,7 @@ type MetricKey = keyof typeof METRICS;
 
 export const ClinicianOverview: React.FC = () => {
   const [selectedMetric, setSelectedMetric] = useState<MetricKey>('utilization');
+  const [timePeriod, setTimePeriod] = useState<TimePeriod>('last-12-months');
 
   const metric = METRICS[selectedMetric];
 
@@ -227,14 +239,49 @@ export const ClinicianOverview: React.FC = () => {
                   Clinician Rankings
                 </h1>
               </div>
-              <div className="flex items-center gap-3 text-stone-400">
-                <span className="text-sm">Team Average:</span>
-                <span
-                  className="text-2xl sm:text-3xl text-white font-bold"
-                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-                >
-                  {metric.format(teamAvg)}
-                </span>
+
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                {/* Time Period Selector */}
+                <div className="relative">
+                  {/* Mobile: Select dropdown */}
+                  <select
+                    value={timePeriod}
+                    onChange={(e) => setTimePeriod(e.target.value as TimePeriod)}
+                    className="lg:hidden px-3 py-2 rounded-xl border border-white/20 bg-white/10 text-sm font-medium text-white"
+                  >
+                    {TIME_PERIODS.map((period) => (
+                      <option key={period.id} value={period.id} className="text-stone-900">{period.label}</option>
+                    ))}
+                  </select>
+
+                  {/* Desktop: Button group */}
+                  <div className="hidden lg:flex items-center gap-1 p-1 rounded-xl bg-white/10 backdrop-blur-sm">
+                    {TIME_PERIODS.map((period) => (
+                      <button
+                        key={period.id}
+                        onClick={() => setTimePeriod(period.id)}
+                        className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
+                          timePeriod === period.id
+                            ? 'bg-white text-stone-900 shadow-lg'
+                            : 'text-white/70 hover:text-white hover:bg-white/10'
+                        }`}
+                      >
+                        {period.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Team Average */}
+                <div className="flex items-center gap-3 text-stone-400">
+                  <span className="text-sm">Team Average:</span>
+                  <span
+                    className="text-2xl sm:text-3xl text-white font-bold"
+                    style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                  >
+                    {metric.format(teamAvg)}
+                  </span>
+                </div>
               </div>
             </div>
 
