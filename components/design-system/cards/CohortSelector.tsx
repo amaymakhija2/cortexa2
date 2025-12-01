@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Check, Clock, AlertCircle, Sparkles, ChevronDown, Pencil } from 'lucide-react';
+import { Users, Check, Clock, AlertCircle, ChevronDown, Pencil } from 'lucide-react';
 
 // =============================================================================
 // COHORT SELECTOR COMPONENT
@@ -334,21 +334,6 @@ export const CohortSelector: React.FC<CohortSelectorProps> = ({
                           : '0 4px 16px -4px rgba(0, 0, 0, 0.06), inset 0 0 0 1px rgba(0, 0, 0, 0.04)',
                     }}
                   >
-                    {/* Recommended badge - positioned inside card bounds */}
-                    {cohort.recommended && !isSelected && (
-                      <div
-                        className="absolute top-3 right-3 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-white text-sm font-bold shadow-lg"
-                        style={{
-                          background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-                          transform: isHovered ? 'scale(1.05) rotate(-2deg)' : 'scale(1) rotate(0deg)',
-                          transition: 'transform 0.3s ease-out',
-                        }}
-                      >
-                        <Sparkles size={14} />
-                        <span>Recommended</span>
-                      </div>
-                    )}
-
                     {/* Selected indicator */}
                     {isSelected && (
                       <div
@@ -409,13 +394,6 @@ export const CohortSelector: React.FC<CohortSelectorProps> = ({
                           clients
                         </span>
                       </div>
-
-                      {/* Availability message for immature cohorts */}
-                      {cohort.maturity === 'immature' && cohort.availableDate && (
-                        <p className="text-stone-400 text-sm font-medium">
-                          Data available {cohort.availableDate}
-                        </p>
-                      )}
                     </div>
 
                     {/* Hover overlay effect */}
