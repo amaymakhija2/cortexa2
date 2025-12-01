@@ -278,7 +278,7 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
                   <StatCard
                     title="Clients Churned"
                     value={selectedCohortData.summary.clientsChurned.toLocaleString()}
-                    subtitle={`${((selectedCohortData.summary.clientsChurned / selectedCohortData.summary.clientsAcquired) * 100).toFixed(0)}% of cohort (avg: ${benchmarks.avgChurnRate}%)`}
+                    subtitle={`${((selectedCohortData.summary.clientsChurned / selectedCohortData.summary.clientsAcquired) * 100).toFixed(0)}% of cohort`}
                     variant="negative"
                   />
                   <StatCard
@@ -290,7 +290,7 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
                   <StatCard
                     title="Avg Client Tenure"
                     value={`${selectedCohortData.summary.avgSessionsPerClient.toFixed(1)}`}
-                    subtitle={`sessions per client (avg: ${benchmarks.avgClientTenure})`}
+                    subtitle="sessions per client"
                   />
                 </Grid>
               </Section>

@@ -357,43 +357,23 @@ export const CohortSelector: React.FC<CohortSelectorProps> = ({
                       />
                     )}
 
-                    {/* Content with generous spacing */}
-                    <div className="relative space-y-5">
-                      {/* Cohort Label - Hero typography */}
-                      <div>
-                        <h3
-                          className={`text-2xl sm:text-3xl xl:text-3xl font-bold tracking-tight ${
-                            isSelected ? 'text-amber-800' : 'text-stone-900'
-                          }`}
-                          style={{ fontFamily: "'DM Serif Display', Georgia, serif", lineHeight: 1.1 }}
-                        >
-                          {cohort.label}
-                        </h3>
-                        {cohort.sublabel && (
-                          <p className={`text-base xl:text-lg mt-1.5 ${
-                            isSelected ? 'text-amber-700/70' : 'text-stone-500'
-                          }`}>
-                            {cohort.sublabel}
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Client count - The HERO number */}
-                      <div className="flex items-baseline gap-3">
-                        <span
-                          className={`text-4xl sm:text-5xl xl:text-5xl font-bold ${
-                            isSelected ? 'text-amber-700' : 'text-stone-800'
-                          }`}
-                          style={{ fontFamily: "'DM Serif Display', Georgia, serif", lineHeight: 1 }}
-                        >
-                          {cohort.clientCount.toLocaleString()}
-                        </span>
-                        <span className={`text-lg xl:text-xl font-medium ${
-                          isSelected ? 'text-amber-600/80' : 'text-stone-500'
+                    {/* Cohort Label */}
+                    <div className="relative">
+                      <h3
+                        className={`text-2xl sm:text-3xl xl:text-3xl font-bold tracking-tight ${
+                          isSelected ? 'text-amber-800' : 'text-stone-900'
+                        }`}
+                        style={{ fontFamily: "'DM Serif Display', Georgia, serif", lineHeight: 1.1 }}
+                      >
+                        {cohort.label}
+                      </h3>
+                      {cohort.sublabel && (
+                        <p className={`text-base xl:text-lg mt-1.5 ${
+                          isSelected ? 'text-amber-700/70' : 'text-stone-500'
                         }`}>
-                          clients
-                        </span>
-                      </div>
+                          {cohort.sublabel}
+                        </p>
+                      )}
                     </div>
 
                     {/* Hover overlay effect */}
