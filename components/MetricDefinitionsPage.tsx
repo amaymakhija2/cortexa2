@@ -330,7 +330,7 @@ export const MetricDefinitionsPage: React.FC = () => {
 
         {/* Save Button */}
         {hasChanges && (
-          <div className="fixed bottom-20 lg:bottom-8 left-0 right-0 px-4 z-40">
+          <div className="fixed bottom-20 lg:bottom-8 left-0 lg:left-[72px] right-0 px-4 sm:px-6 z-40">
             <div className="max-w-2xl mx-auto">
               <button
                 onClick={handleSave}
