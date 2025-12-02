@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Calendar, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Calendar, ChevronDown, ChevronLeft, ChevronRight, X, Check } from 'lucide-react';
 
 // =============================================================================
 // PAGE HEADER COMPONENT
@@ -80,12 +80,33 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   children,
 }) => {
   const accentConfig = ACCENT_COLORS[accent];
-  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [showCustomPicker, setShowCustomPicker] = useState(false);
   const [customStartMonth, setCustomStartMonth] = useState(0);
   const [customEndMonth, setCustomEndMonth] = useState(11);
   const [customYear, setCustomYear] = useState(new Date().getFullYear());
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+        setShowCustomPicker(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Get the current period label
+  const getCurrentPeriodLabel = () => {
+    if (timePeriod === 'custom') return formatCustomRange();
+    const period = timePeriods.find(p => p.id === timePeriod);
+    return period?.label || 'Select period';
+  };
 
   const formatCustomRange = () => {
     if (customStartMonth === customEndMonth) {
@@ -96,28 +117,37 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
 
   const applyCustomRange = () => {
     onTimePeriodChange?.('custom');
-    setShowDatePicker(false);
+    setShowCustomPicker(false);
+    setIsDropdownOpen(false);
+  };
+
+  const handlePeriodSelect = (periodId: TimePeriod) => {
+    onTimePeriodChange?.(periodId);
+    setIsDropdownOpen(false);
   };
 
   return (
     <div
-      className="relative overflow-hidden"
+      className="relative"
       style={{
         // Seamless continuation from UnifiedNavigation
         background: '#1a1816',
       }}
     >
-      {/* Primary glow accent - subtle and elegant */}
-      <div
-        className="absolute top-0 left-1/4 w-[500px] h-64 rounded-full opacity-[0.12] blur-3xl pointer-events-none"
-        style={{ background: `radial-gradient(ellipse, ${accentConfig.glow} 0%, transparent 70%)` }}
-      />
+      {/* Glow container - contains overflow */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* Primary glow accent - subtle and elegant */}
+        <div
+          className="absolute top-0 left-1/4 w-[500px] h-64 rounded-full opacity-[0.12] blur-3xl"
+          style={{ background: `radial-gradient(ellipse, ${accentConfig.glow} 0%, transparent 70%)` }}
+        />
 
-      {/* Secondary glow accent */}
-      <div
-        className="absolute bottom-0 right-1/3 w-80 h-48 rounded-full opacity-[0.08] blur-2xl pointer-events-none"
-        style={{ background: `radial-gradient(ellipse, ${accentConfig.glowSecondary} 0%, transparent 70%)` }}
-      />
+        {/* Secondary glow accent */}
+        <div
+          className="absolute bottom-0 right-1/3 w-80 h-48 rounded-full opacity-[0.08] blur-2xl"
+          style={{ background: `radial-gradient(ellipse, ${accentConfig.glowSecondary} 0%, transparent 70%)` }}
+        />
+      </div>
 
       <div className="relative px-6 sm:px-8 lg:px-12 py-8 lg:py-10">
         {/* Header row */}
@@ -140,146 +170,287 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Time Period Selector */}
+            {/* Time Period Selector - Sophisticated Dropdown */}
             {showTimePeriod && (
-              <div className="relative">
-                {/* Mobile: Select dropdown */}
-                <select
-                  value={timePeriod}
-                  onChange={(e) => onTimePeriodChange?.(e.target.value as TimePeriod)}
-                  className="lg:hidden px-3 py-2 rounded-xl border border-white/20 bg-white/10 text-sm font-medium text-white"
+              <div className="relative" ref={dropdownRef}>
+                {/* Dropdown Trigger Button */}
+                <button
+                  onClick={() => {
+                    setIsDropdownOpen(!isDropdownOpen);
+                    setShowCustomPicker(false);
+                  }}
+                  className="group flex items-center gap-3 px-5 py-3 rounded-2xl transition-all duration-300"
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.08)',
+                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                    boxShadow: isDropdownOpen
+                      ? '0 0 0 2px rgba(251, 191, 36, 0.3), 0 8px 32px rgba(0, 0, 0, 0.3)'
+                      : '0 2px 8px rgba(0, 0, 0, 0.15)',
+                  }}
                 >
-                  {timePeriods.map((period) => (
-                    <option key={period.id} value={period.id} className="text-stone-900">{period.label}</option>
-                  ))}
-                  <option value="custom" className="text-stone-900">Custom Range</option>
-                </select>
-
-                {/* Desktop: Button group */}
-                <div className="hidden lg:flex items-center gap-1 p-1 rounded-xl bg-white/10 backdrop-blur-sm">
-                  {timePeriods.map((period) => (
-                    <button
-                      key={period.id}
-                      onClick={() => onTimePeriodChange?.(period.id)}
-                      className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
-                        timePeriod === period.id
-                          ? 'bg-white text-stone-900 shadow-lg'
-                          : 'text-white/70 hover:text-white hover:bg-white/10'
-                      }`}
-                    >
-                      {period.label}
-                    </button>
-                  ))}
-                  {/* Custom Range Button */}
-                  <button
-                    onClick={() => setShowDatePicker(!showDatePicker)}
-                    className={`group px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 flex items-center gap-2 ${
-                      timePeriod === 'custom'
-                        ? 'bg-white text-stone-900 shadow-lg'
-                        : 'text-white/70 hover:text-white hover:bg-white/10'
-                    }`}
+                  <Calendar
+                    size={18}
+                    className="text-amber-400/80"
+                    strokeWidth={1.5}
+                  />
+                  <span
+                    className="text-white text-[15px] font-semibold tracking-[-0.01em]"
+                    style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                   >
-                    <Calendar
-                      size={16}
-                      className={`transition-transform duration-500 ${showDatePicker ? 'rotate-12' : 'group-hover:rotate-6'}`}
-                    />
-                    <span>{timePeriod === 'custom' ? formatCustomRange() : 'Custom'}</span>
-                  </button>
-                </div>
+                    {getCurrentPeriodLabel()}
+                  </span>
+                  <ChevronDown
+                    size={16}
+                    className={`text-stone-400 transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`}
+                    strokeWidth={2}
+                  />
+                </button>
 
-                {/* Custom Date Picker */}
-                {showDatePicker && (
+                {/* Dropdown Panel */}
+                {isDropdownOpen && !showCustomPicker && (
                   <div
-                    className="absolute top-full right-0 mt-3 z-[100000] rounded-2xl bg-white p-4 sm:p-6"
+                    className="absolute top-full right-0 mt-2 z-[100000] overflow-hidden"
                     style={{
-                      width: 'clamp(280px, 85vw, 380px)',
-                      maxWidth: 'calc(100vw - 32px)',
-                      boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05)',
+                      minWidth: '240px',
+                      background: 'linear-gradient(135deg, #292524 0%, #1c1917 100%)',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      borderRadius: '20px',
+                      boxShadow: '0 25px 60px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05)',
+                      animation: 'dropdownReveal 0.2s ease-out',
                     }}
                   >
-                    <div className="flex items-center justify-between mb-5">
-                      <h3 className="text-stone-900 text-lg font-semibold">Custom Range</h3>
-                      <button
-                        onClick={() => setShowDatePicker(false)}
-                        className="w-8 h-8 rounded-full flex items-center justify-center text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-colors"
-                      >
-                        <X size={18} />
-                      </button>
-                    </div>
+                    {/* Decorative top glow */}
+                    <div
+                      className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-16 opacity-30 pointer-events-none"
+                      style={{
+                        background: 'radial-gradient(ellipse at center top, #f59e0b 0%, transparent 70%)',
+                      }}
+                    />
 
-                    <div className="flex items-center justify-center gap-4 mb-5 pb-5 border-b border-stone-100">
-                      <button
-                        onClick={() => setCustomYear(prev => prev - 1)}
-                        className="w-9 h-9 rounded-full flex items-center justify-center text-stone-400 hover:text-stone-900 hover:bg-stone-100 transition-all"
-                      >
-                        <ChevronLeft size={20} />
-                      </button>
-                      <span
-                        className="text-stone-900 text-2xl font-bold tabular-nums w-20 text-center"
-                        style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-                      >
-                        {customYear}
-                      </span>
-                      <button
-                        onClick={() => setCustomYear(prev => prev + 1)}
-                        className="w-9 h-9 rounded-full flex items-center justify-center text-stone-400 hover:text-stone-900 hover:bg-stone-100 transition-all"
-                      >
-                        <ChevronRight size={20} />
-                      </button>
-                    </div>
-
-                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-4 sm:mb-5">
-                      {months.map((month, idx) => {
-                        const isStart = idx === customStartMonth;
-                        const isEnd = idx === customEndMonth;
-                        const isInRange = idx > customStartMonth && idx < customEndMonth;
-                        const isSelected = isStart || isEnd;
-
+                    <div className="relative py-2">
+                      {/* Time period options */}
+                      {timePeriods.map((period) => {
+                        const isSelected = timePeriod === period.id;
                         return (
                           <button
-                            key={month}
-                            onClick={() => {
-                              if (customStartMonth === customEndMonth) {
-                                if (idx < customStartMonth) setCustomStartMonth(idx);
-                                else if (idx > customStartMonth) setCustomEndMonth(idx);
-                              } else {
-                                setCustomStartMonth(idx);
-                                setCustomEndMonth(idx);
-                              }
+                            key={period.id}
+                            onClick={() => handlePeriodSelect(period.id)}
+                            className="w-full flex items-center justify-between px-5 py-3 transition-all duration-200 group/item"
+                            style={{
+                              background: isSelected
+                                ? 'linear-gradient(90deg, rgba(251, 191, 36, 0.15) 0%, transparent 100%)'
+                                : 'transparent',
                             }}
-                            className={`h-10 rounded-lg text-sm font-medium transition-all duration-200 ${
-                              isSelected
-                                ? 'bg-stone-900 text-white'
-                                : isInRange
-                                  ? 'bg-stone-100 text-stone-700'
-                                  : 'text-stone-600 hover:bg-stone-50'
-                            }`}
                           >
-                            {month}
+                            <span
+                              className={`text-[15px] font-medium transition-colors duration-200 ${
+                                isSelected
+                                  ? 'text-amber-300'
+                                  : 'text-stone-300 group-hover/item:text-white'
+                              }`}
+                            >
+                              {period.label}
+                            </span>
+                            {isSelected && (
+                              <Check size={16} className="text-amber-400" strokeWidth={2.5} />
+                            )}
                           </button>
                         );
                       })}
-                    </div>
 
-                    <div className="flex items-center justify-center gap-3 mb-5 py-3 px-4 rounded-xl bg-stone-50">
-                      <span className="text-stone-900 font-semibold">{months[customStartMonth]}</span>
-                      {customStartMonth !== customEndMonth && (
-                        <>
-                          <span className="text-stone-400">→</span>
-                          <span className="text-stone-900 font-semibold">{months[customEndMonth]}</span>
-                        </>
-                      )}
-                      <span className="text-stone-500">{customYear}</span>
-                    </div>
+                      {/* Divider */}
+                      <div className="mx-4 my-2 h-px bg-white/10" />
 
-                    <button
-                      onClick={applyCustomRange}
-                      className="w-full py-3 rounded-xl bg-stone-900 text-white font-semibold transition-all hover:bg-stone-800 active:scale-[0.98]"
-                    >
-                      Apply
-                    </button>
+                      {/* Custom Range Option */}
+                      <button
+                        onClick={() => setShowCustomPicker(true)}
+                        className="w-full flex items-center justify-between px-5 py-3 transition-all duration-200 group/item"
+                        style={{
+                          background: timePeriod === 'custom'
+                            ? 'linear-gradient(90deg, rgba(251, 191, 36, 0.15) 0%, transparent 100%)'
+                            : 'transparent',
+                        }}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Calendar size={16} className="text-stone-500 group-hover/item:text-amber-400 transition-colors" />
+                          <span
+                            className={`text-[15px] font-medium transition-colors duration-200 ${
+                              timePeriod === 'custom'
+                                ? 'text-amber-300'
+                                : 'text-stone-300 group-hover/item:text-white'
+                            }`}
+                          >
+                            {timePeriod === 'custom' ? formatCustomRange() : 'Custom Range'}
+                          </span>
+                        </div>
+                        {timePeriod === 'custom' && (
+                          <Check size={16} className="text-amber-400" strokeWidth={2.5} />
+                        )}
+                      </button>
+                    </div>
                   </div>
                 )}
+
+                {/* Custom Date Picker Panel */}
+                {showCustomPicker && (
+                  <div
+                    className="absolute top-full right-0 mt-2 z-[100000] overflow-hidden"
+                    style={{
+                      width: 'clamp(300px, 85vw, 360px)',
+                      background: 'linear-gradient(135deg, #292524 0%, #1c1917 100%)',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      borderRadius: '20px',
+                      boxShadow: '0 25px 60px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05)',
+                      animation: 'dropdownReveal 0.2s ease-out',
+                    }}
+                  >
+                    {/* Decorative top glow */}
+                    <div
+                      className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-20 opacity-25 pointer-events-none"
+                      style={{
+                        background: 'radial-gradient(ellipse at center top, #f59e0b 0%, transparent 70%)',
+                      }}
+                    />
+
+                    <div className="relative p-5">
+                      {/* Header with back button */}
+                      <div className="flex items-center justify-between mb-5">
+                        <button
+                          onClick={() => setShowCustomPicker(false)}
+                          className="flex items-center gap-2 text-stone-400 hover:text-white transition-colors"
+                        >
+                          <ChevronLeft size={18} />
+                          <span className="text-sm font-medium">Back</span>
+                        </button>
+                        <h3
+                          className="text-white text-lg font-semibold"
+                          style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                        >
+                          Custom Range
+                        </h3>
+                        <button
+                          onClick={() => {
+                            setShowCustomPicker(false);
+                            setIsDropdownOpen(false);
+                          }}
+                          className="w-8 h-8 rounded-full flex items-center justify-center text-stone-500 hover:text-white hover:bg-white/10 transition-all"
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+
+                      {/* Year selector */}
+                      <div className="flex items-center justify-center gap-4 mb-5 pb-5 border-b border-white/10">
+                        <button
+                          onClick={() => setCustomYear(prev => prev - 1)}
+                          className="w-10 h-10 rounded-full flex items-center justify-center text-stone-400 hover:text-white hover:bg-white/10 transition-all"
+                        >
+                          <ChevronLeft size={20} />
+                        </button>
+                        <span
+                          className="text-white text-3xl font-bold tabular-nums w-24 text-center"
+                          style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                        >
+                          {customYear}
+                        </span>
+                        <button
+                          onClick={() => setCustomYear(prev => prev + 1)}
+                          className="w-10 h-10 rounded-full flex items-center justify-center text-stone-400 hover:text-white hover:bg-white/10 transition-all"
+                        >
+                          <ChevronRight size={20} />
+                        </button>
+                      </div>
+
+                      {/* Month grid */}
+                      <div className="grid grid-cols-4 gap-2 mb-5">
+                        {months.map((month, idx) => {
+                          const isStart = idx === customStartMonth;
+                          const isEnd = idx === customEndMonth;
+                          const isInRange = idx > customStartMonth && idx < customEndMonth;
+                          const isSelected = isStart || isEnd;
+
+                          return (
+                            <button
+                              key={month}
+                              onClick={() => {
+                                if (customStartMonth === customEndMonth) {
+                                  if (idx < customStartMonth) setCustomStartMonth(idx);
+                                  else if (idx > customStartMonth) setCustomEndMonth(idx);
+                                } else {
+                                  setCustomStartMonth(idx);
+                                  setCustomEndMonth(idx);
+                                }
+                              }}
+                              className="h-11 rounded-xl text-sm font-semibold transition-all duration-200"
+                              style={{
+                                background: isSelected
+                                  ? 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)'
+                                  : isInRange
+                                    ? 'rgba(251, 191, 36, 0.15)'
+                                    : 'rgba(255, 255, 255, 0.05)',
+                                color: isSelected
+                                  ? '#1c1917'
+                                  : isInRange
+                                    ? '#fcd34d'
+                                    : '#a8a29e',
+                                boxShadow: isSelected
+                                  ? '0 2px 8px rgba(251, 191, 36, 0.3)'
+                                  : 'none',
+                              }}
+                            >
+                              {month}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Selected range display */}
+                      <div
+                        className="flex items-center justify-center gap-3 mb-5 py-3 px-4 rounded-xl"
+                        style={{
+                          background: 'rgba(255, 255, 255, 0.05)',
+                          border: '1px solid rgba(255, 255, 255, 0.08)',
+                        }}
+                      >
+                        <span className="text-amber-300 font-semibold">{months[customStartMonth]}</span>
+                        {customStartMonth !== customEndMonth && (
+                          <>
+                            <span className="text-stone-500">→</span>
+                            <span className="text-amber-300 font-semibold">{months[customEndMonth]}</span>
+                          </>
+                        )}
+                        <span className="text-stone-400">{customYear}</span>
+                      </div>
+
+                      {/* Apply button */}
+                      <button
+                        onClick={applyCustomRange}
+                        className="w-full py-3.5 rounded-xl font-semibold transition-all duration-300 active:scale-[0.98]"
+                        style={{
+                          background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 50%, #fcd34d 100%)',
+                          color: '#1c1917',
+                          boxShadow: '0 4px 16px rgba(251, 191, 36, 0.3)',
+                        }}
+                      >
+                        Apply Range
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* CSS Animation */}
+                <style>{`
+                  @keyframes dropdownReveal {
+                    from {
+                      opacity: 0;
+                      transform: translateY(-8px) scale(0.96);
+                    }
+                    to {
+                      opacity: 1;
+                      transform: translateY(0) scale(1);
+                    }
+                  }
+                `}</style>
               </div>
             )}
 

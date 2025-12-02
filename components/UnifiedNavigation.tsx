@@ -117,7 +117,7 @@ export const UnifiedNavigation: React.FC<UnifiedNavigationProps> = ({ onMobileMe
                     relative px-7 py-3.5 rounded-2xl text-[17px] font-bold tracking-[-0.01em] transition-all duration-300
                     ${isActive
                       ? 'text-white'
-                      : 'text-stone-500 hover:text-stone-300'
+                      : 'text-stone-300 hover:text-white'
                     }
                   `}
                   style={{
@@ -173,7 +173,7 @@ export const UnifiedNavigation: React.FC<UnifiedNavigationProps> = ({ onMobileMe
             ${isSubTabsVisible ? 'opacity-100' : 'opacity-0'}
           `}
           style={{
-            maxHeight: isSubTabsVisible ? '56px' : '0px',
+            maxHeight: isSubTabsVisible ? '68px' : '0px',
           }}
         >
           {/* Desktop Sub-tabs - matches primary nav structure for alignment */}
@@ -183,7 +183,7 @@ export const UnifiedNavigation: React.FC<UnifiedNavigationProps> = ({ onMobileMe
 
             {/* Center: Sub-tabs container */}
             <div
-              className="flex items-center justify-center gap-1 px-2 py-1.5 rounded-2xl"
+              className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-2xl"
               style={{
                 background: 'rgba(255, 255, 255, 0.06)',
                 border: '1px solid rgba(255, 255, 255, 0.08)',
@@ -198,7 +198,7 @@ export const UnifiedNavigation: React.FC<UnifiedNavigationProps> = ({ onMobileMe
                     key={tab.id}
                     onClick={() => handleSubTabChange(tab.id)}
                     className={`
-                      relative px-5 py-2.5 rounded-xl text-[15px] font-bold tracking-[-0.01em] transition-all duration-300
+                      relative px-6 py-3 rounded-xl text-[16px] font-bold tracking-[-0.01em] transition-all duration-300
                       ${isActive
                         ? 'text-stone-900'
                         : 'text-stone-300 hover:text-white hover:bg-white/[0.06]'
@@ -224,7 +224,7 @@ export const UnifiedNavigation: React.FC<UnifiedNavigationProps> = ({ onMobileMe
           </div>
 
           {/* Mobile Sub-tabs - Horizontal scroll */}
-          <div className="lg:hidden flex items-center justify-center gap-2 px-4 pt-0 pb-2.5 overflow-x-auto scrollbar-hide">
+          <div className="lg:hidden flex items-center justify-center gap-2 px-4 pt-0 pb-3 overflow-x-auto scrollbar-hide">
             {subTabs.map((tab) => {
               const isActive = currentSubTab === tab.id;
 
@@ -233,7 +233,7 @@ export const UnifiedNavigation: React.FC<UnifiedNavigationProps> = ({ onMobileMe
                   key={tab.id}
                   onClick={() => handleSubTabChange(tab.id)}
                   className={`
-                    px-5 py-2.5 rounded-xl text-[14px] font-bold whitespace-nowrap transition-all duration-300 flex-shrink-0
+                    px-5 py-3 rounded-xl text-[15px] font-bold whitespace-nowrap transition-all duration-300 flex-shrink-0
                     ${isActive
                       ? 'text-stone-900'
                       : 'text-stone-300'

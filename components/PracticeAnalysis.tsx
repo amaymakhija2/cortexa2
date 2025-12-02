@@ -507,7 +507,6 @@ export const PracticeAnalysis: React.FC = () => {
     { id: 'this-month', label: 'This Month' },
     { id: 'last-month', label: 'Last Month' },
     { id: '2024', label: '2024' },
-    { id: '2023', label: '2023' }
   ];
 
   // Get current date info for period calculations
