@@ -26,9 +26,6 @@ export const AdminTab: React.FC<BaseAnalysisTabProps> = ({
         timePeriod={timePeriod as any}
         timePeriods={timePeriods as any}
         onTimePeriodChange={onTimePeriodChange as any}
-        tabs={tabs.map((t) => ({ id: t.id, label: t.shortLabel }))}
-        activeTab={activeTab}
-        onTabChange={onTabChange}
       />
 
       <PageContent>

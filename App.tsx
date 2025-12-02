@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { LoginPage } from './components/LoginPage';
 import { Sidebar } from './components/Sidebar';
-import { Header } from './components/Header';
+import { UnifiedNavigation } from './components/UnifiedNavigation';
 import { BottomNav } from './components/BottomNav';
 import { Dashboard } from './components/Dashboard';
 import { PracticeAnalysis } from './components/PracticeAnalysis';
@@ -35,7 +35,7 @@ const ProtectedApp: React.FC = () => {
            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-orange-50/10 to-yellow-50/20"></div>
          </div>
          <div className="relative z-10 flex flex-col h-full">
-            <Header onMobileMenuOpen={() => setMobileMenuOpen(true)} />
+            <UnifiedNavigation onMobileMenuOpen={() => setMobileMenuOpen(true)} />
             {/* Main content area - add bottom padding for BottomNav on mobile/tablet */}
             <div className="flex-1 flex flex-col pb-16 lg:pb-0 overflow-auto">
               <Routes>

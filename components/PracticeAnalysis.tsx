@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { MetricChart } from './MetricChart';
 import { ResponsiveContainer, LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, LabelList, Legend, CartesianGrid, ReferenceLine, ComposedChart } from 'recharts';
 import { Info, X, ArrowRight, Calendar, ChevronLeft, ChevronRight, Maximize2, Minimize2, Users } from 'lucide-react';
@@ -457,7 +458,10 @@ const MONTH_MAP: { [key: string]: number } = {
 
 export const PracticeAnalysis: React.FC = () => {
   const isMobile = useIsMobile(1024);
-  const [activeTab, setActiveTab] = useState<TabType>('financial');
+  const [searchParams] = useSearchParams();
+
+  // Read active tab from URL search params (managed by UnifiedNavigation)
+  const activeTab = (searchParams.get('tab') || 'financial') as TabType;
   const [hoveredSessionValue, setHoveredSessionValue] = useState<number | null>(null);
   const [hoveredYTDValue, setHoveredYTDValue] = useState<number | null>(null);
   const [hoveredWeeklySessions, setHoveredWeeklySessions] = useState<number | null>(null);

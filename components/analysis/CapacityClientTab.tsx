@@ -239,9 +239,6 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
         timePeriod={timePeriod}
         timePeriods={timePeriods}
         onTimePeriodChange={onTimePeriodChange}
-        tabs={tabs.map((t) => ({ id: t.id, label: t.shortLabel }))}
-        activeTab={activeTab}
-        onTabChange={onTabChange}
       />
 
       <PageContent>

@@ -164,9 +164,6 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
         label="Detailed Analysis"
         title="Retention"
         subtitle="Understand how clients progress through their journey with your practice"
-        tabs={tabs.map((t) => ({ id: t.id, label: t.shortLabel }))}
-        activeTab={activeTab}
-        onTabChange={onTabChange}
       />
 
       <PageContent>

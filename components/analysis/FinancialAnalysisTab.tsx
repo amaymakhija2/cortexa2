@@ -360,9 +360,6 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
         timePeriod={timePeriod as any}
         onTimePeriodChange={onTimePeriodChange as any}
         timePeriods={timePeriods as any}
-        tabs={tabs.map((t) => ({ id: t.id, label: t.shortLabel }))}
-        activeTab={activeTab}
-        onTabChange={onTabChange}
       />
 
       <PageContent>
