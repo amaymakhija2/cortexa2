@@ -10,6 +10,7 @@ import { PracticeAnalysis } from './components/PracticeAnalysis';
 import { ClinicianOverview } from './components/ClinicianOverview';
 import { ClinicianDetails } from './components/ClinicianDetails';
 import { SettingsPage } from './components/SettingsPage';
+import { MetricDefinitionsPage } from './components/MetricDefinitionsPage';
 import { Reference as Components } from './components/design-system';
 
 const ProtectedApp: React.FC = () => {
@@ -46,6 +47,7 @@ const ProtectedApp: React.FC = () => {
                 <Route path="/clinician-details" element={<ClinicianDetails />} />
                 <Route path="/components" element={<Components />} />
                 <Route path="/settings" element={<SettingsPage />} />
+                <Route path="/settings/metric-definitions" element={<MetricDefinitionsPage />} />
               </Routes>
             </div>
             {/* Mobile Bottom Navigation */}

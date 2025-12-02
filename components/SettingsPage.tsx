@@ -1,16 +1,14 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   User,
   Shield,
   Bell,
-  Palette,
   HelpCircle,
   LogOut,
   ChevronRight,
-  Moon,
-  Sun,
   Check,
   Mail,
   Building2,
@@ -18,6 +16,7 @@ import {
   Globe,
   Camera,
   Sparkles,
+  Calculator,
 } from 'lucide-react';
 
 // ============================================================================
@@ -252,13 +251,12 @@ const LogoutModal: React.FC<LogoutModalProps> = ({ isOpen, onClose, onConfirm })
 
 export const SettingsPage: React.FC = () => {
   const { logout } = useAuth();
+  const navigate = useNavigate();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   // Settings state
   const [notifications, setNotifications] = useState(true);
   const [emailDigest, setEmailDigest] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
-  const [compactView, setCompactView] = useState(false);
 
   const handleLogout = () => {
     setShowLogoutModal(false);
@@ -370,8 +368,18 @@ export const SettingsPage: React.FC = () => {
 
           {/* Settings Sections */}
           <div className="space-y-6">
+            {/* Metric Definitions - Most important, first */}
+            <SettingsCard title="Data & Metrics" icon={Calculator} delay={0.2}>
+              <SettingRow
+                icon={Calculator}
+                label="Metric Definitions"
+                description="Customize how metrics are calculated"
+                onClick={() => navigate('/settings/metric-definitions')}
+              />
+            </SettingsCard>
+
             {/* Notifications */}
-            <SettingsCard title="Notifications" icon={Bell} delay={0.2}>
+            <SettingsCard title="Notifications" icon={Bell} delay={0.3}>
               <SettingRow
                 icon={Bell}
                 label="Push Notifications"
@@ -385,24 +393,6 @@ export const SettingsPage: React.FC = () => {
                 description="Weekly summary of practice insights"
               >
                 <ToggleSwitch enabled={emailDigest} onChange={setEmailDigest} />
-              </SettingRow>
-            </SettingsCard>
-
-            {/* Appearance */}
-            <SettingsCard title="Appearance" icon={Palette} delay={0.3}>
-              <SettingRow
-                icon={darkMode ? Moon : Sun}
-                label="Dark Mode"
-                description="Easier on the eyes in low light"
-              >
-                <ToggleSwitch enabled={darkMode} onChange={setDarkMode} />
-              </SettingRow>
-              <SettingRow
-                icon={Palette}
-                label="Compact View"
-                description="Show more data in less space"
-              >
-                <ToggleSwitch enabled={compactView} onChange={setCompactView} />
               </SettingRow>
             </SettingsCard>
 

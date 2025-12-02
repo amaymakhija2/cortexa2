@@ -21,7 +21,7 @@ export interface ExecutiveSummaryProps {
   headline: string;
   /** The detailed summary text - use **bold** for emphasis */
   summary: string;
-  /** Whether the summary starts expanded (default: true) */
+  /** Whether the summary starts expanded (default: false) */
   defaultExpanded?: boolean;
   /** Accent color theme */
   accent?: 'amber' | 'emerald' | 'rose' | 'indigo' | 'cyan';
@@ -111,7 +111,7 @@ const parseHighlightedText = (text: string, accentColor: string): React.ReactNod
 export const ExecutiveSummary: React.FC<ExecutiveSummaryProps> = ({
   headline,
   summary,
-  defaultExpanded = true,
+  defaultExpanded = false,
   accent = 'amber',
   className = '',
 }) => {
