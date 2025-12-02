@@ -149,7 +149,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
         />
       </div>
 
-      <div className="relative px-6 sm:px-8 lg:px-12 py-8 lg:py-10">
+      <div className="relative px-6 sm:px-8 lg:px-12 pt-4 pb-3 lg:pt-5 lg:pb-4">
         {/* Header row */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
           <div>

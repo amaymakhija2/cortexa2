@@ -731,6 +731,7 @@ export const PracticeAnalysis: React.FC = () => {
           revenueBreakdownData={REVENUE_BREAKDOWN_DATA}
           clinicianRevenueData={CLINICIAN_REVENUE_DATA}
           cohortLTVData={COHORT_LTV_DATA}
+          sessionsData={SESSIONS_DATA}
         />
       )}
 

@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { MetricsRow } from './MetricsRow';
 import { SimpleAlertCard } from './SimpleAlertCard';
 import { MonthPicker } from './MonthPicker';
+import { PageHeader } from './design-system';
 import { PracticeMetrics } from '../types';
 
 const FULL_MONTHS = [
@@ -292,83 +293,48 @@ export const Dashboard: React.FC = () => {
         {/* =============================================
             DARK HEADER SECTION
             ============================================= */}
-        <div
-          className="relative overflow-hidden flex-shrink-0"
-          style={{
-            background: 'linear-gradient(135deg, #1c1917 0%, #292524 50%, #1c1917 100%)'
-          }}
-        >
-          {/* Subtle grid pattern */}
-          <div
-            className="absolute inset-0 opacity-10"
-            style={{
-              backgroundImage: `linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
-                               linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px)`,
-              backgroundSize: '32px 32px'
-            }}
-          />
-
-          {/* Warm glow accent */}
-          <div
-            className="absolute top-0 left-1/4 w-96 h-96 rounded-full opacity-20 blur-3xl"
-            style={{ background: 'radial-gradient(circle, #f59e0b 0%, transparent 70%)' }}
-          />
-
-          <div className="relative px-6 sm:px-8 lg:px-12 py-8 lg:py-10">
-            {/* Header row */}
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
-              <div>
-                <p className="text-amber-500/80 text-sm font-semibold tracking-widest uppercase mb-2">
-                  Practice Overview
-                </p>
-                <h1
-                  className="text-4xl sm:text-5xl lg:text-6xl text-white tracking-tight"
-                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+        <PageHeader
+          accent="amber"
+          label="Practice Overview"
+          title={getTitle()}
+          actions={
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1 p-1 rounded-xl bg-white/10 backdrop-blur-sm">
+                <button
+                  onClick={() => setViewMode('live')}
+                  className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
+                    viewMode === 'live'
+                      ? 'bg-white text-stone-900 shadow-lg'
+                      : 'text-white/70 hover:text-white hover:bg-white/10'
+                  }`}
                 >
-                  {getTitle()}
-                </h1>
+                  Live
+                </button>
+                <button
+                  onClick={() => setViewMode('historical')}
+                  className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
+                    viewMode === 'historical'
+                      ? 'bg-white text-stone-900 shadow-lg'
+                      : 'text-white/70 hover:text-white hover:bg-white/10'
+                  }`}
+                >
+                  Historical
+                </button>
               </div>
 
-              {/* Live/Historical Toggle */}
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-1 p-1 rounded-xl bg-white/10 backdrop-blur-sm">
-                  <button
-                    onClick={() => setViewMode('live')}
-                    className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
-                      viewMode === 'live'
-                        ? 'bg-white text-stone-900 shadow-lg'
-                        : 'text-white/70 hover:text-white hover:bg-white/10'
-                    }`}
-                  >
-                    Live
-                  </button>
-                  <button
-                    onClick={() => setViewMode('historical')}
-                    className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
-                      viewMode === 'historical'
-                        ? 'bg-white text-stone-900 shadow-lg'
-                        : 'text-white/70 hover:text-white hover:bg-white/10'
-                    }`}
-                  >
-                    Historical
-                  </button>
-                </div>
-
-                {viewMode === 'historical' && (
-                  <MonthPicker
-                    selectedMonth={selectedMonth}
-                    selectedYear={selectedYear}
-                    onSelect={handleMonthSelect}
-                    minYear={2020}
-                    maxYear={new Date().getFullYear()}
-                    autoOpen={true}
-                  />
-                )}
-              </div>
+              {viewMode === 'historical' && (
+                <MonthPicker
+                  selectedMonth={selectedMonth}
+                  selectedYear={selectedYear}
+                  onSelect={handleMonthSelect}
+                  minYear={2020}
+                  maxYear={new Date().getFullYear()}
+                  autoOpen={true}
+                />
+              )}
             </div>
-
-          </div>
-        </div>
+          }
+        />
 
         {/* =============================================
             MAIN CONTENT AREA

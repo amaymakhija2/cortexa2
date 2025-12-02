@@ -56,6 +56,7 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
   revenueBreakdownData,
   clinicianRevenueData,
   cohortLTVData,
+  sessionsData,
 }) => {
   // =========================================================================
   // LOCAL STATE
@@ -118,6 +119,18 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
   const avgWeeklyRevenue = useMemo(
     () => avgMonthlyRevenue / 4.33,
     [avgMonthlyRevenue]
+  );
+
+  // Total completed sessions
+  const totalCompletedSessions = useMemo(
+    () => sessionsData?.reduce((sum, item) => sum + item.completed, 0) ?? 0,
+    [sessionsData]
+  );
+
+  // Average revenue per session
+  const avgRevenuePerSession = useMemo(
+    () => totalCompletedSessions > 0 ? totalGrossRevenue / totalCompletedSessions : 0,
+    [totalGrossRevenue, totalCompletedSessions]
   );
 
   // Best month
@@ -387,9 +400,9 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
               subtitle="months hit $150k goal"
             />
             <StatCard
-              title="Avg Revenue"
-              value={`${formatCurrencyShort(avgMonthlyRevenue)}/mo`}
-              subtitle={`${formatCurrencyShort(avgWeeklyRevenue)}/week`}
+              title="Avg Revenue Per Session"
+              value={`$${Math.round(avgRevenuePerSession)}`}
+              subtitle="across all completed sessions"
             />
           </AnimatedGrid>
         </Section>

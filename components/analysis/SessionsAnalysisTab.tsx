@@ -108,11 +108,10 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
     [sessionsData]
   );
 
-  // Non-billable cancel rate (client cancellations + clinician cancellations)
-  const nonBillableCancelRate = useMemo(() => {
-    const totalNonBillable = totalCancelled + totalClinicianCancelled;
+  // Client cancel rate (client cancellations only)
+  const clientCancelRate = useMemo(() => {
     const totalOutcomes = totalShow + totalCancelled + totalClinicianCancelled + totalLateCancelled + totalNoShow;
-    return totalOutcomes > 0 ? (totalNonBillable / totalOutcomes) * 100 : 0;
+    return totalOutcomes > 0 ? (totalCancelled / totalOutcomes) * 100 : 0;
   }, [totalShow, totalCancelled, totalClinicianCancelled, totalLateCancelled, totalNoShow]);
 
   // Secondary metrics
@@ -305,7 +304,7 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
         <Section spacing="md">
           <ExecutiveSummary
             headline="Sessions On Track, Monitor Cancellations"
-            summary={`Your practice completed **${totalCompleted.toLocaleString()} sessions** this period with a **${showRate.toFixed(1)}% show rate**. You hit the 700-session goal in **${monthsAtGoal} of ${sessionsData.length} months**. The non-billable cancellation rate stands at **${nonBillableCancelRate.toFixed(1)}%**—${nonBillableCancelRate <= 10 ? 'well within healthy range' : 'consider reviewing scheduling practices to reduce lost revenue'}.`}
+            summary={`Your practice completed **${totalCompleted.toLocaleString()} sessions** this period with a **${showRate.toFixed(1)}% show rate**. You hit the 700-session goal in **${monthsAtGoal} of ${sessionsData.length} months**. The client cancellation rate stands at **${clientCancelRate.toFixed(1)}%**—${clientCancelRate <= 15 ? 'within acceptable range' : 'consider reviewing scheduling practices to reduce lost revenue'}.`}
             accent="indigo"
           />
         </Section>
@@ -329,9 +328,9 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
               subtitle="months hit 700 goal"
             />
             <StatCard
-              title="Avg Non-Billable Cancel Rate"
-              value={`${nonBillableCancelRate.toFixed(1)}%`}
-              subtitle="Client + Clinician Cancellations"
+              title="Client Cancel Rate"
+              value={`${clientCancelRate.toFixed(1)}%`}
+              subtitle="of all scheduled sessions"
             />
           </AnimatedGrid>
         </Section>

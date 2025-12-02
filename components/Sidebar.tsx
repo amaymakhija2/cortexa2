@@ -195,6 +195,46 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen = false, setMob
           </nav>
         </div>
 
+        {/* Components (Design System) */}
+        <div
+          className="mb-1 transition-all duration-300"
+          style={{
+            paddingLeft: showLabels ? 12 : (COLLAPSED_WIDTH - ICON_BUTTON_SIZE) / 2,
+            paddingRight: showLabels ? 12 : (COLLAPSED_WIDTH - ICON_BUTTON_SIZE) / 2,
+          }}
+        >
+          <NavLink
+            to="/components"
+            onClick={() => setMobileMenuOpen?.(false)}
+            className={({ isActive }) =>
+              `flex items-center rounded-xl transition-all duration-200 w-full ${
+                isActive
+                  ? 'bg-gradient-to-r from-amber-100/90 to-orange-100/80 text-stone-900 shadow-md'
+                  : 'text-stone-400 hover:text-stone-200 hover:bg-white/5 active:bg-white/10'
+              }`
+            }
+            style={{
+              height: ICON_BUTTON_SIZE,
+              paddingLeft: showLabels ? 12 : 0,
+              paddingRight: showLabels ? 12 : 0,
+              justifyContent: showLabels ? 'flex-start' : 'center',
+              gap: showLabels ? 12 : 0,
+            }}
+            title={!showLabels ? 'Components' : undefined}
+          >
+            <Layers size={ICON_SIZE} className="flex-shrink-0" strokeWidth={1.5} />
+            <span
+              className="text-sm font-medium whitespace-nowrap overflow-hidden transition-all duration-300"
+              style={{
+                width: showLabels ? 'auto' : 0,
+                opacity: showLabels ? 1 : 0,
+              }}
+            >
+              Components
+            </span>
+          </NavLink>
+        </div>
+
         {/* Settings */}
         <div
           className="mb-2 transition-all duration-300"

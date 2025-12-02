@@ -168,6 +168,8 @@ export interface FinancialAnalysisTabProps extends BaseAnalysisTabProps {
   clinicianRevenueData: ClinicianRevenueDataPoint[];
   /** Cohort LTV comparison data (current year vs prior year) */
   cohortLTVData?: CohortLTVData;
+  /** Sessions data for calculating avg revenue per session */
+  sessionsData?: SessionsDataPoint[];
 }
 
 // =============================================================================
