@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Users, ArrowRight } from 'lucide-react';
+import { useSettings } from '../../context/SettingsContext';
 import {
   PageHeader,
   PageContent,
@@ -59,8 +60,9 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
   sessionsData,
 }) => {
   // =========================================================================
-  // LOCAL STATE
+  // LOCAL STATE & SETTINGS
   // =========================================================================
+  const { settings } = useSettings();
   const [showClinicianBreakdown, setShowClinicianBreakdown] = useState(false);
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const [hoveredClinicianBar, setHoveredClinicianBar] = useState<HoverInfo | null>(null);
@@ -383,17 +385,19 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
 
         {/* Hero Stats Row */}
         <Section spacing="md">
-          <AnimatedGrid cols={4} gap="md" staggerDelay={60}>
+          <AnimatedGrid cols={settings.showNetRevenueData ? 4 : 3} gap="md" staggerDelay={60}>
             <StatCard
               title="Total Gross Revenue"
               value={formatCurrency(totalGrossRevenue)}
               subtitle={`across ${revenueData.length} months`}
             />
-            <StatCard
-              title="Total Net Revenue"
-              value={formatCurrency(totalNetRevenue)}
-              subtitle={`${avgMargin.toFixed(1)}% avg margin`}
-            />
+            {settings.showNetRevenueData && (
+              <StatCard
+                title="Total Net Revenue"
+                value={formatCurrency(totalNetRevenue)}
+                subtitle={`${avgMargin.toFixed(1)}% avg margin`}
+              />
+            )}
             <StatCard
               title="Goal Achievement"
               value={`${monthsAtGoal}/${revenueData.length}`}
@@ -502,28 +506,81 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
               )}
             </ChartCard>
 
-            {/* Revenue Distribution Donut Chart */}
-            <DonutChartCard
-              title="Revenue Distribution"
-              subtitle={`Total across all ${revenueBreakdownData.length} months`}
-              segments={[
-                { label: 'Clinician Costs', value: totalClinicianCosts, color: '#3b82f6' },
-                { label: 'Supervisor Costs', value: totalSupervisorCosts, color: '#f59e0b' },
-                { label: 'CC Fees', value: totalCCFees, color: '#f43f5e' },
-                { label: 'Net Revenue', value: totalNetRevenue, color: '#10b981' },
-              ]}
-              centerLabel="Gross Revenue"
-              centerValue={formatCurrency(totalGrossRevenue)}
-              valueFormat="currency"
-              size="md"
-              expandable
-              onExpand={() => setExpandedCard('revenue-distribution')}
-            />
+            {/* Revenue Distribution Donut Chart (when net revenue enabled) */}
+            {settings.showNetRevenueData && (
+              <DonutChartCard
+                title="Revenue Distribution"
+                subtitle={`Total across all ${revenueBreakdownData.length} months`}
+                segments={[
+                  { label: 'Clinician Costs', value: totalClinicianCosts, color: '#3b82f6' },
+                  { label: 'Supervisor Costs', value: totalSupervisorCosts, color: '#f59e0b' },
+                  { label: 'CC Fees', value: totalCCFees, color: '#f43f5e' },
+                  { label: 'Net Revenue', value: totalNetRevenue, color: '#10b981' },
+                ]}
+                centerLabel="Gross Revenue"
+                centerValue={formatCurrency(totalGrossRevenue)}
+                valueFormat="currency"
+                size="md"
+                expandable
+                onExpand={() => setExpandedCard('revenue-distribution')}
+              />
+            )}
+
+            {/* Client Lifetime Value Chart (when net revenue disabled - shown alongside Revenue Performance) */}
+            {!settings.showNetRevenueData && (
+              <SimpleChartCard
+                title="Client Lifetime Value"
+                subtitle="Average revenue per client by months since first session"
+                metrics={[
+                  {
+                    value: '$3.6k',
+                    label: '2025',
+                    bgColor: '#ecfdf5',
+                    textColor: '#059669',
+                    isPrimary: true,
+                  },
+                  {
+                    value: '$4.4k',
+                    label: '2024',
+                    bgColor: '#eff6ff',
+                    textColor: '#2563eb',
+                    accentColor: '#3b82f6',
+                  },
+                ]}
+              >
+                <LineChart
+                  data={[
+                    { month: 'M0', currentYear: 479, priorYear: 499 },
+                    { month: 'M1', currentYear: 987, priorYear: 1046 },
+                    { month: 'M2', currentYear: 1532, priorYear: 1587 },
+                    { month: 'M3', currentYear: 2031, priorYear: 2084 },
+                    { month: 'M4', currentYear: 2456, priorYear: 2531 },
+                    { month: 'M5', currentYear: 2812, priorYear: 2789 },
+                    { month: 'M6', currentYear: 3057, priorYear: 3067 },
+                    { month: 'M7', currentYear: 3298, priorYear: 3312 },
+                    { month: 'M8', currentYear: 3489, priorYear: 3556 },
+                    { month: 'M9', currentYear: 3576, priorYear: 3800 },
+                  ]}
+                  xAxisKey="month"
+                  lines={[
+                    { dataKey: 'currentYear', color: '#10b981', activeColor: '#059669', name: '2025' },
+                    { dataKey: 'priorYear', color: '#3b82f6', activeColor: '#2563eb', name: '2024' },
+                  ]}
+                  yDomain={[0, 5000]}
+                  yTickFormatter={(v) => `$${(v / 1000).toFixed(1)}k`}
+                  tooltipFormatter={(value: number, name: string) => [
+                    `$${value.toLocaleString()}`,
+                    name,
+                  ]}
+                />
+              </SimpleChartCard>
+            )}
             </Grid>
           </Section>
         </AnimatedSection>
 
         {/* Margin & Cost Trend Charts */}
+        {settings.showNetRevenueData && (
         <AnimatedSection delay={380}>
           <Section spacing="md">
             <Grid cols={2} gap="lg">
@@ -611,8 +668,10 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
             </Grid>
           </Section>
         </AnimatedSection>
+        )}
 
-        {/* Client Lifetime Value Chart */}
+        {/* Client Lifetime Value Chart (when net revenue enabled - shown in its own row) */}
+        {settings.showNetRevenueData && (
         <AnimatedSection delay={430}>
           <Section spacing="md">
             <Grid cols={2} gap="lg">
@@ -665,8 +724,10 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
             </Grid>
           </Section>
         </AnimatedSection>
+        )}
 
         {/* Breakdown Table */}
+        {settings.showNetRevenueData && (
         <AnimatedSection delay={480}>
           <Section spacing="none">
             <DataTableCard
@@ -679,6 +740,7 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
             />
           </Section>
         </AnimatedSection>
+        )}
       </PageContent>
 
       {/* Expanded Modals using centralized ExpandedChartModal */}
@@ -746,40 +808,44 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
         )}
       </ExpandedChartModal>
 
-      <ExpandedChartModal
-        isOpen={expandedCard === 'revenue-distribution'}
-        onClose={() => setExpandedCard(null)}
-        title="Revenue Distribution"
-        subtitle={`Cost breakdown across ${revenueBreakdownData.length} months`}
-      >
-        <DonutChartCard
-          title=""
-          segments={[
-            { label: 'Clinician Costs', value: totalClinicianCosts, color: '#3b82f6' },
-            { label: 'Supervisor Costs', value: totalSupervisorCosts, color: '#f59e0b' },
-            { label: 'CC Fees', value: totalCCFees, color: '#f43f5e' },
-            { label: 'Net Revenue', value: totalNetRevenue, color: '#10b981' },
-          ]}
-          centerLabel="Gross Revenue"
-          centerValue={formatCurrency(totalGrossRevenue)}
-          valueFormat="currency"
-          size="lg"
-        />
-      </ExpandedChartModal>
+      {settings.showNetRevenueData && (
+        <ExpandedChartModal
+          isOpen={expandedCard === 'revenue-distribution'}
+          onClose={() => setExpandedCard(null)}
+          title="Revenue Distribution"
+          subtitle={`Cost breakdown across ${revenueBreakdownData.length} months`}
+        >
+          <DonutChartCard
+            title=""
+            segments={[
+              { label: 'Clinician Costs', value: totalClinicianCosts, color: '#3b82f6' },
+              { label: 'Supervisor Costs', value: totalSupervisorCosts, color: '#f59e0b' },
+              { label: 'CC Fees', value: totalCCFees, color: '#f43f5e' },
+              { label: 'Net Revenue', value: totalNetRevenue, color: '#10b981' },
+            ]}
+            centerLabel="Gross Revenue"
+            centerValue={formatCurrency(totalGrossRevenue)}
+            valueFormat="currency"
+            size="lg"
+          />
+        </ExpandedChartModal>
+      )}
 
-      <ExpandedChartModal
-        isOpen={expandedCard === 'breakdown-table'}
-        onClose={() => setExpandedCard(null)}
-        title="Full Breakdown"
-        subtitle="Monthly revenue, costs, and net revenue details"
-      >
-        <DataTableCard
-          title=""
-          columns={buildTableColumns()}
-          rows={buildTableRows()}
-          size="lg"
-        />
-      </ExpandedChartModal>
+      {settings.showNetRevenueData && (
+        <ExpandedChartModal
+          isOpen={expandedCard === 'breakdown-table'}
+          onClose={() => setExpandedCard(null)}
+          title="Full Breakdown"
+          subtitle="Monthly revenue, costs, and net revenue details"
+        >
+          <DataTableCard
+            title=""
+            columns={buildTableColumns()}
+            rows={buildTableRows()}
+            size="lg"
+          />
+        </ExpandedChartModal>
+      )}
     </div>
   );
 };

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useSettings } from '../context/SettingsContext';
 import {
   User,
   Shield,
@@ -17,6 +18,7 @@ import {
   Camera,
   Sparkles,
   Calculator,
+  DollarSign,
 } from 'lucide-react';
 
 // ============================================================================
@@ -251,6 +253,7 @@ const LogoutModal: React.FC<LogoutModalProps> = ({ isOpen, onClose, onConfirm })
 
 export const SettingsPage: React.FC = () => {
   const { logout } = useAuth();
+  const { settings, updateSettings } = useSettings();
   const navigate = useNavigate();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
@@ -376,6 +379,16 @@ export const SettingsPage: React.FC = () => {
                 description="Customize how metrics are calculated"
                 onClick={() => navigate('/settings/metric-definitions')}
               />
+              <SettingRow
+                icon={DollarSign}
+                label="Show Net Revenue Data"
+                description="Display net revenue, margins, and cost breakdowns"
+              >
+                <ToggleSwitch
+                  enabled={settings.showNetRevenueData}
+                  onChange={(enabled) => updateSettings({ showNetRevenueData: enabled })}
+                />
+              </SettingRow>
             </SettingsCard>
 
             {/* Notifications */}

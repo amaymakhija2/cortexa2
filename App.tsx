@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { SettingsProvider } from './context/SettingsContext';
 import { LoginPage } from './components/LoginPage';
 import { Sidebar } from './components/Sidebar';
 import { UnifiedNavigation } from './components/UnifiedNavigation';
@@ -62,7 +63,9 @@ const App: React.FC = () => {
   return (
     <Router>
       <AuthProvider>
-        <ProtectedApp />
+        <SettingsProvider>
+          <ProtectedApp />
+        </SettingsProvider>
       </AuthProvider>
     </Router>
   );
