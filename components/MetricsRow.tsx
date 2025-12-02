@@ -71,23 +71,23 @@ const parseClientNumbers = (subtext: string): { newClients: number; churned: num
 const METRIC_TOOLTIPS: Record<string, { title: string; description: string }> = {
   'Revenue': {
     title: 'Revenue',
-    description: 'Total money collected this month toward your monthly goal.'
+    description: 'Total money collected this month toward your monthly revenue goal.'
   },
   'Sessions': {
     title: 'Completed Sessions',
-    description: 'Sessions completed this month. Utilization is the percentage of your session goal achieved.'
+    description: 'The number of sessions completed for the selected time frame. Session Goal % shows completed sessions as a percentage of your session goal.'
   },
   'Clients': {
     title: 'Active Clients',
-    description: 'Clients active in SimplePractice. Discharged clients are no longer active. Openings shows how many new clients you can take on.'
+    description: 'Clients whose status is active in SimplePractice (not discharged). Openings shows the number of client openings that clinicians can take on.'
   },
   'Attendance': {
     title: 'Rebook Rate',
-    description: 'Percentage of active clients with their next session scheduled. Non-billable cancel rate is client and clinician cancellations combined.'
+    description: 'The percentage of active clients that have their next appointment scheduled. Client Cancel Rate shows the percentage of booked sessions canceled by clients.'
   },
   'Outstanding Notes': {
     title: 'Outstanding Notes',
-    description: 'Sessions with overdue notes. Overdue notes delay billing and create compliance risk.'
+    description: 'The total number of sessions that have overdue notes based on your practice\'s note completion deadline.'
   }
 };
 

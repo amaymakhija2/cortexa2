@@ -39,7 +39,7 @@ const LIVE_METRICS: PracticeMetrics = {
     label: "Attendance",
     value: "68%",
     valueLabel: "rebook rate",
-    subtext: "10.9% non-billable cancel rate",
+    subtext: "9.0% client cancel rate",
     status: "Needs attention"
   },
   compliance: {
@@ -57,49 +57,49 @@ const HISTORICAL_METRICS: Record<string, PracticeMetrics> = {
     revenue: { label: "Revenue", value: "$148.2k", valueLabel: "", subtext: "$155.0k goal, 96% achieved", status: "Needs attention" },
     sessions: { label: "Sessions", value: "672", valueLabel: "completed", subtext: "79% of goal", status: "Healthy" },
     clientGrowth: { label: "Clients", value: "149", valueLabel: "active", subtext: "+12 new · -4 discharged", status: "Healthy" },
-    attendance: { label: "Attendance", value: "71%", valueLabel: "rebook rate", subtext: "9.6% non-billable cancel rate", status: "Healthy" },
+    attendance: { label: "Attendance", value: "71%", valueLabel: "rebook rate", subtext: "8.0% client cancel rate", status: "Healthy" },
     compliance: { label: "Outstanding Notes", value: "0", valueLabel: "overdue notes", subtext: "Goal achieved", status: "Healthy" }
   },
   '2025-9': { // September 2025
     revenue: { label: "Revenue", value: "$142.8k", valueLabel: "", subtext: "$150.0k goal, 95% achieved", status: "Needs attention" },
     sessions: { label: "Sessions", value: "645", valueLabel: "completed", subtext: "76% of goal", status: "Healthy" },
     clientGrowth: { label: "Clients", value: "141", valueLabel: "active", subtext: "+8 new · -6 discharged", status: "Needs attention" },
-    attendance: { label: "Attendance", value: "74%", valueLabel: "rebook rate", subtext: "8.0% non-billable cancel rate", status: "Healthy" },
+    attendance: { label: "Attendance", value: "74%", valueLabel: "rebook rate", subtext: "6.6% client cancel rate", status: "Healthy" },
     compliance: { label: "Outstanding Notes", value: "3", valueLabel: "overdue notes", subtext: "Goal: 0 · 2 clinicians affected", status: "Needs attention" }
   },
   '2025-8': { // August 2025
     revenue: { label: "Revenue", value: "$138.5k", valueLabel: "", subtext: "$145.0k goal, 96% achieved", status: "Needs attention" },
     sessions: { label: "Sessions", value: "628", valueLabel: "completed", subtext: "74% of goal", status: "Healthy" },
     clientGrowth: { label: "Clients", value: "139", valueLabel: "active", subtext: "+15 new · -3 discharged", status: "Healthy" },
-    attendance: { label: "Attendance", value: "69%", valueLabel: "rebook rate", subtext: "11.3% non-billable cancel rate", status: "Needs attention" },
+    attendance: { label: "Attendance", value: "69%", valueLabel: "rebook rate", subtext: "9.4% client cancel rate", status: "Needs attention" },
     compliance: { label: "Outstanding Notes", value: "5", valueLabel: "overdue notes", subtext: "Goal: 0 · 2 clinicians affected", status: "Needs attention" }
   },
   '2025-7': { // July 2025
     revenue: { label: "Revenue", value: "$125.3k", valueLabel: "", subtext: "$140.0k goal, 90% achieved", status: "Critical" },
     sessions: { label: "Sessions", value: "584", valueLabel: "completed", subtext: "69% of goal", status: "Needs attention" },
     clientGrowth: { label: "Clients", value: "127", valueLabel: "active", subtext: "+6 new · -8 discharged", status: "Critical" },
-    attendance: { label: "Attendance", value: "65%", valueLabel: "rebook rate", subtext: "14.6% non-billable cancel rate", status: "Critical" },
+    attendance: { label: "Attendance", value: "65%", valueLabel: "rebook rate", subtext: "12.1% client cancel rate", status: "Critical" },
     compliance: { label: "Outstanding Notes", value: "8", valueLabel: "overdue notes", subtext: "Goal: 0 · 4 clinicians affected", status: "Critical" }
   },
   '2025-6': { // June 2025
     revenue: { label: "Revenue", value: "$132.1k", valueLabel: "", subtext: "$135.0k goal, 98% achieved", status: "Healthy" },
     sessions: { label: "Sessions", value: "612", valueLabel: "completed", subtext: "72% utilization", status: "Healthy" },
     clientGrowth: { label: "Clients", value: "129", valueLabel: "active", subtext: "+11 new · -5 discharged", status: "Healthy" },
-    attendance: { label: "Attendance", value: "72%", valueLabel: "rebook rate", subtext: "9.0% non-billable cancel rate", status: "Healthy" },
+    attendance: { label: "Attendance", value: "72%", valueLabel: "rebook rate", subtext: "7.5% client cancel rate", status: "Healthy" },
     compliance: { label: "Outstanding Notes", value: "2", valueLabel: "overdue notes", subtext: "Goal: 0 · 1 clinician affected", status: "Needs attention" }
   },
   '2024-11': { // November 2024
     revenue: { label: "Revenue", value: "$118.7k", valueLabel: "", subtext: "$125.0k goal, 95% achieved", status: "Needs attention" },
     sessions: { label: "Sessions", value: "548", valueLabel: "completed", subtext: "65% utilization", status: "Needs attention" },
     clientGrowth: { label: "Clients", value: "112", valueLabel: "active", subtext: "+9 new · -7 discharged", status: "Needs attention" },
-    attendance: { label: "Attendance", value: "70%", valueLabel: "rebook rate", subtext: "11.0% non-billable cancel rate", status: "Healthy" },
+    attendance: { label: "Attendance", value: "70%", valueLabel: "rebook rate", subtext: "9.1% client cancel rate", status: "Healthy" },
     compliance: { label: "Outstanding Notes", value: "6", valueLabel: "overdue notes", subtext: "Goal: 0 · 3 clinicians affected", status: "Critical" }
   },
   '2024-10': { // October 2024
     revenue: { label: "Revenue", value: "$115.2k", valueLabel: "", subtext: "$120.0k goal, 96% achieved", status: "Needs attention" },
     sessions: { label: "Sessions", value: "532", valueLabel: "completed", subtext: "63% utilization", status: "Needs attention" },
     clientGrowth: { label: "Clients", value: "110", valueLabel: "active", subtext: "+7 new · -4 discharged", status: "Healthy" },
-    attendance: { label: "Attendance", value: "73%", valueLabel: "rebook rate", subtext: "9.0% non-billable cancel rate", status: "Healthy" },
+    attendance: { label: "Attendance", value: "73%", valueLabel: "rebook rate", subtext: "7.5% client cancel rate", status: "Healthy" },
     compliance: { label: "Outstanding Notes", value: "4", valueLabel: "overdue notes", subtext: "Goal: 0 · 2 clinicians affected", status: "Needs attention" }
   }
 };
@@ -144,7 +144,7 @@ const getMetricsForMonth = (month: number, year: number): PracticeMetrics => {
       label: "Attendance",
       value: `${Math.floor(65 + Math.random() * 15)}%`,
       valueLabel: "rebook rate",
-      subtext: `${cancelRate}% non-billable cancel rate`,
+      subtext: `${cancelRate}% client cancel rate`,
       status: Math.random() > 0.6 ? "Healthy" : "Needs attention"
     },
     compliance: {
