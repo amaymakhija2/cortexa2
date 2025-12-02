@@ -298,10 +298,6 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
         label="Detailed Analysis"
         title="Sessions Performance"
         subtitle={getDateRangeLabel()}
-        showTimePeriod
-        timePeriod={timePeriod}
-        timePeriods={timePeriods}
-        onTimePeriodChange={onTimePeriodChange}
       />
 
       <PageContent>
@@ -325,7 +321,7 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
             <StatCard
               title="Total Booked"
               value={totalBooked.toLocaleString()}
-              subtitle={`${showRate.toFixed(1)}% show rate`}
+              subtitle={`across ${sessionsData.length} months`}
             />
             <StatCard
               title="Goal Achievement"
@@ -447,9 +443,9 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
                 subtitle="sessions per active client per month"
               />
               <StatCard
-                title="Avg Sessions"
-                value={`${avgMonthlyCompleted.toLocaleString()}/mo`}
-                subtitle={`${avgWeeklyCompleted}/week`}
+                title="Avg Completed Sessions"
+                value={`${avgWeeklyCompleted}/week`}
+                subtitle="across all clinicians"
               />
               <SplitBarCard
                 title="Session Modality"

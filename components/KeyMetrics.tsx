@@ -510,7 +510,228 @@ const HeroMetricCard: React.FC<HeroMetricCardProps> = ({ data, type, sparklineDa
 };
 
 // -----------------------------------------------------------------------------
-// SUPPORTING METRIC CARD - For Clients, Attendance, Compliance
+// CLIENTS METRIC CARD - Expandable card for client growth data
+// -----------------------------------------------------------------------------
+
+interface ClientsMetricCardProps {
+  data: MetricDetail;
+  index: number;
+}
+
+// Helper to parse client numbers from subtext
+const parseClientNumbers = (subtext: string): { newClients: number; churned: number; openings: string | null } => {
+  // Patterns: "17 new, 5 discharged · 18 openings" or "+12 new · -4 discharged"
+  const newMatch = subtext.match(/\+?(\d+)\s*new/i);
+  const churnedMatch = subtext.match(/-?(\d+)\s*(?:discharged|churned)/i);
+  const openingsMatch = subtext.match(/(\d+\s*openings)/i);
+
+  return {
+    newClients: newMatch ? parseInt(newMatch[1], 10) : 0,
+    churned: churnedMatch ? parseInt(churnedMatch[1], 10) : 0,
+    openings: openingsMatch ? openingsMatch[1] : null,
+  };
+};
+
+const ClientsMetricCard: React.FC<ClientsMetricCardProps> = ({ data, index }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const tooltip = getMetricTooltip(data.label);
+  const statusConfig = STATUS_CONFIG[data.status];
+
+  const { newClients, churned, openings } = parseClientNumbers(data.subtext);
+
+  return (
+    <div
+      className="clients-metric-card relative"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      style={{
+        animationDelay: `${(index + 2) * 100}ms`,
+      }}
+    >
+      {/* Main Card */}
+      <div
+        className={`relative overflow-hidden transition-all duration-500 ease-out ${
+          isExpanded ? 'rounded-t-[24px]' : 'rounded-[24px]'
+        }`}
+        style={{
+          background: 'linear-gradient(145deg, #ffffff 0%, #fafaf9 100%)',
+          boxShadow: isHovered
+            ? `0 16px 32px -8px rgba(0, 0, 0, 0.12),
+               0 4px 8px -4px rgba(0, 0, 0, 0.06),
+               0 0 0 1px rgba(0, 0, 0, 0.04),
+               inset 0 1px 0 rgba(255, 255, 255, 0.8)`
+            : `0 6px 16px -6px rgba(0, 0, 0, 0.06),
+               0 2px 4px -2px rgba(0, 0, 0, 0.03),
+               0 0 0 1px rgba(0, 0, 0, 0.02),
+               inset 0 1px 0 rgba(255, 255, 255, 0.6)`,
+          transform: isHovered && !isExpanded ? 'translateY(-2px)' : 'translateY(0)',
+        }}
+      >
+        {/* Accent line */}
+        <div
+          className="h-0.5 transition-all duration-400"
+          style={{
+            background: statusConfig.gradient,
+            opacity: isHovered ? 1 : 0.7,
+          }}
+        />
+
+        <div className="p-5 sm:p-6">
+          {/* Header */}
+          <div className="flex items-start justify-between mb-4">
+            <span className="text-xs font-bold text-stone-500 uppercase tracking-[0.12em]">
+              {data.label}
+            </span>
+            <Tooltip title={tooltip.title} description={tooltip.description} />
+          </div>
+
+          {/* Value */}
+          <div className="mb-3">
+            <span
+              className="text-3xl sm:text-4xl text-stone-900 tracking-tight font-bold"
+              style={{
+                fontFamily: "'DM Serif Display', Georgia, serif",
+                lineHeight: 1,
+              }}
+            >
+              {data.value}
+            </span>
+            {data.valueLabel && (
+              <span className="text-base text-stone-400 ml-2 font-medium">
+                {data.valueLabel}
+              </span>
+            )}
+          </div>
+
+          {/* Subtext - only show openings, not new/churned */}
+          <p className="text-sm text-stone-500 leading-relaxed mb-4 min-h-[20px]">
+            {openings || 'Client capacity available'}
+          </p>
+
+          {/* Footer with Status and Expand Button */}
+          <div
+            className="pt-4 border-t flex items-center justify-between"
+            style={{ borderColor: 'rgba(0, 0, 0, 0.05)' }}
+          >
+            <StatusIndicator status={data.status} />
+
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="group flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-300"
+              style={{
+                background: isExpanded
+                  ? 'linear-gradient(135deg, #1c1917 0%, #292524 100%)'
+                  : 'linear-gradient(135deg, #f5f5f4 0%, #e7e5e4 100%)',
+                boxShadow: isExpanded
+                  ? '0 4px 12px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+                  : '0 2px 6px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
+              }}
+            >
+              <span
+                className={`text-xs font-semibold transition-colors duration-300 ${
+                  isExpanded ? 'text-white' : 'text-stone-600'
+                }`}
+              >
+                {isExpanded ? 'Collapse' : 'Details'}
+              </span>
+              <ChevronRight
+                size={14}
+                className={`transition-all duration-300 ${
+                  isExpanded ? 'text-white rotate-90' : 'text-stone-500'
+                }`}
+              />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Expandable Panel */}
+      <div
+        className={`overflow-hidden transition-all duration-500 ease-out ${
+          isExpanded ? 'max-h-48 opacity-100' : 'max-h-0 opacity-0'
+        }`}
+      >
+        <div
+          className="rounded-b-[24px] p-5 sm:p-6"
+          style={{
+            background: 'linear-gradient(180deg, #fafaf9 0%, #ffffff 100%)',
+            boxShadow: `0 16px 32px -8px rgba(0, 0, 0, 0.08),
+                        0 0 0 1px rgba(0, 0, 0, 0.02),
+                        inset 0 1px 0 rgba(0, 0, 0, 0.02)`,
+          }}
+        >
+          <div className="space-y-4">
+            {/* New Clients */}
+            <div className="flex items-center gap-4">
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center"
+                style={{
+                  background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)',
+                }}
+              >
+                <ArrowUpRight size={20} className="text-emerald-600" />
+              </div>
+              <div className="flex-1">
+                <p
+                  className="text-lg font-bold text-stone-900"
+                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  {newClients} New Clients This Month
+                </p>
+              </div>
+            </div>
+
+            {/* Churned Clients */}
+            <div className="flex items-center gap-4">
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center"
+                style={{
+                  background: 'linear-gradient(135deg, #fef2f2 0%, #fecaca 100%)',
+                }}
+              >
+                <ArrowDownRight size={20} className="text-rose-600" />
+              </div>
+              <div className="flex-1">
+                <p
+                  className="text-lg font-bold text-stone-900"
+                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  {churned} Clients Churned This Month
+                </p>
+              </div>
+            </div>
+
+            {/* Net Change Summary */}
+            <div
+              className="pt-4 border-t"
+              style={{ borderColor: 'rgba(0, 0, 0, 0.06)' }}
+            >
+              <p className="text-sm text-stone-500">
+                <span
+                  className={`font-bold ${newClients - churned >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}
+                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  {newClients - churned >= 0 ? '+' : ''}{newClients - churned} net
+                </span>
+                {' client growth this month'}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <style>{`
+        .clients-metric-card {
+          animation: supportingCardFadeIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+      `}</style>
+    </div>
+  );
+};
+
+// -----------------------------------------------------------------------------
+// SUPPORTING METRIC CARD - For Attendance, Compliance
 // -----------------------------------------------------------------------------
 
 interface SupportingMetricCardProps {
@@ -659,7 +880,7 @@ export const KeyMetrics: React.FC<KeyMetricsProps> = ({ metrics, isLive = true }
           />
         </div>
         <div className="snap-start flex-shrink-0 w-[280px] sm:w-[300px]">
-          <SupportingMetricCard data={metrics.clientGrowth} index={0} />
+          <ClientsMetricCard data={metrics.clientGrowth} index={0} />
         </div>
         <div className="snap-start flex-shrink-0 w-[280px] sm:w-[300px]">
           <SupportingMetricCard data={metrics.attendance} index={1} />
@@ -689,7 +910,7 @@ export const KeyMetrics: React.FC<KeyMetricsProps> = ({ metrics, isLive = true }
 
         {/* Supporting Cards - Stacked on right */}
         <div className="col-span-3 xl:col-span-4 flex flex-col gap-4 xl:gap-5">
-          <SupportingMetricCard data={metrics.clientGrowth} index={0} />
+          <ClientsMetricCard data={metrics.clientGrowth} index={0} />
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 xl:gap-5">
             <SupportingMetricCard data={metrics.attendance} index={1} />
             <SupportingMetricCard data={metrics.compliance} index={2} />

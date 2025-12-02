@@ -22,10 +22,6 @@ export const AdminTab: React.FC<BaseAnalysisTabProps> = ({
         label="Detailed Analysis"
         title="Admin"
         subtitle={getDateRangeLabel()}
-        showTimePeriod
-        timePeriod={timePeriod as any}
-        timePeriods={timePeriods as any}
-        onTimePeriodChange={onTimePeriodChange as any}
       />
 
       <PageContent>

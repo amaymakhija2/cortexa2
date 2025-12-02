@@ -24,7 +24,7 @@ const LIVE_METRICS: PracticeMetrics = {
     label: "Sessions",
     value: "698",
     valueLabel: "completed",
-    subtext: "82% of goal",
+    subtext: "Goal: 850 · 82% of monthly goal",
     status: "Healthy"
   },
   clientGrowth: {

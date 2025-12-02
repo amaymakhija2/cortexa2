@@ -469,7 +469,6 @@ export const PracticeAnalysis: React.FC = () => {
   const [hoveredUtilization, setHoveredUtilization] = useState<number | null>(null);
   const [hoveredOpenSlots, setHoveredOpenSlots] = useState<number | null>(null);
   const [hoveredHoursUtilization, setHoveredHoursUtilization] = useState<number | null>(null);
-  const [timePeriod, setTimePeriod] = useState<TimePeriod>('last-12-months');
   const [hoveredDonutSegment, setHoveredDonutSegment] = useState<{ label: string; value: number; percent: number; color: string } | null>(null);
   const [showClinicianBreakdown, setShowClinicianBreakdown] = useState(false);
   const [showSessionsClinicianBreakdown, setShowSessionsClinicianBreakdown] = useState(false);
@@ -482,11 +481,18 @@ export const PracticeAnalysis: React.FC = () => {
   // Expanded chart card state
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
 
+  // Read time period from URL (managed by UnifiedNavigation)
+  const timePeriod = (searchParams.get('period') || 'last-12-months') as TimePeriod;
+  const setTimePeriod = (period: TimePeriod) => {
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set('period', period);
+    // Note: This is kept for compatibility but the primary control is in UnifiedNavigation
+  };
+
   // Custom Date Picker State - Simplified
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const [customStartMonth, setCustomStartMonth] = useState<number>(0);
   const [customEndMonth, setCustomEndMonth] = useState<number>(11);
-  const [customYear, setCustomYear] = useState<number>(2024);
+  const [customYear] = useState<number>(2024);
   const [customStartYear] = useState<number>(2024); // For compatibility
   const [customEndYear] = useState<number>(2024); // For compatibility
 
@@ -597,20 +603,6 @@ export const PracticeAnalysis: React.FC = () => {
     }
   };
 
-  // Format custom date range for display
-  const formatCustomRange = () => {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    if (customStartMonth === customEndMonth) {
-      return `${months[customStartMonth]} ${customYear}`;
-    }
-    return `${months[customStartMonth]} – ${months[customEndMonth]} ${customYear}`;
-  };
-
-  // Apply custom range
-  const applyCustomRange = () => {
-    setTimePeriod('custom');
-    setShowDatePicker(false);
-  };
 
   // Memoized filtered data
   const REVENUE_DATA = useMemo(() => getDataForPeriod(ALL_REVENUE_DATA, timePeriod), [timePeriod, customStartMonth, customEndMonth, customStartYear, customEndYear]);
@@ -733,7 +725,7 @@ export const PracticeAnalysis: React.FC = () => {
           timePeriods={timePeriods}
           tabs={tabs}
           activeTab={activeTab}
-          onTabChange={(tabId) => setActiveTab(tabId as TabType)}
+          onTabChange={() => {}}
           getDateRangeLabel={getDateRangeLabel}
           revenueData={REVENUE_DATA}
           revenueBreakdownData={REVENUE_BREAKDOWN_DATA}
@@ -751,7 +743,7 @@ export const PracticeAnalysis: React.FC = () => {
           timePeriods={timePeriods}
           tabs={tabs}
           activeTab={activeTab}
-          onTabChange={(tabId) => setActiveTab(tabId as TabType)}
+          onTabChange={() => {}}
           getDateRangeLabel={getDateRangeLabel}
           sessionsData={SESSIONS_DATA}
           clinicianSessionsData={CLINICIAN_SESSIONS_DATA}
@@ -765,7 +757,7 @@ export const PracticeAnalysis: React.FC = () => {
           timePeriods={timePeriods}
           tabs={tabs}
           activeTab={activeTab}
-          onTabChange={(tabId) => setActiveTab(tabId as TabType)}
+          onTabChange={() => {}}
           getDateRangeLabel={getDateRangeLabel}
           clientGrowthData={CLIENT_GROWTH_DATA}
           genderData={CLIENT_GENDER_DATA}
@@ -781,7 +773,7 @@ export const PracticeAnalysis: React.FC = () => {
           cohorts={RETENTION_COHORTS}
           tabs={tabs}
           activeTab={activeTab}
-          onTabChange={(tabId) => setActiveTab(tabId as TabType)}
+          onTabChange={() => {}}
           churnByClinicianData={CHURN_BY_CLINICIAN_DATA}
           churnTimingData={CHURN_TIMING_DATA}
           retentionFunnelData={RETENTION_FUNNEL_DATA}
@@ -802,7 +794,7 @@ export const PracticeAnalysis: React.FC = () => {
           timePeriods={timePeriods}
           tabs={tabs}
           activeTab={activeTab}
-          onTabChange={(tabId) => setActiveTab(tabId as TabType)}
+          onTabChange={() => {}}
           getDateRangeLabel={getDateRangeLabel}
         />
       )}
@@ -814,7 +806,7 @@ export const PracticeAnalysis: React.FC = () => {
           timePeriods={timePeriods}
           tabs={tabs}
           activeTab={activeTab}
-          onTabChange={(tabId) => setActiveTab(tabId as TabType)}
+          onTabChange={() => {}}
           getDateRangeLabel={getDateRangeLabel}
         />
       )}

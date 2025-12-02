@@ -1,6 +1,68 @@
 import React from 'react';
+import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { PracticeMetrics } from '../types';
 import { MetricCard, ExpandableBarChart } from './design-system/cards/MetricCard';
+
+// =============================================================================
+// CLIENT GROWTH EXPANDABLE CONTENT
+// =============================================================================
+
+interface ClientGrowthContentProps {
+  newClients: number;
+  churned: number;
+}
+
+const ClientGrowthContent: React.FC<ClientGrowthContentProps> = ({ newClients, churned }) => {
+  const netChange = newClients - churned;
+
+  return (
+    <div className="space-y-4">
+      {/* New Clients */}
+      <div className="flex items-center gap-4">
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-emerald-50">
+          <ArrowUpRight size={20} className="text-emerald-600" />
+        </div>
+        <p className="text-lg font-bold text-stone-900">
+          {newClients} New Clients This Month
+        </p>
+      </div>
+
+      {/* Churned Clients */}
+      <div className="flex items-center gap-4">
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-rose-50">
+          <ArrowDownRight size={20} className="text-rose-600" />
+        </div>
+        <p className="text-lg font-bold text-stone-900">
+          {churned} Clients Churned This Month
+        </p>
+      </div>
+
+      {/* Net Change Summary */}
+      <div className="pt-4 border-t border-stone-100">
+        <p className="text-sm text-stone-500">
+          <span className={`font-bold ${netChange >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+            {netChange >= 0 ? '+' : ''}{netChange} net
+          </span>
+          {' client growth this month'}
+        </p>
+      </div>
+    </div>
+  );
+};
+
+// Helper to parse client numbers from subtext
+const parseClientNumbers = (subtext: string): { newClients: number; churned: number; openings: number | null } => {
+  // Patterns: "17 new, 5 discharged · 18 openings" or "+12 new · -4 discharged"
+  const newMatch = subtext.match(/\+?(\d+)\s*new/i);
+  const churnedMatch = subtext.match(/-?(\d+)\s*(?:discharged|churned)/i);
+  const openingsMatch = subtext.match(/(\d+)\s*openings/i);
+
+  return {
+    newClients: newMatch ? parseInt(newMatch[1], 10) : 0,
+    churned: churnedMatch ? parseInt(churnedMatch[1], 10) : 0,
+    openings: openingsMatch ? parseInt(openingsMatch[1], 10) : null,
+  };
+};
 
 // =============================================================================
 // METRIC TOOLTIPS
@@ -73,6 +135,20 @@ export const MetricsRow: React.FC<MetricsRowProps> = ({ metrics, isLive = true }
     />
   ) : undefined;
 
+  // Parse client growth data and build expandable content
+  const clientData = parseClientNumbers(metrics.clientGrowth.subtext);
+  const clientsExpandableContent = (
+    <ClientGrowthContent
+      newClients={clientData.newClients}
+      churned={clientData.churned}
+    />
+  );
+
+  // Simplified subtext for clients card (only show openings)
+  const clientsSubtext = clientData.openings !== null
+    ? `${clientData.openings} Client Openings Available`
+    : 'Client capacity available';
+
   const cards = [
     <MetricCard
       key="revenue"
@@ -103,9 +179,12 @@ export const MetricsRow: React.FC<MetricsRowProps> = ({ metrics, isLive = true }
       label={metrics.clientGrowth.label}
       value={metrics.clientGrowth.value}
       valueLabel={metrics.clientGrowth.valueLabel}
-      subtext={metrics.clientGrowth.subtext}
+      subtext={clientsSubtext}
       status={metrics.clientGrowth.status}
       tooltip={METRIC_TOOLTIPS['Clients']}
+      expandableContent={clientsExpandableContent}
+      expandButtonLabel="Client Details"
+      expandButtonLabelMobile="Details"
     />,
     <MetricCard
       key="attendance"

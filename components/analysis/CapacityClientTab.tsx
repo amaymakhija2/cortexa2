@@ -235,10 +235,6 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
         label="Detailed Analysis"
         title="Client & Capacity"
         subtitle={getDateRangeLabel()}
-        showTimePeriod
-        timePeriod={timePeriod}
-        timePeriods={timePeriods}
-        onTimePeriodChange={onTimePeriodChange}
       />
 
       <PageContent>
