@@ -1479,22 +1479,24 @@ const PRACTICE_SETTINGS = {
 };
 
 // Verify auth token
-async function verifyToken(token: string, secret: string): Promise<boolean> {
+async function verifyToken(token: string, secret: string): Promise<{ valid: boolean; reason?: string }> {
   try {
     const decoded = atob(token);
     const parts = decoded.split(':');
-    if (parts.length < 3) return false;
-    
+    if (parts.length < 3) {
+      return { valid: false, reason: 'Invalid token format: not enough parts' };
+    }
+
     const username = parts[0];
     const timestamp = parts[1];
     const signature = parts.slice(2).join(':');
-    
+
     // Check token age (valid for 24 hours)
     const tokenAge = Date.now() - parseInt(timestamp);
     if (tokenAge > 24 * 60 * 60 * 1000) {
-      return false;
+      return { valid: false, reason: `Token expired: age=${tokenAge}ms` };
     }
-    
+
     // Verify signature
     const payload = `${username}:${timestamp}`;
     const encoder = new TextEncoder();
@@ -1514,9 +1516,13 @@ async function verifyToken(token: string, secret: string): Promise<boolean> {
       .map(b => b.toString(16).padStart(2, '0'))
       .join('');
 
-    return signature === expectedSigHex;
-  } catch {
-    return false;
+    if (signature !== expectedSigHex) {
+      return { valid: false, reason: `Signature mismatch: got ${signature.slice(0, 20)}... expected ${expectedSigHex.slice(0, 20)}...` };
+    }
+
+    return { valid: true };
+  } catch (e) {
+    return { valid: false, reason: `Exception: ${e}` };
   }
 }
 
@@ -1542,11 +1548,17 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
   }
 
   const token = authHeader.slice(7);
-  const isValid = await verifyToken(token, env.AUTH_SECRET);
-  
-  if (!isValid) {
+  const result = await verifyToken(token, env.AUTH_SECRET);
+
+  if (!result.valid) {
+    // DEBUG: Log why token failed
+    console.log('Token verification failed', {
+      reason: result.reason,
+      hasSecret: !!env.AUTH_SECRET,
+      secretLength: env.AUTH_SECRET?.length,
+    });
     return new Response(
-      JSON.stringify({ error: 'Invalid or expired token' }),
+      JSON.stringify({ error: 'Invalid or expired token', debug: result.reason }),
       { status: 401, headers }
     );
   }
