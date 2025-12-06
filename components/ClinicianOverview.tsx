@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { Users } from 'lucide-react';
-import { getClinicianMetricsForPeriod, ClinicianMetricsCalculated } from '../data/metricsCalculator';
+import { getClinicianMetricsForPeriod, getClinicianMetricsForMonth, getDataDateRange, ClinicianMetricsCalculated } from '../data/metricsCalculator';
 import { PRACTICE_SETTINGS } from '../data/paymentData';
+import { MonthPicker } from './MonthPicker';
 
 // =============================================================================
 // CLINICIAN OVERVIEW COMPONENT
@@ -11,16 +12,10 @@ import { PRACTICE_SETTINGS } from '../data/paymentData';
 // Uses the original card-based UI with horizontal bars.
 // =============================================================================
 
-type TimePeriod = 'last-12-months' | 'this-year' | 'this-quarter' | 'last-quarter' | 'this-month' | 'last-month';
+type ViewMode = 'last-12-months' | 'live' | 'historical';
 
-const TIME_PERIODS: { id: TimePeriod; label: string }[] = [
-  { id: 'last-12-months', label: 'Last 12 months' },
-  { id: 'this-year', label: 'This Year' },
-  { id: 'this-quarter', label: 'This Quarter' },
-  { id: 'last-quarter', label: 'Last Quarter' },
-  { id: 'this-month', label: 'This Month' },
-  { id: 'last-month', label: 'Last Month' },
-];
+// Get data date range for month picker bounds
+const DATA_RANGE = getDataDateRange();
 
 // Metric group IDs - the 6 "questions" practice managers ask
 type MetricGroupId = 'revenue' | 'caseload' | 'growth' | 'sessions' | 'attendance' | 'engagement' | 'retention' | 'documentation';
@@ -419,75 +414,80 @@ function buildClinicianData(calculated: ClinicianMetricsCalculated[], periodId: 
 
 
 type SessionGoalView = 'weekly' | 'monthly';
-type CaseloadFrequency = 'weekly' | 'biweekly' | 'monthly';
 
-// Default time periods per metric group
-const DEFAULT_TIME_PERIODS: Record<MetricGroupId, TimePeriod> = {
-  revenue: 'this-month',
-  caseload: 'this-month',
-  growth: 'this-month',
-  sessions: 'this-month',
-  attendance: 'this-month',
-  engagement: 'this-month',
-  retention: 'this-year',
-  documentation: 'this-month',
+// Default view modes per metric group
+const DEFAULT_VIEW_MODES: Record<MetricGroupId, ViewMode> = {
+  revenue: 'live',
+  caseload: 'live',
+  growth: 'live',
+  sessions: 'live',
+  attendance: 'live',
+  engagement: 'live',
+  retention: 'last-12-months',
+  documentation: 'live', // Notes is always current month
 };
 
 export const ClinicianOverview: React.FC = () => {
   const [selectedGroupId, setSelectedGroupId] = useState<MetricGroupId>('revenue');
-  const [timePeriod, setTimePeriod] = useState<TimePeriod>('this-month');
+  const [viewMode, setViewMode] = useState<ViewMode>('live');
   const [sessionGoalView, setSessionGoalView] = useState<SessionGoalView>('weekly');
-  const [caseloadFrequency, setCaseloadFrequency] = useState<CaseloadFrequency>('weekly');
 
-  // Build clinician data from real calculated metrics based on selected time period
+  // For historical view - month/year selection
+  const now = new Date();
+  const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
+  const [selectedYear, setSelectedYear] = useState(now.getFullYear());
+
+  // Handle month selection from picker
+  const handleMonthSelect = (month: number, year: number) => {
+    setSelectedMonth(month);
+    setSelectedYear(year);
+  };
+
+  // Build clinician data from real calculated metrics based on view mode
   const CLINICIANS_DATA = useMemo(() => {
-    const calculatedMetrics = getClinicianMetricsForPeriod(timePeriod);
-    return buildClinicianData(calculatedMetrics, timePeriod);
-  }, [timePeriod]);
+    let calculatedMetrics: ClinicianMetricsCalculated[];
+    let periodId: string;
 
-  // Update time period when switching tabs to use sensible defaults
+    if (viewMode === 'last-12-months') {
+      calculatedMetrics = getClinicianMetricsForPeriod('last-12-months');
+      periodId = 'last-12-months';
+    } else if (viewMode === 'live') {
+      calculatedMetrics = getClinicianMetricsForMonth(now.getMonth(), now.getFullYear());
+      periodId = 'this-month';
+    } else {
+      // historical
+      calculatedMetrics = getClinicianMetricsForMonth(selectedMonth, selectedYear);
+      periodId = 'this-month';
+    }
+
+    return buildClinicianData(calculatedMetrics, periodId);
+  }, [viewMode, selectedMonth, selectedYear]);
+
+  // Update view mode when switching tabs to use sensible defaults
   const handleGroupChange = (groupId: MetricGroupId) => {
     setSelectedGroupId(groupId);
-    setTimePeriod(DEFAULT_TIME_PERIODS[groupId]);
+    setViewMode(DEFAULT_VIEW_MODES[groupId]);
   };
 
   const selectedGroup = METRIC_GROUPS.find(g => g.id === selectedGroupId)!;
 
-  // Get human-readable date range label for the selected period
+  // Get human-readable date range label for the selected view mode
   const getDateRangeLabel = (): string => {
-    const now = new Date();
     const currentMonth = now.getMonth();
-    const currentQuarter = Math.floor(currentMonth / 3);
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const fullMonths = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     const currentYear = now.getFullYear();
 
-    switch (timePeriod) {
+    switch (viewMode) {
       case 'last-12-months': {
         const startMonth = (currentMonth + 1) % 12;
         const startYear = startMonth > currentMonth ? currentYear - 1 : currentYear;
         return `${months[startMonth]} ${startYear} – ${months[currentMonth]} ${currentYear}`;
       }
-      case 'this-year':
-        return `Jan – ${months[currentMonth]} ${currentYear}`;
-      case 'this-quarter': {
-        const quarterStart = currentQuarter * 3;
-        return `${months[quarterStart]} – ${months[currentMonth]} ${currentYear}`;
-      }
-      case 'last-quarter': {
-        const lastQuarter = currentQuarter === 0 ? 3 : currentQuarter - 1;
-        const lastQuarterStart = lastQuarter * 3;
-        const lastQuarterEnd = lastQuarterStart + 2;
-        const year = currentQuarter === 0 ? currentYear - 1 : currentYear;
-        return `${months[lastQuarterStart]} – ${months[lastQuarterEnd]} ${year}`;
-      }
-      case 'this-month':
+      case 'live':
         return `${fullMonths[currentMonth]} ${currentYear}`;
-      case 'last-month': {
-        const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
-        const year = currentMonth === 0 ? currentYear - 1 : currentYear;
-        return `${fullMonths[lastMonth]} ${year}`;
-      }
+      case 'historical':
+        return `${fullMonths[selectedMonth]} ${selectedYear}`;
       default:
         return '';
     }
@@ -502,15 +502,10 @@ export const ClinicianOverview: React.FC = () => {
 
     // Calculate how many weeks/months in the selected period
     const getPeriodsInRange = () => {
-      switch (timePeriod) {
-        case 'this-month':
-        case 'last-month':
+      switch (viewMode) {
+        case 'live':
+        case 'historical':
           return { weeks: 4, months: 1 };
-        case 'this-quarter':
-        case 'last-quarter':
-          return { weeks: 13, months: 3 };
-        case 'this-year':
-          return { weeks: 52, months: 12 };
         case 'last-12-months':
         default:
           return { weeks: 52, months: 12 };
@@ -658,50 +653,61 @@ export const ClinicianOverview: React.FC = () => {
                 )}
 
                 {/* Time Period Selector */}
-                <div className="relative">
+                <div className="flex items-center gap-3">
                   {selectedGroupId === 'documentation' ? (
                     /* Documentation: Show disabled "Current Month" only (point-in-time metric) */
-                    <>
-                      {/* Mobile */}
-                      <div className="lg:hidden px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-sm font-medium text-white/50 cursor-not-allowed">
+                    <div className="flex items-center gap-1 p-1 rounded-xl bg-white/5">
+                      <div className="px-4 py-2.5 rounded-lg text-sm font-semibold bg-white/10 text-white/50 cursor-not-allowed">
                         Current Month
                       </div>
-                      {/* Desktop */}
-                      <div className="hidden lg:flex items-center gap-1 p-1 rounded-xl bg-white/5">
-                        <div className="px-4 py-2.5 rounded-lg text-sm font-semibold bg-white/10 text-white/50 cursor-not-allowed">
-                          Current Month
-                        </div>
-                      </div>
-                    </>
+                    </div>
                   ) : (
                     <>
-                      {/* Mobile: Select dropdown */}
-                      <select
-                        value={timePeriod}
-                        onChange={(e) => setTimePeriod(e.target.value as TimePeriod)}
-                        className="lg:hidden px-3 py-2 rounded-xl border border-white/20 bg-white/10 text-sm font-medium text-white"
-                      >
-                        {TIME_PERIODS.map((period) => (
-                          <option key={period.id} value={period.id} className="text-stone-900">{period.label}</option>
-                        ))}
-                      </select>
-
-                      {/* Desktop: Button group */}
-                      <div className="hidden lg:flex items-center gap-1 p-1 rounded-xl bg-white/10 backdrop-blur-sm">
-                        {TIME_PERIODS.map((period) => (
-                          <button
-                            key={period.id}
-                            onClick={() => setTimePeriod(period.id)}
-                            className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
-                              timePeriod === period.id
-                                ? 'bg-white text-stone-900 shadow-lg'
-                                : 'text-white/70 hover:text-white hover:bg-white/10'
-                            }`}
-                          >
-                            {period.label}
-                          </button>
-                        ))}
+                      {/* View Mode Toggle: Last 12 Months / Live / Historical */}
+                      <div className="flex items-center gap-1 p-1 rounded-xl bg-white/10 backdrop-blur-sm">
+                        <button
+                          onClick={() => setViewMode('last-12-months')}
+                          className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
+                            viewMode === 'last-12-months'
+                              ? 'bg-white text-stone-900 shadow-lg'
+                              : 'text-white/70 hover:text-white hover:bg-white/10'
+                          }`}
+                        >
+                          Last 12 Months
+                        </button>
+                        <button
+                          onClick={() => setViewMode('live')}
+                          className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
+                            viewMode === 'live'
+                              ? 'bg-white text-stone-900 shadow-lg'
+                              : 'text-white/70 hover:text-white hover:bg-white/10'
+                          }`}
+                        >
+                          Live
+                        </button>
+                        <button
+                          onClick={() => setViewMode('historical')}
+                          className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
+                            viewMode === 'historical'
+                              ? 'bg-white text-stone-900 shadow-lg'
+                              : 'text-white/70 hover:text-white hover:bg-white/10'
+                          }`}
+                        >
+                          Historical
+                        </button>
                       </div>
+
+                      {/* Month Picker - only shown in Historical mode */}
+                      {viewMode === 'historical' && (
+                        <MonthPicker
+                          selectedMonth={selectedMonth}
+                          selectedYear={selectedYear}
+                          onSelect={handleMonthSelect}
+                          minYear={DATA_RANGE.earliest.getFullYear()}
+                          maxYear={DATA_RANGE.latest.getFullYear()}
+                          autoOpen={true}
+                        />
+                      )}
                     </>
                   )}
                 </div>

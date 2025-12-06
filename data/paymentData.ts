@@ -20,6 +20,7 @@ export interface Clinician {
 // Practice settings (manually configured)
 export const PRACTICE_SETTINGS = {
   capacity: 23,
+  currentOpenings: 18,
   // Last 30 days attendance metrics (directional)
   attendance: {
     showRate: 0.71,
