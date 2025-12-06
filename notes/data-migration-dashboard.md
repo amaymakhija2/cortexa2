@@ -115,3 +115,123 @@ Keep original text format in subtext:
 4. **Add static values to `PRACTICE_SETTINGS`** for things not in CSV
 5. **Import and use** in the component
 6. **Keep original text format** - Only change values, not text structure
+
+---
+
+# Clinicians Tab - Data Migration
+
+## Summary
+Replaced placeholder/hardcoded clinician data in ClinicianOverview.tsx with real data calculated from the SimplePractice payment CSV export.
+
+## Files Modified
+
+### `data/metricsCalculator.ts` - Added clinician-level functions:
+- `getClinicianMetricsForPeriod(periodId)` - Get all clinician metrics for a time period
+- `getClinicianMetricsForMonth(month, year)` - Get clinician metrics for specific month
+- `calculateClinicianMetrics(startDate, endDate)` - Core calculation function
+
+### `components/ClinicianOverview.tsx` - Updated to use real data:
+- Imports `getClinicianMetricsForPeriod`, `getClinicianMetricsForMonth`, `getDataDateRange`
+- Added `buildClinicianData()` function to convert calculated metrics to UI format
+- Replaced hardcoded fake clinicians with real data from CSV
+
+### `scripts/parsePaymentData.cjs` - Updated name format:
+- Changed from "G. Kod" to "Gaya K" (FirstName LastInitial)
+
+## Clinician Metrics Interface
+```typescript
+interface ClinicianMetricsCalculated {
+  clinicianId: string;
+  clinicianName: string;
+  revenue: number;
+  completedSessions: number;
+  revenuePerSession: number;
+  activeClients: number;
+  newClients: number;
+  clientsChurned: number;
+  avgSessionsPerClient: number;
+  churnRate: number;
+}
+```
+
+## Time Period Selector
+Simplified to 3 options (matching Dashboard pattern):
+- **Last 12 Months** - Aggregated data for rolling 12 months
+- **Live** - Current month data
+- **Historical** - MonthPicker to select any past month
+
+Notes tab is locked to "Current Month" only (point-in-time metric).
+
+Time period persists across all tabs (except Notes).
+
+## Metrics That CAN Be Calculated Per Clinician
+| Metric | How |
+|--------|-----|
+| Revenue | Sum of `amount` for clinician's records |
+| Sessions | Count of clinician's records |
+| Active Clients | Unique `clientId` in clinician's records |
+| New Clients | First appearance of client with this clinician |
+| Churned Clients | Client had payment 60-120 days ago but not in last 60 days |
+| Revenue Per Session | Revenue / Sessions |
+| Avg Sessions Per Client | Sessions / Active Clients |
+| Churn Rate | Churned / Active Clients × 100 |
+
+## Metrics That CANNOT Be Calculated (use PRACTICE_SETTINGS)
+| Metric | Why |
+|--------|-----|
+| Caseload Capacity | Not in payment data (default: 35) |
+| Weekly Session Goal | Not in payment data (default: 25) |
+| Attendance Rates | Need appointment data, not just payments |
+| Rebook Rate | Need appointment data |
+| Outstanding Notes | Need notes/documentation data |
+| Retention Milestones | Need session sequence data |
+
+## UI Formatting Rules
+- **Revenue**: Show decimals for $K values (`$86.3K`)
+- **Percentages**: Whole numbers only (`24%` not `24.0%`)
+- **Averages**: Whole numbers (`4` not `4.2`)
+- **Counts**: Whole numbers (`156` sessions)
+
+## Key Implementation Details
+
+### buildClinicianData() Function
+Converts calculated metrics to UI format with derived values:
+```typescript
+function buildClinicianData(calculated: ClinicianMetricsCalculated[], periodId: string): ClinicianData[]
+```
+
+### View Mode State
+```typescript
+type ViewMode = 'last-12-months' | 'live' | 'historical';
+const [viewMode, setViewMode] = useState<ViewMode>('live');
+const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
+const [selectedYear, setSelectedYear] = useState(now.getFullYear());
+```
+
+### Data Fetching Logic
+```typescript
+const CLINICIANS_DATA = useMemo(() => {
+  if (viewMode === 'last-12-months') {
+    return buildClinicianData(getClinicianMetricsForPeriod('last-12-months'), 'last-12-months');
+  } else if (viewMode === 'live') {
+    return buildClinicianData(getClinicianMetricsForMonth(now.getMonth(), now.getFullYear()), 'this-month');
+  } else {
+    return buildClinicianData(getClinicianMetricsForMonth(selectedMonth, selectedYear), 'this-month');
+  }
+}, [viewMode, selectedMonth, selectedYear]);
+```
+
+### Date Range Label
+Shows human-readable date range below title:
+- Last 12 Months: "Jan 2025 – Dec 2025"
+- Live: "December 2025"
+- Historical: "November 2025" (selected month)
+
+## Overflow Fix for MonthPicker
+The header container had `overflow-hidden` which clipped the MonthPicker dropdown. Fixed by moving decorative elements (grid pattern, glow) to a separate inner container with `overflow-hidden`, while the main container allows overflow.
+
+---
+
+# Practice Details Tab - TODO
+
+Next tab to migrate. Currently uses hardcoded data in `PracticeAnalysis.tsx` and sub-components in `components/analysis/`.
