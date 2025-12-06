@@ -40,8 +40,8 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 // Primary navigation items
 const PRIMARY_TABS = [
   { path: '/dashboard', label: 'Overview', shortLabel: 'Overview' },
-  { path: '/practice-analysis', label: 'Practice Analysis', shortLabel: 'Analysis' },
   { path: '/clinician-overview', label: 'Clinicians', shortLabel: 'Clinicians' },
+  { path: '/practice-analysis', label: 'Practice Details', shortLabel: 'Details' },
 ];
 
 interface UnifiedNavigationProps {
