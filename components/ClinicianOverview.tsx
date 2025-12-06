@@ -588,26 +588,29 @@ export const ClinicianOverview: React.FC = () => {
             PART 1: METRIC SELECTOR - THE HERO SECTION
             ============================================= */}
         <div
-          className="relative overflow-hidden"
+          className="relative"
           style={{
             background: 'linear-gradient(135deg, #1c1917 0%, #292524 50%, #1c1917 100%)'
           }}
         >
-          {/* Subtle grid pattern */}
-          <div
-            className="absolute inset-0 opacity-10"
-            style={{
-              backgroundImage: `linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
-                               linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px)`,
-              backgroundSize: '32px 32px'
-            }}
-          />
+          {/* Glow container - contains overflow for blur effects */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            {/* Subtle grid pattern */}
+            <div
+              className="absolute inset-0 opacity-10"
+              style={{
+                backgroundImage: `linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
+                                 linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px)`,
+                backgroundSize: '32px 32px'
+              }}
+            />
 
-          {/* Warm glow accent */}
-          <div
-            className="absolute top-0 left-1/4 w-96 h-96 rounded-full opacity-20 blur-3xl"
-            style={{ background: 'radial-gradient(circle, #f59e0b 0%, transparent 70%)' }}
-          />
+            {/* Warm glow accent */}
+            <div
+              className="absolute top-0 left-1/4 w-96 h-96 rounded-full opacity-20 blur-3xl"
+              style={{ background: 'radial-gradient(circle, #f59e0b 0%, transparent 70%)' }}
+            />
+          </div>
 
           <div className="relative px-6 sm:px-8 lg:px-12 py-8 lg:py-10">
             {/* Header row */}
