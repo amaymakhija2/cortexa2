@@ -415,18 +415,6 @@ function buildClinicianData(calculated: ClinicianMetricsCalculated[], periodId: 
 
 type SessionGoalView = 'weekly' | 'monthly';
 
-// Default view modes per metric group
-const DEFAULT_VIEW_MODES: Record<MetricGroupId, ViewMode> = {
-  revenue: 'live',
-  caseload: 'live',
-  growth: 'live',
-  sessions: 'live',
-  attendance: 'live',
-  engagement: 'live',
-  retention: 'last-12-months',
-  documentation: 'live', // Notes is always current month
-};
-
 export const ClinicianOverview: React.FC = () => {
   const [selectedGroupId, setSelectedGroupId] = useState<MetricGroupId>('revenue');
   const [viewMode, setViewMode] = useState<ViewMode>('live');
@@ -463,10 +451,13 @@ export const ClinicianOverview: React.FC = () => {
     return buildClinicianData(calculatedMetrics, periodId);
   }, [viewMode, selectedMonth, selectedYear]);
 
-  // Update view mode when switching tabs to use sensible defaults
+  // Switch tabs - keep same view mode except Notes which is always current month
   const handleGroupChange = (groupId: MetricGroupId) => {
     setSelectedGroupId(groupId);
-    setViewMode(DEFAULT_VIEW_MODES[groupId]);
+    // Only force live mode for Notes/Documentation (point-in-time metric)
+    if (groupId === 'documentation') {
+      setViewMode('live');
+    }
   };
 
   const selectedGroup = METRIC_GROUPS.find(g => g.id === selectedGroupId)!;
