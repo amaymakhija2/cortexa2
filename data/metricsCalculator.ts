@@ -76,39 +76,65 @@ export function getNewClients(month: number, year: number): string[] {
   return newClients;
 }
 
-// Get churned clients: had payment in (60-120 days ago) but not in (last 60 days)
-export function getChurnedClients(asOfDate: Date = new Date()): string[] {
+// Get each client's last session date
+function getClientLastSessionDate(): Map<string, Date> {
+  const lastSession = new Map<string, Date>();
+
+  for (const record of PAYMENT_DATA) {
+    const date = parseDate(record.datePaid);
+    const client = record.clientId;
+    const existing = lastSession.get(client);
+    if (!existing || date > existing) {
+      lastSession.set(client, date);
+    }
+  }
+
+  return lastSession;
+}
+
+// Churned = last session was > 30 days ago from asOfDate
+// Returns array of { clientId, lastSessionDate }
+export interface ChurnedClient {
+  clientId: string;
+  lastSessionDate: Date;
+  daysSinceLastSession: number;
+}
+
+export function getChurnedClients(asOfDate: Date = new Date()): ChurnedClient[] {
   const churnWindow = PRACTICE_SETTINGS.churnWindowDays;
+  const lastSessions = getClientLastSessionDate();
+  const churned: ChurnedClient[] = [];
 
-  // Last 60 days
-  const recentStart = new Date(asOfDate);
-  recentStart.setDate(recentStart.getDate() - churnWindow);
-
-  // 60-120 days ago
-  const priorStart = new Date(asOfDate);
-  priorStart.setDate(priorStart.getDate() - (churnWindow * 2));
-
-  const recentRecords = filterByDateRange(PAYMENT_DATA, recentStart, asOfDate);
-  const priorRecords = filterByDateRange(PAYMENT_DATA, priorStart, recentStart);
-
-  const recentClients = new Set(recentRecords.map(r => r.clientId));
-  const priorClients = new Set(priorRecords.map(r => r.clientId));
-
-  // Churned = in prior period but not in recent period
-  const churned: string[] = [];
-  priorClients.forEach(client => {
-    if (!recentClients.has(client)) {
-      churned.push(client);
+  lastSessions.forEach((lastSessionDate, clientId) => {
+    const daysSince = Math.floor((asOfDate.getTime() - lastSessionDate.getTime()) / (1000 * 60 * 60 * 24));
+    if (daysSince > churnWindow) {
+      churned.push({ clientId, lastSessionDate, daysSinceLastSession: daysSince });
     }
   });
 
   return churned;
 }
 
-// Get churned clients for a specific month
+// Get clients who churned IN a specific month
+// (their last session + 30 days falls within that month)
 export function getChurnedClientsForMonth(month: number, year: number): string[] {
-  const { end } = getMonthRange(month, year);
-  return getChurnedClients(end);
+  const { start, end } = getMonthRange(month, year);
+  const churnWindow = PRACTICE_SETTINGS.churnWindowDays;
+  const lastSessions = getClientLastSessionDate();
+  const churned: string[] = [];
+
+  lastSessions.forEach((lastSessionDate, clientId) => {
+    // Churn date = last session + 30 days
+    const churnDate = new Date(lastSessionDate);
+    churnDate.setDate(churnDate.getDate() + churnWindow);
+
+    // Client churned in this month if churnDate falls within the month
+    if (churnDate >= start && churnDate <= end) {
+      churned.push(clientId);
+    }
+  });
+
+  return churned;
 }
 
 // Calculate revenue by clinician for a period
@@ -328,33 +354,38 @@ function getClinicianNewClients(clinicianId: string, month: number, year: number
   return newClients;
 }
 
-// Get churned clients for a clinician
-function getClinicianChurnedClients(clinicianId: string, asOfDate: Date): string[] {
+// Get each client's last session date WITH A SPECIFIC CLINICIAN
+function getClinicianClientLastSessionDate(clinicianId: string): Map<string, Date> {
+  const lastSession = new Map<string, Date>();
+  const clinicianRecords = PAYMENT_DATA.filter(r => r.clinicianId === clinicianId);
+
+  for (const record of clinicianRecords) {
+    const date = parseDate(record.datePaid);
+    const client = record.clientId;
+    const existing = lastSession.get(client);
+    if (!existing || date > existing) {
+      lastSession.set(client, date);
+    }
+  }
+
+  return lastSession;
+}
+
+// Get clients who churned from a specific clinician within a date range
+// Churned = last session with this clinician + 30 days falls within the range
+function getClinicianChurnedClients(clinicianId: string, startDate: Date, endDate: Date): string[] {
   const churnWindow = PRACTICE_SETTINGS.churnWindowDays;
-
-  const recentStart = new Date(asOfDate);
-  recentStart.setDate(recentStart.getDate() - churnWindow);
-
-  const priorStart = new Date(asOfDate);
-  priorStart.setDate(priorStart.getDate() - (churnWindow * 2));
-
-  const allClinicianRecords = PAYMENT_DATA.filter(r => r.clinicianId === clinicianId);
-  const recentRecords = allClinicianRecords.filter(r => {
-    const date = parseDate(r.datePaid);
-    return date >= recentStart && date <= asOfDate;
-  });
-  const priorRecords = allClinicianRecords.filter(r => {
-    const date = parseDate(r.datePaid);
-    return date >= priorStart && date < recentStart;
-  });
-
-  const recentClients = new Set(recentRecords.map(r => r.clientId));
-  const priorClients = new Set(priorRecords.map(r => r.clientId));
-
+  const lastSessions = getClinicianClientLastSessionDate(clinicianId);
   const churned: string[] = [];
-  priorClients.forEach(client => {
-    if (!recentClients.has(client)) {
-      churned.push(client);
+
+  lastSessions.forEach((lastSessionDate, clientId) => {
+    // Churn date = last session + 30 days
+    const churnDate = new Date(lastSessionDate);
+    churnDate.setDate(churnDate.getDate() + churnWindow);
+
+    // Client churned from this clinician if churnDate falls within the period
+    if (churnDate >= startDate && churnDate <= endDate) {
+      churned.push(clientId);
     }
   });
 
@@ -376,7 +407,7 @@ export function calculateClinicianMetrics(
     const revenue = calculateRevenue(clinicianRecords);
     const sessions = calculateSessions(clinicianRecords);
     const activeClients = getClinicianActiveClients(clinicianId, periodRecords);
-    const churnedClients = getClinicianChurnedClients(clinicianId, endDate);
+    const churnedClients = getClinicianChurnedClients(clinicianId, startDate, endDate);
 
     // Find clinician name from CLINICIANS array
     const clinician = CLINICIANS.find(c => c.id === clinicianId);

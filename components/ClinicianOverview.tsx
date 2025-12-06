@@ -1,8 +1,25 @@
 import React, { useState, useMemo } from 'react';
-import { Users } from 'lucide-react';
-import { getClinicianMetricsForPeriod, getClinicianMetricsForMonth, getDataDateRange, ClinicianMetricsCalculated } from '../data/metricsCalculator';
-import { PRACTICE_SETTINGS } from '../data/paymentData';
+import { Users, Loader2 } from 'lucide-react';
+import {
+  useClinicianMetricsForPeriod,
+  useClinicianMetricsForMonth,
+  useDataDateRange,
+  ClinicianMetricsCalculated,
+} from '../hooks';
 import { MonthPicker } from './MonthPicker';
+
+// Practice settings - kept here since hooks can't provide these synchronously
+// These are static configuration values that don't change
+const PRACTICE_SETTINGS = {
+  attendance: {
+    showRate: 0.71,
+    clientCancelled: 0.24,
+    lateCancelled: 0.03,
+    clinicianCancelled: 0.03,
+    rebookRate: 0.83,
+  },
+  outstandingNotesPercent: 0.22,
+};
 
 // =============================================================================
 // CLINICIAN OVERVIEW COMPONENT
@@ -13,9 +30,6 @@ import { MonthPicker } from './MonthPicker';
 // =============================================================================
 
 type ViewMode = 'last-12-months' | 'live' | 'historical';
-
-// Get data date range for month picker bounds
-const DATA_RANGE = getDataDateRange();
 
 // Metric group IDs - the 6 "questions" practice managers ask
 type MetricGroupId = 'revenue' | 'caseload' | 'growth' | 'sessions' | 'attendance' | 'engagement' | 'retention' | 'documentation';
@@ -425,31 +439,38 @@ export const ClinicianOverview: React.FC = () => {
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
 
+  // Get data date range from API
+  const { data: dataRange } = useDataDateRange();
+
+  // Determine which month to fetch for live/historical modes
+  const activeMonth = viewMode === 'live' ? now.getMonth() : selectedMonth;
+  const activeYear = viewMode === 'live' ? now.getFullYear() : selectedYear;
+
+  // Fetch data from API - use both hooks, pick the right data based on viewMode
+  const periodData = useClinicianMetricsForPeriod('last-12-months');
+  const monthData = useClinicianMetricsForMonth(activeMonth, activeYear);
+
+  // Select the right data source based on view mode
+  const isUsingPeriodData = viewMode === 'last-12-months';
+  const clinicianApiData = isUsingPeriodData ? periodData.data : monthData.data;
+  const isLoading = isUsingPeriodData ? periodData.loading : monthData.loading;
+  const hasError = isUsingPeriodData ? periodData.error : monthData.error;
+
   // Handle month selection from picker
   const handleMonthSelect = (month: number, year: number) => {
     setSelectedMonth(month);
     setSelectedYear(year);
   };
 
-  // Build clinician data from real calculated metrics based on view mode
+  // Build clinician data from API metrics
   const CLINICIANS_DATA = useMemo(() => {
-    let calculatedMetrics: ClinicianMetricsCalculated[];
-    let periodId: string;
+    if (!clinicianApiData || clinicianApiData.length === 0) return [];
 
-    if (viewMode === 'last-12-months') {
-      calculatedMetrics = getClinicianMetricsForPeriod('last-12-months');
-      periodId = 'last-12-months';
-    } else if (viewMode === 'live') {
-      calculatedMetrics = getClinicianMetricsForMonth(now.getMonth(), now.getFullYear());
-      periodId = 'this-month';
-    } else {
-      // historical
-      calculatedMetrics = getClinicianMetricsForMonth(selectedMonth, selectedYear);
-      periodId = 'this-month';
-    }
+    const calculatedMetrics = clinicianApiData;
+    const periodId = viewMode === 'last-12-months' ? 'last-12-months' : 'this-month';
 
     return buildClinicianData(calculatedMetrics, periodId);
-  }, [viewMode, selectedMonth, selectedYear]);
+  }, [clinicianApiData, viewMode]);
 
   // Switch tabs - keep same view mode except Notes which is always current month
   const handleGroupChange = (groupId: MetricGroupId) => {
@@ -692,13 +713,13 @@ export const ClinicianOverview: React.FC = () => {
                       </div>
 
                       {/* Month Picker - only shown in Historical mode */}
-                      {viewMode === 'historical' && (
+                      {viewMode === 'historical' && dataRange && (
                         <MonthPicker
                           selectedMonth={selectedMonth}
                           selectedYear={selectedYear}
                           onSelect={handleMonthSelect}
-                          minYear={DATA_RANGE.earliest.getFullYear()}
-                          maxYear={DATA_RANGE.latest.getFullYear()}
+                          minYear={dataRange.earliest.getFullYear()}
+                          maxYear={dataRange.latest.getFullYear()}
                           autoOpen={true}
                         />
                       )}
@@ -782,7 +803,17 @@ export const ClinicianOverview: React.FC = () => {
             ))}
           </div>
 
-          {/* Ranking rows */}
+          {/* Loading / Error / Ranking rows */}
+          {isLoading ? (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="w-8 h-8 text-amber-500 animate-spin" />
+              <span className="ml-3 text-stone-500">Loading clinician data...</span>
+            </div>
+          ) : hasError ? (
+            <div className="flex items-center justify-center py-16 text-red-500">
+              <span>Failed to load clinician data. Please try again.</span>
+            </div>
+          ) : (
           <div className="space-y-2">
             {sortedClinicians.map((clinician, idx) => {
               const isFirst = idx === 0;
@@ -1080,6 +1111,7 @@ export const ClinicianOverview: React.FC = () => {
               );
             })}
           </div>
+          )}
 
           {/* Legend */}
           <div className="mt-6 pt-6 border-t border-stone-200 flex flex-wrap items-center gap-6 text-sm text-stone-500">

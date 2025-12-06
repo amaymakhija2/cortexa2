@@ -1,21 +1,18 @@
 
 import React, { useState, useMemo } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { MetricsRow } from './MetricsRow';
 import { SimpleAlertCard } from './SimpleAlertCard';
 import { MonthlyReviewCard } from './MonthlyReviewCard';
 import { MonthPicker } from './MonthPicker';
 import { PageHeader, SectionHeader } from './design-system';
 import { PracticeMetrics } from '../types';
-import { calculateDashboardMetrics, getDataDateRange } from '../data/metricsCalculator';
+import { useMetrics, useDataDateRange, DashboardMetrics } from '../hooks';
 
 const FULL_MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December'
 ];
-
-// Get data date range for month picker bounds
-const DATA_RANGE = getDataDateRange();
 
 // Goals based on practice performance patterns
 const GOALS = {
@@ -39,11 +36,9 @@ const getMonthProgress = (month: number, year: number): number => {
   return currentDay / daysInMonth;
 };
 
-// Convert calculated metrics to PracticeMetrics format for display
-const buildPracticeMetrics = (month: number, year: number): PracticeMetrics => {
-  const calc = calculateDashboardMetrics(month, year);
+// Convert API metrics to PracticeMetrics format for display
+const buildPracticeMetrics = (calc: DashboardMetrics, month: number, year: number): PracticeMetrics => {
   const monthProgress = getMonthProgress(month, year);
-  const isPartialMonth = monthProgress < 1;
 
   // Pro-rated goals for current month
   const proRatedRevenueGoal = GOALS.revenue * monthProgress;
@@ -156,14 +151,23 @@ export const Dashboard: React.FC = () => {
 
   const totalCards = 5;
 
-  // Get metrics based on view mode - now calculated from real data
+  // Get data date range from API
+  const { data: dataRange, loading: rangeLoading } = useDataDateRange();
+
+  // Determine which month to fetch
+  const activeMonth = viewMode === 'live' ? now.getMonth() : selectedMonth;
+  const activeYear = viewMode === 'live' ? now.getFullYear() : selectedYear;
+
+  // Fetch metrics from API
+  const { data: apiMetrics, loading: metricsLoading, error: metricsError } = useMetrics(activeMonth, activeYear);
+
+  // Build display metrics when API data is available
   const metrics = useMemo(() => {
-    if (viewMode === 'live') {
-      // Use current month
-      return buildPracticeMetrics(now.getMonth(), now.getFullYear());
-    }
-    return buildPracticeMetrics(selectedMonth, selectedYear);
-  }, [viewMode, selectedMonth, selectedYear, now]);
+    if (!apiMetrics) return null;
+    return buildPracticeMetrics(apiMetrics, activeMonth, activeYear);
+  }, [apiMetrics, activeMonth, activeYear]);
+
+  const isLoading = metricsLoading || rangeLoading;
 
   // Handle month selection from picker
   const handleMonthSelect = (month: number, year: number) => {
@@ -223,7 +227,7 @@ export const Dashboard: React.FC = () => {
     <MonthlyReviewCard
       key="monthly-review"
       month={10} // November (0-indexed)
-      year={2024}
+      year={2025}
       index={0}
     />,
     <SimpleAlertCard
@@ -315,13 +319,13 @@ export const Dashboard: React.FC = () => {
                 </button>
               </div>
 
-              {viewMode === 'historical' && (
+              {viewMode === 'historical' && dataRange && (
                 <MonthPicker
                   selectedMonth={selectedMonth}
                   selectedYear={selectedYear}
                   onSelect={handleMonthSelect}
-                  minYear={DATA_RANGE.earliest.getFullYear()}
-                  maxYear={DATA_RANGE.latest.getFullYear()}
+                  minYear={dataRange.earliest.getFullYear()}
+                  maxYear={dataRange.latest.getFullYear()}
                   autoOpen={true}
                 />
               )}
@@ -343,7 +347,18 @@ export const Dashboard: React.FC = () => {
               compact
               className="!mb-4"
             />
-            <MetricsRow metrics={metrics} />
+            {isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-8 h-8 text-amber-500 animate-spin" />
+                <span className="ml-3 text-stone-500">Loading metrics...</span>
+              </div>
+            ) : metricsError ? (
+              <div className="flex items-center justify-center py-12 text-red-500">
+                <span>Failed to load metrics. Please try again.</span>
+              </div>
+            ) : metrics ? (
+              <MetricsRow metrics={metrics} />
+            ) : null}
           </div>
 
           {/* Priority Tasks Section */}

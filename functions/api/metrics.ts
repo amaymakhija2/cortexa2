@@ -1463,17 +1463,19 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
   }
 };
 
-// Practice settings (static values)
+// Practice settings (static values - must match paymentData.ts)
 const PRACTICE_SETTINGS = {
   capacity: 23,
-  rebookRate: 0.83,
+  currentOpenings: 18,
   attendance: {
     showRate: 0.71,
     clientCancelled: 0.24,
     lateCancelled: 0.03,
-    clinicianCancelled: 0.03
+    clinicianCancelled: 0.03,
+    rebookRate: 0.83,
   },
-  outstandingNotesRate: 0.22
+  outstandingNotesPercent: 0.22,
+  churnWindowDays: 60,
 };
 
 // Verify auth token

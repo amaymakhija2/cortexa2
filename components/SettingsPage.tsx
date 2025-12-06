@@ -19,6 +19,7 @@ import {
   Sparkles,
   Calculator,
   DollarSign,
+  UserX,
 } from 'lucide-react';
 
 // ============================================================================
@@ -387,6 +388,16 @@ export const SettingsPage: React.FC = () => {
                 <ToggleSwitch
                   enabled={settings.showNetRevenueData}
                   onChange={(enabled) => updateSettings({ showNetRevenueData: enabled })}
+                />
+              </SettingRow>
+              <SettingRow
+                icon={UserX}
+                label="Demo Mode"
+                description="Use anonymized clinician names for demos"
+              >
+                <ToggleSwitch
+                  enabled={settings.anonymizeClinicianNames}
+                  onChange={(enabled) => updateSettings({ anonymizeClinicianNames: enabled })}
                 />
               </SettingRow>
             </SettingsCard>

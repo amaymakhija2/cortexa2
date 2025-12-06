@@ -31,8 +31,8 @@ export const PRACTICE_SETTINGS = {
   },
   // Notes compliance
   outstandingNotesPercent: 0.22,
-  // Churn definition: no session in last X days
-  churnWindowDays: 60,
+  // Churn definition: >30 days since last session = churned
+  churnWindowDays: 30,
 };
 
 export const CLINICIANS: Clinician[] = [

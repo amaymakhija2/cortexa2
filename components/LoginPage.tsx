@@ -198,7 +198,7 @@ export const LoginPage: React.FC = () => {
 
     await new Promise(resolve => setTimeout(resolve, 800));
 
-    const success = login(username, password);
+    const success = await login(username, password);
     if (!success) {
       setError('Invalid credentials. Please try again.');
     }
