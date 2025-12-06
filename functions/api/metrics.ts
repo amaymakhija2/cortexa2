@@ -1529,7 +1529,7 @@ async function verifyToken(token: string, secret: string): Promise<{ valid: bool
 export const onRequestGet: PagesFunction<Env> = async (context) => {
   const { request, env } = context;
 
-  const allowedOrigin = env.ALLOWED_ORIGIN || 'https://cortexa.pages.dev';
+  const allowedOrigin = env.ALLOWED_ORIGIN || 'https://cortexa2.pages.dev';
 
   const headers = {
     'Content-Type': 'application/json',
