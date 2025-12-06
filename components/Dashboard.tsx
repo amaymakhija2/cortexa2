@@ -1,158 +1,145 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { MetricsRow } from './MetricsRow';
 import { SimpleAlertCard } from './SimpleAlertCard';
 import { MonthPicker } from './MonthPicker';
-import { PageHeader } from './design-system';
+import { PageHeader, SectionHeader } from './design-system';
 import { PracticeMetrics } from '../types';
+import { calculateDashboardMetrics, getDataDateRange } from '../data/metricsCalculator';
 
 const FULL_MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December'
 ];
 
-// Current month metrics (live data)
-const LIVE_METRICS: PracticeMetrics = {
-  revenue: {
-    label: "Revenue",
-    value: "$153.4k",
-    valueLabel: "",
-    subtext: "Goal: $160k · $6.6k left to reach target",
-    status: "Needs attention"
-  },
-  sessions: {
-    label: "Sessions",
-    value: "698",
-    valueLabel: "completed",
-    subtext: "Goal: 850 · 82% of monthly goal",
-    status: "Healthy"
-  },
-  clientGrowth: {
-    label: "Clients",
-    value: "156",
-    valueLabel: "active",
-    subtext: "17 new, 5 discharged · 18 openings",
-    status: "Healthy"
-  },
-  attendance: {
-    label: "Attendance",
-    value: "68%",
-    valueLabel: "rebook rate",
-    subtext: "9.0% client cancel rate",
-    status: "Needs attention"
-  },
-  compliance: {
-    label: "Outstanding Notes",
-    value: "12",
-    valueLabel: "overdue notes",
-    subtext: "3 clinicians with overdue notes",
-    status: "Critical"
-  }
+// Get data date range for month picker bounds
+const DATA_RANGE = getDataDateRange();
+
+// Goals based on practice performance patterns
+const GOALS = {
+  revenue: 100000,      // $100k monthly target
+  sessions: 475,        // ~475 sessions/month target
+  rebookRate: 0.85,     // 85% rebook rate target
+  notesOverdue: 0.10,   // <10% overdue notes target
 };
 
-// Historical metrics data by month/year
-const HISTORICAL_METRICS: Record<string, PracticeMetrics> = {
-  '2025-10': { // October 2025
-    revenue: { label: "Revenue", value: "$148.2k", valueLabel: "", subtext: "$155.0k goal, 96% achieved", status: "Needs attention" },
-    sessions: { label: "Sessions", value: "672", valueLabel: "completed", subtext: "79% of goal", status: "Healthy" },
-    clientGrowth: { label: "Clients", value: "149", valueLabel: "active", subtext: "+12 new · -4 discharged", status: "Healthy" },
-    attendance: { label: "Attendance", value: "71%", valueLabel: "rebook rate", subtext: "8.0% client cancel rate", status: "Healthy" },
-    compliance: { label: "Outstanding Notes", value: "0", valueLabel: "overdue notes", subtext: "Goal achieved", status: "Healthy" }
-  },
-  '2025-9': { // September 2025
-    revenue: { label: "Revenue", value: "$142.8k", valueLabel: "", subtext: "$150.0k goal, 95% achieved", status: "Needs attention" },
-    sessions: { label: "Sessions", value: "645", valueLabel: "completed", subtext: "76% of goal", status: "Healthy" },
-    clientGrowth: { label: "Clients", value: "141", valueLabel: "active", subtext: "+8 new · -6 discharged", status: "Needs attention" },
-    attendance: { label: "Attendance", value: "74%", valueLabel: "rebook rate", subtext: "6.6% client cancel rate", status: "Healthy" },
-    compliance: { label: "Outstanding Notes", value: "3", valueLabel: "overdue notes", subtext: "Goal: 0 · 2 clinicians affected", status: "Needs attention" }
-  },
-  '2025-8': { // August 2025
-    revenue: { label: "Revenue", value: "$138.5k", valueLabel: "", subtext: "$145.0k goal, 96% achieved", status: "Needs attention" },
-    sessions: { label: "Sessions", value: "628", valueLabel: "completed", subtext: "74% of goal", status: "Healthy" },
-    clientGrowth: { label: "Clients", value: "139", valueLabel: "active", subtext: "+15 new · -3 discharged", status: "Healthy" },
-    attendance: { label: "Attendance", value: "69%", valueLabel: "rebook rate", subtext: "9.4% client cancel rate", status: "Needs attention" },
-    compliance: { label: "Outstanding Notes", value: "5", valueLabel: "overdue notes", subtext: "Goal: 0 · 2 clinicians affected", status: "Needs attention" }
-  },
-  '2025-7': { // July 2025
-    revenue: { label: "Revenue", value: "$125.3k", valueLabel: "", subtext: "$140.0k goal, 90% achieved", status: "Critical" },
-    sessions: { label: "Sessions", value: "584", valueLabel: "completed", subtext: "69% of goal", status: "Needs attention" },
-    clientGrowth: { label: "Clients", value: "127", valueLabel: "active", subtext: "+6 new · -8 discharged", status: "Critical" },
-    attendance: { label: "Attendance", value: "65%", valueLabel: "rebook rate", subtext: "12.1% client cancel rate", status: "Critical" },
-    compliance: { label: "Outstanding Notes", value: "8", valueLabel: "overdue notes", subtext: "Goal: 0 · 4 clinicians affected", status: "Critical" }
-  },
-  '2025-6': { // June 2025
-    revenue: { label: "Revenue", value: "$132.1k", valueLabel: "", subtext: "$135.0k goal, 98% achieved", status: "Healthy" },
-    sessions: { label: "Sessions", value: "612", valueLabel: "completed", subtext: "72% utilization", status: "Healthy" },
-    clientGrowth: { label: "Clients", value: "129", valueLabel: "active", subtext: "+11 new · -5 discharged", status: "Healthy" },
-    attendance: { label: "Attendance", value: "72%", valueLabel: "rebook rate", subtext: "7.5% client cancel rate", status: "Healthy" },
-    compliance: { label: "Outstanding Notes", value: "2", valueLabel: "overdue notes", subtext: "Goal: 0 · 1 clinician affected", status: "Needs attention" }
-  },
-  '2024-11': { // November 2024
-    revenue: { label: "Revenue", value: "$118.7k", valueLabel: "", subtext: "$125.0k goal, 95% achieved", status: "Needs attention" },
-    sessions: { label: "Sessions", value: "548", valueLabel: "completed", subtext: "65% utilization", status: "Needs attention" },
-    clientGrowth: { label: "Clients", value: "112", valueLabel: "active", subtext: "+9 new · -7 discharged", status: "Needs attention" },
-    attendance: { label: "Attendance", value: "70%", valueLabel: "rebook rate", subtext: "9.1% client cancel rate", status: "Healthy" },
-    compliance: { label: "Outstanding Notes", value: "6", valueLabel: "overdue notes", subtext: "Goal: 0 · 3 clinicians affected", status: "Critical" }
-  },
-  '2024-10': { // October 2024
-    revenue: { label: "Revenue", value: "$115.2k", valueLabel: "", subtext: "$120.0k goal, 96% achieved", status: "Needs attention" },
-    sessions: { label: "Sessions", value: "532", valueLabel: "completed", subtext: "63% utilization", status: "Needs attention" },
-    clientGrowth: { label: "Clients", value: "110", valueLabel: "active", subtext: "+7 new · -4 discharged", status: "Healthy" },
-    attendance: { label: "Attendance", value: "73%", valueLabel: "rebook rate", subtext: "7.5% client cancel rate", status: "Healthy" },
-    compliance: { label: "Outstanding Notes", value: "4", valueLabel: "overdue notes", subtext: "Goal: 0 · 2 clinicians affected", status: "Needs attention" }
+// Get progress through the month (0-1) for pro-rating goals
+const getMonthProgress = (month: number, year: number): number => {
+  const now = new Date();
+  const isCurrentMonth = month === now.getMonth() && year === now.getFullYear();
+
+  if (!isCurrentMonth) {
+    return 1; // Past months are 100% complete
   }
+
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const currentDay = now.getDate();
+  return currentDay / daysInMonth;
 };
 
-// Generate placeholder metrics for months without specific data
-const getMetricsForMonth = (month: number, year: number): PracticeMetrics => {
-  const key = `${year}-${month}`;
-  if (HISTORICAL_METRICS[key]) {
-    return HISTORICAL_METRICS[key];
-  }
+// Convert calculated metrics to PracticeMetrics format for display
+const buildPracticeMetrics = (month: number, year: number): PracticeMetrics => {
+  const calc = calculateDashboardMetrics(month, year);
+  const monthProgress = getMonthProgress(month, year);
+  const isPartialMonth = monthProgress < 1;
 
-  // Generate reasonable placeholder data based on trends
-  const baseRevenue = 100 + (year - 2020) * 15 + month * 2;
-  const baseSessions = 400 + (year - 2020) * 50 + month * 10;
-  const baseClients = 80 + (year - 2020) * 15 + month * 3;
+  // Pro-rated goals for current month
+  const proRatedRevenueGoal = GOALS.revenue * monthProgress;
+  const proRatedSessionsGoal = GOALS.sessions * monthProgress;
 
-  const cancelRate = (6 + Math.random() * 6).toFixed(1);
+  // Revenue calculations - compare to pro-rated goal for current month
+  const revenueVsProRated = calc.revenue.value / proRatedRevenueGoal;
+  const revenuePercent = Math.round((calc.revenue.value / GOALS.revenue) * 100);
+  const getRevenueStatus = (): "Healthy" | "Needs attention" | "Critical" => {
+    if (revenueVsProRated >= 0.95) return "Healthy";
+    if (revenueVsProRated >= 0.80) return "Needs attention";
+    return "Critical";
+  };
+
+  // Sessions calculations - compare to pro-rated goal
+  const sessionsVsProRated = calc.sessions.completed / proRatedSessionsGoal;
+  const sessionsPercent = Math.round((calc.sessions.completed / GOALS.sessions) * 100);
+  const getSessionsStatus = (): "Healthy" | "Needs attention" | "Critical" => {
+    if (sessionsVsProRated >= 0.95) return "Healthy";
+    if (sessionsVsProRated >= 0.80) return "Needs attention";
+    return "Critical";
+  };
+
+  // Client growth calculations
+  const netGrowth = calc.clients.new - calc.clients.churned;
+  const getClientStatus = (): "Healthy" | "Needs attention" | "Critical" => {
+    if (netGrowth >= 0) return "Healthy";
+    if (netGrowth >= -3) return "Needs attention";
+    return "Critical";
+  };
+
+  // Attendance calculations (not pro-rated - it's a rate)
+  const rebookPercent = Math.round(calc.attendance.rebookRate * 100);
+  const rebookGoalPercent = Math.round(GOALS.rebookRate * 100);
+  const getAttendanceStatus = (): "Healthy" | "Needs attention" | "Critical" => {
+    if (calc.attendance.rebookRate >= GOALS.rebookRate) return "Healthy";
+    if (calc.attendance.rebookRate >= GOALS.rebookRate - 0.05) return "Needs attention";
+    return "Critical";
+  };
+
+  // Notes compliance calculations (not pro-rated - it's a rate)
+  const notesPercent = Math.round(calc.notes.outstandingPercent * 100);
+  const getNotesStatus = (): "Healthy" | "Needs attention" | "Critical" => {
+    if (calc.notes.outstandingPercent <= GOALS.notesOverdue) return "Healthy";
+    if (calc.notes.outstandingPercent <= GOALS.notesOverdue * 1.5) return "Needs attention";
+    return "Critical";
+  };
+
+  // Build subtext - keep original format
+  const revenueGap = GOALS.revenue - calc.revenue.value;
+  const revenueSubtext = revenueGap > 0
+    ? `Goal: $${GOALS.revenue / 1000}k · $${(revenueGap / 1000).toFixed(1)}k left to reach target`
+    : `Goal: $${GOALS.revenue / 1000}k · Target achieved!`;
+
+  const sessionsSubtext = `Goal: ${GOALS.sessions} · ${sessionsPercent}% of monthly goal`;
+
+  const clientSubtext = `${calc.clients.new} new, ${calc.clients.churned} churned · ${calc.clients.openings} openings`;
+
+  const attendanceSubtext = `${Math.round(calc.attendance.clientCancelRate * 100)}% client cancel rate`;
+
+  const notesSubtext = `Goal: <${Math.round(GOALS.notesOverdue * 100)}% · ${notesPercent}% currently overdue`;
 
   return {
     revenue: {
       label: "Revenue",
-      value: `$${baseRevenue.toFixed(1)}k`,
+      value: calc.revenue.formatted,
       valueLabel: "",
-      subtext: `$${(baseRevenue + 10).toFixed(0)}k goal`,
-      status: Math.random() > 0.5 ? "Healthy" : "Needs attention"
+      subtext: revenueSubtext,
+      status: getRevenueStatus()
     },
     sessions: {
       label: "Sessions",
-      value: `${baseSessions}`,
+      value: `${calc.sessions.completed}`,
       valueLabel: "completed",
-      subtext: `${Math.floor(60 + Math.random() * 25)}% utilization`,
-      status: "Healthy"
+      subtext: sessionsSubtext,
+      status: getSessionsStatus()
     },
     clientGrowth: {
       label: "Clients",
-      value: `${baseClients}`,
+      value: `${calc.clients.active}`,
       valueLabel: "active",
-      subtext: `+${Math.floor(5 + Math.random() * 10)} new · -${Math.floor(2 + Math.random() * 5)} discharged`,
-      status: "Healthy"
+      subtext: clientSubtext,
+      status: getClientStatus()
     },
     attendance: {
       label: "Attendance",
-      value: `${Math.floor(65 + Math.random() * 15)}%`,
+      value: `${rebookPercent}%`,
       valueLabel: "rebook rate",
-      subtext: `${cancelRate}% client cancel rate`,
-      status: Math.random() > 0.6 ? "Healthy" : "Needs attention"
+      subtext: attendanceSubtext,
+      status: getAttendanceStatus()
     },
     compliance: {
       label: "Outstanding Notes",
-      value: `${Math.floor(Math.random() * 10)}`,
-      valueLabel: "overdue notes",
-      subtext: "Historical data",
-      status: Math.random() > 0.7 ? "Healthy" : "Needs attention"
+      value: `${notesPercent}%`,
+      valueLabel: "overdue",
+      subtext: notesSubtext,
+      status: getNotesStatus()
     }
   };
 };
@@ -168,14 +155,13 @@ export const Dashboard: React.FC = () => {
 
   const totalCards = 4;
 
-  // Get metrics based on view mode
-  const metrics = React.useMemo(() => {
-    // If current month/year is selected (either live or historical), show live metrics
-    const isCurrentMonth = selectedMonth === now.getMonth() && selectedYear === now.getFullYear();
-    if (viewMode === 'live' || isCurrentMonth) {
-      return LIVE_METRICS;
+  // Get metrics based on view mode - now calculated from real data
+  const metrics = useMemo(() => {
+    if (viewMode === 'live') {
+      // Use current month
+      return buildPracticeMetrics(now.getMonth(), now.getFullYear());
     }
-    return getMetricsForMonth(selectedMonth, selectedYear);
+    return buildPracticeMetrics(selectedMonth, selectedYear);
   }, [viewMode, selectedMonth, selectedYear, now]);
 
   // Handle month selection from picker
@@ -327,8 +313,8 @@ export const Dashboard: React.FC = () => {
                   selectedMonth={selectedMonth}
                   selectedYear={selectedYear}
                   onSelect={handleMonthSelect}
-                  minYear={2020}
-                  maxYear={new Date().getFullYear()}
+                  minYear={DATA_RANGE.earliest.getFullYear()}
+                  maxYear={DATA_RANGE.latest.getFullYear()}
                   autoOpen={true}
                 />
               )}
@@ -343,67 +329,65 @@ export const Dashboard: React.FC = () => {
 
           {/* Metrics Row */}
           <div className="flex-shrink-0">
-            <h2
-              className="text-xl sm:text-2xl text-stone-900 font-bold tracking-tight mb-4"
-              style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-            >
-              Key Metrics
-            </h2>
+            <SectionHeader
+              question="Key Metrics"
+              accent="amber"
+              showAccentLine={false}
+              compact
+              className="!mb-4"
+            />
             <MetricsRow metrics={metrics} />
           </div>
 
           {/* Priority Tasks Section */}
-          <div className="flex flex-col gap-4 pb-4 sm:pb-6 flex-1">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0 flex-shrink-0">
-              <h2
-                className="text-xl sm:text-2xl text-stone-900 font-bold tracking-tight"
-                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-              >
-                Priority Tasks
-                <span className="ml-3 text-sm font-medium text-stone-400">
-                  {totalCards} items
-                </span>
-              </h2>
-
-              {/* Navigation - only show if cards overflow */}
-              {needsNavigation && (
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-1.5 mr-3">
-                    {Array.from({ length: totalCards }).map((_, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => {
-                          setCurrentCardIndex(idx);
-                          scrollToCard(idx);
-                        }}
-                        className={`transition-all duration-300 rounded-full ${
-                          currentCardIndex === idx
-                            ? 'w-6 h-1.5 bg-stone-800'
-                            : 'w-1.5 h-1.5 bg-stone-300 hover:bg-stone-400'
-                        }`}
-                        aria-label={`Go to card ${idx + 1}`}
-                      />
-                    ))}
+          <div className="flex flex-col pb-4 sm:pb-6 flex-1">
+            <SectionHeader
+              question="Priority Tasks"
+              description={`${totalCards} items`}
+              accent="amber"
+              showAccentLine={false}
+              compact
+              className="!mb-4"
+              actions={
+                needsNavigation ? (
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-1.5 mr-3">
+                      {Array.from({ length: totalCards }).map((_, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => {
+                            setCurrentCardIndex(idx);
+                            scrollToCard(idx);
+                          }}
+                          className={`transition-all duration-300 rounded-full ${
+                            currentCardIndex === idx
+                              ? 'w-6 h-1.5 bg-stone-800'
+                              : 'w-1.5 h-1.5 bg-stone-300 hover:bg-stone-400'
+                          }`}
+                          aria-label={`Go to card ${idx + 1}`}
+                        />
+                      ))}
+                    </div>
+                    <button
+                      onClick={handlePrevious}
+                      disabled={currentCardIndex === 0}
+                      className="w-9 h-9 rounded-full bg-white border border-stone-200 flex items-center justify-center transition-all hover:border-stone-300 hover:shadow-sm disabled:opacity-30 disabled:cursor-not-allowed"
+                      aria-label="Previous card"
+                    >
+                      <ChevronLeft size={16} className="text-stone-600" />
+                    </button>
+                    <button
+                      onClick={handleNext}
+                      disabled={currentCardIndex === totalCards - 1}
+                      className="w-9 h-9 rounded-full bg-white border border-stone-200 flex items-center justify-center transition-all hover:border-stone-300 hover:shadow-sm disabled:opacity-30 disabled:cursor-not-allowed"
+                      aria-label="Next card"
+                    >
+                      <ChevronRight size={16} className="text-stone-600" />
+                    </button>
                   </div>
-                  <button
-                    onClick={handlePrevious}
-                    disabled={currentCardIndex === 0}
-                    className="w-9 h-9 rounded-full bg-white border border-stone-200 flex items-center justify-center transition-all hover:border-stone-300 hover:shadow-sm disabled:opacity-30 disabled:cursor-not-allowed"
-                    aria-label="Previous card"
-                  >
-                    <ChevronLeft size={16} className="text-stone-600" />
-                  </button>
-                  <button
-                    onClick={handleNext}
-                    disabled={currentCardIndex === totalCards - 1}
-                    className="w-9 h-9 rounded-full bg-white border border-stone-200 flex items-center justify-center transition-all hover:border-stone-300 hover:shadow-sm disabled:opacity-30 disabled:cursor-not-allowed"
-                    aria-label="Next card"
-                  >
-                    <ChevronRight size={16} className="text-stone-600" />
-                  </button>
-                </div>
-              )}
-            </div>
+                ) : undefined
+              }
+            />
 
             {/* Cards Container */}
             <div className="relative flex-1 min-h-0 -mx-6 sm:-mx-8 lg:-mx-12">

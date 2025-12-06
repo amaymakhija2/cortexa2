@@ -1,5 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Users } from 'lucide-react';
+import { getClinicianMetricsForPeriod, ClinicianMetricsCalculated } from '../data/metricsCalculator';
+import { PRACTICE_SETTINGS } from '../data/paymentData';
 
 // =============================================================================
 // CLINICIAN OVERVIEW COMPONENT
@@ -305,199 +307,116 @@ interface ClinicianData {
   metrics: ClinicianMetrics;
 }
 
-// Mock clinician data with extended metrics
-const CLINICIANS_DATA: ClinicianData[] = [
-  {
-    id: 1,
-    name: 'Dr. Sarah Chen',
-    shortName: 'S Chen',
-    role: 'Clinical Director',
-    avatar: 'SC',
-    metrics: {
-      revenue: 33000,
-      revenuePerSession: 232,
-      completedSessions: 142,
-      weeklySessionGoal: 28,
-      sessionGoalPercent: 95,
-      caseloadCapacity: 38,
-      caseloadPercent: 89,
-      weeklyClients: 22,
-      biweeklyClients: 8,
-      monthlyClients: 4,
-      showRate: 96,
-      nonBillableCancelRate: 6.2,
-      clientCancelRate: 4.1,
-      clinicianCancelRate: 0.9,
-      noShowRate: 1.2,
-      utilizationRate: 92,
-      activeClients: 34,
-      newClients: 8,
-      rebookRate: 94,
-      atRiskClients: 2,
-      newClientRevenue: 5600,
-      avgSessionsPerClient: 4.2,
-      churnRate: 3.2,
-      clientsChurned: 1,
-      session1to2Retention: 92,
-      session5Retention: 78,
-      session12Retention: 65,
-      earlyChurnPercent: 25,
-      outstandingNotes: 0,
-    },
-  },
-  {
-    id: 2,
-    name: 'Dr. Maria Rodriguez',
-    shortName: 'M Rodriguez',
-    role: 'Senior Therapist',
-    avatar: 'MR',
-    metrics: {
-      revenue: 30500,
-      revenuePerSession: 235,
-      completedSessions: 130,
-      weeklySessionGoal: 28,
-      sessionGoalPercent: 87,
-      caseloadCapacity: 36,
-      caseloadPercent: 89,
-      weeklyClients: 20,
-      biweeklyClients: 7,
-      monthlyClients: 5,
-      showRate: 94,
-      nonBillableCancelRate: 7.8,
-      clientCancelRate: 5.3,
-      clinicianCancelRate: 0.7,
-      noShowRate: 1.8,
-      utilizationRate: 89,
-      activeClients: 32,
-      newClients: 6,
-      rebookRate: 91,
-      atRiskClients: 3,
-      newClientRevenue: 4200,
-      avgSessionsPerClient: 4.1,
-      churnRate: 4.5,
-      clientsChurned: 2,
-      session1to2Retention: 88,
-      session5Retention: 72,
-      session12Retention: 58,
-      earlyChurnPercent: 30,
-      outstandingNotes: 2,
-    },
-  },
-  {
-    id: 3,
-    name: 'Dr. Anil Patel',
-    shortName: 'A Patel',
-    role: 'Therapist',
-    avatar: 'AP',
-    metrics: {
-      revenue: 27000,
-      revenuePerSession: 235,
-      completedSessions: 115,
-      weeklySessionGoal: 28,
-      sessionGoalPercent: 77,
-      caseloadCapacity: 35,
-      caseloadPercent: 86,
-      weeklyClients: 18,
-      biweeklyClients: 6,
-      monthlyClients: 6,
-      showRate: 91,
-      nonBillableCancelRate: 11.3,
-      clientCancelRate: 7.2,
-      clinicianCancelRate: 0.6,
-      noShowRate: 3.5,
-      utilizationRate: 85,
-      activeClients: 30,
-      newClients: 5,
-      rebookRate: 82,
-      atRiskClients: 6,
-      newClientRevenue: 3500,
-      avgSessionsPerClient: 3.8,
-      churnRate: 8.2,
-      clientsChurned: 4,
-      session1to2Retention: 78,
-      session5Retention: 55,
-      session12Retention: 38,
-      earlyChurnPercent: 45,
-      outstandingNotes: 5,
-    },
-  },
-  {
-    id: 4,
-    name: 'Dr. Jennifer Kim',
-    shortName: 'J Kim',
-    role: 'Therapist',
-    avatar: 'JK',
-    metrics: {
-      revenue: 28500,
-      revenuePerSession: 228,
-      completedSessions: 125,
-      weeklySessionGoal: 28,
-      sessionGoalPercent: 83,
-      caseloadCapacity: 36,
-      caseloadPercent: 86,
-      weeklyClients: 19,
-      biweeklyClients: 7,
-      monthlyClients: 5,
-      showRate: 93,
-      nonBillableCancelRate: 8.5,
-      clientCancelRate: 6.1,
-      clinicianCancelRate: 0.3,
-      noShowRate: 2.1,
-      utilizationRate: 88,
-      activeClients: 31,
-      newClients: 7,
-      rebookRate: 88,
-      atRiskClients: 4,
-      newClientRevenue: 4900,
-      avgSessionsPerClient: 4.0,
-      churnRate: 5.1,
-      clientsChurned: 2,
-      session1to2Retention: 85,
-      session5Retention: 68,
-      session12Retention: 52,
-      earlyChurnPercent: 35,
-      outstandingNotes: 1,
-    },
-  },
-  {
-    id: 5,
-    name: 'Dr. Michael Johnson',
-    shortName: 'M Johnson',
-    role: 'Associate Therapist',
-    avatar: 'MJ',
-    metrics: {
-      revenue: 23500,
-      revenuePerSession: 218,
-      completedSessions: 108,
-      weeklySessionGoal: 28,
-      sessionGoalPercent: 72,
-      caseloadCapacity: 35,
-      caseloadPercent: 83,
-      weeklyClients: 16,
-      biweeklyClients: 8,
-      monthlyClients: 5,
-      showRate: 89,
-      nonBillableCancelRate: 12.1,
-      clientCancelRate: 8.4,
-      clinicianCancelRate: 0.5,
-      noShowRate: 3.2,
-      utilizationRate: 83,
-      activeClients: 29,
-      newClients: 4,
-      rebookRate: 79,
-      atRiskClients: 7,
-      newClientRevenue: 2800,
-      avgSessionsPerClient: 3.7,
-      churnRate: 9.8,
-      clientsChurned: 5,
-      session1to2Retention: 72,
-      session5Retention: 48,
-      session12Retention: 32,
-      earlyChurnPercent: 52,
-      outstandingNotes: 4,
-    },
-  }
-];
+// Build clinician data from real calculated metrics
+function buildClinicianData(calculated: ClinicianMetricsCalculated[], periodId: string): ClinicianData[] {
+  // Sort by revenue to assign roles
+  const sorted = [...calculated].sort((a, b) => b.revenue - a.revenue);
+
+  return sorted.map((calc, index) => {
+    // Generate initials for avatar
+    const nameParts = calc.clinicianName.split(' ');
+    const avatar = nameParts.length >= 2
+      ? `${nameParts[0][0]}${nameParts[1][0]}`
+      : calc.clinicianName.substring(0, 2).toUpperCase();
+
+    // Assign roles based on revenue ranking
+    const roles = ['Senior Therapist', 'Therapist', 'Therapist', 'Associate Therapist', 'Associate Therapist'];
+    const role = index === 0 ? 'Clinical Director' : roles[Math.min(index - 1, roles.length - 1)];
+
+    // Calculate derived metrics
+    const sessions = calc.completedSessions;
+    const activeClients = calc.activeClients;
+
+    // Estimate weekly values based on period (assume 4 weeks in month, 12 in quarter, 52 in year)
+    const weeksInPeriod = periodId === 'this-month' || periodId === 'last-month' ? 4
+      : periodId === 'this-quarter' || periodId === 'last-quarter' ? 13
+      : periodId === 'this-year' ? 52
+      : 52; // last-12-months
+
+    const weeklySessionGoal = 25; // Default goal
+    const sessionsPerWeek = sessions / weeksInPeriod;
+    const sessionGoalPercent = (sessionsPerWeek / weeklySessionGoal) * 100;
+
+    // Caseload calculations
+    const caseloadCapacity = 35; // Default capacity
+    const caseloadPercent = (activeClients / caseloadCapacity) * 100;
+
+    // Estimate client frequency distribution (rough estimates)
+    const weeklyClients = Math.round(activeClients * 0.6);
+    const biweeklyClients = Math.round(activeClients * 0.25);
+    const monthlyClients = Math.round(activeClients * 0.15);
+
+    // Use practice-wide attendance settings (can't calculate per-clinician from payment data)
+    const showRate = PRACTICE_SETTINGS.attendance.showRate * 100;
+    const clientCancelRate = PRACTICE_SETTINGS.attendance.clientCancelled * 100;
+    const clinicianCancelRate = PRACTICE_SETTINGS.attendance.clinicianCancelled * 100;
+    const lateCancelRate = PRACTICE_SETTINGS.attendance.lateCancelled * 100;
+    const noShowRate = 100 - showRate - clientCancelRate - clinicianCancelRate - lateCancelRate;
+    const nonBillableCancelRate = clientCancelRate + lateCancelRate + noShowRate;
+    const rebookRate = PRACTICE_SETTINGS.attendance.rebookRate * 100;
+
+    // Utilization based on sessions vs capacity
+    const utilizationRate = Math.min(100, (sessionsPerWeek / weeklySessionGoal) * 100);
+
+    // At-risk clients (estimate based on churn rate)
+    const atRiskClients = Math.round(activeClients * (calc.churnRate / 100) * 0.5);
+
+    // New client revenue (estimate based on proportion of new clients)
+    const newClientRevenue = activeClients > 0
+      ? (calc.newClients / activeClients) * calc.revenue
+      : 0;
+
+    // Retention estimates (decreasing funnel)
+    const baseRetention = 100 - calc.churnRate;
+    const session1to2Retention = Math.min(95, baseRetention + 10);
+    const session5Retention = Math.min(85, baseRetention);
+    const session12Retention = Math.min(70, baseRetention - 15);
+    const earlyChurnPercent = Math.max(15, calc.churnRate * 1.5);
+
+    // Outstanding notes (estimate based on sessions and practice-wide rate)
+    const outstandingNotes = Math.round(sessions * PRACTICE_SETTINGS.outstandingNotesPercent * 0.1);
+
+    return {
+      id: index + 1,
+      name: calc.clinicianName,
+      shortName: calc.clinicianName,
+      role,
+      avatar,
+      metrics: {
+        revenue: calc.revenue,
+        revenuePerSession: calc.revenuePerSession,
+        completedSessions: sessions,
+        weeklySessionGoal,
+        sessionGoalPercent: Math.round(sessionGoalPercent),
+        caseloadCapacity,
+        caseloadPercent: Math.round(caseloadPercent),
+        weeklyClients,
+        biweeklyClients,
+        monthlyClients,
+        showRate: Math.round(showRate),
+        nonBillableCancelRate: Math.round(nonBillableCancelRate * 10) / 10,
+        clientCancelRate: Math.round(clientCancelRate * 10) / 10,
+        clinicianCancelRate: Math.round(clinicianCancelRate * 10) / 10,
+        noShowRate: Math.round(noShowRate * 10) / 10,
+        utilizationRate: Math.round(utilizationRate),
+        activeClients,
+        newClients: calc.newClients,
+        rebookRate: Math.round(rebookRate),
+        atRiskClients,
+        newClientRevenue: Math.round(newClientRevenue),
+        avgSessionsPerClient: Math.round(calc.avgSessionsPerClient * 10) / 10,
+        churnRate: Math.round(calc.churnRate * 10) / 10,
+        clientsChurned: calc.clientsChurned,
+        session1to2Retention: Math.round(session1to2Retention),
+        session5Retention: Math.round(session5Retention),
+        session12Retention: Math.round(session12Retention),
+        earlyChurnPercent: Math.round(earlyChurnPercent),
+        outstandingNotes,
+      },
+    };
+  });
+}
+
 
 type SessionGoalView = 'weekly' | 'monthly';
 type CaseloadFrequency = 'weekly' | 'biweekly' | 'monthly';
@@ -520,6 +439,12 @@ export const ClinicianOverview: React.FC = () => {
   const [sessionGoalView, setSessionGoalView] = useState<SessionGoalView>('weekly');
   const [caseloadFrequency, setCaseloadFrequency] = useState<CaseloadFrequency>('weekly');
 
+  // Build clinician data from real calculated metrics based on selected time period
+  const CLINICIANS_DATA = useMemo(() => {
+    const calculatedMetrics = getClinicianMetricsForPeriod(timePeriod);
+    return buildClinicianData(calculatedMetrics, timePeriod);
+  }, [timePeriod]);
+
   // Update time period when switching tabs to use sensible defaults
   const handleGroupChange = (groupId: MetricGroupId) => {
     setSelectedGroupId(groupId);
@@ -528,34 +453,92 @@ export const ClinicianOverview: React.FC = () => {
 
   const selectedGroup = METRIC_GROUPS.find(g => g.id === selectedGroupId)!;
 
-  // For sessions tab, dynamically adjust all labels and values based on weekly/monthly toggle
+  // Get human-readable date range label for the selected period
+  const getDateRangeLabel = (): string => {
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentQuarter = Math.floor(currentMonth / 3);
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const fullMonths = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const currentYear = now.getFullYear();
+
+    switch (timePeriod) {
+      case 'last-12-months': {
+        const startMonth = (currentMonth + 1) % 12;
+        const startYear = startMonth > currentMonth ? currentYear - 1 : currentYear;
+        return `${months[startMonth]} ${startYear} – ${months[currentMonth]} ${currentYear}`;
+      }
+      case 'this-year':
+        return `Jan – ${months[currentMonth]} ${currentYear}`;
+      case 'this-quarter': {
+        const quarterStart = currentQuarter * 3;
+        return `${months[quarterStart]} – ${months[currentMonth]} ${currentYear}`;
+      }
+      case 'last-quarter': {
+        const lastQuarter = currentQuarter === 0 ? 3 : currentQuarter - 1;
+        const lastQuarterStart = lastQuarter * 3;
+        const lastQuarterEnd = lastQuarterStart + 2;
+        const year = currentQuarter === 0 ? currentYear - 1 : currentYear;
+        return `${months[lastQuarterStart]} – ${months[lastQuarterEnd]} ${year}`;
+      }
+      case 'this-month':
+        return `${fullMonths[currentMonth]} ${currentYear}`;
+      case 'last-month': {
+        const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+        const year = currentMonth === 0 ? currentYear - 1 : currentYear;
+        return `${fullMonths[lastMonth]} ${year}`;
+      }
+      default:
+        return '';
+    }
+  };
+
+  // For sessions tab, dynamically adjust labels based on weekly/monthly toggle
+  // Shows average weekly or monthly performance across the selected time period
   const getSessionsGroup = (): MetricGroupConfig => {
     if (selectedGroupId !== 'sessions') return selectedGroup;
 
     const isMonthly = sessionGoalView === 'monthly';
-    const goalMultiplier = isMonthly ? 4 : 1;
-    // Sessions multiplier: weekly shows ~1/4 of completed, monthly shows full completed
-    const sessionsMultiplier = isMonthly ? 1 : 0.25;
+
+    // Calculate how many weeks/months in the selected period
+    const getPeriodsInRange = () => {
+      switch (timePeriod) {
+        case 'this-month':
+        case 'last-month':
+          return { weeks: 4, months: 1 };
+        case 'this-quarter':
+        case 'last-quarter':
+          return { weeks: 13, months: 3 };
+        case 'this-year':
+          return { weeks: 52, months: 12 };
+        case 'last-12-months':
+        default:
+          return { weeks: 52, months: 12 };
+      }
+    };
+
+    const periods = getPeriodsInRange();
+    const divisor = isMonthly ? periods.months : periods.weeks;
 
     return {
       ...selectedGroup,
       primary: {
         ...selectedGroup.primary,
-        label: isMonthly ? 'Monthly Goal %' : 'Weekly Goal %',
+        label: isMonthly ? 'Avg Monthly Goal %' : 'Avg Weekly Goal %',
         shortLabel: 'Goal %',
       },
       supporting: [
         {
           ...selectedGroup.supporting[0],
-          label: isMonthly ? 'Monthly Sessions' : 'Weekly Sessions',
-          shortLabel: isMonthly ? 'Sessions' : 'Sessions',
-          format: (v) => Math.round(v * sessionsMultiplier).toLocaleString(),
+          label: isMonthly ? 'Avg Monthly Sessions' : 'Avg Weekly Sessions',
+          shortLabel: 'Avg Sessions',
+          format: (v) => Math.round(v / divisor).toLocaleString(),
         },
         {
           ...selectedGroup.supporting[1],
           label: isMonthly ? 'Monthly Goal' : 'Weekly Goal',
-          shortLabel: isMonthly ? 'Goal' : 'Goal',
-          format: (v) => (v * goalMultiplier).toLocaleString(),
+          shortLabel: 'Goal',
+          format: (v) => (isMonthly ? v * 4 : v).toLocaleString(),
         },
       ],
     };
@@ -566,8 +549,9 @@ export const ClinicianOverview: React.FC = () => {
 
   // Calculate team average
   const teamAvg = useMemo(() => {
+    if (CLINICIANS_DATA.length === 0) return 0;
     return CLINICIANS_DATA.reduce((sum, c) => sum + c.metrics[metric.key], 0) / CLINICIANS_DATA.length;
-  }, [metric.key]);
+  }, [metric.key, CLINICIANS_DATA]);
 
   // Sort clinicians and find where team average belongs
   const { sortedClinicians, avgRankIndex } = useMemo(() => {
@@ -643,6 +627,7 @@ export const ClinicianOverview: React.FC = () => {
                 >
                   Clinician Rankings
                 </h1>
+                <p className="text-stone-400 text-base sm:text-lg mt-2">{getDateRangeLabel()}</p>
               </div>
 
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -674,8 +659,8 @@ export const ClinicianOverview: React.FC = () => {
 
                 {/* Time Period Selector */}
                 <div className="relative">
-                  {(selectedGroupId === 'caseload' || selectedGroupId === 'documentation') ? (
-                    /* Caseload: Show disabled "Current Month" only */
+                  {selectedGroupId === 'documentation' ? (
+                    /* Documentation: Show disabled "Current Month" only (point-in-time metric) */
                     <>
                       {/* Mobile */}
                       <div className="lg:hidden px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-sm font-medium text-white/50 cursor-not-allowed">
