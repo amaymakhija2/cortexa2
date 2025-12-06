@@ -1538,11 +1538,21 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
   };
 
+  try {
+  // Check if AUTH_SECRET is configured
+  if (!env.AUTH_SECRET) {
+    console.error('AUTH_SECRET not configured');
+    return new Response(
+      JSON.stringify({ error: 'Server configuration error', debug: 'AUTH_SECRET not set' }),
+      { status: 500, headers }
+    );
+  }
+
   // Check authorization
   const authHeader = request.headers.get('Authorization');
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return new Response(
-      JSON.stringify({ error: 'Unauthorized' }),
+      JSON.stringify({ error: 'Unauthorized', debug: 'No Authorization header' }),
       { status: 401, headers }
     );
   }
@@ -1587,11 +1597,24 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     }),
     { status: 200, headers }
   );
+  } catch (err) {
+    console.error('Unhandled error in metrics handler:', err);
+    return new Response(
+      JSON.stringify({ error: 'Internal server error', debug: String(err) }),
+      {
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': allowedOrigin,
+        }
+      }
+    );
+  }
 };
 
 // Handle CORS preflight
 export const onRequestOptions: PagesFunction<Env> = async (context) => {
-  const allowedOrigin = context.env.ALLOWED_ORIGIN || 'https://cortexa.pages.dev';
+  const allowedOrigin = context.env.ALLOWED_ORIGIN || 'https://cortexa2.pages.dev';
 
   return new Response(null, {
     headers: {
