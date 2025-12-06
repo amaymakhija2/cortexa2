@@ -1529,13 +1529,24 @@ async function verifyToken(token: string, secret: string): Promise<{ valid: bool
 export const onRequestGet: PagesFunction<Env> = async (context) => {
   const { request, env } = context;
 
-  const allowedOrigin = env.ALLOWED_ORIGIN || 'https://cortexa2.pages.dev';
+  // Get the request origin and validate it
+  const requestOrigin = request.headers.get('Origin') || '';
+  const allowedOrigins = [
+    'https://cortexa2.pages.dev',
+    'http://localhost:3000',
+    env.ALLOWED_ORIGIN
+  ].filter(Boolean);
+
+  const allowedOrigin = allowedOrigins.includes(requestOrigin)
+    ? requestOrigin
+    : 'https://cortexa2.pages.dev';
 
   const headers = {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': allowedOrigin,
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Credentials': 'true',
   };
 
   try {
@@ -1614,13 +1625,27 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 
 // Handle CORS preflight
 export const onRequestOptions: PagesFunction<Env> = async (context) => {
-  const allowedOrigin = context.env.ALLOWED_ORIGIN || 'https://cortexa2.pages.dev';
+  const { request, env } = context;
+
+  // Get the request origin and validate it
+  const requestOrigin = request.headers.get('Origin') || '';
+  const allowedOrigins = [
+    'https://cortexa2.pages.dev',
+    'http://localhost:3000',
+    env.ALLOWED_ORIGIN
+  ].filter(Boolean);
+
+  const allowedOrigin = allowedOrigins.includes(requestOrigin)
+    ? requestOrigin
+    : 'https://cortexa2.pages.dev';
 
   return new Response(null, {
     headers: {
       'Access-Control-Allow-Origin': allowedOrigin,
       'Access-Control-Allow-Methods': 'GET, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Allow-Credentials': 'true',
+      'Access-Control-Max-Age': '86400',
     },
   });
 };
