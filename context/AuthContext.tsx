@@ -62,6 +62,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   });
 
   const login = async (username: string, password: string): Promise<boolean> => {
+    // DEBUG: Remove after fixing
+    console.log('Login attempt:', {
+      enteredUser: username,
+      expectedUser: VALID_USERNAME || '(empty)',
+      enteredPass: password.length + ' chars',
+      expectedPass: VALID_PASSWORD ? VALID_PASSWORD.length + ' chars' : '(empty)'
+    });
+
     if (username === VALID_USERNAME && password === VALID_PASSWORD) {
       // Generate API token
       const newToken = await generateToken(username);
