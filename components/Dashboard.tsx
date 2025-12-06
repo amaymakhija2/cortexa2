@@ -3,6 +3,7 @@ import React, { useState, useMemo } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { MetricsRow } from './MetricsRow';
 import { SimpleAlertCard } from './SimpleAlertCard';
+import { MonthlyReviewCard } from './MonthlyReviewCard';
 import { MonthPicker } from './MonthPicker';
 import { PageHeader, SectionHeader } from './design-system';
 import { PracticeMetrics } from '../types';
@@ -153,7 +154,7 @@ export const Dashboard: React.FC = () => {
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth()); // 0-11
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
 
-  const totalCards = 4;
+  const totalCards = 5;
 
   // Get metrics based on view mode - now calculated from real data
   const metrics = useMemo(() => {
@@ -219,6 +220,12 @@ export const Dashboard: React.FC = () => {
   };
 
   const priorityCards = [
+    <MonthlyReviewCard
+      key="monthly-review"
+      month={10} // November (0-indexed)
+      year={2024}
+      index={0}
+    />,
     <SimpleAlertCard
       key="retention"
       index={1}
@@ -390,10 +397,10 @@ export const Dashboard: React.FC = () => {
             />
 
             {/* Cards Container */}
-            <div className="relative flex-1 min-h-0 -mx-6 sm:-mx-8 lg:-mx-12">
+            <div className="relative flex-1 min-h-0">
               <div
                 ref={scrollContainerRef}
-                className="flex gap-4 lg:gap-5 h-full overflow-x-auto overflow-y-hidden snap-x snap-mandatory scrollbar-hide pb-2 px-6 sm:px-8 lg:px-12"
+                className="flex gap-4 lg:gap-5 h-full overflow-x-auto overflow-y-hidden snap-x snap-mandatory scrollbar-hide pb-2"
                 style={{
                   scrollbarWidth: 'none',
                   msOverflowStyle: 'none',
