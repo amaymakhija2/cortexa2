@@ -1,6 +1,7 @@
 // Cloudflare Pages Function - Protected Metrics endpoint
 interface Env {
   AUTH_SECRET: string;
+  ALLOWED_ORIGIN?: string; // Set in Cloudflare Pages dashboard
 }
 
 interface ClinicianMetrics {
@@ -1517,10 +1518,12 @@ async function verifyToken(token: string, secret: string): Promise<boolean> {
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
   const { request, env } = context;
-  
+
+  const allowedOrigin = env.ALLOWED_ORIGIN || 'https://cortexa.pages.dev';
+
   const headers = {
     'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Origin': allowedOrigin,
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
   };
@@ -1571,10 +1574,12 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 };
 
 // Handle CORS preflight
-export const onRequestOptions: PagesFunction = async () => {
+export const onRequestOptions: PagesFunction<Env> = async (context) => {
+  const allowedOrigin = context.env.ALLOWED_ORIGIN || 'https://cortexa.pages.dev';
+
   return new Response(null, {
     headers: {
-      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Origin': allowedOrigin,
       'Access-Control-Allow-Methods': 'GET, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     },

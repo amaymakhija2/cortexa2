@@ -8,8 +8,8 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-const VALID_USERNAME = 'cortex';
-const VALID_PASSWORD = 'cortex1234';
+const VALID_USERNAME = import.meta.env.VITE_AUTH_USERNAME || '';
+const VALID_PASSWORD = import.meta.env.VITE_AUTH_PASSWORD || '';
 const AUTH_KEY = 'cortexa_auth';
 const BUILD_VERSION_KEY = 'cortexa_build';
 const BUILD_VERSION = import.meta.env.VITE_BUILD_TIME || __BUILD_TIME__;
