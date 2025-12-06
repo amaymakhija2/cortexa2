@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Sparkles, ChevronRight, X, ArrowRight, TrendingUp, TrendingDown,
+  Sparkles, ChevronRight, ChevronLeft, X, ArrowRight, TrendingUp, TrendingDown,
   Users, DollarSign, Award, Heart, Calendar, Target, UserMinus,
   UserPlus, Clock, AlertTriangle, FileText, Briefcase, CheckCircle2,
   Loader2
 } from 'lucide-react';
 import { useMetrics, useClinicianMetricsForMonth, useMonthlyData } from '../hooks';
+import { useSettings, getDisplayName } from '../context/SettingsContext';
 
 // Format currency helper (moved here from metricsCalculator)
 function formatCurrency(amount: number): string {
@@ -73,6 +74,10 @@ export const MonthlyReviewCard: React.FC<MonthlyReviewCardProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
 
+  // Get settings for demo mode
+  const { settings } = useSettings();
+  const anonymize = settings.anonymizeClinicianNames;
+
   // Fetch metrics from API
   const { data: metricsData, loading: metricsLoading } = useMetrics(month, year);
   const { data: clinicianMetrics, loading: cliniciansLoading } = useClinicianMetricsForMonth(month, year);
@@ -137,7 +142,7 @@ export const MonthlyReviewCard: React.FC<MonthlyReviewCardProps> = ({
   // Determine if we need a "heads up" slide
   const hasHeadsUp = highChurnClinician || notesOverdue > 15 || rebookRate < 80;
   const headsUpMessage = highChurnClinician
-    ? `${highChurnClinician.clinicianName.split(' ')[0]} lost ${highChurnClinician.clientsChurned} clients this month. Consider a check-in.`
+    ? `${getDisplayName(highChurnClinician.clinicianName, anonymize).split(' ')[0]} lost ${highChurnClinician.clientsChurned} clients this month. Consider a check-in.`
     : notesOverdue > 15
     ? `${notesOverdue}% of notes are overdue. This affects billing and compliance.`
     : `Rebook rate dropped to ${rebookRate}%. Follow up with clients who haven't scheduled.`;
@@ -178,7 +183,7 @@ export const MonthlyReviewCard: React.FC<MonthlyReviewCardProps> = ({
       icon: UserPlus,
       value: metrics.clients.new,
       totalActive: metrics.clients.active,
-      topAcquirer: topAcquirer?.clinicianName?.split(' ')[0] || 'Team',
+      topAcquirer: topAcquirer ? getDisplayName(topAcquirer.clinicianName, anonymize).split(' ')[0] : 'Team',
       topAcquirerCount: topAcquirer?.newClients || 0,
     },
 
@@ -207,7 +212,7 @@ export const MonthlyReviewCard: React.FC<MonthlyReviewCardProps> = ({
       type: 'mvp',
       theme: SLIDE_THEMES[6],
       icon: Award,
-      name: topClinician?.clinicianName || 'Star Clinician',
+      name: topClinician ? getDisplayName(topClinician.clinicianName, anonymize) : 'Star Clinician',
       revenue: formatCurrency(topClinician?.revenue || 0),
       sessions: topClinician?.completedSessions || 0,
       clients: topClinician?.activeClients || 0,
@@ -217,7 +222,10 @@ export const MonthlyReviewCard: React.FC<MonthlyReviewCardProps> = ({
     {
       type: 'team',
       theme: SLIDE_THEMES[7],
-      clinicians: sortedClinicians.slice(0, 6), // Top 6
+      clinicians: sortedClinicians.slice(0, 6).map(c => ({
+        ...c,
+        clinicianName: getDisplayName(c.clinicianName, anonymize),
+      })),
     },
 
     // 9. Heads Up (conditional)
@@ -278,6 +286,34 @@ export const MonthlyReviewCard: React.FC<MonthlyReviewCardProps> = ({
     }
   };
 
+  // Auto-advance timer state
+  const [timerProgress, setTimerProgress] = useState(0);
+  const SLIDE_DURATION = 8000; // 8 seconds per slide
+
+  // Auto-advance slides every 8 seconds with visual countdown
+  useEffect(() => {
+    if (!isOpen) return;
+
+    // Reset progress when slide changes
+    setTimerProgress(0);
+
+    if (currentSlide >= slides.length - 1) return;
+
+    const startTime = Date.now();
+
+    const progressInterval = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min((elapsed / SLIDE_DURATION) * 100, 100);
+      setTimerProgress(progress);
+
+      if (elapsed >= SLIDE_DURATION) {
+        setCurrentSlide(prev => prev < slides.length - 1 ? prev + 1 : prev);
+      }
+    }, 50); // Update every 50ms for smooth animation
+
+    return () => clearInterval(progressInterval);
+  }, [isOpen, currentSlide, slides.length]);
+
   return (
     <>
       {/* Trigger Card */}
@@ -292,68 +328,13 @@ export const MonthlyReviewCard: React.FC<MonthlyReviewCardProps> = ({
           role="button"
           tabIndex={0}
           onKeyDown={(e) => e.key === 'Enter' && setIsOpen(true)}
-          className="relative h-full rounded-[20px] overflow-hidden flex flex-col border border-amber-500/30 shadow-xl group cursor-pointer transition-all duration-300 hover:shadow-2xl"
-          style={{
-            background: 'linear-gradient(145deg, rgba(180, 83, 9, 0.95) 0%, rgba(124, 45, 18, 0.98) 50%, rgba(67, 20, 7, 0.99) 100%)',
-          }}
+          className="relative h-full rounded-[20px] overflow-hidden shadow-xl group cursor-pointer transition-all duration-300 hover:shadow-2xl"
         >
-          {/* Animated sparkle background */}
-          <div className="absolute inset-0 overflow-hidden">
-            <div className="absolute top-4 right-8 w-2 h-2 bg-amber-300 rounded-full animate-pulse opacity-60" />
-            <div className="absolute top-12 right-4 w-1.5 h-1.5 bg-orange-300 rounded-full animate-pulse opacity-40" style={{ animationDelay: '0.5s' }} />
-            <div className="absolute top-8 right-16 w-1 h-1 bg-yellow-200 rounded-full animate-pulse opacity-50" style={{ animationDelay: '1s' }} />
-            <div className="absolute bottom-20 left-6 w-1.5 h-1.5 bg-amber-200 rounded-full animate-pulse opacity-30" style={{ animationDelay: '0.7s' }} />
-          </div>
-
-          <div className="flex flex-col h-full p-4 sm:p-5 relative z-10">
-            {/* Badge */}
-            <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-              <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full bg-amber-400/20 text-amber-200">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span className="text-xs sm:text-sm font-semibold uppercase tracking-wide">
-                  New
-                </span>
-              </div>
-            </div>
-
-            {/* Title */}
-            <h2 className="text-xl sm:text-2xl xl:text-3xl font-semibold text-white mb-2 sm:mb-4">
-              {monthName} Review
-            </h2>
-
-            {/* Description */}
-            <p
-              className="text-base sm:text-lg xl:text-xl text-amber-100/80 leading-relaxed mb-4 xl:mb-6"
-              style={{ fontFamily: "'Georgia', serif" }}
-            >
-              Your practice wrapped. See how {monthName} shaped up with personalized insights.
-            </p>
-
-            {/* Preview Stats */}
-            <div className="flex flex-wrap items-center gap-3 sm:gap-4 xl:gap-6">
-              <div>
-                <span className="text-3xl sm:text-4xl xl:text-5xl font-semibold text-white">
-                  {metrics.revenue.formatted}
-                </span>
-                <p className="text-sm sm:text-base xl:text-lg text-amber-200/70 mt-0.5 sm:mt-1">revenue</p>
-              </div>
-              <div className="w-px h-12 sm:h-14 xl:h-16 bg-amber-500/30" />
-              <div>
-                <span className="text-3xl sm:text-4xl xl:text-5xl font-semibold text-white">
-                  {metrics.sessions.completed}
-                </span>
-                <p className="text-sm sm:text-base xl:text-lg text-amber-200/70 mt-0.5 sm:mt-1">sessions</p>
-              </div>
-            </div>
-
-            {/* CTA Button */}
-            <div className="mt-auto pt-4">
-              <div className="w-full py-3 xl:py-4 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white text-sm xl:text-base font-semibold rounded-xl transition-all duration-200 flex items-center justify-center gap-2 group-hover:bg-white/20">
-                View Your Review
-                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
-              </div>
-            </div>
-          </div>
+          <img
+            src="/wrapped/overview-card.png"
+            alt={`${monthName} Review`}
+            className="w-full h-full object-cover"
+          />
         </div>
       </motion.div>
 
@@ -394,6 +375,27 @@ export const MonthlyReviewCard: React.FC<MonthlyReviewCardProps> = ({
 
               {/* Slide Container */}
               <div className="flex-1 relative overflow-hidden rounded-3xl">
+                {/* Story-style progress bars at top */}
+                <div className="absolute top-0 left-0 right-0 z-30 p-3 flex gap-1">
+                  {slides.map((_, idx) => (
+                    <div
+                      key={idx}
+                      className="flex-1 h-1 rounded-full bg-white/30 overflow-hidden"
+                    >
+                      <div
+                        className="h-full bg-white rounded-full transition-all duration-75 ease-linear"
+                        style={{
+                          width: idx < currentSlide
+                            ? '100%'
+                            : idx === currentSlide
+                              ? `${timerProgress}%`
+                              : '0%'
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={currentSlide}
@@ -401,71 +403,54 @@ export const MonthlyReviewCard: React.FC<MonthlyReviewCardProps> = ({
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -100 }}
                     transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                    className={`absolute inset-0 ${slides[currentSlide].type === 'intro' ? 'bg-black' : `bg-gradient-to-br ${slides[currentSlide].theme.bg}`} flex flex-col items-center justify-center cursor-pointer overflow-hidden`}
-                    onClick={handleNext}
+                    className="absolute inset-0 bg-black flex flex-col items-center justify-center overflow-hidden"
                   >
-                    {/* Intro slide - full bleed image */}
-                    {slides[currentSlide].type === 'intro' ? (
-                      <>
-                        <img
-                          src="/wrapped/intro.png"
-                          alt="Monthly Review Intro"
-                          className="absolute inset-0 w-full h-full object-contain"
-                        />
-                        {/* Tap hint */}
-                        <motion.p
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ delay: 1 }}
-                          className="absolute bottom-8 text-white/40 text-sm z-10"
+                    {/* All slides use AI-generated images */}
+                    <img
+                      src={`/wrapped/${slides[currentSlide].type}.png`}
+                      alt={`${slides[currentSlide].type} slide`}
+                      className="absolute inset-0 w-full h-full object-contain"
+                    />
+
+                    {/* Navigation zones - left half goes back, right half goes forward */}
+                    <div className="absolute inset-0 z-10 flex">
+                      <div
+                        className="w-1/3 h-full cursor-pointer"
+                        onClick={handlePrev}
+                      />
+                      <div
+                        className="w-2/3 h-full cursor-pointer"
+                        onClick={handleNext}
+                      />
+                    </div>
+
+                    {/* Navigation buttons */}
+                    <div className="absolute inset-x-4 top-1/2 -translate-y-1/2 flex justify-between z-20 pointer-events-none">
+                      {currentSlide > 0 ? (
+                        <button
+                          onClick={handlePrev}
+                          className="w-10 h-10 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center text-white/70 hover:bg-black/50 hover:text-white transition-all pointer-events-auto"
                         >
-                          Tap to continue
-                        </motion.p>
-                      </>
-                    ) : (
-                      <>
-                        {/* Decorative elements */}
-                        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                          <div className="absolute -top-20 -right-20 w-64 h-64 bg-white/5 rounded-full blur-3xl" />
-                          <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
-                        </div>
-
-                        {/* Slide Content */}
-                        <div className="relative z-10 text-center max-w-sm w-full p-8">
-                          {renderSlide(slides[currentSlide], monthName, year, handleClose)}
-                        </div>
-
-                        {/* Tap hint */}
-                        {currentSlide < slides.length - 1 && (
-                          <motion.p
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 1 }}
-                            className="absolute bottom-8 text-white/40 text-sm"
-                          >
-                            Tap to continue
-                          </motion.p>
-                        )}
-                      </>
-                    )}
+                          <ChevronLeft size={24} />
+                        </button>
+                      ) : (
+                        <div className="w-10" />
+                      )}
+                      {currentSlide < slides.length - 1 ? (
+                        <button
+                          onClick={handleNext}
+                          className="w-10 h-10 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center text-white/70 hover:bg-black/50 hover:text-white transition-all pointer-events-auto"
+                        >
+                          <ChevronRight size={24} />
+                        </button>
+                      ) : (
+                        <div className="w-10" />
+                      )}
+                    </div>
                   </motion.div>
                 </AnimatePresence>
               </div>
 
-              {/* Progress bar */}
-              <div className="py-4 px-4">
-                <div className="h-1 bg-white/10 rounded-full overflow-hidden">
-                  <motion.div
-                    className="h-full bg-white/60 rounded-full"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${((currentSlide + 1) / slides.length) * 100}%` }}
-                    transition={{ duration: 0.3 }}
-                  />
-                </div>
-                <p className="text-white/40 text-xs text-center mt-2">
-                  {currentSlide + 1} of {slides.length}
-                </p>
-              </div>
             </motion.div>
           </motion.div>
         )}

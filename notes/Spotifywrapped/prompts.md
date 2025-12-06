@@ -4,69 +4,80 @@ Use these prompts to generate images for each card. Save each image in this fold
 
 ## Demo Names Reference
 These are the anonymized names used for demos (matching SettingsContext.tsx):
-- Maya Patel
-- Emma Thompson
-- Olivia Martinez
-- Sophie Chen
-- Priya Sharma
-- Ava Wilson
+- Gaya K → Maya P
+- Rudhdi K → Priya S
+- Alaina M → Emma T
+- Aditi R → Anika M
+- Tamanna A → Tara B
+- Gajan G → Arjun K
+- Shivon R → Simone L
+- Tanisha S → Tanya R
+- Mehar A → Mira D
+- Deepa S → Diana N
+- Rebecca S → Rachel M
+- Apeksha M → Asha P
+- Riddhi C → Riya T
+- Ranya P → Rita S
+- Vikramjit B → Vivek R
+- Paulomi M → Pooja K
+- Preeti R → Priti M
 
 ---
 
 ## 1. intro.png (DONE)
-Vertical mobile UI card design, hyper-vibrant Spotify Wrapped aesthetic. Text: "Gaya Therapy" "November 2025" "Let's see how you did". Visuals: Explosive and colorful fluid gradient shapes (neon pink, electric blue, vivid purple, bright lime), deep dark black background for high contrast. Style: Swiss minimalist layout, massive bold white sans-serif typography, soft film grain texture, artistic and abstract. Clean composition with generous negative space. No logos, no icons, text only. --ar 9:16
+Vertical 9:16 full-bleed mobile graphic (no device frame, no borders, no inner cards). Hyper-vibrant Spotify Wrapped aesthetic. Text left-aligned: "Gaya Therapy" (extra large, hero), "November 2025" (large), "Let's see how you did" (medium). Edge-to-edge explosive fluid gradient background (neon pink, electric blue, vivid purple, bright lime) over deep dark black for high contrast. Style: Swiss minimalist layout, massive bold white sans-serif typography, soft film grain texture, artistic and abstract. Clean composition with generous negative space. No logos, no icons, no extra frames or cards. --ar 9:16
 
 ---
 
 ## 2. revenue.png
-Vertical mobile UI card design, hyper-vibrant Spotify Wrapped aesthetic. Text: "Your practice earned" "$87.2k" "in revenue". Visuals: Luxurious fluid gradient shapes (emerald green, gold, bright lime, teal), deep dark black background for high contrast. Style: Swiss minimalist layout, massive bold white sans-serif typography with the dollar amount being extra large and prominent, soft film grain texture, artistic and abstract. Clean composition with generous negative space. No logos, no icons, text only. --ar 9:16
+Vertical 9:16 full-bleed mobile graphic (no device frame, no borders, no inner cards). Hyper-vibrant Spotify Wrapped aesthetic. Text centered vertically: "Your practice earned" (small, top), "$87.2k" (extra large, hero), "in revenue" (medium), "85% of $100k goal" (small, in a subtle pill/badge), "↓ 9% vs last month" (small, muted). Edge-to-edge luxurious fluid gradient background (emerald green, gold, bright lime, teal) over deep dark black for high contrast. Style: Swiss minimalist layout, massive bold white sans-serif typography, soft film grain texture, artistic and abstract. Clean composition with generous negative space. No logos, no icons, no extra frames or cards. --ar 9:16
 
 ---
 
 ## 3. sessions.png
-Vertical mobile UI card design, hyper-vibrant Spotify Wrapped aesthetic. Text: "Your team completed" "482" "therapy sessions". Visuals: Calming yet energetic fluid gradient shapes (electric blue, indigo, violet, cyan), deep dark black background for high contrast. Style: Swiss minimalist layout, massive bold white sans-serif typography with the number being extra large and prominent, soft film grain texture, artistic and abstract. Clean composition with generous negative space. No logos, no icons, text only. --ar 9:16
+Vertical 9:16 full-bleed mobile graphic (no device frame, no borders, no inner cards). Hyper-vibrant Spotify Wrapped aesthetic. Text centered vertically: "Your team completed" (small, top), "482" (extra large, hero), "therapy sessions" (medium), "101% of 475 goal" (small, in a subtle pill/badge), "↑ 5% vs last month" (small, muted). Edge-to-edge calming fluid gradient background (electric blue, indigo, violet, cyan) over deep dark black for high contrast. Style: Swiss minimalist layout, massive bold white sans-serif typography, soft film grain texture, artistic and abstract. Clean composition with generous negative space. No logos, no icons, no extra frames or cards. --ar 9:16
 
 ---
 
 ## 4. new-clients.png
-Vertical mobile UI card design, hyper-vibrant Spotify Wrapped aesthetic. Text: "You welcomed" "12" "new clients". Visuals: Fresh and welcoming fluid gradient shapes (cyan, teal, aquamarine, mint green), deep dark black background for high contrast. Style: Swiss minimalist layout, massive bold white sans-serif typography with the number being extra large and prominent, soft film grain texture, artistic and abstract. Clean composition with generous negative space. No logos, no icons, text only. --ar 9:16
+Vertical 9:16 full-bleed mobile graphic (no device frame, no borders, no inner cards). Hyper-vibrant Spotify Wrapped aesthetic. Text centered vertically: "You welcomed" (small, top), "12" (extra large, hero), "new clients" (medium), "156 total active clients" (small), "Maya brought in 4 new clients" (small, muted, celebratory). Edge-to-edge fresh fluid gradient background (cyan, teal, aquamarine, mint green) over deep dark black for high contrast. Style: Swiss minimalist layout, massive bold white sans-serif typography, soft film grain texture, artistic and abstract. Clean composition with generous negative space. No logos, no icons, no extra frames or cards. --ar 9:16
 
 ---
 
 ## 5. retention.png
-Vertical mobile UI card design, hyper-vibrant Spotify Wrapped aesthetic. Text: "Client retention" "+8" "net growth". Visuals: Warm and caring fluid gradient shapes (rose pink, coral, soft red, peach), deep dark black background for high contrast. Style: Swiss minimalist layout, massive bold white sans-serif typography with the number being extra large and prominent, soft film grain texture, artistic and abstract. Clean composition with generous negative space. No logos, no icons, text only. --ar 9:16
+Vertical 9:16 full-bleed mobile graphic (no device frame, no borders, no inner cards). Hyper-vibrant Spotify Wrapped aesthetic. Text centered vertically: "Client retention" (small, top), "+8" (extra large, hero, with plus sign), "net client growth" (medium), "4 clients churned" (small), "12 new − 4 lost = +8 growth" (small, muted). Edge-to-edge warm fluid gradient background (rose pink, coral, soft red, peach) over deep dark black for high contrast. Style: Swiss minimalist layout, massive bold white sans-serif typography, soft film grain texture, artistic and abstract. Clean composition with generous negative space. No logos, no icons, no extra frames or cards. --ar 9:16
 
 ---
 
 ## 6. attendance.png
-Vertical mobile UI card design, hyper-vibrant Spotify Wrapped aesthetic. Text: "Attendance" "71%" "show rate". Visuals: Energetic and warm fluid gradient shapes (amber, orange, golden yellow, tangerine), deep dark black background for high contrast. Style: Swiss minimalist layout, massive bold white sans-serif typography with the percentage being extra large and prominent, soft film grain texture, artistic and abstract. Clean composition with generous negative space. No logos, no icons, text only. --ar 9:16
+Vertical 9:16 full-bleed mobile graphic (no device frame, no borders, no inner cards). Hyper-vibrant Spotify Wrapped aesthetic. Text centered vertically: "Attendance" (small, top), "71%" (extra large, hero), "show rate" (medium), "83% rebook rate" (small, in pill/badge), "24% cancellation rate" (small, muted). Edge-to-edge energetic fluid gradient background (amber, orange, golden yellow, tangerine) over deep dark black for high contrast. Style: Swiss minimalist layout, massive bold white sans-serif typography, soft film grain texture, artistic and abstract. Clean composition with generous negative space. No logos, no icons, no extra frames or cards. --ar 9:16
 
 ---
 
 ## 7. mvp.png
-Vertical mobile UI card design, hyper-vibrant Spotify Wrapped aesthetic. Text: "Top Performer" "Maya" "crushed it this month". Visuals: Celebratory and royal fluid gradient shapes (gold, violet, purple, magenta), deep dark black background for high contrast. Style: Swiss minimalist layout, massive bold white sans-serif typography with the name being extra large and prominent, soft film grain texture, artistic and abstract. Clean composition with generous negative space. No logos, no icons, text only. --ar 9:16
+Vertical 9:16 full-bleed mobile graphic (no device frame, no borders, no inner cards). Hyper-vibrant Spotify Wrapped aesthetic. Text centered vertically: "Top Performer" (small, top), "Maya" (extra large, hero), "crushed it this month" (medium), "$14.2k revenue" (small), "89 sessions · 28 clients" (small, muted). Edge-to-edge celebratory fluid gradient background (gold, violet, purple, magenta) over deep dark black for high contrast. Style: Swiss minimalist layout, massive bold white sans-serif typography, soft film grain texture, artistic and abstract. Clean composition with generous negative space. No logos, no icons, no extra frames or cards. --ar 9:16
 
 ---
 
 ## 8. team.png
-Vertical mobile UI card design, hyper-vibrant Spotify Wrapped aesthetic. Text: "Your Team" "6 clinicians" "working together". Visuals: Professional yet dynamic fluid gradient shapes (silver, slate blue, cool gray, steel blue), deep dark black background for high contrast. Style: Swiss minimalist layout, massive bold white sans-serif typography, soft film grain texture, artistic and abstract. Clean composition with generous negative space. No logos, no icons, text only. --ar 9:16
+Vertical 9:16 full-bleed mobile graphic (no device frame, no borders, no inner cards). Hyper-vibrant Spotify Wrapped aesthetic. Text centered vertically: "Your Team" (small, top), "6" (extra large, hero), "clinicians strong" (medium), then a simple ranked list in smaller text: "1. Maya · $14.2k", "2. Priya · $12.8k", "3. Emma · $11.5k", "4. Anika · $10.9k", "5. Tara · $9.7k", "6. Arjun · $8.4k". Edge-to-edge professional fluid gradient background (silver, slate blue, cool gray, steel blue) over deep dark black for high contrast. Style: Swiss minimalist layout, bold white sans-serif typography, soft film grain texture, artistic and abstract. Clean composition. No logos, no icons, no extra frames or cards. --ar 9:16
 
 ---
 
 ## 9. heads-up.png
-Vertical mobile UI card design, hyper-vibrant Spotify Wrapped aesthetic. Text: "Heads up" "Something needs" "your attention". Visuals: Attention-grabbing fluid gradient shapes (crimson red, bright orange, coral, hot pink), deep dark black background for high contrast. Style: Swiss minimalist layout, massive bold white sans-serif typography, soft film grain texture, artistic and abstract. Clean composition with generous negative space. No logos, no icons, text only. --ar 9:16
+Vertical 9:16 full-bleed mobile graphic (no device frame, no borders, no inner cards). Hyper-vibrant Spotify Wrapped aesthetic. Text centered vertically: "Heads up" (small, top), "Attention" (extra large, hero), "needed" (medium), "Maya lost 3 clients this month" (small), "Consider a check-in" (small, muted). Edge-to-edge attention-grabbing fluid gradient background (crimson red, bright orange, coral, hot pink) over deep dark black for high contrast. Style: Swiss minimalist layout, massive bold white sans-serif typography, soft film grain texture, artistic and abstract. Clean composition with generous negative space. No logos, no icons, no extra frames or cards. --ar 9:16
 
 ---
 
 ## 10. compliance.png
-Vertical mobile UI card design, hyper-vibrant Spotify Wrapped aesthetic. Text: "Notes" "22%" "overdue". Visuals: Professional fluid gradient shapes (indigo, deep blue, navy, royal purple), deep dark black background for high contrast. Style: Swiss minimalist layout, massive bold white sans-serif typography with the percentage being extra large and prominent, soft film grain texture, artistic and abstract. Clean composition with generous negative space. No logos, no icons, text only. --ar 9:16
+Vertical 9:16 full-bleed mobile graphic (no device frame, no borders, no inner cards). Hyper-vibrant Spotify Wrapped aesthetic. Text centered vertically: "Documentation" (small, top), "22%" (extra large, hero), "notes overdue" (medium), "Goal: under 10%" (small, in pill/badge), "Needs improvement" (small, muted). Edge-to-edge professional fluid gradient background (indigo, deep blue, navy, royal purple) over deep dark black for high contrast. Style: Swiss minimalist layout, massive bold white sans-serif typography, soft film grain texture, artistic and abstract. Clean composition with generous negative space. No logos, no icons, no extra frames or cards. --ar 9:16
 
 ---
 
 ## 11. looking-ahead.png
-Vertical mobile UI card design, hyper-vibrant Spotify Wrapped aesthetic. Text: "Looking ahead" "18" "open slots". Visuals: Forward-looking and optimistic fluid gradient shapes (teal, emerald, bright green, turquoise), deep dark black background for high contrast. Style: Swiss minimalist layout, massive bold white sans-serif typography with the number being extra large and prominent, soft film grain texture, artistic and abstract. Clean composition with generous negative space. No logos, no icons, text only. --ar 9:16
+Vertical 9:16 full-bleed mobile graphic (no device frame, no borders, no inner cards). Hyper-vibrant Spotify Wrapped aesthetic. Text centered vertically: "Looking ahead" (small, top), "18" (extra large, hero), "open client slots" (medium), "22% utilization" (small, in pill/badge), "Capacity: 23 slots" (small, muted). Edge-to-edge optimistic fluid gradient background (teal, emerald, bright green, turquoise) over deep dark black for high contrast. Style: Swiss minimalist layout, massive bold white sans-serif typography, soft film grain texture, artistic and abstract. Clean composition with generous negative space. No logos, no icons, no extra frames or cards. --ar 9:16
 
 ---
 
 ## 12. closing.png
-Vertical mobile UI card design, hyper-vibrant Spotify Wrapped aesthetic. Text: "Great work!" "You made a difference" "See you next month". Visuals: Warm and grateful fluid gradient shapes (amber, orange, rose gold, warm pink), deep dark black background for high contrast. Style: Swiss minimalist layout, massive bold white sans-serif typography with "Great work!" being extra large and prominent, soft film grain texture, artistic and abstract. Clean composition with generous negative space. No logos, no icons, text only. --ar 9:16
+Vertical 9:16 full-bleed mobile graphic (no device frame, no borders, no inner cards). Hyper-vibrant Spotify Wrapped aesthetic. Text centered vertically: "Great work!" (extra large, hero, top), "You made a difference" (medium), "482 sessions delivered" (small), "12 new clients welcomed" (small), "See you next month" (small, muted, bottom). Edge-to-edge warm fluid gradient background (amber, orange, rose gold, warm pink) over deep dark black for high contrast. Style: Swiss minimalist layout, massive bold white sans-serif typography, soft film grain texture, artistic and abstract. Clean composition with generous negative space. No logos, no icons, no extra frames or cards. --ar 9:16

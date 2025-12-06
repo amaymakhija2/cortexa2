@@ -7,6 +7,7 @@ import {
   ClinicianMetricsCalculated,
 } from '../hooks';
 import { MonthPicker } from './MonthPicker';
+import { useSettings, getDisplayName } from '../context/SettingsContext';
 
 // Practice settings - kept here since hooks can't provide these synchronously
 // These are static configuration values that don't change
@@ -317,16 +318,19 @@ interface ClinicianData {
 }
 
 // Build clinician data from real calculated metrics
-function buildClinicianData(calculated: ClinicianMetricsCalculated[], periodId: string): ClinicianData[] {
+function buildClinicianData(calculated: ClinicianMetricsCalculated[], periodId: string, anonymize: boolean): ClinicianData[] {
   // Sort by revenue to assign roles
   const sorted = [...calculated].sort((a, b) => b.revenue - a.revenue);
 
   return sorted.map((calc, index) => {
-    // Generate initials for avatar
-    const nameParts = calc.clinicianName.split(' ');
+    // Get display name (anonymized if demo mode is on)
+    const displayName = getDisplayName(calc.clinicianName, anonymize);
+
+    // Generate initials for avatar from display name
+    const nameParts = displayName.split(' ');
     const avatar = nameParts.length >= 2
       ? `${nameParts[0][0]}${nameParts[1][0]}`
-      : calc.clinicianName.substring(0, 2).toUpperCase();
+      : displayName.substring(0, 2).toUpperCase();
 
     // Assign roles based on revenue ranking
     const roles = ['Senior Therapist', 'Therapist', 'Therapist', 'Associate Therapist', 'Associate Therapist'];
@@ -387,8 +391,8 @@ function buildClinicianData(calculated: ClinicianMetricsCalculated[], periodId: 
 
     return {
       id: index + 1,
-      name: calc.clinicianName,
-      shortName: calc.clinicianName,
+      name: displayName,
+      shortName: displayName,
       role,
       avatar,
       metrics: {
@@ -434,6 +438,9 @@ export const ClinicianOverview: React.FC = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('live');
   const [sessionGoalView, setSessionGoalView] = useState<SessionGoalView>('weekly');
 
+  // Get settings for demo mode
+  const { settings } = useSettings();
+
   // For historical view - month/year selection
   const now = new Date();
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
@@ -469,8 +476,8 @@ export const ClinicianOverview: React.FC = () => {
     const calculatedMetrics = clinicianApiData;
     const periodId = viewMode === 'last-12-months' ? 'last-12-months' : 'this-month';
 
-    return buildClinicianData(calculatedMetrics, periodId);
-  }, [clinicianApiData, viewMode]);
+    return buildClinicianData(calculatedMetrics, periodId, settings.anonymizeClinicianNames);
+  }, [clinicianApiData, viewMode, settings.anonymizeClinicianNames]);
 
   // Switch tabs - keep same view mode except Notes which is always current month
   const handleGroupChange = (groupId: MetricGroupId) => {

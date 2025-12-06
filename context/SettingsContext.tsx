@@ -7,12 +7,23 @@ interface AppSettings {
 
 // Mapping of real clinician names to demo names
 export const DEMO_NAMES: Record<string, string> = {
-  'Ajita Reddy': 'Maya Patel',
-  'Brittany Derhammer': 'Emma Thompson',
-  'Kaitlyn Gibson': 'Olivia Martinez',
-  'Emily Eckhardt': 'Sophie Chen',
-  'Simran Marwaha': 'Priya Sharma',
-  'Danielle Benson': 'Ava Wilson',
+  'Gaya K': 'Maya P',
+  'Rudhdi K': 'Priya S',
+  'Alaina M': 'Emma T',
+  'Aditi R': 'Anika M',
+  'Tamanna A': 'Tara B',
+  'Gajan G': 'Arjun K',
+  'Shivon R': 'Simone L',
+  'Tanisha S': 'Tanya R',
+  'Mehar A': 'Mira D',
+  'Deepa S': 'Diana N',
+  'Rebecca S': 'Rachel M',
+  'Apeksha M': 'Asha P',
+  'Riddhi C': 'Riya T',
+  'Ranya P': 'Rita S',
+  'Vikramjit B': 'Vivek R',
+  'Paulomi M': 'Pooja K',
+  'Preeti R': 'Priti M',
 };
 
 // Helper function to get display name based on settings
