@@ -1510,9 +1510,11 @@ async function verifyToken(token: string, secret: string): Promise<boolean> {
       key,
       encoder.encode(payload)
     );
-    const expectedSigBase64 = btoa(String.fromCharCode(...new Uint8Array(expectedSig)));
-    
-    return signature === expectedSigBase64;
+    const expectedSigHex = Array.from(new Uint8Array(expectedSig))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+
+    return signature === expectedSigHex;
   } catch {
     return false;
   }
