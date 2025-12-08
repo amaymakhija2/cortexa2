@@ -190,7 +190,7 @@ export const SimpleAlertCard: React.FC<SimpleAlertCardProps> = ({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 + 0.3, duration: 0.45 }}
-            className="flex items-end justify-between mt-6 sm:mt-8 pt-5 sm:pt-6"
+            className="flex items-center justify-between mt-6 sm:mt-8 pt-5 sm:pt-6"
             style={{
               borderTop: '1px solid rgba(255, 255, 255, 0.08)',
             }}
@@ -198,8 +198,10 @@ export const SimpleAlertCard: React.FC<SimpleAlertCardProps> = ({
             {/* Comparison Text */}
             {comparison ? (
               <span
-                className="text-[14px] sm:text-[15px] font-medium"
-                style={{ color: '#78716c' }}
+                className="text-[17px] sm:text-[18px] font-medium"
+                style={{
+                  color: 'rgba(255, 255, 255, 0.75)',
+                }}
               >
                 {comparison}
               </span>
@@ -211,7 +213,7 @@ export const SimpleAlertCard: React.FC<SimpleAlertCardProps> = ({
             <motion.button
               whileHover={{ scale: 1.02, filter: 'brightness(1.1)' }}
               whileTap={{ scale: 0.98 }}
-              className="px-5 sm:px-6 py-2.5 sm:py-3 rounded-full text-[14px] sm:text-[15px] font-semibold text-white transition-all duration-300"
+              className="px-5 sm:px-6 py-2.5 sm:py-3 rounded-full text-[14px] sm:text-[15px] font-semibold text-white transition-all duration-300 flex-shrink-0"
               style={{
                 backgroundColor: config.buttonBg,
                 boxShadow: config.buttonShadow,
