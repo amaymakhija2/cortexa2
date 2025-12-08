@@ -1,6 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, AlertCircle, AlertTriangle, Sparkles, Lightbulb } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { MetricsRow } from './MetricsRow';
 import { SimpleAlertCard } from './SimpleAlertCard';
 import { MonthlyReviewCard } from './MonthlyReviewCard';
@@ -8,7 +9,16 @@ import { MonthPicker } from './MonthPicker';
 import { PageHeader, SectionHeader } from './design-system';
 import { PracticeMetrics } from '../types';
 import { useMetrics, useDataDateRange, DashboardMetrics } from '../hooks';
-import { demoPriorityCards } from '../data/priorityCardsData';
+import { allPriorityCards } from '../data/priorityCardsData';
+
+// Card category boundaries (including MonthlyReviewCard at index 0)
+const CARD_CATEGORIES = [
+  { id: 'all', label: 'All', start: 0, count: 33, color: 'stone', icon: null },
+  { id: 'critical', label: 'Critical', start: 1, count: 4, color: 'red', icon: AlertCircle },
+  { id: 'attention', label: 'Attention', start: 5, count: 12, color: 'amber', icon: AlertTriangle },
+  { id: 'opportunity', label: 'Opportunity', start: 17, count: 7, color: 'emerald', icon: Sparkles },
+  { id: 'insight', label: 'Insight', start: 24, count: 9, color: 'blue', icon: Lightbulb },
+];
 
 const FULL_MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -150,7 +160,7 @@ export const Dashboard: React.FC = () => {
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth()); // 0-11
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
 
-  const totalCards = 1 + demoPriorityCards.length; // MonthlyReviewCard + priority cards
+  const totalCards = 1 + allPriorityCards.length; // MonthlyReviewCard + priority cards
 
   // Get data date range from API
   const { data: dataRange, loading: rangeLoading } = useDataDateRange();
@@ -231,7 +241,7 @@ export const Dashboard: React.FC = () => {
       year={2025}
       index={0}
     />,
-    ...demoPriorityCards.map((card, idx) => (
+    ...allPriorityCards.map((card, idx) => (
       <SimpleAlertCard
         key={card.id}
         index={idx + 1}
@@ -334,50 +344,83 @@ export const Dashboard: React.FC = () => {
               className="!mb-4"
               actions={
                 needsNavigation ? (
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-1.5 mr-3">
-                      {Array.from({ length: totalCards }).map((_, idx) => (
-                        <button
-                          key={idx}
-                          onClick={() => {
-                            setCurrentCardIndex(idx);
-                            scrollToCard(idx);
-                          }}
-                          className={`transition-all duration-300 rounded-full ${
-                            currentCardIndex === idx
-                              ? 'w-6 h-1.5 bg-stone-800'
-                              : 'w-1.5 h-1.5 bg-stone-300 hover:bg-stone-400'
-                          }`}
-                          aria-label={`Go to card ${idx + 1}`}
-                        />
-                      ))}
+                  <div className="flex items-center gap-4">
+                    {/* Category Pills */}
+                    <div className="hidden md:flex items-center gap-1.5 bg-stone-100 rounded-full p-1">
+                      {CARD_CATEGORIES.map((cat) => {
+                        const Icon = cat.icon;
+                        const isActive = currentCardIndex >= cat.start && currentCardIndex < cat.start + cat.count;
+                        const colorClasses: Record<string, string> = {
+                          stone: isActive ? 'bg-stone-800 text-white' : 'text-stone-500 hover:text-stone-700 hover:bg-stone-200',
+                          red: isActive ? 'bg-red-500 text-white' : 'text-stone-500 hover:text-red-600 hover:bg-red-50',
+                          amber: isActive ? 'bg-amber-500 text-white' : 'text-stone-500 hover:text-amber-600 hover:bg-amber-50',
+                          emerald: isActive ? 'bg-emerald-500 text-white' : 'text-stone-500 hover:text-emerald-600 hover:bg-emerald-50',
+                          blue: isActive ? 'bg-blue-500 text-white' : 'text-stone-500 hover:text-blue-600 hover:bg-blue-50',
+                        };
+                        return (
+                          <button
+                            key={cat.id}
+                            onClick={() => {
+                              setCurrentCardIndex(cat.start);
+                              scrollToCard(cat.start);
+                            }}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${colorClasses[cat.color]}`}
+                          >
+                            {Icon && <Icon size={12} />}
+                            <span>{cat.label}</span>
+                            <span className={`text-[10px] ${isActive ? 'opacity-80' : 'opacity-50'}`}>{cat.count}</span>
+                          </button>
+                        );
+                      })}
                     </div>
-                    <button
-                      onClick={handlePrevious}
-                      disabled={currentCardIndex === 0}
-                      className="w-9 h-9 rounded-full bg-white border border-stone-200 flex items-center justify-center transition-all hover:border-stone-300 hover:shadow-sm disabled:opacity-30 disabled:cursor-not-allowed"
-                      aria-label="Previous card"
-                    >
-                      <ChevronLeft size={16} className="text-stone-600" />
-                    </button>
-                    <button
-                      onClick={handleNext}
-                      disabled={currentCardIndex === totalCards - 1}
-                      className="w-9 h-9 rounded-full bg-white border border-stone-200 flex items-center justify-center transition-all hover:border-stone-300 hover:shadow-sm disabled:opacity-30 disabled:cursor-not-allowed"
-                      aria-label="Next card"
-                    >
-                      <ChevronRight size={16} className="text-stone-600" />
-                    </button>
+
+                    {/* Progress & Counter */}
+                    <div className="flex items-center gap-3">
+                      {/* Progress Bar */}
+                      <div className="hidden sm:flex items-center gap-2">
+                        <div className="w-24 h-1.5 bg-stone-200 rounded-full overflow-hidden">
+                          <motion.div
+                            className="h-full bg-gradient-to-r from-amber-400 to-amber-500 rounded-full"
+                            initial={{ width: 0 }}
+                            animate={{ width: `${((currentCardIndex + 1) / totalCards) * 100}%` }}
+                            transition={{ duration: 0.3, ease: 'easeOut' }}
+                          />
+                        </div>
+                        <span className="text-xs font-medium text-stone-500 tabular-nums min-w-[4rem]">
+                          {currentCardIndex + 1} of {totalCards}
+                        </span>
+                      </div>
+
+                      {/* Navigation Arrows */}
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={handlePrevious}
+                          disabled={currentCardIndex === 0}
+                          className="w-8 h-8 rounded-lg bg-white border border-stone-200 flex items-center justify-center transition-all hover:border-stone-300 hover:shadow-sm hover:bg-stone-50 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:shadow-none"
+                          aria-label="Previous card"
+                        >
+                          <ChevronLeft size={16} className="text-stone-600" />
+                        </button>
+                        <button
+                          onClick={handleNext}
+                          disabled={currentCardIndex === totalCards - 1}
+                          className="w-8 h-8 rounded-lg bg-white border border-stone-200 flex items-center justify-center transition-all hover:border-stone-300 hover:shadow-sm hover:bg-stone-50 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:shadow-none"
+                          aria-label="Next card"
+                        >
+                          <ChevronRight size={16} className="text-stone-600" />
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 ) : undefined
               }
             />
 
             {/* Cards Container */}
-            <div className="relative flex-1 min-h-0">
+            <div className="relative flex-1 min-h-[560px]">
               <div
                 ref={scrollContainerRef}
-                className="flex gap-4 lg:gap-5 h-full overflow-x-auto overflow-y-hidden snap-x snap-mandatory scrollbar-hide pb-2"
+                className="absolute inset-0 flex gap-4 lg:gap-5 overflow-x-auto overflow-y-hidden snap-x snap-mandatory scrollbar-hide pb-2"
                 style={{
                   scrollbarWidth: 'none',
                   msOverflowStyle: 'none',
