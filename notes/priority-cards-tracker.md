@@ -2,7 +2,7 @@
 
 > **Last Updated:** 2024-12-08
 > **Total Cards:** 33
-> **Completed:** 0 | **In Progress:** 0 | **Not Started:** 33
+> **Completed:** 0 | **In Progress:** 32 | **Not Started:** 1
 
 ---
 
@@ -56,7 +56,7 @@
 ### 1. Early Engagement Warning
 | Field | Value |
 |-------|-------|
-| **Status** | ⬜ Not Started |
+| **Status** | 🔄 In Progress |
 | **Title** | "Early Engagement Warning" |
 | **Badge** | CRITICAL (red) |
 | **Example Clinician** | Rachel K |
@@ -70,7 +70,7 @@
 ### 2. Burnout Signal
 | Field | Value |
 |-------|-------|
-| **Status** | ⬜ Not Started |
+| **Status** | 🔄 In Progress |
 | **Title** | "Burnout Signal" |
 | **Badge** | CRITICAL (red) |
 | **Example Clinician** | Maria G |
@@ -84,7 +84,7 @@
 ### 3. Cash at Risk (Outstanding Balances)
 | Field | Value |
 |-------|-------|
-| **Status** | ⬜ Not Started |
+| **Status** | 🔄 In Progress |
 | **Title** | "Outstanding Balances" |
 | **Badge** | CRITICAL (red) |
 | **Example Stats** | $2.4k outstanding → 4 clients → 12 days oldest |
@@ -98,7 +98,7 @@
 ### 4. Compliance Deadline (Notes Due Soon)
 | Field | Value |
 |-------|-------|
-| **Status** | ⬜ Not Started |
+| **Status** | 🔄 In Progress |
 | **Title** | "Notes Due Soon" |
 | **Badge** | CRITICAL (red) |
 | **Example Clinician** | Sarah M |
@@ -114,7 +114,7 @@
 ### 5. Rebook Needed
 | Field | Value |
 |-------|-------|
-| **Status** | ⬜ Not Started |
+| **Status** | 🔄 In Progress |
 | **Title** | "Clients Need Rebooking" |
 | **Badge** | ATTENTION (amber) |
 | **Example Stats** | 6 clients → 2 high risk → 2 days typical |
@@ -127,7 +127,7 @@
 ### 6. Session 1→2 Drop-off
 | Field | Value |
 |-------|-------|
-| **Status** | ⬜ Not Started |
+| **Status** | 🔄 In Progress |
 | **Title** | "First Session Drop-off" |
 | **Badge** | ATTENTION (amber) |
 | **Example Stats** | 28% drop-off → 4 clients → 85% typical |
@@ -140,7 +140,7 @@
 ### 7. Cancellation Pattern
 | Field | Value |
 |-------|-------|
-| **Status** | ⬜ Not Started |
+| **Status** | 🔄 In Progress |
 | **Title** | "Cancellation Spike" |
 | **Badge** | ATTENTION (amber) |
 | **Example Clinician** | Maria G |
@@ -154,7 +154,7 @@
 ### 8. Revenue Behind Pace
 | Field | Value |
 |-------|-------|
-| **Status** | ⬜ Not Started |
+| **Status** | 🔄 In Progress |
 | **Title** | "Revenue Behind Pace" |
 | **Badge** | ATTENTION (amber) |
 | **Example Stats** | $62k current → $100k goal → $18k behind |
@@ -167,7 +167,7 @@
 ### 9. Sessions Behind Pace
 | Field | Value |
 |-------|-------|
-| **Status** | ⬜ Not Started |
+| **Status** | 🔄 In Progress |
 | **Title** | "Sessions Behind Pace" |
 | **Badge** | ATTENTION (amber) |
 | **Example Stats** | 312 sessions → 475 goal → 163 to go |
@@ -180,7 +180,7 @@
 ### 10. Caseload Imbalance
 | Field | Value |
 |-------|-------|
-| **Status** | ⬜ Not Started |
+| **Status** | 🔄 In Progress |
 | **Title** | "Caseload Imbalance" |
 | **Badge** | ATTENTION (amber) |
 | **Example Clinicians** | Sarah M (95%), Jasmine W (38%) |
@@ -194,7 +194,7 @@
 ### 11. Churn Spike
 | Field | Value |
 |-------|-------|
-| **Status** | ⬜ Not Started |
+| **Status** | 🔄 In Progress |
 | **Title** | "Higher Than Usual Churn" |
 | **Badge** | ATTENTION (amber) |
 | **Example Stats** | 8 clients → 4/month typical → -3 net |
@@ -207,7 +207,7 @@
 ### 12. Rebook Rate Dropping
 | Field | Value |
 |-------|-------|
-| **Status** | ⬜ Not Started |
+| **Status** | 🔄 In Progress |
 | **Title** | "Rebook Rate Trending Down" |
 | **Badge** | ATTENTION (amber) |
 | **Example Stats** | 79% current → 88% (3mo ago) → ↓9 points |
@@ -220,7 +220,7 @@
 ### 13. Needs Support
 | Field | Value |
 |-------|-------|
-| **Status** | ⬜ Not Started |
+| **Status** | 🔄 In Progress |
 | **Title** | "Clinician Needs Support" |
 | **Badge** | ATTENTION (amber) |
 | **Example Clinician** | Jasmine W |
@@ -234,7 +234,7 @@
 ### 14. High-Value Client Risk
 | Field | Value |
 |-------|-------|
-| **Status** | ⬜ Not Started |
+| **Status** | 🔄 In Progress |
 | **Title** | "Long-Term Client at Risk" |
 | **Badge** | ATTENTION (amber) |
 | **Example Client** | Sarah Johnson |
@@ -248,7 +248,7 @@
 ### 15. Session Frequency Dropping
 | Field | Value |
 |-------|-------|
-| **Status** | ⬜ Not Started |
+| **Status** | 🔄 In Progress |
 | **Title** | "Session Frequency Dropping" |
 | **Badge** | ATTENTION (amber) |
 | **Example Client** | David L |
@@ -263,7 +263,7 @@
 ### 16. No-Show Spike
 | Field | Value |
 |-------|-------|
-| **Status** | ⬜ Not Started |
+| **Status** | 🔄 In Progress |
 | **Title** | "No-Show Spike" |
 | **Badge** | ATTENTION (amber) / CRITICAL if >3x |
 | **Example Clinician** | Maria G |
@@ -280,7 +280,7 @@
 ### 17. Open Slots This Week
 | Field | Value |
 |-------|-------|
-| **Status** | ⬜ Not Started |
+| **Status** | 🔄 In Progress |
 | **Title** | "Open Slots This Week" |
 | **Badge** | OPPORTUNITY (green) |
 | **Example Clinician** | Jasmine W |
@@ -294,7 +294,7 @@
 ### 18. Caseload Openings
 | Field | Value |
 |-------|-------|
-| **Status** | ⬜ Not Started |
+| **Status** | 🔄 In Progress |
 | **Title** | "Caseload Openings" |
 | **Badge** | OPPORTUNITY (green) |
 | **Example Clinician** | Jasmine W |
@@ -308,7 +308,7 @@
 ### 19. Ahead of Goal
 | Field | Value |
 |-------|-------|
-| **Status** | ⬜ Not Started |
+| **Status** | 🔄 In Progress |
 | **Title** | "Ahead of Goal" |
 | **Badge** | OPPORTUNITY (green) |
 | **Example Stats** | $112k projected → $100k goal → +$12k |
@@ -321,7 +321,7 @@
 ### 20. New Client Momentum
 | Field | Value |
 |-------|-------|
-| **Status** | ⬜ Not Started |
+| **Status** | 🔄 In Progress |
 | **Title** | "Strong Client Acquisition" |
 | **Badge** | OPPORTUNITY (green) |
 | **Example Clinician** | Sarah M |
@@ -335,7 +335,7 @@
 ### 21. Top Performer
 | Field | Value |
 |-------|-------|
-| **Status** | ⬜ Not Started |
+| **Status** | 🔄 In Progress |
 | **Title** | "Top Performer" |
 | **Badge** | OPPORTUNITY (green) |
 | **Example Clinician** | Sarah M |
@@ -349,7 +349,7 @@
 ### 22. Most Improved
 | Field | Value |
 |-------|-------|
-| **Status** | ⬜ Not Started |
+| **Status** | 🔄 In Progress |
 | **Title** | "Most Improved" |
 | **Badge** | OPPORTUNITY (green) |
 | **Example Clinician** | Emma T |
@@ -363,7 +363,7 @@
 ### 23. Retention Win
 | Field | Value |
 |-------|-------|
-| **Status** | ⬜ Not Started |
+| **Status** | 🔄 In Progress |
 | **Title** | "Exceptional Retention" |
 | **Badge** | OPPORTUNITY (green) |
 | **Example Clinician** | Sarah M |
@@ -379,7 +379,7 @@
 ### 24. Churn Pattern
 | Field | Value |
 |-------|-------|
-| **Status** | ⬜ Not Started |
+| **Status** | 🔄 In Progress |
 | **Title** | "Where Clients Leave" |
 | **Badge** | INSIGHT (blue) |
 | **Example Stats** | 68% Early (<5) → 22% Medium (5-15) → 10% Late (15+) |
@@ -392,7 +392,7 @@
 ### 25. Revenue Trend
 | Field | Value |
 |-------|-------|
-| **Status** | ⬜ Not Started |
+| **Status** | 🔄 In Progress |
 | **Title** | "Revenue Trending Down" |
 | **Badge** | INSIGHT (blue) or ATTENTION if down |
 | **Example Stats** | $88k current → $105k (3mo ago) → ↓16% |
@@ -405,7 +405,7 @@
 ### 26. Sessions Trend
 | Field | Value |
 |-------|-------|
-| **Status** | ⬜ Not Started |
+| **Status** | 🔄 In Progress |
 | **Title** | "Sessions Trending Down" |
 | **Badge** | INSIGHT (blue) or ATTENTION if down |
 | **Example Stats** | 445 current → 520 (3mo ago) → ↓14% |
@@ -418,7 +418,7 @@
 ### 27. Client Quality Alert
 | Field | Value |
 |-------|-------|
-| **Status** | ⬜ Not Started |
+| **Status** | 🔄 In Progress |
 | **Title** | "Client Quality Declining" |
 | **Badge** | ATTENTION (amber) |
 | **Example Stats** | $1,200 (2025 LTV) → $1,600 (2024 LTV) → 25% lower |
@@ -431,7 +431,7 @@
 ### 28. Margin Shift
 | Field | Value |
 |-------|-------|
-| **Status** | ⬜ Not Started |
+| **Status** | 🔄 In Progress |
 | **Title** | "Margin Dropped" |
 | **Badge** | ATTENTION (amber) if down |
 | **Example Stats** | 18% current → 24% avg → -$6k per $100k |
@@ -444,7 +444,7 @@
 ### 29. Revenue Concentration
 | Field | Value |
 |-------|-------|
-| **Status** | ⬜ Not Started |
+| **Status** | 🔄 In Progress |
 | **Title** | "Revenue Concentration Risk" |
 | **Badge** | ATTENTION (amber) |
 | **Example Clinician** | Sarah M |
@@ -458,7 +458,7 @@
 ### 30. Seasonal Heads-Up
 | Field | Value |
 |-------|-------|
-| **Status** | ⬜ Not Started |
+| **Status** | 🔄 In Progress |
 | **Title** | "Seasonal Pattern Ahead" |
 | **Badge** | INSIGHT (blue) |
 | **Example Stats** | ↓15% typical → 390 sessions → 460/month avg |
@@ -471,7 +471,7 @@
 ### 31. Slot Demand Pattern
 | Field | Value |
 |-------|-------|
-| **Status** | ⬜ Not Started |
+| **Status** | 🔄 In Progress |
 | **Title** | "Slot Demand Insight" |
 | **Badge** | OPPORTUNITY (green) |
 | **Example Stats** | Evening (2.5x) → Morning → 18 slots |
@@ -486,7 +486,7 @@
 ### 32. Monthly Wrapped
 | Field | Value |
 |-------|-------|
-| **Status** | ⬜ Not Started |
+| **Status** | 🔄 In Progress |
 | **Title** | "{Month} Review" |
 | **Badge** | None (special card) |
 | **Format** | Full-screen slideshow |
@@ -499,7 +499,7 @@
 ### 33. Weekly Snapshot
 | Field | Value |
 |-------|-------|
-| **Status** | ⬜ Not Started |
+| **Status** | 🔄 In Progress |
 | **Title** | "Week of {Date}" |
 | **Badge** | INSIGHT (blue) |
 | **Example Stats** | 85 sessions → 22 slots → 4 clients |
@@ -513,12 +513,14 @@
 
 | Category | Total | Complete | In Progress | Not Started |
 |----------|-------|----------|-------------|-------------|
-| 🔴 Urgent | 4 | 0 | 0 | 4 |
-| 🟠 Attention | 12 | 0 | 0 | 12 |
-| 🟢 Opportunity | 7 | 0 | 0 | 7 |
-| 📊 Insight | 8 | 0 | 0 | 8 |
-| 📅 Periodic | 2 | 0 | 0 | 2 |
-| **Total** | **33** | **0** | **0** | **33** |
+| 🔴 Urgent | 4 | 0 | 4 | 0 |
+| 🟠 Attention | 12 | 0 | 12 | 0 |
+| 🟢 Opportunity | 7 | 0 | 7 | 0 |
+| 📊 Insight | 8 | 0 | 8 | 0 |
+| 📅 Periodic | 2 | 0 | 1 | 1 |
+| **Total** | **33** | **0** | **32** | **1** |
+
+> **Note:** All cards have static demo data in `data/priorityCardsData.ts`. Monthly Review card (#32) uses its own component. Weekly Snapshot (#33) pending real data integration.
 
 ---
 
@@ -535,9 +537,9 @@
 - Dynamic data should come from hooks/API
 
 ### Next Steps
-1. Add `insight` status to SimpleAlertCard
-2. Create `priorityCardsData.ts` with all 33 configurations
-3. Update Dashboard to dynamically render cards
+1. ~~Add `insight` status to SimpleAlertCard~~ ✅
+2. ~~Create `priorityCardsData.ts` with all 33 configurations~~ ✅
+3. ~~Update Dashboard to dynamically render cards~~ ✅
 4. Connect to real data via hooks
 
 ---
@@ -547,3 +549,8 @@
 | Date | Change |
 |------|--------|
 | 2024-12-08 | Initial tracker created with all 33 cards |
+| 2024-12-08 | Added `insight` status to SimpleAlertCard (blue color scheme) |
+| 2024-12-08 | Created `data/priorityCardsData.ts` with all 32 card configurations |
+| 2024-12-08 | Updated Dashboard to dynamically render cards from data file |
+| 2024-12-08 | Fixed clinician names to use short format (Sarah M, not Sarah Mitchell) |
+| 2024-12-08 | Dashboard now displays all 32 cards (was 5 demo cards) |

@@ -8,6 +8,7 @@ import { MonthPicker } from './MonthPicker';
 import { PageHeader, SectionHeader } from './design-system';
 import { PracticeMetrics } from '../types';
 import { useMetrics, useDataDateRange, DashboardMetrics } from '../hooks';
+import { demoPriorityCards } from '../data/priorityCardsData';
 
 const FULL_MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -149,7 +150,7 @@ export const Dashboard: React.FC = () => {
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth()); // 0-11
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
 
-  const totalCards = 5;
+  const totalCards = 1 + demoPriorityCards.length; // MonthlyReviewCard + priority cards
 
   // Get data date range from API
   const { data: dataRange, loading: rangeLoading } = useDataDateRange();
@@ -230,57 +231,18 @@ export const Dashboard: React.FC = () => {
       year={2025}
       index={0}
     />,
-    <SimpleAlertCard
-      key="retention"
-      index={1}
-      title="Client Retention Alert"
-      aiGuidance="Patel acquired 6 new clients from June–August 2024. Of those 6, only 2 remain by September—a 33% retention rate, significantly below your practice average of 80%. The drop-off pattern suggests early engagement issues that warrant investigation."
-      action="Explore Data"
-      status="critical"
-      stats={[
-        { value: 6, label: "new clients", color: "white" },
-        { value: 4, label: "lost", color: "red" },
-        { value: 2, label: "retained", color: "emerald" },
-      ]}
-    />,
-    <SimpleAlertCard
-      key="cancellations"
-      index={2}
-      title="Cancellation Spike"
-      aiGuidance="Kim had 2 cancellations per month in June-July, but this jumped to 8 in August and 9 in September. This represents a 4x increase compared to baseline. The practice average is 2-3 cancellations per clinician per month."
-      action="Explore Data"
-      status="warning"
-      stats={[
-        { value: 9, label: "this month", color: "amber" },
-        { value: 2, label: "baseline", color: "white" },
-        { value: "4x", label: "increase", color: "red" },
-      ]}
-    />,
-    <SimpleAlertCard
-      key="ar"
-      index={3}
-      title="Accounts Receivable"
-      aiGuidance="You have $9,450 in outstanding receivables across 8 clients. Jennifer Martinez and Robert Thompson have the longest outstanding balances at 42 and 35 days respectively. Industry best practice is to follow up on invoices after 14 days."
-      action="Explore Data"
-      status="warning"
-      stats={[
-        { value: "$9.4k", label: "outstanding", color: "amber" },
-        { value: 8, label: "clients", color: "white" },
-        { value: "42d", label: "oldest", color: "red" },
-      ]}
-    />,
-    <SimpleAlertCard
-      key="slots"
-      index={4}
-      title="Open Slots This Week"
-      aiGuidance="You have good capacity across the team to take on new clients. Chen and Rodriguez have the most availability. This is a great time to activate your waitlist or increase marketing spend. Evening slots typically fill fastest."
-      action="Explore Data"
-      status="good"
-      stats={[
-        { value: 34, label: "open slots", color: "emerald" },
-        { value: 5, label: "clinicians", color: "white" },
-      ]}
-    />
+    ...demoPriorityCards.map((card, idx) => (
+      <SimpleAlertCard
+        key={card.id}
+        index={idx + 1}
+        title={card.title}
+        aiGuidance={card.aiGuidance}
+        action={card.action}
+        status={card.status}
+        stats={card.stats}
+        comparisonText={card.comparisonText}
+      />
+    ))
   ];
 
   return (

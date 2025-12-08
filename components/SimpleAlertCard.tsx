@@ -39,6 +39,14 @@ const statusConfig = {
     badgeBorder: "rgba(52, 211, 153, 0.45)",
     buttonBg: "#059669",
     buttonShadow: "0 4px 20px rgba(5, 150, 105, 0.35)",
+  },
+  insight: {
+    label: "INSIGHT",
+    color: "#60a5fa",
+    badgeBg: "rgba(96, 165, 250, 0.18)",
+    badgeBorder: "rgba(96, 165, 250, 0.45)",
+    buttonBg: "#2563eb",
+    buttonShadow: "0 4px 20px rgba(37, 99, 235, 0.35)",
   }
 }
 
@@ -46,7 +54,8 @@ const colorMap = {
   red: "#dc2626",
   amber: "#f59e0b",
   emerald: "#10b981",
-  white: "#ffffff"
+  white: "#ffffff",
+  blue: "#60a5fa"
 }
 
 export const SimpleAlertCard: React.FC<SimpleAlertCardProps> = ({
