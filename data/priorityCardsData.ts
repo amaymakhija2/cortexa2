@@ -525,46 +525,55 @@ export const weeklySnapshot: PriorityCard = {
 
 // ============================================
 // ALL CARDS EXPORT
+// Ordered for optimal demo flow
 // ============================================
 
 export const allPriorityCards: PriorityCard[] = [
-  // Urgent (Critical)
-  earlyEngagementWarning,
-  burnoutSignal,
-  outstandingBalances,
-  notesDueSoon,
-  // Attention (Warning)
-  rebookNeeded,
-  firstSessionDropoff,
-  cancellationSpike,
-  revenueBehindPace,
-  sessionsBehindPace,
-  caseloadImbalance,
-  churnSpike,
-  rebookRateDropping,
-  clinicianNeedsSupport,
-  highValueClientRisk,
-  sessionFrequencyDropping,
-  noShowSpike,
-  // Opportunity (Good)
-  openSlotsThisWeek,
-  caseloadOpenings,
-  aheadOfGoal,
-  newClientMomentum,
-  topPerformer,
-  mostImproved,
-  retentionWin,
-  // Insight (Blue)
-  churnPattern,
-  revenueTrend,
-  sessionsTrend,
-  clientQualityAlert,
-  marginShift,
-  revenueConcentration,
-  seasonalHeadsUp,
-  slotDemandPattern,
-  // Periodic
-  weeklySnapshot,
+  // === THE DEMO 5 (first 5 cards they see) ===
+  earlyEngagementWarning,   // 1. HOOK - "Rachel K lost 60% of new clients" - shocking specificity
+  burnoutSignal,            // 2. DIFFERENTIATION - "Maria G showing burnout" - no EHR does this
+  outstandingBalances,      // 3. MONEY - "$2,450 outstanding" - direct ROI
+  churnPattern,             // 4. INTELLIGENCE - "68% churn in first 5 sessions" - strategic insight
+  caseloadImbalance,        // 5. VALIDATION - "Sarah M 95%, Jasmine W 38%" - proves what they feel
+
+  // === ACT 2: "My Practice is Leaking" ===
+  rebookNeeded,             // 6. Actionable today
+  revenueBehindPace,        // 7. Stakes
+  cancellationSpike,        // 8. Pattern detection
+  firstSessionDropoff,      // 9. Industry benchmark
+  notesDueSoon,             // 10. Compliance risk
+  noShowSpike,              // 11. Behavior → dollars
+
+  // === ACT 3: "The System Sees Trends" ===
+  rebookRateDropping,       // 12. Trend they couldn't track
+  churnSpike,               // 13. Context matters
+  clinicianNeedsSupport,    // 14. Coaching opportunity
+  highValueClientRisk,      // 15. Protect best clients
+  sessionFrequencyDropping, // 16. Individual client insight
+  revenueConcentration,     // 17. Risk they never think about
+  clientQualityAlert,       // 18. Cohort analysis
+  seasonalHeadsUp,          // 19. Predictive
+
+  // === ACT 4: "Celebrate the Wins" ===
+  topPerformer,             // 20. Recognition
+  mostImproved,             // 21. Growth story
+  retentionWin,             // 22. Excellence model
+  newClientMomentum,        // 23. Momentum
+  aheadOfGoal,              // 24. Win!
+
+  // === ACT 5: "Here's What to Do" ===
+  openSlotsThisWeek,        // 25. Fill them
+  caseloadOpenings,         // 26. Growth capacity
+  slotDemandPattern,        // 27. Optimization
+
+  // === DEEPER ANALYSIS ===
+  sessionsBehindPace,       // 28. Pace check
+  revenueTrend,             // 29. Long-term view
+  sessionsTrend,            // 30. Correlates
+  marginShift,              // 31. Profitability
+
+  // === WRAP UP ===
+  weeklySnapshot,           // 32. Shows the rhythm
 ];
 
 // Get cards by category

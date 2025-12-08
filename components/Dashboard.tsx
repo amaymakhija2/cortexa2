@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Loader2, AlertCircle, AlertTriangle, Sparkles, Lightbulb } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { MetricsRow } from './MetricsRow';
 import { SimpleAlertCard } from './SimpleAlertCard';
@@ -10,15 +10,6 @@ import { PageHeader, SectionHeader } from './design-system';
 import { PracticeMetrics } from '../types';
 import { useMetrics, useDataDateRange, DashboardMetrics } from '../hooks';
 import { allPriorityCards } from '../data/priorityCardsData';
-
-// Card category boundaries (including MonthlyReviewCard at index 0)
-const CARD_CATEGORIES = [
-  { id: 'all', label: 'All', start: 0, count: 33, color: 'stone', icon: null },
-  { id: 'critical', label: 'Critical', start: 1, count: 4, color: 'red', icon: AlertCircle },
-  { id: 'attention', label: 'Attention', start: 5, count: 12, color: 'amber', icon: AlertTriangle },
-  { id: 'opportunity', label: 'Opportunity', start: 17, count: 7, color: 'emerald', icon: Sparkles },
-  { id: 'insight', label: 'Insight', start: 24, count: 9, color: 'blue', icon: Lightbulb },
-];
 
 const FULL_MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -152,8 +143,10 @@ const buildPracticeMetrics = (calc: DashboardMetrics, month: number, year: numbe
 };
 
 export const Dashboard: React.FC = () => {
-  const [currentCardIndex, setCurrentCardIndex] = useState(0);
+  const [scrollProgress, setScrollProgress] = useState(0); // 0 to 1
   const [needsNavigation, setNeedsNavigation] = useState(false);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
   const [viewMode, setViewMode] = useState<'live' | 'historical'>('live');
   const now = new Date();
@@ -207,30 +200,47 @@ export const Dashboard: React.FC = () => {
     return () => window.removeEventListener('resize', checkOverflow);
   }, []);
 
+  // Track scroll progress and button states
+  React.useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
 
+    const updateScrollState = () => {
+      const maxScroll = container.scrollWidth - container.clientWidth;
+      if (maxScroll <= 0) {
+        setScrollProgress(0);
+        setCanScrollLeft(false);
+        setCanScrollRight(false);
+        return;
+      }
+
+      const progress = container.scrollLeft / maxScroll;
+      setScrollProgress(progress);
+      setCanScrollLeft(container.scrollLeft > 10);
+      setCanScrollRight(container.scrollLeft < maxScroll - 10);
+    };
+
+    updateScrollState();
+    container.addEventListener('scroll', updateScrollState, { passive: true });
+    return () => container.removeEventListener('scroll', updateScrollState);
+  }, []);
+
+  // Scroll by one page (viewport width)
   const handlePrevious = () => {
-    const newIndex = currentCardIndex === 0 ? 0 : currentCardIndex - 1;
-    setCurrentCardIndex(newIndex);
-    scrollToCard(newIndex);
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({
+        left: -scrollContainerRef.current.clientWidth * 0.8,
+        behavior: 'smooth'
+      });
+    }
   };
 
   const handleNext = () => {
-    const newIndex = currentCardIndex === totalCards - 1 ? totalCards - 1 : currentCardIndex + 1;
-    setCurrentCardIndex(newIndex);
-    scrollToCard(newIndex);
-  };
-
-  const scrollToCard = (index: number) => {
     if (scrollContainerRef.current) {
-      const container = scrollContainerRef.current;
-      const cards = container.children;
-      if (cards[index]) {
-        const card = cards[index] as HTMLElement;
-        container.scrollTo({
-          left: card.offsetLeft,
-          behavior: 'smooth'
-        });
-      }
+      scrollContainerRef.current.scrollBy({
+        left: scrollContainerRef.current.clientWidth * 0.8,
+        behavior: 'smooth'
+      });
     }
   };
 
@@ -345,71 +355,39 @@ export const Dashboard: React.FC = () => {
               actions={
                 needsNavigation ? (
                   <div className="flex items-center gap-4">
-                    {/* Category Pills */}
-                    <div className="hidden md:flex items-center gap-1.5 bg-stone-100 rounded-full p-1">
-                      {CARD_CATEGORIES.map((cat) => {
-                        const Icon = cat.icon;
-                        const isActive = currentCardIndex >= cat.start && currentCardIndex < cat.start + cat.count;
-                        const colorClasses: Record<string, string> = {
-                          stone: isActive ? 'bg-stone-800 text-white' : 'text-stone-500 hover:text-stone-700 hover:bg-stone-200',
-                          red: isActive ? 'bg-red-500 text-white' : 'text-stone-500 hover:text-red-600 hover:bg-red-50',
-                          amber: isActive ? 'bg-amber-500 text-white' : 'text-stone-500 hover:text-amber-600 hover:bg-amber-50',
-                          emerald: isActive ? 'bg-emerald-500 text-white' : 'text-stone-500 hover:text-emerald-600 hover:bg-emerald-50',
-                          blue: isActive ? 'bg-blue-500 text-white' : 'text-stone-500 hover:text-blue-600 hover:bg-blue-50',
-                        };
-                        return (
-                          <button
-                            key={cat.id}
-                            onClick={() => {
-                              setCurrentCardIndex(cat.start);
-                              scrollToCard(cat.start);
-                            }}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${colorClasses[cat.color]}`}
-                          >
-                            {Icon && <Icon size={12} />}
-                            <span>{cat.label}</span>
-                            <span className={`text-[10px] ${isActive ? 'opacity-80' : 'opacity-50'}`}>{cat.count}</span>
-                          </button>
-                        );
-                      })}
+                    {/* Progress Bar */}
+                    <div className="hidden sm:flex items-center gap-3">
+                      <div className="w-32 h-2 bg-stone-200 rounded-full overflow-hidden">
+                        <motion.div
+                          className="h-full bg-gradient-to-r from-amber-400 to-amber-500 rounded-full"
+                          initial={{ width: '5%' }}
+                          animate={{ width: `${Math.max(5, scrollProgress * 100)}%` }}
+                          transition={{ duration: 0.15, ease: 'easeOut' }}
+                        />
+                      </div>
+                      <span className="text-sm font-semibold text-stone-600 tabular-nums">
+                        {totalCards} items
+                      </span>
                     </div>
 
-                    {/* Progress & Counter */}
-                    <div className="flex items-center gap-3">
-                      {/* Progress Bar */}
-                      <div className="hidden sm:flex items-center gap-2">
-                        <div className="w-24 h-1.5 bg-stone-200 rounded-full overflow-hidden">
-                          <motion.div
-                            className="h-full bg-gradient-to-r from-amber-400 to-amber-500 rounded-full"
-                            initial={{ width: 0 }}
-                            animate={{ width: `${((currentCardIndex + 1) / totalCards) * 100}%` }}
-                            transition={{ duration: 0.3, ease: 'easeOut' }}
-                          />
-                        </div>
-                        <span className="text-xs font-medium text-stone-500 tabular-nums min-w-[4rem]">
-                          {currentCardIndex + 1} of {totalCards}
-                        </span>
-                      </div>
-
-                      {/* Navigation Arrows */}
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={handlePrevious}
-                          disabled={currentCardIndex === 0}
-                          className="w-8 h-8 rounded-lg bg-white border border-stone-200 flex items-center justify-center transition-all hover:border-stone-300 hover:shadow-sm hover:bg-stone-50 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:shadow-none"
-                          aria-label="Previous card"
-                        >
-                          <ChevronLeft size={16} className="text-stone-600" />
-                        </button>
-                        <button
-                          onClick={handleNext}
-                          disabled={currentCardIndex === totalCards - 1}
-                          className="w-8 h-8 rounded-lg bg-white border border-stone-200 flex items-center justify-center transition-all hover:border-stone-300 hover:shadow-sm hover:bg-stone-50 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:shadow-none"
-                          aria-label="Next card"
-                        >
-                          <ChevronRight size={16} className="text-stone-600" />
-                        </button>
-                      </div>
+                    {/* Navigation Arrows */}
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={handlePrevious}
+                        disabled={!canScrollLeft}
+                        className="w-10 h-10 rounded-xl bg-white border border-stone-200 flex items-center justify-center transition-all hover:border-stone-300 hover:shadow-md hover:bg-stone-50 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:shadow-none disabled:active:scale-100"
+                        aria-label="Previous page"
+                      >
+                        <ChevronLeft size={20} className="text-stone-700" />
+                      </button>
+                      <button
+                        onClick={handleNext}
+                        disabled={!canScrollRight}
+                        className="w-10 h-10 rounded-xl bg-white border border-stone-200 flex items-center justify-center transition-all hover:border-stone-300 hover:shadow-md hover:bg-stone-50 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:shadow-none disabled:active:scale-100"
+                        aria-label="Next page"
+                      >
+                        <ChevronRight size={20} className="text-stone-700" />
+                      </button>
                     </div>
                   </div>
                 ) : undefined
