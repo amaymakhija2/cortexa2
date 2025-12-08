@@ -744,8 +744,8 @@ export const ClinicianOverview: React.FC = () => {
               )}
             </p>
 
-            {/* Metric buttons - 6 metric groups */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            {/* Metric buttons - 8 metric groups in 2 rows of 4 */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {METRIC_GROUPS.map((group) => {
                 const isSelected = selectedGroupId === group.id;
 
@@ -753,19 +753,24 @@ export const ClinicianOverview: React.FC = () => {
                   <button
                     key={group.id}
                     onClick={() => handleGroupChange(group.id)}
-                    className={`relative px-4 py-4 rounded-xl font-semibold text-sm transition-all duration-300 text-left ${
+                    className={`relative px-6 py-6 rounded-2xl font-semibold transition-all duration-300 text-left min-h-[100px] ${
                       isSelected
                         ? 'bg-white text-stone-900 shadow-xl scale-[1.02]'
-                        : 'bg-white/10 text-white/80 hover:bg-white/20 hover:text-white'
+                        : 'bg-white/10 text-white/80 hover:bg-white/20 hover:text-white hover:scale-[1.01]'
                     }`}
+                    style={{
+                      boxShadow: isSelected
+                        ? '0 8px 32px -4px rgba(0, 0, 0, 0.3), 0 4px 16px -2px rgba(0, 0, 0, 0.2)'
+                        : undefined
+                    }}
                   >
-                    <span className="block text-base font-bold">{group.label}</span>
-                    <span className={`block text-xs mt-1 ${isSelected ? 'text-stone-500' : 'text-white/50'}`}>
+                    <span className="block text-xl font-bold leading-tight">{group.label}</span>
+                    <span className={`block text-base mt-2 leading-relaxed ${isSelected ? 'text-stone-500' : 'text-white/70'}`}>
                       {group.description}
                     </span>
                     {isSelected && (
                       <div
-                        className="absolute bottom-0 left-4 right-4 h-1 rounded-full"
+                        className="absolute bottom-0 left-6 right-6 h-1.5 rounded-full"
                         style={{ background: 'linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%)' }}
                       />
                     )}
