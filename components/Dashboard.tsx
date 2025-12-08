@@ -425,7 +425,7 @@ export const Dashboard: React.FC = () => {
                 {priorityCards.map((card, index) => (
                   <div
                     key={index}
-                    className="snap-start flex-shrink-0 h-full w-[280px] sm:w-[320px] md:w-[340px] lg:w-[calc(25%-12px)]"
+                    className="snap-start flex-shrink-0 h-[540px] w-[280px] sm:w-[320px] md:w-[340px] lg:w-[calc(25%-12px)]"
                   >
                     {card}
                   </div>

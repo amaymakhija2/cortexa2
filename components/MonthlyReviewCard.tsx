@@ -328,12 +328,15 @@ export const MonthlyReviewCard: React.FC<MonthlyReviewCardProps> = ({
           role="button"
           tabIndex={0}
           onKeyDown={(e) => e.key === 'Enter' && setIsOpen(true)}
-          className="relative h-full rounded-[20px] overflow-hidden shadow-xl group cursor-pointer transition-all duration-300 hover:shadow-2xl"
+          className="relative h-full rounded-[24px] overflow-hidden cursor-pointer"
+          style={{
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.6)',
+          }}
         >
           <img
             src="/wrapped/overview-card.png"
             alt={`${monthName} Review`}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover object-left-top"
           />
         </div>
       </motion.div>
