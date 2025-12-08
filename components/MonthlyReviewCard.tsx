@@ -330,7 +330,7 @@ export const MonthlyReviewCard: React.FC<MonthlyReviewCardProps> = ({
           onKeyDown={(e) => e.key === 'Enter' && setIsOpen(true)}
           className="relative h-full rounded-[24px] overflow-hidden cursor-pointer"
           style={{
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.6)',
+            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.4)',
           }}
         >
           <img

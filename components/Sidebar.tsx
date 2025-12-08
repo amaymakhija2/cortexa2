@@ -310,7 +310,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen = false, setMob
                 opacity: showLabels ? 1 : 0,
               }}
             >
-              <p className="text-sm font-medium text-stone-100 truncate">Dr. Sarah Chen</p>
+              <p className="text-sm font-medium text-stone-100 truncate">Sarah Mitchell</p>
               <p className="text-xs text-stone-500 truncate -mt-0.5">Admin</p>
             </div>
           </div>

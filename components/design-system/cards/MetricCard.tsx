@@ -236,7 +236,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
       {/* Expandable Panel - positioned absolutely so it doesn't affect card height */}
       {hasExpandable && (
         <div
-          className={`absolute top-full left-0 right-0 z-10 overflow-hidden transition-all duration-500 ease-out ${
+          className={`absolute top-full left-0 right-0 z-30 overflow-hidden transition-all duration-500 ease-out ${
             isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
           }`}
         >

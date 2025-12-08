@@ -6,24 +6,30 @@ interface AppSettings {
 }
 
 // Mapping of real clinician names to demo names
+// Demographics: ~60% White, ~18% Hispanic, ~12% Black, ~6% Asian (US Census)
 export const DEMO_NAMES: Record<string, string> = {
-  'Gaya K': 'Maya P',
-  'Rudhdi K': 'Priya S',
-  'Alaina M': 'Emma T',
-  'Aditi R': 'Anika M',
-  'Tamanna A': 'Tara B',
-  'Gajan G': 'Arjun K',
-  'Shivon R': 'Simone L',
-  'Tanisha S': 'Tanya R',
-  'Mehar A': 'Mira D',
-  'Deepa S': 'Diana N',
-  'Rebecca S': 'Rachel M',
-  'Apeksha M': 'Asha P',
-  'Riddhi C': 'Riya T',
-  'Ranya P': 'Rita S',
-  'Vikramjit B': 'Vivek R',
-  'Paulomi M': 'Pooja K',
-  'Preeti R': 'Priti M',
+  // White/European American (~10)
+  'Gaya K': 'Sarah M',
+  'Rudhdi K': 'Emma T',
+  'Alaina M': 'Rachel K',
+  'Aditi R': 'Lauren C',
+  'Tamanna A': 'Katie R',
+  'Gajan G': 'Brian H',
+  'Shivon R': 'Jennifer L',
+  // Hispanic/Latino (~3)
+  'Tanisha S': 'Maria G',
+  'Mehar A': 'Sofia M',
+  'Deepa S': 'Carlos R',
+  // Black/African American (~2)
+  'Rebecca S': 'Jasmine W',
+  'Apeksha M': 'Marcus J',
+  // Asian (~2)
+  'Riddhi C': 'Priya S',
+  'Ranya P': 'David K',
+  // Additional White/European American
+  'Vikramjit B': 'Michael B',
+  'Paulomi M': 'Chris P',
+  'Preeti R': 'Amanda H',
 };
 
 // Helper function to get display name based on settings

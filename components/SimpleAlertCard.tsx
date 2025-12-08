@@ -6,11 +6,11 @@ interface SimpleAlertCardProps {
   title: string
   aiGuidance: string
   action: string
-  status: "critical" | "warning" | "good"
+  status: "critical" | "warning" | "good" | "insight"
   stats: {
     value: number | string
     label: string
-    color?: "red" | "amber" | "emerald" | "white"
+    color?: "red" | "amber" | "emerald" | "white" | "blue"
   }[]
   comparisonText?: string
 }
@@ -86,7 +86,7 @@ export const SimpleAlertCard: React.FC<SimpleAlertCardProps> = ({
         className="h-full rounded-[24px] overflow-hidden flex flex-col relative"
         style={{
           background: 'linear-gradient(165deg, #0c0c0c 0%, #111111 40%, #0a0a0a 100%)',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.03)',
+          boxShadow: '0 4px 16px rgba(0, 0, 0, 0.4)',
         }}
       >
         {/* Subtle top highlight for depth */}

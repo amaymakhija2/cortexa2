@@ -333,7 +333,7 @@ export const SettingsPage: React.FC = () => {
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <h2 className="text-2xl font-bold text-stone-800">
-                    Dr. Sarah Chen
+                    Sarah Mitchell
                   </h2>
                   <div className="px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-100 to-orange-100 border border-amber-200/50">
                     <span className="text-xs font-bold text-amber-700 flex items-center gap-1">
@@ -348,7 +348,7 @@ export const SettingsPage: React.FC = () => {
                     <div className="w-6 h-6 rounded-lg bg-stone-100 flex items-center justify-center">
                       <Mail size={12} className="text-stone-500" />
                     </div>
-                    <span>sarah.chen@cortexa.io</span>
+                    <span>sarah.mitchell@cortexa.io</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-6 h-6 rounded-lg bg-stone-100 flex items-center justify-center">
