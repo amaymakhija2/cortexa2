@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Phone, Calendar, ChevronRight } from 'lucide-react';
+import { Calendar, Check } from 'lucide-react';
 
 // =============================================================================
 // CLIENT ROSTER COMPONENT
@@ -134,9 +134,25 @@ const MOCK_CLIENTS: Client[] = [
 export const ClientRoster: React.FC = () => {
   const [selectedSegment, setSelectedSegment] = useState<ClientSegmentId>('at-risk');
 
+  // Track which clients have been contacted (email sent)
+  const [contactedClients, setContactedClients] = useState<Set<string>>(new Set());
+
   const selectedConfig = CLIENT_SEGMENTS.find(s => s.id === selectedSegment)!;
 
-  // Filter clients based on selected segment
+  // Toggle contacted status for a client
+  const toggleContacted = (clientId: string) => {
+    setContactedClients(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(clientId)) {
+        newSet.delete(clientId);
+      } else {
+        newSet.add(clientId);
+      }
+      return newSet;
+    });
+  };
+
+  // Filter clients based on selected segment (no reordering on contact status change)
   const filteredClients = useMemo(() => {
     if (selectedSegment === 'all') return MOCK_CLIENTS;
     if (selectedSegment === 'healthy') return MOCK_CLIENTS.filter(c => c.status === 'healthy');
@@ -156,22 +172,6 @@ export const ClientRoster: React.FC = () => {
     'milestone': MOCK_CLIENTS.filter(c => c.status === 'milestone').length,
     'churned': MOCK_CLIENTS.filter(c => c.status === 'churned').length,
   }), []);
-
-  // Get action button config based on status
-  const getActionConfig = (client: Client) => {
-    switch (client.status) {
-      case 'at-risk':
-        return { label: 'Call', icon: Phone, color: 'bg-rose-500 hover:bg-rose-600' };
-      case 'new':
-        return { label: 'Check In', icon: Phone, color: 'bg-cyan-500 hover:bg-cyan-600' };
-      case 'milestone':
-        return { label: 'Review', icon: ChevronRight, color: 'bg-amber-500 hover:bg-amber-600' };
-      case 'churned':
-        return { label: 'Win Back', icon: Phone, color: 'bg-stone-500 hover:bg-stone-600' };
-      default:
-        return { label: 'View', icon: ChevronRight, color: 'bg-stone-400 hover:bg-stone-500' };
-    }
-  };
 
   // Format last seen
   const formatLastSeen = (days: number) => {
@@ -331,20 +331,19 @@ export const ClientRoster: React.FC = () => {
             <div>Clinician</div>
             <div className="text-right">Sessions Complete</div>
             <div className="text-right">Last Seen</div>
-            <div className="text-right">Action</div>
+            <div className="text-right">Email Sent</div>
           </div>
 
           {/* Client rows */}
           <div className="space-y-2">
-            {filteredClients.map((client, idx) => {
+            {filteredClients.map((client) => {
               const statusColor = STATUS_COLORS[client.status];
-              const action = getActionConfig(client);
-              const ActionIcon = action.icon;
+              const isContacted = contactedClients.has(client.id);
 
               return (
                 <div
                   key={client.id}
-                  className="group bg-white rounded-xl lg:rounded-2xl overflow-hidden transition-all duration-300 hover:scale-[1.01] cursor-pointer"
+                  className="group bg-white rounded-xl lg:rounded-2xl overflow-hidden transition-all duration-300 hover:scale-[1.01]"
                   style={{ boxShadow: '0 2px 12px -2px rgba(0, 0, 0, 0.08)' }}
                 >
                   {/* Accent bar */}
@@ -388,9 +387,22 @@ export const ClientRoster: React.FC = () => {
                             </span>
                           )}
                         </div>
-                        <button className={`px-3 py-1.5 rounded-lg text-white text-sm font-semibold flex items-center gap-1.5 transition-colors ${action.color}`}>
-                          <ActionIcon size={14} />
-                          {action.label}
+                        <button
+                          onClick={() => toggleContacted(client.id)}
+                          className={`px-3 py-1.5 rounded-lg text-sm font-semibold flex items-center gap-1.5 transition-all duration-300 ${
+                            isContacted
+                              ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
+                              : 'bg-stone-100 text-stone-600 hover:bg-stone-200 border border-stone-200'
+                          }`}
+                        >
+                          {isContacted ? (
+                            <>
+                              <Check size={14} />
+                              Done
+                            </>
+                          ) : (
+                            'Mark Done'
+                          )}
                         </button>
                       </div>
                     </div>
@@ -456,9 +468,22 @@ export const ClientRoster: React.FC = () => {
 
                       {/* Action */}
                       <div className="text-right">
-                        <button className={`px-4 py-2 rounded-xl text-white text-sm font-semibold flex items-center gap-2 ml-auto transition-colors ${action.color}`}>
-                          <ActionIcon size={16} />
-                          {action.label}
+                        <button
+                          onClick={() => toggleContacted(client.id)}
+                          className={`px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 ml-auto transition-all duration-300 ${
+                            isContacted
+                              ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
+                              : 'bg-stone-100 text-stone-600 hover:bg-stone-200 border border-stone-200'
+                          }`}
+                        >
+                          {isContacted ? (
+                            <>
+                              <Check size={16} />
+                              Done
+                            </>
+                          ) : (
+                            'Mark Done'
+                          )}
                         </button>
                       </div>
                     </div>
