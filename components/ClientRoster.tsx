@@ -304,25 +304,6 @@ export const ClientRoster: React.FC = () => {
             ============================================= */}
         <div className="px-6 sm:px-8 lg:px-12 py-6 lg:py-8">
 
-          {/* Section header */}
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2
-                className="text-2xl font-bold text-stone-900"
-                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-              >
-                {selectedConfig.label}
-              </h2>
-              <p className="text-stone-500 text-sm">{selectedConfig.description}</p>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <span className="text-stone-500 text-sm">
-                {filteredClients.length} clients
-              </span>
-            </div>
-          </div>
-
           {/* Column headers */}
           <div className="hidden lg:grid gap-4 py-4 text-sm font-bold text-stone-700 uppercase tracking-wide border-b-2 border-stone-300 mb-3"
             style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr 140px' }}
