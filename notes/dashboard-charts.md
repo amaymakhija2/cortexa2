@@ -16,6 +16,7 @@ Psychotherapy practice owners and clinical directors who are very poor at readin
 
 ### Practice Goals (Used for Status Calculations)
 
+**Overview Dashboard Goals** (used for real-time KPI status):
 | Metric | Goal | Status Thresholds |
 |--------|------|-------------------|
 | **Revenue** | $100k/month | ≥95% = Healthy, ≥80% = Needs attention, <80% = Critical |
@@ -24,6 +25,14 @@ Psychotherapy practice owners and clinical directors who are very poor at readin
 | **Notes Overdue** | <10% | ≤10% = Healthy, ≤15% = Needs attention, >15% = Critical |
 
 *Note: For current month, goals are pro-rated based on days elapsed.*
+
+**Analysis Tab Goals** (used for historical trend analysis):
+| Metric | Goal |
+|--------|------|
+| **Revenue** | $150k/month |
+| **Sessions** | 700/month |
+
+*Note: Analysis tabs use higher goals for historical trend tracking.*
 
 ---
 
@@ -160,14 +169,14 @@ Psychotherapy practice owners and clinical directors who are very poor at readin
 |---------|---------|
 | **Title** | "Goal Achievement" |
 | **Value** | "{X}/{Y}" (months meeting goal / total months) |
-| **Subtext** | "months hit $100k goal" |
+| **Subtext** | "months hit $150k goal" |
 
-#### 4. Avg Revenue
+#### 4. Avg Revenue Per Session
 | Element | Content |
 |---------|---------|
-| **Title** | "Avg Revenue" |
-| **Value** | "${XXX}k/mo" |
-| **Subtext** | "${XX.X}k/week" |
+| **Title** | "Avg Revenue Per Session" |
+| **Value** | "${XXX}" |
+| **Subtext** | "across {X} sessions" |
 
 ---
 
@@ -177,10 +186,10 @@ Psychotherapy practice owners and clinical directors who are very poor at readin
 | **Title** | "Revenue Performance" |
 | **Subtitle** | "Monthly breakdown" |
 | **Chart Type** | Vertical bar chart |
-| **Y-Axis** | $0 - $120k (auto-scaled with buffer) |
+| **Y-Axis** | $0 - $180k (auto-scaled with buffer) |
 | **X-Axis** | Month labels (Jan, Feb, Mar...) |
-| **Goal Line** | Dashed amber line at $100k |
-| **Goal Indicator Pill** | "$100k Goal" |
+| **Goal Line** | Dashed amber line at $150k |
+| **Goal Indicator Pill** | "$150k Goal" |
 | **Bar Colors** | Green gradient (above goal), Blue gradient (below goal) |
 | **Toggle Button** | "By Clinician" - switches to stacked bar view |
 | **Legend Position** | Top-right (clinician view) |
@@ -243,8 +252,8 @@ Psychotherapy practice owners and clinical directors who are very poor at readin
 | **Subtitle** | "Average revenue per client by months since first session" |
 | **Chart Type** | Multi-line chart |
 | **Metrics Row** | Current year LTV (emerald, primary) · Prior year LTV (blue) |
-| **X-Axis** | M0, M1, M2... M12 (months since cohort start) |
-| **Y-Axis** | $0 - auto-scaled |
+| **X-Axis** | M0, M1, M2... M9 (months since cohort start) |
+| **Y-Axis** | $0 - $5k (auto-scaled) |
 | **Lines** | |
 | - Current Year (e.g., 2025) | Emerald (#10b981) |
 | - Prior Year (e.g., 2024) | Blue (#3b82f6) |
@@ -303,14 +312,14 @@ Psychotherapy practice owners and clinical directors who are very poor at readin
 |---------|---------|
 | **Title** | "Goal Achievement" |
 | **Value** | "{X}/{Y}" (months meeting goal / total) |
-| **Subtext** | "months hit 475 goal" |
+| **Subtext** | "months hit 700 goal" |
 
-#### 4. Avg Non-Billable Cancel Rate
+#### 4. Client Cancel Rate
 | Element | Content |
 |---------|---------|
-| **Title** | "Avg Non-Billable Cancel Rate" |
+| **Title** | "Client Cancel Rate" |
 | **Value** | "{X.X}%" |
-| **Subtext** | "Client + Clinician Cancellations" |
+| **Subtext** | "client-initiated cancellations" |
 
 ---
 
@@ -320,11 +329,11 @@ Psychotherapy practice owners and clinical directors who are very poor at readin
 | **Title** | "Completed Sessions" |
 | **Subtitle** | "Monthly performance" |
 | **Chart Type** | Vertical bar chart |
-| **Y-Axis** | 0 - 600 (maxValue: auto-scaled) |
+| **Y-Axis** | 0 - 800 (maxValue: auto-scaled) |
 | **X-Axis** | Month labels |
-| **Goal Line** | Dashed amber line at 475 |
-| **Goal Indicator Pill** | "475 Goal" |
-| **Bar Colors** | Green gradient (≥475), Blue gradient (<475) |
+| **Goal Line** | Dashed amber line at 700 |
+| **Goal Indicator Pill** | "700 Goal" |
+| **Bar Colors** | Green gradient (≥700), Blue gradient (<700) |
 | **Toggle Button** | "By Clinician" - switches to stacked view |
 | **Legend Position** | Top-right (clinician view) |
 | **Action Button** | "Sessions Report →" |
@@ -711,15 +720,14 @@ Uses the standard `StatCard` component from the design system. Displayed in a 4-
 | **Subtext** | "{X}% still active" |
 | **Variant** | positive (emerald-600) |
 
-#### 4. Avg Client Tenure
+#### 4. Avg Sessions Completed
 | Element | Content |
 |---------|---------|
-| **Title** | "Avg Client Tenure" |
+| **Title** | "Avg Sessions Completed" |
 | **Value** | "{X.X}" |
-| **Subtext** | "sessions per client (avg: {benchmark})" |
+| **Subtext** | "sessions per client in cohort" |
 | **Variant** | default (stone-900) |
-| **Benchmark** | Industry average tenure shown in subtext |
-| **Note** | **IMPORTANT**: This is the average number of sessions across ALL clients in the cohort, not just churned clients. This provides an accurate view of client engagement. |
+| **Note** | This is the average number of sessions across ALL clients in the cohort, providing an accurate view of client engagement. |
 
 ---
 
@@ -852,10 +860,11 @@ Two separate funnel cards side-by-side showing client retention journeys.
 **Stages**:
 | Stage | Example Values |
 |-------|----------------|
-| Started | 100 clients · 100% |
-| Session 5 | 76 clients · 76% |
-| Session 12 | 52 clients · 52% |
-| Session 24 | 31 clients · 31% |
+| 1 session | 100 clients · 100% |
+| 2 sessions | 82 clients · 82% |
+| 3-5 sessions | 68 clients · 68% |
+| 6-10 sessions | 52 clients · 52% |
+| 11+ sessions | 38 clients · 38% |
 
 **Bar Structure**:
 - Label inside bar (white text with DM Serif Display font)
@@ -884,10 +893,11 @@ Two separate funnel cards side-by-side showing client retention journeys.
 **Stages**:
 | Stage | Example Values |
 |-------|----------------|
-| Started | 100 clients · 100% |
-| 1 Month | 82 clients · 82% |
-| 3 Months | 62 clients · 62% |
-| 6 Months | 41 clients · 41% |
+| First month | 100 clients · 100% |
+| 1-3 months | 82 clients · 82% |
+| 3-6 months | 62 clients · 62% |
+| 6-12 months | 45 clients · 45% |
+| 12+ months | 31 clients · 31% |
 
 **Bar Structure**:
 - Label inside bar (white text with DM Serif Display font)
@@ -1053,69 +1063,55 @@ Scope: Data calculated for the selected cohort (clients who STARTED during that 
 
 ## CLINICIAN RANKING TAB
 
-The Clinician Ranking tab allows practice owners to **select a metric** and see clinicians **ranked/ordered** by that metric. This enables quick identification of top performers and those needing support.
+The Clinician Ranking tab presents **6 metric groups** as clickable cards, each asking a key question about clinician performance. Users select a metric group to see clinicians ranked by that primary metric with supporting metrics for context.
 
 ### Page Header
 
 | Element | Content |
 |---------|---------|
-| **Accent** | Indigo |
+| **Accent** | Violet |
 | **Label** | "Team Performance" (uppercase) |
 | **Title** | "Clinician Rankings" |
-| **Subtitle** | "Compare clinician performance across key metrics" |
+| **Subtitle** | Date range label (from time period selector) |
+| **Time Period Selector** | Standard dropdown with preset periods |
 
 ---
 
-### Metric Selector
+### Metric Selector (6 Cards)
 
 | Element | Content |
 |---------|---------|
-| **Component** | Dropdown with category grouping |
-| **Default Selection** | Revenue Generated |
-| **Display** | Category icon + Metric name + Category label |
+| **Component** | Grid of 6 large clickable cards (3 columns × 2 rows) |
+| **Default Selection** | Revenue (first card) |
+| **Card Size** | Large buttons with icon, question, and primary metric name |
+| **Selection State** | Selected card has accent border and background highlight |
 
-#### Available Metrics by Category
+#### Metric Groups
 
-**Financial**:
-| Metric | Format | Direction |
-|--------|--------|-----------|
-| Revenue Generated | $XX.Xk | Higher is better |
+Each metric group is displayed as a card with:
+- Icon (in accent-colored circle)
+- Question (the key business question)
+- Primary metric name
+- Supporting metrics (shown in ranking table)
 
-**Sessions**:
-| Metric | Format | Direction |
-|--------|--------|-----------|
-| Completed Sessions | X,XXX | Higher is better |
-| Cancellation Rate | X.X% | Lower is better |
-| Show Rate | XX% | Higher is better |
-
-**Clients**:
-| Metric | Format | Direction |
-|--------|--------|-----------|
-| Utilization Rate | XX% | Higher is better |
-| New Clients Acquired | +X | Higher is better |
-| Active Clients | XX | Higher is better |
-
-**Retention**:
-| Metric | Format | Direction |
-|--------|--------|-----------|
-| Retention Rate | XX% | Higher is better |
-| Rebook Rate | XX% | Higher is better |
-| Churn Rate | X.X% | Lower is better |
-| Avg Sessions/Client | X.X | Higher is better |
-
-**Compliance**:
-| Metric | Format | Direction |
-|--------|--------|-----------|
-| Outstanding Notes | X | Lower is better |
+| # | Question | Primary Metric | Supporting Metrics | Icon | Icon Color |
+|---|----------|----------------|-------------------|------|------------|
+| 1 | "Who's generating the most revenue?" | Gross Revenue | Sessions, Revenue Per Session | DollarSign | Amber |
+| 2 | "Who's meeting their goals?" | Session Goal % | Completed Sessions, Capacity | Target | Indigo |
+| 3 | "Who's losing appointments?" | Non-Billable Cancel Rate | Client Cancels, No-Shows | CalendarX | Red |
+| 4 | "Who's keeping clients engaged?" | Rebook Rate | At-Risk Clients, Avg Sessions Per Client | Heart | Emerald |
+| 5 | "Who's losing clients?" | Churn Rate | Clients Lost, Session 1→2 Drop-off | UserMinus | Rose |
+| 6 | "Who needs to catch up on notes?" | Outstanding Notes | — | FileText | Violet |
 
 ---
 
-### Ranking List
+### Ranking Table
 
 | Element | Content |
 |---------|---------|
-| **Component** | Table-style list with header row |
-| **Columns** | Rank, Clinician, Metric Value, Trend |
+| **Component** | Table with header row and clinician rows |
+| **Columns** | Rank, Clinician (avatar + name), Primary Metric, Supporting Metrics, Trend |
+| **Sorting** | Automatically sorted by primary metric (best to worst) |
 
 #### Row Components
 
@@ -1130,13 +1126,18 @@ The Clinician Ranking tab allows practice owners to **select a metric** and see 
 **Clinician Info**:
 | Element | Content |
 |---------|---------|
-| **Avatar** | Colored square with initial (clinician-specific color) |
+| **Avatar** | Colored square with initials (clinician-specific color) |
 | **Name** | DM Serif Display font |
 | **Performance Badge** | "+X% vs avg" (emerald) or "-X% vs avg" (rose) |
 
-**Metric Value**:
+**Primary Metric Value**:
 - Large, bold DM Serif Display
-- Formatted according to metric type
+- Formatted according to metric type (currency, percentage, number)
+- Highlighted column
+
+**Supporting Metrics**:
+- Secondary columns with smaller text
+- Provides context for the primary metric
 
 **Trend Indicator**:
 | Trend | Style |
@@ -1151,37 +1152,42 @@ The Clinician Ranking tab allows practice owners to **select a metric** and see 
 
 | Element | Content |
 |---------|---------|
-| **Position** | Inserted in ranking at correct position |
+| **Position** | Inserted in ranking at correct position (divides above/below average) |
 | **Visual Style** | Dashed border top/bottom, stone background gradient |
 | **Icon** | Users icon in stone circle |
 | **Label** | "Team Average" |
 | **Sublabel** | "X clinicians" |
-| **Purpose** | Divides above-average from below-average clinicians |
+| **Purpose** | Shows benchmark and divides above-average from below-average |
 
 ---
 
 ### Quick Stats Summary (3 Cards)
 
+Below the ranking table, three summary cards highlight key insights:
+
 #### 1. Top Performer
 | Element | Content |
 |---------|---------|
-| **Background** | Amber gradient (#fef3c7 → #fef9c3) |
+| **Background** | Emerald gradient |
 | **Icon** | Gold rank badge "1" |
-| **Content** | Clinician name + metric value |
+| **Content** | Clinician name + primary metric value |
+| **Title** | "Top Performer" |
 
 #### 2. Most Improved
 | Element | Content |
 |---------|---------|
-| **Background** | Emerald gradient (#d1fae5 → #ecfdf5) |
-| **Icon** | TrendingUp (emerald) |
-| **Content** | Clinician name + trend percentage |
+| **Background** | Amber gradient |
+| **Icon** | TrendingUp |
+| **Content** | Clinician name + improvement description |
+| **Title** | "Most Improved" |
 
 #### 3. Needs Support
 | Element | Content |
 |---------|---------|
-| **Background** | Rose gradient (#fee2e2 → #fef2f2) |
-| **Icon** | AlertTriangle (rose) |
-| **Content** | Clinician name + % below average |
+| **Background** | Rose gradient |
+| **Icon** | AlertTriangle |
+| **Content** | Clinician name + area needing attention |
+| **Title** | "Needs Support" |
 
 ---
 
@@ -1189,11 +1195,197 @@ The Clinician Ranking tab allows practice owners to **select a metric** and see 
 
 | Clinician | Color | Hex |
 |-----------|-------|-----|
-| Chen | Purple | #7c3aed |
-| Rodriguez | Cyan | #0891b2 |
-| Patel | Amber | #d97706 |
-| Kim | Pink | #db2777 |
-| Johnson | Emerald | #059669 |
+| Chen | Purple | #a855f7 |
+| Rodriguez | Cyan | #06b6d4 |
+| Patel | Amber | #f59e0b |
+| Kim | Pink | #ec4899 |
+| Johnson | Emerald | #10b981 |
+
+---
+
+## CLINICIAN DETAILS PAGE
+
+The Clinician Details page provides a **deep-dive into individual clinician performance** with a unique two-state design: a default selection state and a "spotlight" state when a clinician is selected.
+
+### Two-State Header Design
+
+#### Default State (No Clinician Selected)
+| Element | Content |
+|---------|---------|
+| **Background** | Dark (#1a1816) with subtle amber glow |
+| **Label** | "Individual Performance" (amber, uppercase) |
+| **Title** | "Clinician Details" (DM Serif Display, white) |
+| **Right Side** | Clinician Selector + Time Period Selector |
+
+#### Spotlight State (Clinician Selected)
+| Element | Content |
+|---------|---------|
+| **Background** | Dark with dynamic glow based on clinician's signature color |
+| **Secondary Glow** | Based on health status color |
+| **Label** | "Individual Performance" (amber, uppercase) |
+| **Content** | Large avatar + Name + Role/Tenure + Health badge + Quick stats + Time selector |
+
+---
+
+### Clinician Selector
+
+| Element | Content |
+|---------|---------|
+| **Component** | Dropdown with clinician list |
+| **Default State** | "Select Clinician" button with Users icon |
+| **Spotlight State** | Clickable avatar with dropdown indicator |
+| **Dropdown Items** | Avatar, Name, Health dot, Role |
+
+---
+
+### Health Status System
+
+| Status | Label | Color | Background | Glow | Icon |
+|--------|-------|-------|------------|------|------|
+| **Healthy** | "Healthy" | #10b981 | rgba(16, 185, 129, 0.15) | rgba(16, 185, 129, 0.4) | ● |
+| **Attention** | "Needs Attention" | #f59e0b | rgba(245, 158, 11, 0.15) | rgba(245, 158, 11, 0.4) | ◐ |
+| **Critical** | "Critical" | #ef4444 | rgba(239, 68, 68, 0.15) | rgba(239, 68, 68, 0.4) | ◉ |
+
+---
+
+### Quick Stats Strip (Spotlight Mode)
+
+4 compact stat cards displayed inline in the header:
+
+#### 1. Revenue
+| Element | Content |
+|---------|---------|
+| **Icon** | DollarSign |
+| **Label** | "Revenue" |
+| **Value** | "${XXX}K" (DM Serif Display) |
+| **Badge** | Percentage vs goal with trend icon |
+| **Badge Color** | Emerald (≥100%) or Rose (<100%) |
+
+#### 2. Sessions
+| Element | Content |
+|---------|---------|
+| **Icon** | Activity |
+| **Label** | "Sessions" |
+| **Value** | "{XXX}" (DM Serif Display) |
+| **Badge** | Percentage vs goal with trend icon |
+| **Badge Color** | Emerald (≥100%) or Rose (<100%) |
+
+#### 3. Rebook Rate
+| Element | Content |
+|---------|---------|
+| **Icon** | Users |
+| **Label** | "Rebook" |
+| **Value** | "{XX}%" (DM Serif Display) |
+| **Badge** | "Good" (≥85%), "Fair" (≥75%), or "Low" (<75%) |
+| **Badge Color** | Emerald / Amber / Rose |
+
+#### 4. Notes Due
+| Element | Content |
+|---------|---------|
+| **Icon** | FileText |
+| **Label** | "Notes Due" |
+| **Value** | "{X}" (DM Serif Display) |
+| **Badge** | "Good" (≤5), "Behind" (≤10), or "Critical" (>10) |
+| **Badge Color** | Emerald / Amber / Rose |
+| **Card Background** | Rose tint if >10 overdue |
+
+---
+
+### AI Insight Quote
+
+| Element | Content |
+|---------|---------|
+| **Style** | Italic quote in stone-400 |
+| **Content** | Dynamic insight about clinician's performance |
+| **Example** | "Exceptional quarter. Revenue up 12% with highest client retention on team." |
+
+---
+
+### Content Sections (Below Header)
+
+The page displays up to 7 sections based on clinician health status. If healthy, Priority Alerts is hidden.
+
+#### Section 1: Priority Alerts (Conditional)
+| Element | Content |
+|---------|---------|
+| **Accent** | Rose |
+| **Question** | "What needs attention?" |
+| **Description** | "Actionable alerts and issues requiring follow-up" |
+| **Visibility** | Only shown if healthStatus ≠ 'healthy' |
+| **Content** | Priority alert cards |
+
+#### Section 2: Financial Performance
+| Element | Content |
+|---------|---------|
+| **Accent** | Emerald |
+| **Question** | "How is their financial performance?" |
+| **Description** | "Revenue trends, averages, and contribution to practice" |
+| **Charts** | |
+| - Revenue Over Time | Bar chart with goal line |
+| - Revenue Summary | 3-stat grid (Total, Avg Monthly, % of Practice) |
+| - Revenue per Session | Value with team comparison |
+
+#### Section 3: Session Performance
+| Element | Content |
+|---------|---------|
+| **Accent** | Cyan |
+| **Question** | "How are their sessions performing?" |
+| **Description** | "Session volume, attendance breakdown, and show rates" |
+| **Charts** | Sessions Over Time, Attendance Breakdown Donut |
+
+#### Section 4: Client & Caseload
+| Element | Content |
+|---------|---------|
+| **Accent** | Amber |
+| **Question** | "How is their caseload?" |
+| **Description** | "Capacity utilization, client movement, and at-risk clients" |
+| **Charts** | Caseload Gauge, Client Movement, At-Risk Clients |
+
+#### Section 5: Retention
+| Element | Content |
+|---------|---------|
+| **Accent** | Rose |
+| **Question** | "How well do they retain clients?" |
+| **Description** | "Rebook rates, churn patterns, and retention comparison" |
+| **Charts** | Rebook Rate Trend, Retention Comparison Table |
+
+#### Section 6: Compliance
+| Element | Content |
+|---------|---------|
+| **Accent** | Stone |
+| **Question** | "Are they staying compliant?" |
+| **Description** | "Documentation status and overdue notes" |
+| **Charts** | Notes Status Card, Overdue Notes List |
+
+#### Section 7: Trends & Team Comparison
+| Element | Content |
+|---------|---------|
+| **Accent** | Indigo |
+| **Question** | "How do they compare to the team?" |
+| **Description** | "Performance trends and peer comparison" |
+| **Charts** | Multi-Metric Sparklines, Team Ranking Comparison |
+
+---
+
+### Clinician Colors (Details Page)
+
+| Clinician | Color | Hex |
+|-----------|-------|-----|
+| Sarah Chen | Purple | #a855f7 |
+| Maria Rodriguez | Cyan | #06b6d4 |
+| Priya Patel | Amber | #f59e0b |
+| James Kim | Pink | #ec4899 |
+| Michael Johnson | Emerald | #10b981 |
+
+---
+
+### Empty State (No Clinician Selected)
+
+| Element | Content |
+|---------|---------|
+| **Icon** | Users (40px) in amber-tinted container |
+| **Title** | "Select a Clinician" (DM Serif Display) |
+| **Description** | "Choose a clinician from the dropdown above to view their detailed performance metrics, trends, and actionable insights." |
 
 ---
 
@@ -1234,14 +1426,14 @@ The Clinician Ranking tab allows practice owners to **select a metric** and see 
 | Warning/Attention | Amber | #f59e0b, #d97706 |
 | Critical/Bad | Rose/Red | #ef4444, #dc2626 |
 
-### Clinician Colors (Financial/Sessions)
+### Clinician Colors (Financial/Sessions/Details)
 | Clinician | Color | Hex |
 |-----------|-------|-----|
-| Chen | Purple | #7c3aed |
-| Rodriguez | Cyan | #0891b2 |
-| Patel | Amber | #d97706 |
-| Kim | Pink | #db2777 |
-| Johnson | Emerald | #059669 |
+| Chen | Purple | #a855f7 |
+| Rodriguez | Cyan | #06b6d4 |
+| Patel | Amber | #f59e0b |
+| Kim | Pink | #ec4899 |
+| Johnson | Emerald | #10b981 |
 
 ### Clinician Colors (Retention - Teal Shades)
 | Clinician | Color | Hex |
