@@ -1,0 +1,1191 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { ChevronDown, Check, Calendar, ChevronLeft, ChevronRight, X, TrendingUp, TrendingDown, Users, DollarSign, Activity, FileText } from 'lucide-react';
+import {
+  SectionHeader,
+  SectionContainer,
+  Grid,
+} from './design-system';
+
+// =============================================================================
+// CLINICIAN DETAILS TAB
+// =============================================================================
+// Deep-dive analytics for individual clinician performance.
+// Features an innovative "Clinician Spotlight" header design.
+// =============================================================================
+
+// Health status type
+type HealthStatus = 'healthy' | 'attention' | 'critical';
+
+// Mock clinician data with extended details
+const MOCK_CLINICIANS = [
+  {
+    id: 1,
+    name: 'Sarah Chen',
+    initials: 'SC',
+    color: '#a855f7',
+    role: 'Clinical Director',
+    tenure: '4 years',
+    healthStatus: 'healthy' as HealthStatus,
+    metrics: {
+      revenue: 142500,
+      revenueVsGoal: 112,
+      sessions: 487,
+      sessionsVsGoal: 108,
+      rebookRate: 89,
+      notesOverdue: 2,
+    },
+    insight: 'Exceptional quarter. Revenue up 12% with highest client retention on team.',
+  },
+  {
+    id: 2,
+    name: 'Maria Rodriguez',
+    initials: 'MR',
+    color: '#06b6d4',
+    role: 'Senior Therapist',
+    tenure: '3 years',
+    healthStatus: 'healthy' as HealthStatus,
+    metrics: {
+      revenue: 128000,
+      revenueVsGoal: 104,
+      sessions: 412,
+      sessionsVsGoal: 98,
+      rebookRate: 85,
+      notesOverdue: 4,
+    },
+    insight: 'Strong performer. Slight dip in session volume but quality metrics remain high.',
+  },
+  {
+    id: 3,
+    name: 'Priya Patel',
+    initials: 'PP',
+    color: '#f59e0b',
+    role: 'Therapist',
+    tenure: '2 years',
+    healthStatus: 'attention' as HealthStatus,
+    metrics: {
+      revenue: 98000,
+      revenueVsGoal: 89,
+      sessions: 342,
+      sessionsVsGoal: 82,
+      rebookRate: 71,
+      notesOverdue: 12,
+    },
+    insight: 'Rebook rate dropped 8% this month. 12 notes overdue—schedule a check-in.',
+  },
+  {
+    id: 4,
+    name: 'James Kim',
+    initials: 'JK',
+    color: '#ec4899',
+    role: 'Associate Therapist',
+    tenure: '1 year',
+    healthStatus: 'healthy' as HealthStatus,
+    metrics: {
+      revenue: 86000,
+      revenueVsGoal: 102,
+      sessions: 298,
+      sessionsVsGoal: 106,
+      rebookRate: 82,
+      notesOverdue: 3,
+    },
+    insight: 'Ramping up nicely. Exceeding goals for tenure level. Strong client feedback.',
+  },
+  {
+    id: 5,
+    name: 'Michael Johnson',
+    initials: 'MJ',
+    color: '#10b981',
+    role: 'Associate Therapist',
+    tenure: '8 months',
+    healthStatus: 'critical' as HealthStatus,
+    metrics: {
+      revenue: 52000,
+      revenueVsGoal: 68,
+      sessions: 186,
+      sessionsVsGoal: 62,
+      rebookRate: 64,
+      notesOverdue: 18,
+    },
+    insight: 'Multiple red flags. 32% below revenue goal, 18 notes overdue. Urgent attention needed.',
+  },
+];
+
+type TimePeriod = 'last-12-months' | 'this-year' | 'this-quarter' | 'last-quarter' | 'this-month' | 'last-month' | 'custom';
+
+const TIME_PERIODS: { id: TimePeriod; label: string }[] = [
+  { id: 'last-12-months', label: 'Last 12 months' },
+  { id: 'this-year', label: 'This Year' },
+  { id: 'this-quarter', label: 'This Quarter' },
+  { id: 'last-quarter', label: 'Last Quarter' },
+  { id: 'this-month', label: 'This Month' },
+  { id: 'last-month', label: 'Last Month' },
+];
+
+// Health status configuration
+const HEALTH_CONFIG: Record<HealthStatus, { label: string; color: string; bg: string; glow: string; icon: string }> = {
+  healthy: {
+    label: 'Healthy',
+    color: '#10b981',
+    bg: 'rgba(16, 185, 129, 0.15)',
+    glow: 'rgba(16, 185, 129, 0.4)',
+    icon: '●',
+  },
+  attention: {
+    label: 'Needs Attention',
+    color: '#f59e0b',
+    bg: 'rgba(245, 158, 11, 0.15)',
+    glow: 'rgba(245, 158, 11, 0.4)',
+    icon: '◐',
+  },
+  critical: {
+    label: 'Critical',
+    color: '#ef4444',
+    bg: 'rgba(239, 68, 68, 0.15)',
+    glow: 'rgba(239, 68, 68, 0.4)',
+    icon: '◉',
+  },
+};
+
+export const ClinicianDetailsTab: React.FC = () => {
+  // State for selectors - null means no clinician selected yet
+  const [selectedClinician, setSelectedClinician] = useState<typeof MOCK_CLINICIANS[0] | null>(null);
+  const [timePeriod, setTimePeriod] = useState<TimePeriod>('last-12-months');
+
+  // Dropdown states
+  const [isClinicianDropdownOpen, setIsClinicianDropdownOpen] = useState(false);
+  const [isTimeDropdownOpen, setIsTimeDropdownOpen] = useState(false);
+  const [showCustomPicker, setShowCustomPicker] = useState(false);
+
+  // Animation state for clinician change
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  // Track if we're in spotlight mode (clinician has been selected)
+  const isSpotlightMode = selectedClinician !== null;
+
+  // Custom date range state
+  const [customStartMonth, setCustomStartMonth] = useState(0);
+  const [customEndMonth, setCustomEndMonth] = useState(11);
+  const [customYear, setCustomYear] = useState(new Date().getFullYear());
+
+  // Refs for click outside
+  const clinicianDropdownRef = useRef<HTMLDivElement>(null);
+  const timeDropdownRef = useRef<HTMLDivElement>(null);
+
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (clinicianDropdownRef.current && !clinicianDropdownRef.current.contains(event.target as Node)) {
+        setIsClinicianDropdownOpen(false);
+      }
+      if (timeDropdownRef.current && !timeDropdownRef.current.contains(event.target as Node)) {
+        setIsTimeDropdownOpen(false);
+        setShowCustomPicker(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Handle clinician selection with transition
+  const handleClinicianSelect = (clinician: typeof MOCK_CLINICIANS[0]) => {
+    if (selectedClinician && clinician.id === selectedClinician.id) {
+      setIsClinicianDropdownOpen(false);
+      return;
+    }
+
+    // If first selection, just set it directly with a slight delay for animation
+    if (!selectedClinician) {
+      setIsClinicianDropdownOpen(false);
+      setTimeout(() => {
+        setSelectedClinician(clinician);
+      }, 150);
+      return;
+    }
+
+    // If switching clinicians, use transition animation
+    setIsTransitioning(true);
+    setIsClinicianDropdownOpen(false);
+    setTimeout(() => {
+      setSelectedClinician(clinician);
+      setTimeout(() => setIsTransitioning(false), 50);
+    }, 200);
+  };
+
+  // Get the current period label
+  const getCurrentPeriodLabel = () => {
+    if (timePeriod === 'custom') return formatCustomRange();
+    const period = TIME_PERIODS.find(p => p.id === timePeriod);
+    return period?.label || 'Select period';
+  };
+
+  const formatCustomRange = () => {
+    if (customStartMonth === customEndMonth) {
+      return `${months[customStartMonth]} ${customYear}`;
+    }
+    return `${months[customStartMonth]} – ${months[customEndMonth]} ${customYear}`;
+  };
+
+  const applyCustomRange = () => {
+    setTimePeriod('custom');
+    setShowCustomPicker(false);
+    setIsTimeDropdownOpen(false);
+  };
+
+  const handlePeriodSelect = (periodId: TimePeriod) => {
+    setTimePeriod(periodId);
+    setIsTimeDropdownOpen(false);
+  };
+
+  const healthConfig = selectedClinician ? HEALTH_CONFIG[selectedClinician.healthStatus] : null;
+
+  // Format currency
+  const formatCurrency = (value: number) => {
+    if (value >= 1000) return `$${(value / 1000).toFixed(0)}K`;
+    return `$${value}`;
+  };
+
+  return (
+    <>
+      {/* =================================================================
+          HEADER - Two modes: Default and Spotlight
+          ================================================================= */}
+      <div
+        className="relative"
+        style={{
+          background: '#1a1816',
+          minHeight: isSpotlightMode ? '280px' : 'auto',
+          transition: 'min-height 0.4s ease-out',
+        }}
+      >
+        {/* Dynamic glow based on clinician's signature color - only in spotlight mode */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ zIndex: 0 }}>
+          {isSpotlightMode && selectedClinician && healthConfig && (
+            <>
+              {/* Primary glow - clinician's color */}
+              <div
+                className="absolute top-0 left-0 w-[600px] h-[400px] rounded-full blur-[100px] transition-all duration-700"
+                style={{
+                  background: `radial-gradient(ellipse, ${selectedClinician.color}40 0%, transparent 70%)`,
+                  opacity: isTransitioning ? 0 : 0.6,
+                  transform: `translate(-20%, -40%)`,
+                }}
+              />
+              {/* Secondary accent glow */}
+              <div
+                className="absolute bottom-0 right-0 w-[400px] h-[300px] rounded-full blur-[80px] transition-all duration-700"
+                style={{
+                  background: `radial-gradient(ellipse, ${healthConfig.color}30 0%, transparent 70%)`,
+                  opacity: isTransitioning ? 0 : 0.4,
+                  transform: `translate(20%, 40%)`,
+                }}
+              />
+            </>
+          )}
+          {/* Default amber glow when no clinician selected */}
+          {!isSpotlightMode && (
+            <>
+              <div
+                className="absolute top-0 left-1/4 w-[500px] h-64 rounded-full opacity-[0.12] blur-3xl"
+                style={{ background: 'radial-gradient(ellipse, #f59e0b 0%, transparent 70%)' }}
+              />
+              <div
+                className="absolute bottom-0 right-1/3 w-80 h-48 rounded-full opacity-[0.08] blur-2xl"
+                style={{ background: 'radial-gradient(ellipse, #fbbf24 0%, transparent 70%)' }}
+              />
+            </>
+          )}
+          {/* Subtle noise texture */}
+          <div
+            className="absolute inset-0 opacity-[0.03]"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+            }}
+          />
+        </div>
+
+        <div className="relative px-6 sm:px-8 lg:px-12 pt-4 pb-6 lg:pt-5 lg:pb-8" style={{ zIndex: 1 }}>
+
+          {/* =====================================================
+              DEFAULT MODE - Standard header with selectors on right
+              ===================================================== */}
+          {!isSpotlightMode && (
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+              <div>
+                <p className="text-amber-500/80 text-sm font-semibold tracking-widest uppercase mb-2">
+                  Individual Performance
+                </p>
+                <h1
+                  className="text-4xl sm:text-5xl lg:text-6xl text-white tracking-tight"
+                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  Clinician Details
+                </h1>
+              </div>
+
+              {/* Selectors */}
+              <div className="flex items-center gap-3 flex-wrap">
+                {/* Clinician Selector */}
+                <div className="relative" ref={clinicianDropdownRef}>
+                  <button
+                    onClick={() => {
+                      setIsClinicianDropdownOpen(!isClinicianDropdownOpen);
+                      setIsTimeDropdownOpen(false);
+                    }}
+                    className="group flex items-center gap-3 px-5 py-3 rounded-2xl transition-all duration-300"
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.08)',
+                      border: '1px solid rgba(255, 255, 255, 0.12)',
+                      boxShadow: isClinicianDropdownOpen
+                        ? '0 0 0 2px rgba(251, 191, 36, 0.3), 0 8px 32px rgba(0, 0, 0, 0.3)'
+                        : '0 2px 8px rgba(0, 0, 0, 0.15)',
+                    }}
+                  >
+                    <Users size={18} className="text-amber-400/80" strokeWidth={1.5} />
+                    <span
+                      className="text-white text-[15px] font-semibold tracking-[-0.01em]"
+                      style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                    >
+                      Select Clinician
+                    </span>
+                    <ChevronDown
+                      size={16}
+                      className={`text-stone-400 transition-transform duration-300 ${isClinicianDropdownOpen ? 'rotate-180' : ''}`}
+                      strokeWidth={2}
+                    />
+                  </button>
+
+                  {/* Clinician Dropdown - Default Mode */}
+                  {isClinicianDropdownOpen && (
+                    <div
+                      className="absolute top-full right-0 mt-2 z-[100000] overflow-hidden"
+                      style={{
+                        minWidth: '300px',
+                        background: 'linear-gradient(135deg, #292524 0%, #1c1917 100%)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        borderRadius: '20px',
+                        boxShadow: '0 25px 60px -12px rgba(0, 0, 0, 0.6)',
+                        animation: 'dropdownReveal 0.25s ease-out',
+                      }}
+                    >
+                      {/* Decorative top glow */}
+                      <div
+                        className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-16 opacity-30 pointer-events-none"
+                        style={{
+                          background: 'radial-gradient(ellipse at center top, #f59e0b 0%, transparent 70%)',
+                        }}
+                      />
+                      <div className="relative p-2">
+                        <div className="px-4 py-2 text-xs font-semibold text-stone-500 uppercase tracking-wider">
+                          Select Clinician
+                        </div>
+                        {MOCK_CLINICIANS.map((clinician) => {
+                          const cHealth = HEALTH_CONFIG[clinician.healthStatus];
+                          return (
+                            <button
+                              key={clinician.id}
+                              onClick={() => handleClinicianSelect(clinician)}
+                              className="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 group/item hover:bg-white/5"
+                            >
+                              {/* Mini avatar */}
+                              <div
+                                className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
+                                style={{ background: clinician.color }}
+                              >
+                                {clinician.initials}
+                              </div>
+                              {/* Info */}
+                              <div className="flex-1 text-left">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-semibold text-stone-300 group-hover/item:text-white">
+                                    {clinician.name}
+                                  </span>
+                                  {/* Health dot */}
+                                  <div
+                                    className="w-2 h-2 rounded-full"
+                                    style={{ background: cHealth.color }}
+                                  />
+                                </div>
+                                <span className="text-xs text-stone-500">{clinician.role}</span>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Time Period Selector */}
+                <div className="relative" ref={timeDropdownRef}>
+                  <button
+                    onClick={() => {
+                      setIsTimeDropdownOpen(!isTimeDropdownOpen);
+                      setIsClinicianDropdownOpen(false);
+                      setShowCustomPicker(false);
+                    }}
+                    className="group flex items-center gap-3 px-5 py-3 rounded-2xl transition-all duration-300"
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.08)',
+                      border: '1px solid rgba(255, 255, 255, 0.12)',
+                      boxShadow: isTimeDropdownOpen
+                        ? '0 0 0 2px rgba(251, 191, 36, 0.3), 0 8px 32px rgba(0, 0, 0, 0.3)'
+                        : '0 2px 8px rgba(0, 0, 0, 0.15)',
+                    }}
+                  >
+                    <Calendar size={18} className="text-amber-400/80" strokeWidth={1.5} />
+                    <span
+                      className="text-white text-[15px] font-semibold tracking-[-0.01em]"
+                      style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                    >
+                      {getCurrentPeriodLabel()}
+                    </span>
+                    <ChevronDown
+                      size={16}
+                      className={`text-stone-400 transition-transform duration-300 ${isTimeDropdownOpen ? 'rotate-180' : ''}`}
+                      strokeWidth={2}
+                    />
+                  </button>
+
+                  {/* Time Period Dropdown */}
+                  {isTimeDropdownOpen && !showCustomPicker && (
+                    <div
+                      className="absolute top-full right-0 mt-2 z-[100000] overflow-hidden"
+                      style={{
+                        minWidth: '240px',
+                        background: 'linear-gradient(135deg, #292524 0%, #1c1917 100%)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        borderRadius: '20px',
+                        boxShadow: '0 25px 60px -12px rgba(0, 0, 0, 0.5)',
+                        animation: 'dropdownReveal 0.2s ease-out',
+                      }}
+                    >
+                      <div
+                        className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-16 opacity-30 pointer-events-none"
+                        style={{
+                          background: 'radial-gradient(ellipse at center top, #f59e0b 0%, transparent 70%)',
+                        }}
+                      />
+                      <div className="relative py-2">
+                        {TIME_PERIODS.map((period) => {
+                          const isSelected = timePeriod === period.id;
+                          return (
+                            <button
+                              key={period.id}
+                              onClick={() => handlePeriodSelect(period.id)}
+                              className="w-full flex items-center justify-between px-5 py-3 transition-all duration-200 group/item"
+                              style={{
+                                background: isSelected ? 'linear-gradient(90deg, rgba(251, 191, 36, 0.15) 0%, transparent 100%)' : 'transparent',
+                              }}
+                            >
+                              <span className={`text-[15px] font-medium ${isSelected ? 'text-amber-300' : 'text-stone-300 group-hover/item:text-white'}`}>
+                                {period.label}
+                              </span>
+                              {isSelected && <Check size={16} className="text-amber-400" strokeWidth={2.5} />}
+                            </button>
+                          );
+                        })}
+                        <div className="mx-4 my-2 h-px bg-white/10" />
+                        <button
+                          onClick={() => setShowCustomPicker(true)}
+                          className="w-full flex items-center gap-3 px-5 py-3 text-stone-300 hover:text-white transition-colors"
+                        >
+                          <Calendar size={16} className="text-stone-500" />
+                          <span className="text-[15px] font-medium">Custom Range</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Custom Date Picker */}
+                  {showCustomPicker && (
+                    <div
+                      className="absolute top-full right-0 mt-2 z-[100000] overflow-hidden"
+                      style={{
+                        width: '320px',
+                        background: 'linear-gradient(135deg, #292524 0%, #1c1917 100%)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        borderRadius: '20px',
+                        boxShadow: '0 25px 60px -12px rgba(0, 0, 0, 0.5)',
+                        animation: 'dropdownReveal 0.2s ease-out',
+                      }}
+                    >
+                      <div className="p-5">
+                        <div className="flex items-center justify-between mb-4">
+                          <button onClick={() => setShowCustomPicker(false)} className="flex items-center gap-1 text-stone-400 hover:text-white transition-colors text-sm">
+                            <ChevronLeft size={16} />
+                            Back
+                          </button>
+                          <span className="text-white font-semibold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>Custom Range</span>
+                          <button onClick={() => { setShowCustomPicker(false); setIsTimeDropdownOpen(false); }} className="text-stone-500 hover:text-white transition-colors">
+                            <X size={16} />
+                          </button>
+                        </div>
+                        <div className="flex items-center justify-center gap-4 mb-4 pb-4 border-b border-white/10">
+                          <button onClick={() => setCustomYear(prev => prev - 1)} className="text-stone-400 hover:text-white"><ChevronLeft size={20} /></button>
+                          <span className="text-white text-2xl font-bold w-20 text-center" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>{customYear}</span>
+                          <button onClick={() => setCustomYear(prev => prev + 1)} className="text-stone-400 hover:text-white"><ChevronRight size={20} /></button>
+                        </div>
+                        <div className="grid grid-cols-4 gap-2 mb-4">
+                          {months.map((month, idx) => {
+                            const isStart = idx === customStartMonth;
+                            const isEnd = idx === customEndMonth;
+                            const isInRange = idx > customStartMonth && idx < customEndMonth;
+                            const isSelectedMonth = isStart || isEnd;
+                            return (
+                              <button
+                                key={month}
+                                onClick={() => {
+                                  if (customStartMonth === customEndMonth) {
+                                    if (idx < customStartMonth) setCustomStartMonth(idx);
+                                    else if (idx > customStartMonth) setCustomEndMonth(idx);
+                                  } else {
+                                    setCustomStartMonth(idx);
+                                    setCustomEndMonth(idx);
+                                  }
+                                }}
+                                className="h-10 rounded-lg text-sm font-medium transition-all"
+                                style={{
+                                  background: isSelectedMonth ? 'linear-gradient(135deg, #fef3c7, #fde68a)' : isInRange ? 'rgba(251, 191, 36, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+                                  color: isSelectedMonth ? '#1c1917' : isInRange ? '#fcd34d' : '#a8a29e',
+                                }}
+                              >
+                                {month}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <button
+                          onClick={applyCustomRange}
+                          className="w-full py-3 rounded-xl font-semibold transition-all"
+                          style={{ background: 'linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%)', color: '#1c1917' }}
+                        >
+                          Apply Range
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* =====================================================
+              SPOTLIGHT MODE - Clinician profile header
+              ===================================================== */}
+          {isSpotlightMode && selectedClinician && healthConfig && (
+            <>
+              {/* Top row: Label + Time selector */}
+              <div className="flex items-center justify-between mb-6">
+                <p className="text-amber-500/80 text-sm font-semibold tracking-widest uppercase">
+                  Individual Performance
+                </p>
+
+                {/* Time Period Selector - Compact */}
+                <div className="relative" ref={timeDropdownRef}>
+                  <button
+                    onClick={() => {
+                      setIsTimeDropdownOpen(!isTimeDropdownOpen);
+                      setIsClinicianDropdownOpen(false);
+                      setShowCustomPicker(false);
+                    }}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 text-sm"
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.06)',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                    }}
+                  >
+                    <Calendar size={14} className="text-stone-400" strokeWidth={1.5} />
+                    <span className="text-stone-300 font-medium">{getCurrentPeriodLabel()}</span>
+                    <ChevronDown
+                      size={14}
+                      className={`text-stone-500 transition-transform duration-300 ${isTimeDropdownOpen ? 'rotate-180' : ''}`}
+                    />
+                  </button>
+
+                  {/* Time Period Dropdown - Spotlight Mode */}
+                  {isTimeDropdownOpen && !showCustomPicker && (
+                    <div
+                      className="absolute top-full right-0 mt-2 z-[100000] overflow-hidden"
+                      style={{
+                        minWidth: '200px',
+                        background: 'linear-gradient(135deg, #292524 0%, #1c1917 100%)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        borderRadius: '16px',
+                        boxShadow: '0 25px 60px -12px rgba(0, 0, 0, 0.5)',
+                        animation: 'dropdownReveal 0.2s ease-out',
+                      }}
+                    >
+                      <div className="py-2">
+                        {TIME_PERIODS.map((period) => {
+                          const isSelected = timePeriod === period.id;
+                          return (
+                            <button
+                              key={period.id}
+                              onClick={() => handlePeriodSelect(period.id)}
+                              className="w-full flex items-center justify-between px-4 py-2.5 transition-all duration-200 group/item"
+                              style={{
+                                background: isSelected ? 'rgba(251, 191, 36, 0.1)' : 'transparent',
+                              }}
+                            >
+                              <span className={`text-sm font-medium ${isSelected ? 'text-amber-300' : 'text-stone-400 group-hover/item:text-white'}`}>
+                                {period.label}
+                              </span>
+                              {isSelected && <Check size={14} className="text-amber-400" />}
+                            </button>
+                          );
+                        })}
+                        <div className="mx-3 my-2 h-px bg-white/10" />
+                        <button
+                          onClick={() => setShowCustomPicker(true)}
+                          className="w-full flex items-center gap-2 px-4 py-2.5 text-stone-400 hover:text-white transition-colors"
+                        >
+                          <Calendar size={14} />
+                          <span className="text-sm font-medium">Custom Range</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Custom Date Picker - Spotlight Mode */}
+                  {showCustomPicker && (
+                    <div
+                      className="absolute top-full right-0 mt-2 z-[100000] overflow-hidden"
+                      style={{
+                        width: '320px',
+                        background: 'linear-gradient(135deg, #292524 0%, #1c1917 100%)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        borderRadius: '20px',
+                        boxShadow: '0 25px 60px -12px rgba(0, 0, 0, 0.5)',
+                        animation: 'dropdownReveal 0.2s ease-out',
+                      }}
+                    >
+                      <div className="p-5">
+                        <div className="flex items-center justify-between mb-4">
+                          <button onClick={() => setShowCustomPicker(false)} className="flex items-center gap-1 text-stone-400 hover:text-white transition-colors text-sm">
+                            <ChevronLeft size={16} />
+                            Back
+                          </button>
+                          <span className="text-white font-semibold">Custom Range</span>
+                          <button onClick={() => { setShowCustomPicker(false); setIsTimeDropdownOpen(false); }} className="text-stone-500 hover:text-white transition-colors">
+                            <X size={16} />
+                          </button>
+                        </div>
+                        <div className="flex items-center justify-center gap-4 mb-4 pb-4 border-b border-white/10">
+                          <button onClick={() => setCustomYear(prev => prev - 1)} className="text-stone-400 hover:text-white"><ChevronLeft size={20} /></button>
+                          <span className="text-white text-2xl font-bold w-20 text-center" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>{customYear}</span>
+                          <button onClick={() => setCustomYear(prev => prev + 1)} className="text-stone-400 hover:text-white"><ChevronRight size={20} /></button>
+                        </div>
+                        <div className="grid grid-cols-4 gap-2 mb-4">
+                          {months.map((month, idx) => {
+                            const isStart = idx === customStartMonth;
+                            const isEnd = idx === customEndMonth;
+                            const isInRange = idx > customStartMonth && idx < customEndMonth;
+                            const isSelectedMonth = isStart || isEnd;
+                            return (
+                              <button
+                                key={month}
+                                onClick={() => {
+                                  if (customStartMonth === customEndMonth) {
+                                    if (idx < customStartMonth) setCustomStartMonth(idx);
+                                    else if (idx > customStartMonth) setCustomEndMonth(idx);
+                                  } else {
+                                    setCustomStartMonth(idx);
+                                    setCustomEndMonth(idx);
+                                  }
+                                }}
+                                className="h-10 rounded-lg text-sm font-medium transition-all"
+                                style={{
+                                  background: isSelectedMonth ? 'linear-gradient(135deg, #fef3c7, #fde68a)' : isInRange ? 'rgba(251, 191, 36, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+                                  color: isSelectedMonth ? '#1c1917' : isInRange ? '#fcd34d' : '#a8a29e',
+                                }}
+                              >
+                                {month}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <button
+                          onClick={applyCustomRange}
+                          className="w-full py-3 rounded-xl font-semibold transition-all"
+                          style={{ background: 'linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%)', color: '#1c1917' }}
+                        >
+                          Apply Range
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Clinician Spotlight Content */}
+              <div
+                className={`transition-all duration-300 ${isTransitioning ? 'opacity-0 transform translate-y-2' : 'opacity-100 transform translate-y-0'}`}
+              >
+                {/* Main spotlight layout */}
+                <div className="flex flex-col lg:flex-row lg:items-end gap-6 lg:gap-10">
+
+                  {/* Left: Avatar + Identity */}
+                  <div className="flex items-end gap-5">
+                    {/* Large Avatar with glow ring */}
+                    <div className="relative" ref={clinicianDropdownRef}>
+                      <button
+                        onClick={() => {
+                          setIsClinicianDropdownOpen(!isClinicianDropdownOpen);
+                          setIsTimeDropdownOpen(false);
+                        }}
+                        className="relative group"
+                      >
+                        {/* Glow ring */}
+                        <div
+                          className="absolute inset-0 rounded-2xl blur-xl transition-all duration-500 group-hover:blur-2xl"
+                          style={{
+                            background: selectedClinician.color,
+                            opacity: 0.4,
+                            transform: 'scale(1.1)',
+                          }}
+                        />
+                        {/* Avatar */}
+                        <div
+                          className="relative w-20 h-20 lg:w-24 lg:h-24 rounded-2xl flex items-center justify-center text-2xl lg:text-3xl font-bold text-white shadow-2xl transition-transform duration-300 group-hover:scale-105"
+                          style={{
+                            background: `linear-gradient(135deg, ${selectedClinician.color} 0%, ${selectedClinician.color}cc 100%)`,
+                            boxShadow: `0 8px 32px -8px ${selectedClinician.color}80`,
+                          }}
+                        >
+                          {selectedClinician.initials}
+                        </div>
+                        {/* Dropdown indicator */}
+                        <div
+                          className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-stone-800 border-2 border-stone-700 flex items-center justify-center transition-all duration-300 group-hover:bg-stone-700"
+                        >
+                          <ChevronDown
+                            size={12}
+                            className={`text-stone-400 transition-transform duration-300 ${isClinicianDropdownOpen ? 'rotate-180' : ''}`}
+                          />
+                        </div>
+                      </button>
+
+                      {/* Clinician Dropdown - Spotlight Mode */}
+                      {isClinicianDropdownOpen && (
+                        <div
+                          className="absolute top-full left-0 mt-3 z-[100000] overflow-hidden"
+                          style={{
+                            minWidth: '300px',
+                            background: 'linear-gradient(135deg, #292524 0%, #1c1917 100%)',
+                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                            borderRadius: '20px',
+                            boxShadow: '0 25px 60px -12px rgba(0, 0, 0, 0.6)',
+                            animation: 'dropdownReveal 0.25s ease-out',
+                          }}
+                        >
+                          <div className="p-2">
+                            <div className="px-4 py-2 text-xs font-semibold text-stone-500 uppercase tracking-wider">
+                              Switch Clinician
+                            </div>
+                            {MOCK_CLINICIANS.map((clinician) => {
+                              const isSelectedClin = selectedClinician.id === clinician.id;
+                              const cHealth = HEALTH_CONFIG[clinician.healthStatus];
+                              return (
+                                <button
+                                  key={clinician.id}
+                                  onClick={() => handleClinicianSelect(clinician)}
+                                  className="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 group/item"
+                                  style={{
+                                    background: isSelectedClin ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
+                                  }}
+                                >
+                                  {/* Mini avatar */}
+                                  <div
+                                    className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
+                                    style={{ background: clinician.color }}
+                                  >
+                                    {clinician.initials}
+                                  </div>
+                                  {/* Info */}
+                                  <div className="flex-1 text-left">
+                                    <div className="flex items-center gap-2">
+                                      <span className={`font-semibold ${isSelectedClin ? 'text-white' : 'text-stone-300 group-hover/item:text-white'}`}>
+                                        {clinician.name}
+                                      </span>
+                                      {/* Health dot */}
+                                      <div
+                                        className="w-2 h-2 rounded-full"
+                                        style={{ background: cHealth.color }}
+                                      />
+                                    </div>
+                                    <span className="text-xs text-stone-500">{clinician.role}</span>
+                                  </div>
+                                  {isSelectedClin && <Check size={16} className="text-amber-400" />}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Name + Role + Health Status */}
+                    <div className="pb-1">
+                      <h1
+                        className="text-3xl sm:text-4xl lg:text-5xl text-white tracking-tight leading-none"
+                        style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                      >
+                        {selectedClinician.name}
+                      </h1>
+                      <div className="flex items-center gap-3 mt-2">
+                        <span className="text-stone-400 text-sm">
+                          {selectedClinician.role} · {selectedClinician.tenure}
+                        </span>
+                        {/* Health Status Badge */}
+                        <div
+                          className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold"
+                          style={{
+                            background: healthConfig.bg,
+                            color: healthConfig.color,
+                            boxShadow: `0 0 20px ${healthConfig.glow}`,
+                          }}
+                        >
+                          <span className="text-[10px]">{healthConfig.icon}</span>
+                          {healthConfig.label}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right: Quick Stats Strip */}
+                  <div className="flex-1 lg:max-w-xl">
+                    {/* AI Insight */}
+                    <p className="text-stone-400 text-sm leading-relaxed mb-4 lg:mb-5 italic">
+                      "{selectedClinician.insight}"
+                    </p>
+
+                    {/* Stats Grid */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      {/* Revenue */}
+                      <div
+                        className="px-4 py-3 rounded-xl"
+                        style={{
+                          background: 'rgba(255, 255, 255, 0.05)',
+                          border: '1px solid rgba(255, 255, 255, 0.08)',
+                        }}
+                      >
+                        <div className="flex items-center gap-1.5 text-stone-500 text-xs mb-1">
+                          <DollarSign size={12} />
+                          Revenue
+                        </div>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-white text-lg font-bold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                            {formatCurrency(selectedClinician.metrics.revenue)}
+                          </span>
+                          <span className={`text-xs font-semibold flex items-center gap-0.5 ${selectedClinician.metrics.revenueVsGoal >= 100 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                            {selectedClinician.metrics.revenueVsGoal >= 100 ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
+                            {selectedClinician.metrics.revenueVsGoal}%
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Sessions */}
+                      <div
+                        className="px-4 py-3 rounded-xl"
+                        style={{
+                          background: 'rgba(255, 255, 255, 0.05)',
+                          border: '1px solid rgba(255, 255, 255, 0.08)',
+                        }}
+                      >
+                        <div className="flex items-center gap-1.5 text-stone-500 text-xs mb-1">
+                          <Activity size={12} />
+                          Sessions
+                        </div>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-white text-lg font-bold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                            {selectedClinician.metrics.sessions}
+                          </span>
+                          <span className={`text-xs font-semibold flex items-center gap-0.5 ${selectedClinician.metrics.sessionsVsGoal >= 100 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                            {selectedClinician.metrics.sessionsVsGoal >= 100 ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
+                            {selectedClinician.metrics.sessionsVsGoal}%
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Rebook Rate */}
+                      <div
+                        className="px-4 py-3 rounded-xl"
+                        style={{
+                          background: 'rgba(255, 255, 255, 0.05)',
+                          border: '1px solid rgba(255, 255, 255, 0.08)',
+                        }}
+                      >
+                        <div className="flex items-center gap-1.5 text-stone-500 text-xs mb-1">
+                          <Users size={12} />
+                          Rebook
+                        </div>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-white text-lg font-bold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                            {selectedClinician.metrics.rebookRate}%
+                          </span>
+                          <span className={`text-xs font-semibold ${selectedClinician.metrics.rebookRate >= 85 ? 'text-emerald-400' : selectedClinician.metrics.rebookRate >= 75 ? 'text-amber-400' : 'text-rose-400'}`}>
+                            {selectedClinician.metrics.rebookRate >= 85 ? 'Good' : selectedClinician.metrics.rebookRate >= 75 ? 'Fair' : 'Low'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Notes Overdue */}
+                      <div
+                        className="px-4 py-3 rounded-xl"
+                        style={{
+                          background: selectedClinician.metrics.notesOverdue > 10 ? 'rgba(239, 68, 68, 0.1)' : 'rgba(255, 255, 255, 0.05)',
+                          border: `1px solid ${selectedClinician.metrics.notesOverdue > 10 ? 'rgba(239, 68, 68, 0.2)' : 'rgba(255, 255, 255, 0.08)'}`,
+                        }}
+                      >
+                        <div className="flex items-center gap-1.5 text-stone-500 text-xs mb-1">
+                          <FileText size={12} />
+                          Notes Due
+                        </div>
+                        <div className="flex items-baseline gap-2">
+                          <span
+                            className="text-lg font-bold"
+                            style={{
+                              fontFamily: "'DM Serif Display', Georgia, serif",
+                              color: selectedClinician.metrics.notesOverdue > 10 ? '#ef4444' : selectedClinician.metrics.notesOverdue > 5 ? '#f59e0b' : 'white',
+                            }}
+                          >
+                            {selectedClinician.metrics.notesOverdue}
+                          </span>
+                          <span className={`text-xs font-semibold ${selectedClinician.metrics.notesOverdue <= 5 ? 'text-emerald-400' : selectedClinician.metrics.notesOverdue <= 10 ? 'text-amber-400' : 'text-rose-400'}`}>
+                            {selectedClinician.metrics.notesOverdue <= 5 ? 'Good' : selectedClinician.metrics.notesOverdue <= 10 ? 'Behind' : 'Critical'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* =================================================================
+          MAIN CONTENT - Light background with sections
+          ================================================================= */}
+      <div className="bg-gradient-to-b from-stone-100 to-stone-50 min-h-screen relative" style={{ zIndex: 0 }}>
+        <div className="px-6 sm:px-8 lg:px-12 py-8 lg:py-10 space-y-6">
+
+          {/* ---------------------------------------------------------
+              EMPTY STATE - No clinician selected
+              --------------------------------------------------------- */}
+          {!isSpotlightMode && (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <div
+                className="w-24 h-24 rounded-3xl flex items-center justify-center mb-6"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%)',
+                  border: '1px solid rgba(251, 191, 36, 0.2)',
+                }}
+              >
+                <Users size={40} className="text-amber-500/60" strokeWidth={1.5} />
+              </div>
+              <h2
+                className="text-2xl text-stone-700 mb-2"
+                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+              >
+                Select a Clinician
+              </h2>
+              <p className="text-stone-500 max-w-md">
+                Choose a clinician from the dropdown above to view their detailed performance metrics, trends, and actionable insights.
+              </p>
+            </div>
+          )}
+
+          {/* ---------------------------------------------------------
+              SECTION 1: Priority Alerts (Only show if there are issues)
+              --------------------------------------------------------- */}
+          {isSpotlightMode && selectedClinician && selectedClinician.healthStatus !== 'healthy' && (
+            <SectionContainer accent="rose" index={0} isFirst>
+              <SectionHeader
+                number={1}
+                question="What needs attention?"
+                description="Actionable alerts and issues requiring follow-up"
+                accent="rose"
+                showAccentLine={false}
+                compact
+              />
+              <Grid cols={2}>
+                <div className="col-span-2 h-24 bg-stone-100 rounded-2xl flex items-center justify-center text-stone-400">
+                  Priority Alert Cards
+                </div>
+              </Grid>
+            </SectionContainer>
+          )}
+
+          {/* ---------------------------------------------------------
+              SECTION 2: Financial Performance
+              --------------------------------------------------------- */}
+          {isSpotlightMode && selectedClinician && (
+          <SectionContainer accent="emerald" index={selectedClinician.healthStatus !== 'healthy' ? 1 : 0} isFirst={selectedClinician.healthStatus === 'healthy'}>
+            <SectionHeader
+              number={selectedClinician.healthStatus !== 'healthy' ? 2 : 1}
+              question="How is their financial performance?"
+              description="Revenue trends, averages, and contribution to practice"
+              accent="emerald"
+              showAccentLine={false}
+              compact
+            />
+            <Grid cols={2}>
+              <div className="h-64 bg-stone-100 rounded-2xl flex items-center justify-center text-stone-400">
+                Revenue Over Time Chart
+              </div>
+              <div className="space-y-4">
+                <div className="h-[120px] bg-stone-100 rounded-2xl flex items-center justify-center text-stone-400">Revenue Stats</div>
+                <div className="h-[120px] bg-stone-100 rounded-2xl flex items-center justify-center text-stone-400">Revenue per Session</div>
+              </div>
+            </Grid>
+          </SectionContainer>
+          )}
+
+          {/* ---------------------------------------------------------
+              SECTION 3: Session Performance
+              --------------------------------------------------------- */}
+          {isSpotlightMode && selectedClinician && (
+          <SectionContainer accent="cyan" index={selectedClinician.healthStatus !== 'healthy' ? 2 : 1}>
+            <SectionHeader
+              number={selectedClinician.healthStatus !== 'healthy' ? 3 : 2}
+              question="How are their sessions performing?"
+              description="Session volume, attendance breakdown, and show rates"
+              accent="cyan"
+              showAccentLine={false}
+              compact
+            />
+            <Grid cols={2}>
+              <div className="h-64 bg-stone-100 rounded-2xl flex items-center justify-center text-stone-400">
+                Sessions Over Time Chart
+              </div>
+              <div className="h-64 bg-stone-100 rounded-2xl flex items-center justify-center text-stone-400">
+                Attendance Breakdown Donut
+              </div>
+            </Grid>
+          </SectionContainer>
+          )}
+
+          {/* ---------------------------------------------------------
+              SECTION 4: Client & Caseload
+              --------------------------------------------------------- */}
+          {isSpotlightMode && selectedClinician && (
+          <SectionContainer accent="amber" index={selectedClinician.healthStatus !== 'healthy' ? 3 : 2}>
+            <SectionHeader
+              number={selectedClinician.healthStatus !== 'healthy' ? 4 : 3}
+              question="How is their caseload?"
+              description="Capacity utilization, client movement, and at-risk clients"
+              accent="amber"
+              showAccentLine={false}
+              compact
+            />
+            <Grid cols={3}>
+              <div className="h-48 bg-stone-100 rounded-2xl flex items-center justify-center text-stone-400">
+                Caseload Gauge
+              </div>
+              <div className="h-48 bg-stone-100 rounded-2xl flex items-center justify-center text-stone-400">
+                Client Movement
+              </div>
+              <div className="h-48 bg-stone-100 rounded-2xl flex items-center justify-center text-stone-400">
+                At-Risk Clients
+              </div>
+            </Grid>
+          </SectionContainer>
+          )}
+
+          {/* ---------------------------------------------------------
+              SECTION 5: Retention
+              --------------------------------------------------------- */}
+          {isSpotlightMode && selectedClinician && (
+          <SectionContainer accent="rose" index={selectedClinician.healthStatus !== 'healthy' ? 4 : 3}>
+            <SectionHeader
+              number={selectedClinician.healthStatus !== 'healthy' ? 5 : 4}
+              question="How well do they retain clients?"
+              description="Rebook rates, churn patterns, and retention comparison"
+              accent="rose"
+              showAccentLine={false}
+              compact
+            />
+            <Grid cols={2}>
+              <div className="h-64 bg-stone-100 rounded-2xl flex items-center justify-center text-stone-400">
+                Rebook Rate Trend
+              </div>
+              <div className="h-64 bg-stone-100 rounded-2xl flex items-center justify-center text-stone-400">
+                Retention Comparison Table
+              </div>
+            </Grid>
+          </SectionContainer>
+          )}
+
+          {/* ---------------------------------------------------------
+              SECTION 6: Compliance
+              --------------------------------------------------------- */}
+          {isSpotlightMode && selectedClinician && (
+          <SectionContainer accent="stone" index={selectedClinician.healthStatus !== 'healthy' ? 5 : 4}>
+            <SectionHeader
+              number={selectedClinician.healthStatus !== 'healthy' ? 6 : 5}
+              question="Are they staying compliant?"
+              description="Documentation status and overdue notes"
+              accent="stone"
+              showAccentLine={false}
+              compact
+            />
+            <Grid cols={2}>
+              <div className="h-48 bg-stone-100 rounded-2xl flex items-center justify-center text-stone-400">
+                Notes Status Card
+              </div>
+              <div className="h-48 bg-stone-100 rounded-2xl flex items-center justify-center text-stone-400">
+                Overdue Notes List
+              </div>
+            </Grid>
+          </SectionContainer>
+          )}
+
+          {/* ---------------------------------------------------------
+              SECTION 7: Trends & Team Comparison
+              --------------------------------------------------------- */}
+          {isSpotlightMode && selectedClinician && (
+          <SectionContainer accent="indigo" index={selectedClinician.healthStatus !== 'healthy' ? 6 : 5} isLast>
+            <SectionHeader
+              number={selectedClinician.healthStatus !== 'healthy' ? 7 : 6}
+              question="How do they compare to the team?"
+              description="Performance trends and peer comparison"
+              accent="indigo"
+              showAccentLine={false}
+              compact
+            />
+            <Grid cols={2}>
+              <div className="h-64 bg-stone-100 rounded-2xl flex items-center justify-center text-stone-400">
+                Multi-Metric Sparklines
+              </div>
+              <div className="h-64 bg-stone-100 rounded-2xl flex items-center justify-center text-stone-400">
+                Team Ranking Comparison
+              </div>
+            </Grid>
+          </SectionContainer>
+          )}
+
+        </div>
+      </div>
+
+      {/* CSS Animations */}
+      <style>{`
+        @keyframes dropdownReveal {
+          from {
+            opacity: 0;
+            transform: translateY(-8px) scale(0.96);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+      `}</style>
+    </>
+  );
+};
+
+export default ClinicianDetailsTab;

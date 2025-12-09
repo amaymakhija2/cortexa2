@@ -371,6 +371,10 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
         label="Detailed Analysis"
         title="Financial Performance"
         subtitle={getDateRangeLabel()}
+        showTimePeriod
+        timePeriod={timePeriod}
+        onTimePeriodChange={onTimePeriodChange}
+        timePeriods={timePeriods}
       />
 
       <PageContent>

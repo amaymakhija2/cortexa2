@@ -165,6 +165,7 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
         title="Retention"
         subtitle="Understand how clients progress through their journey with your practice"
       />
+      {/* Note: Retention tab uses cohort-based analysis rather than time period filtering */}
 
       <PageContent>
         {/* ================================================================

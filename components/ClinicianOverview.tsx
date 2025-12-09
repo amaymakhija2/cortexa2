@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Users, Loader2 } from 'lucide-react';
 import {
   useClinicianMetricsForPeriod,
@@ -8,6 +9,7 @@ import {
 } from '../hooks';
 import { MonthPicker } from './MonthPicker';
 import { useSettings, getDisplayName } from '../context/SettingsContext';
+import { ClinicianDetailsTab } from './ClinicianDetailsTab';
 
 // Practice settings - kept here since hooks can't provide these synchronously
 // These are static configuration values that don't change
@@ -432,11 +434,16 @@ function buildClinicianData(calculated: ClinicianMetricsCalculated[], periodId: 
 
 
 type SessionGoalView = 'weekly' | 'monthly';
+type ClinicianTabType = 'ranking' | 'details';
 
 export const ClinicianOverview: React.FC = () => {
+  const [searchParams] = useSearchParams();
   const [selectedGroupId, setSelectedGroupId] = useState<MetricGroupId>('revenue');
   const [viewMode, setViewMode] = useState<ViewMode>('live');
   const [sessionGoalView, setSessionGoalView] = useState<SessionGoalView>('weekly');
+
+  // Get active tab from URL search params (managed by UnifiedNavigation)
+  const activeTab = (searchParams.get('tab') || 'ranking') as ClinicianTabType;
 
   // Get settings for demo mode
   const { settings } = useSettings();
@@ -599,6 +606,18 @@ export const ClinicianOverview: React.FC = () => {
     }
   };
 
+  // If details tab is selected, render the details component
+  if (activeTab === 'details') {
+    return (
+      <div className="flex-1 overflow-y-auto h-[calc(100vh-80px)] bg-gradient-to-b from-stone-100 to-stone-50">
+        <div className="min-h-full">
+          <ClinicianDetailsTab />
+        </div>
+      </div>
+    );
+  }
+
+  // Default: render the ranking tab
   return (
     <div className="flex-1 overflow-y-auto h-[calc(100vh-80px)] bg-gradient-to-b from-stone-100 to-stone-50">
       <div className="min-h-full">

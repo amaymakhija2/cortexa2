@@ -22,6 +22,10 @@ export const InsuranceTab: React.FC<BaseAnalysisTabProps> = ({
         label="Detailed Analysis"
         title="Insurance"
         subtitle={getDateRangeLabel()}
+        showTimePeriod
+        timePeriod={timePeriod}
+        onTimePeriodChange={onTimePeriodChange}
+        timePeriods={timePeriods}
       />
 
       <PageContent>

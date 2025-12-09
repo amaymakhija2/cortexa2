@@ -297,6 +297,10 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
         label="Detailed Analysis"
         title="Sessions Performance"
         subtitle={getDateRangeLabel()}
+        showTimePeriod
+        timePeriod={timePeriod}
+        onTimePeriodChange={onTimePeriodChange}
+        timePeriods={timePeriods}
       />
 
       <PageContent>

@@ -303,6 +303,8 @@ Every card follows this structure:
 
 #### 8. Revenue Behind Pace
 
+// this is useful to alert that we are below the goal but not what we need to do  to get to the goal as the clinician cannot really do anything about it in this month
+
 **Purpose:** Alert when monthly revenue is tracking below goal with time to recover.
 
 | Element | Specification |
@@ -333,6 +335,8 @@ Every card follows this structure:
 ---
 
 #### 9. Sessions Behind Pace
+
+// this is useful to alert that we are below the goal but not what we need to do  to get to the goal as the clinician cannot really do anything about it in this month
 
 **Purpose:** Alert when monthly sessions are tracking below goal.
 
@@ -488,6 +492,9 @@ Every card follows this structure:
 
 #### 14. High-Value Client Risk
 
+<!-- we should also flag which clinician this client belongs to -->
+
+
 **Purpose:** Flag when a long-tenure, high-engagement client shows warning signs.
 
 | Element | Specification |
@@ -593,6 +600,8 @@ Every card follows this structure:
 
 #### 17. Open Slots This Week
 
+// this is confusing with caseload openings, we need to review the metric definitions and make sure that we have everything clearly aligned.
+
 **Purpose:** Surface available capacity to fill with new clients or waitlist.
 
 | Element | Specification |
@@ -619,6 +628,8 @@ Every card follows this structure:
 ---
 
 #### 18. Caseload Openings
+
+// this is confusing with open slots, we need to review the metric definitions and make sure that we have everything clearly aligned.
 
 **Purpose:** Show which clinicians can take on new clients for routing decisions.
 
