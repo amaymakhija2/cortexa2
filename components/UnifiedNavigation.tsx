@@ -13,9 +13,10 @@ import { Search, Bell, Menu, Calendar, ChevronDown, ChevronLeft, ChevronRight, X
 // Sub-tab configuration for pages that have them
 const SUB_TABS: Record<string, { id: string; label: string; shortLabel: string }[]> = {
   '/practice-analysis': [
+    { id: 'clients', label: 'Client Roster', shortLabel: 'Clients' },
     { id: 'financial', label: 'Financial', shortLabel: 'Financial' },
     { id: 'sessions', label: 'Sessions', shortLabel: 'Sessions' },
-    { id: 'capacity-client', label: 'Clients & Capacity', shortLabel: 'Clients' },
+    { id: 'capacity-client', label: 'Clients & Capacity', shortLabel: 'Capacity' },
     { id: 'retention', label: 'Retention', shortLabel: 'Retention' },
     { id: 'insurance', label: 'Insurance', shortLabel: 'Insurance' },
     { id: 'admin', label: 'Admin', shortLabel: 'Admin' },

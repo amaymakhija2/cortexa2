@@ -1,9 +1,15 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { ChevronDown, Check, Calendar, ChevronLeft, ChevronRight, X, TrendingUp, TrendingDown, Users, DollarSign, Activity, FileText } from 'lucide-react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { ChevronDown, Check, Calendar, ChevronLeft, ChevronRight, X, TrendingUp, TrendingDown, Users, DollarSign, Activity, FileText, ArrowRight } from 'lucide-react';
 import {
   SectionHeader,
   SectionContainer,
   Grid,
+  ChartCard,
+  BarChart,
+  GoalIndicator,
+  ActionButton,
+  StatCard,
+  AnimatedGrid,
 } from './design-system';
 
 // =============================================================================
@@ -23,8 +29,11 @@ const MOCK_CLINICIANS = [
     name: 'Sarah Chen',
     initials: 'SC',
     color: '#a855f7',
+    title: 'Licensed Clinical Psychologist',
     role: 'Clinical Director',
     tenure: '4 years',
+    supervisor: null, // No supervisor - she's the clinical director
+    takeRate: 45,
     healthStatus: 'healthy' as HealthStatus,
     metrics: {
       revenue: 142500,
@@ -41,8 +50,11 @@ const MOCK_CLINICIANS = [
     name: 'Maria Rodriguez',
     initials: 'MR',
     color: '#06b6d4',
+    title: 'Licensed Clinical Social Worker',
     role: 'Senior Therapist',
     tenure: '3 years',
+    supervisor: 'Sarah Chen',
+    takeRate: 55,
     healthStatus: 'healthy' as HealthStatus,
     metrics: {
       revenue: 128000,
@@ -59,8 +71,11 @@ const MOCK_CLINICIANS = [
     name: 'Priya Patel',
     initials: 'PP',
     color: '#f59e0b',
+    title: 'Licensed Professional Counselor',
     role: 'Therapist',
     tenure: '2 years',
+    supervisor: 'Sarah Chen',
+    takeRate: 50,
     healthStatus: 'attention' as HealthStatus,
     metrics: {
       revenue: 98000,
@@ -77,8 +92,11 @@ const MOCK_CLINICIANS = [
     name: 'James Kim',
     initials: 'JK',
     color: '#ec4899',
+    title: 'Licensed Marriage & Family Therapist',
     role: 'Associate Therapist',
     tenure: '1 year',
+    supervisor: 'Maria Rodriguez',
+    takeRate: 45,
     healthStatus: 'healthy' as HealthStatus,
     metrics: {
       revenue: 86000,
@@ -95,8 +113,11 @@ const MOCK_CLINICIANS = [
     name: 'Michael Johnson',
     initials: 'MJ',
     color: '#10b981',
+    title: 'Associate Professional Counselor',
     role: 'Associate Therapist',
     tenure: '8 months',
+    supervisor: 'Priya Patel',
+    takeRate: 40,
     healthStatus: 'critical' as HealthStatus,
     metrics: {
       revenue: 52000,
@@ -109,6 +130,122 @@ const MOCK_CLINICIANS = [
     insight: 'Multiple red flags. 32% below revenue goal, 18 notes overdue. Urgent attention needed.',
   },
 ];
+
+// Mock monthly revenue data for each clinician (12 months)
+const CLINICIAN_FINANCIAL_DATA: Record<number, {
+  monthlyRevenue: { month: string; value: number }[];
+  revenueGoal: number;
+  avgRevenuePerSession: number;
+  teamAvgPerSession: number;
+  practiceRevenueShare: number;
+  totalSessions: number;
+}> = {
+  1: { // Sarah Chen - Clinical Director (high performer)
+    monthlyRevenue: [
+      { month: 'Jan', value: 11200 },
+      { month: 'Feb', value: 12400 },
+      { month: 'Mar', value: 11800 },
+      { month: 'Apr', value: 13200 },
+      { month: 'May', value: 12600 },
+      { month: 'Jun', value: 11900 },
+      { month: 'Jul', value: 10800 },
+      { month: 'Aug', value: 12100 },
+      { month: 'Sep', value: 13500 },
+      { month: 'Oct', value: 12800 },
+      { month: 'Nov', value: 11400 },
+      { month: 'Dec', value: 8800 },
+    ],
+    revenueGoal: 11000,
+    avgRevenuePerSession: 185,
+    teamAvgPerSession: 168,
+    practiceRevenueShare: 28,
+    totalSessions: 487,
+  },
+  2: { // Maria Rodriguez - Senior Therapist
+    monthlyRevenue: [
+      { month: 'Jan', value: 10200 },
+      { month: 'Feb', value: 11100 },
+      { month: 'Mar', value: 10600 },
+      { month: 'Apr', value: 11800 },
+      { month: 'May', value: 10900 },
+      { month: 'Jun', value: 10400 },
+      { month: 'Jul', value: 9800 },
+      { month: 'Aug', value: 10700 },
+      { month: 'Sep', value: 11200 },
+      { month: 'Oct', value: 10800 },
+      { month: 'Nov', value: 10100 },
+      { month: 'Dec', value: 10400 },
+    ],
+    revenueGoal: 10500,
+    avgRevenuePerSession: 172,
+    teamAvgPerSession: 168,
+    practiceRevenueShare: 25,
+    totalSessions: 412,
+  },
+  3: { // Priya Patel - Therapist (needs attention)
+    monthlyRevenue: [
+      { month: 'Jan', value: 8800 },
+      { month: 'Feb', value: 9200 },
+      { month: 'Mar', value: 8600 },
+      { month: 'Apr', value: 9100 },
+      { month: 'May', value: 8400 },
+      { month: 'Jun', value: 7800 },
+      { month: 'Jul', value: 7200 },
+      { month: 'Aug', value: 8100 },
+      { month: 'Sep', value: 7600 },
+      { month: 'Oct', value: 7900 },
+      { month: 'Nov', value: 7400 },
+      { month: 'Dec', value: 7900 },
+    ],
+    revenueGoal: 9500,
+    avgRevenuePerSession: 158,
+    teamAvgPerSession: 168,
+    practiceRevenueShare: 19,
+    totalSessions: 342,
+  },
+  4: { // James Kim - Associate Therapist (ramping up)
+    monthlyRevenue: [
+      { month: 'Jan', value: 6200 },
+      { month: 'Feb', value: 6800 },
+      { month: 'Mar', value: 7100 },
+      { month: 'Apr', value: 7400 },
+      { month: 'May', value: 7800 },
+      { month: 'Jun', value: 7200 },
+      { month: 'Jul', value: 6900 },
+      { month: 'Aug', value: 7600 },
+      { month: 'Sep', value: 8100 },
+      { month: 'Oct', value: 7500 },
+      { month: 'Nov', value: 6800 },
+      { month: 'Dec', value: 6600 },
+    ],
+    revenueGoal: 7000,
+    avgRevenuePerSession: 165,
+    teamAvgPerSession: 168,
+    practiceRevenueShare: 17,
+    totalSessions: 298,
+  },
+  5: { // Michael Johnson - Associate Therapist (critical)
+    monthlyRevenue: [
+      { month: 'Jan', value: 5200 },
+      { month: 'Feb', value: 5600 },
+      { month: 'Mar', value: 5100 },
+      { month: 'Apr', value: 4800 },
+      { month: 'May', value: 4400 },
+      { month: 'Jun', value: 4100 },
+      { month: 'Jul', value: 3800 },
+      { month: 'Aug', value: 4200 },
+      { month: 'Sep', value: 4600 },
+      { month: 'Oct', value: 4100 },
+      { month: 'Nov', value: 3900 },
+      { month: 'Dec', value: 2200 },
+    ],
+    revenueGoal: 6500,
+    avgRevenuePerSession: 142,
+    teamAvgPerSession: 168,
+    practiceRevenueShare: 11,
+    totalSessions: 186,
+  },
+};
 
 type TimePeriod = 'last-12-months' | 'this-year' | 'this-quarter' | 'last-quarter' | 'this-month' | 'last-month' | 'custom';
 
@@ -240,11 +377,107 @@ export const ClinicianDetailsTab: React.FC = () => {
 
   const healthConfig = selectedClinician ? HEALTH_CONFIG[selectedClinician.healthStatus] : null;
 
-  // Format currency
+  // ==========================================================================
+  // FORMAT HELPERS (defined first so they can be used in useMemo)
+  // ==========================================================================
+
+  const formatCurrencyShort = (value: number) => {
+    if (value >= 1000) return `$${(value / 1000).toFixed(1)}k`;
+    return `$${value}`;
+  };
+
+  const formatCurrencyFull = (value: number) => {
+    if (value >= 1000000) return `$${(value / 1000000).toFixed(2)}M`;
+    if (value >= 1000) return `$${(value / 1000).toFixed(1)}K`;
+    return `$${value}`;
+  };
+
   const formatCurrency = (value: number) => {
     if (value >= 1000) return `$${(value / 1000).toFixed(0)}K`;
     return `$${value}`;
   };
+
+  // ==========================================================================
+  // FINANCIAL COMPUTED VALUES
+  // ==========================================================================
+
+  // Get financial data for selected clinician
+  const financialData = selectedClinician ? CLINICIAN_FINANCIAL_DATA[selectedClinician.id] : null;
+
+  // Bar chart data formatted for BarChart component
+  const revenueBarData = useMemo(() => {
+    if (!financialData) return [];
+    return financialData.monthlyRevenue.map((item) => ({
+      label: item.month,
+      value: item.value,
+    }));
+  }, [financialData]);
+
+  // Total revenue for the period
+  const totalRevenue = useMemo(() => {
+    if (!financialData) return 0;
+    return financialData.monthlyRevenue.reduce((sum, item) => sum + item.value, 0);
+  }, [financialData]);
+
+  // Average monthly revenue
+  const avgMonthlyRevenue = useMemo(() => {
+    if (!financialData) return 0;
+    return totalRevenue / financialData.monthlyRevenue.length;
+  }, [financialData, totalRevenue]);
+
+  // Months at or above goal
+  const monthsAtGoal = useMemo(() => {
+    if (!financialData) return 0;
+    return financialData.monthlyRevenue.filter((item) => item.value >= financialData.revenueGoal).length;
+  }, [financialData]);
+
+  // Best month
+  const bestMonth = useMemo(() => {
+    if (!financialData || financialData.monthlyRevenue.length === 0) return { month: '-', value: 0 };
+    return financialData.monthlyRevenue.reduce((best, item) =>
+      item.value > best.value ? { month: item.month, value: item.value } : best,
+      { month: financialData.monthlyRevenue[0].month, value: financialData.monthlyRevenue[0].value }
+    );
+  }, [financialData]);
+
+  // Month-over-month change (last vs second to last)
+  const momChange = useMemo(() => {
+    if (!financialData || financialData.monthlyRevenue.length < 2) return 0;
+    const lastMonth = financialData.monthlyRevenue[financialData.monthlyRevenue.length - 1].value;
+    const prevMonth = financialData.monthlyRevenue[financialData.monthlyRevenue.length - 2].value;
+    return prevMonth > 0 ? ((lastMonth - prevMonth) / prevMonth) * 100 : 0;
+  }, [financialData]);
+
+  // Revenue vs session comparison
+  const revenuePerSessionDiff = useMemo(() => {
+    if (!financialData) return 0;
+    return financialData.avgRevenuePerSession - financialData.teamAvgPerSession;
+  }, [financialData]);
+
+  // Revenue insights for the chart
+  const revenueInsights = useMemo(() => {
+    if (!financialData) return [];
+    return [
+      {
+        value: bestMonth.month,
+        label: `Best (${formatCurrencyShort(bestMonth.value)})`,
+        bgColor: 'bg-emerald-50',
+        textColor: 'text-emerald-600',
+      },
+      {
+        value: `${momChange >= 0 ? '+' : ''}${momChange.toFixed(1)}%`,
+        label: 'MoM Trend',
+        bgColor: momChange >= 0 ? 'bg-emerald-50' : 'bg-rose-50',
+        textColor: momChange >= 0 ? 'text-emerald-600' : 'text-rose-600',
+      },
+      {
+        value: `${monthsAtGoal}/${financialData.monthlyRevenue.length}`,
+        label: 'Hit Goal',
+        bgColor: monthsAtGoal >= 6 ? 'bg-emerald-50' : 'bg-amber-50',
+        textColor: monthsAtGoal >= 6 ? 'text-emerald-600' : 'text-amber-600',
+      },
+    ];
+  }, [financialData, bestMonth, momChange, monthsAtGoal]);
 
   return (
     <>
@@ -255,7 +488,7 @@ export const ClinicianDetailsTab: React.FC = () => {
         className="relative"
         style={{
           background: '#1a1816',
-          minHeight: isSpotlightMode ? '280px' : 'auto',
+          minHeight: isSpotlightMode ? 'auto' : 'auto',
           transition: 'min-height 0.4s ease-out',
         }}
       >
@@ -576,154 +809,16 @@ export const ClinicianDetailsTab: React.FC = () => {
               ===================================================== */}
           {isSpotlightMode && selectedClinician && healthConfig && (
             <>
-              {/* Top row: Label + Time selector */}
-              <div className="flex items-center justify-between mb-6">
-                <p className="text-amber-500/80 text-sm font-semibold tracking-widest uppercase">
-                  Individual Performance
-                </p>
-
-                {/* Time Period Selector - Compact */}
-                <div className="relative" ref={timeDropdownRef}>
-                  <button
-                    onClick={() => {
-                      setIsTimeDropdownOpen(!isTimeDropdownOpen);
-                      setIsClinicianDropdownOpen(false);
-                      setShowCustomPicker(false);
-                    }}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 text-sm"
-                    style={{
-                      background: 'rgba(255, 255, 255, 0.06)',
-                      border: '1px solid rgba(255, 255, 255, 0.1)',
-                    }}
-                  >
-                    <Calendar size={14} className="text-stone-400" strokeWidth={1.5} />
-                    <span className="text-stone-300 font-medium">{getCurrentPeriodLabel()}</span>
-                    <ChevronDown
-                      size={14}
-                      className={`text-stone-500 transition-transform duration-300 ${isTimeDropdownOpen ? 'rotate-180' : ''}`}
-                    />
-                  </button>
-
-                  {/* Time Period Dropdown - Spotlight Mode */}
-                  {isTimeDropdownOpen && !showCustomPicker && (
-                    <div
-                      className="absolute top-full right-0 mt-2 z-[100000] overflow-hidden"
-                      style={{
-                        minWidth: '200px',
-                        background: 'linear-gradient(135deg, #292524 0%, #1c1917 100%)',
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                        borderRadius: '16px',
-                        boxShadow: '0 25px 60px -12px rgba(0, 0, 0, 0.5)',
-                        animation: 'dropdownReveal 0.2s ease-out',
-                      }}
-                    >
-                      <div className="py-2">
-                        {TIME_PERIODS.map((period) => {
-                          const isSelected = timePeriod === period.id;
-                          return (
-                            <button
-                              key={period.id}
-                              onClick={() => handlePeriodSelect(period.id)}
-                              className="w-full flex items-center justify-between px-4 py-2.5 transition-all duration-200 group/item"
-                              style={{
-                                background: isSelected ? 'rgba(251, 191, 36, 0.1)' : 'transparent',
-                              }}
-                            >
-                              <span className={`text-sm font-medium ${isSelected ? 'text-amber-300' : 'text-stone-400 group-hover/item:text-white'}`}>
-                                {period.label}
-                              </span>
-                              {isSelected && <Check size={14} className="text-amber-400" />}
-                            </button>
-                          );
-                        })}
-                        <div className="mx-3 my-2 h-px bg-white/10" />
-                        <button
-                          onClick={() => setShowCustomPicker(true)}
-                          className="w-full flex items-center gap-2 px-4 py-2.5 text-stone-400 hover:text-white transition-colors"
-                        >
-                          <Calendar size={14} />
-                          <span className="text-sm font-medium">Custom Range</span>
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Custom Date Picker - Spotlight Mode */}
-                  {showCustomPicker && (
-                    <div
-                      className="absolute top-full right-0 mt-2 z-[100000] overflow-hidden"
-                      style={{
-                        width: '320px',
-                        background: 'linear-gradient(135deg, #292524 0%, #1c1917 100%)',
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                        borderRadius: '20px',
-                        boxShadow: '0 25px 60px -12px rgba(0, 0, 0, 0.5)',
-                        animation: 'dropdownReveal 0.2s ease-out',
-                      }}
-                    >
-                      <div className="p-5">
-                        <div className="flex items-center justify-between mb-4">
-                          <button onClick={() => setShowCustomPicker(false)} className="flex items-center gap-1 text-stone-400 hover:text-white transition-colors text-sm">
-                            <ChevronLeft size={16} />
-                            Back
-                          </button>
-                          <span className="text-white font-semibold">Custom Range</span>
-                          <button onClick={() => { setShowCustomPicker(false); setIsTimeDropdownOpen(false); }} className="text-stone-500 hover:text-white transition-colors">
-                            <X size={16} />
-                          </button>
-                        </div>
-                        <div className="flex items-center justify-center gap-4 mb-4 pb-4 border-b border-white/10">
-                          <button onClick={() => setCustomYear(prev => prev - 1)} className="text-stone-400 hover:text-white"><ChevronLeft size={20} /></button>
-                          <span className="text-white text-2xl font-bold w-20 text-center" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>{customYear}</span>
-                          <button onClick={() => setCustomYear(prev => prev + 1)} className="text-stone-400 hover:text-white"><ChevronRight size={20} /></button>
-                        </div>
-                        <div className="grid grid-cols-4 gap-2 mb-4">
-                          {months.map((month, idx) => {
-                            const isStart = idx === customStartMonth;
-                            const isEnd = idx === customEndMonth;
-                            const isInRange = idx > customStartMonth && idx < customEndMonth;
-                            const isSelectedMonth = isStart || isEnd;
-                            return (
-                              <button
-                                key={month}
-                                onClick={() => {
-                                  if (customStartMonth === customEndMonth) {
-                                    if (idx < customStartMonth) setCustomStartMonth(idx);
-                                    else if (idx > customStartMonth) setCustomEndMonth(idx);
-                                  } else {
-                                    setCustomStartMonth(idx);
-                                    setCustomEndMonth(idx);
-                                  }
-                                }}
-                                className="h-10 rounded-lg text-sm font-medium transition-all"
-                                style={{
-                                  background: isSelectedMonth ? 'linear-gradient(135deg, #fef3c7, #fde68a)' : isInRange ? 'rgba(251, 191, 36, 0.15)' : 'rgba(255, 255, 255, 0.05)',
-                                  color: isSelectedMonth ? '#1c1917' : isInRange ? '#fcd34d' : '#a8a29e',
-                                }}
-                              >
-                                {month}
-                              </button>
-                            );
-                          })}
-                        </div>
-                        <button
-                          onClick={applyCustomRange}
-                          className="w-full py-3 rounded-xl font-semibold transition-all"
-                          style={{ background: 'linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%)', color: '#1c1917' }}
-                        >
-                          Apply Range
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
+              {/* Top label */}
+              <p className="text-amber-500/80 text-sm font-semibold tracking-widest uppercase mb-4">
+                Individual Performance
+              </p>
 
               {/* Clinician Spotlight Content */}
               <div
                 className={`transition-all duration-300 ${isTransitioning ? 'opacity-0 transform translate-y-2' : 'opacity-100 transform translate-y-0'}`}
               >
-                {/* Main spotlight layout */}
+                {/* Main spotlight layout - with time selector at far right */}
                 <div className="flex flex-col lg:flex-row lg:items-end gap-6 lg:gap-10">
 
                   {/* Left: Avatar + Identity */}
@@ -826,18 +921,15 @@ export const ClinicianDetailsTab: React.FC = () => {
                       )}
                     </div>
 
-                    {/* Name + Role + Health Status */}
+                    {/* Name + Details */}
                     <div className="pb-1">
-                      <h1
-                        className="text-3xl sm:text-4xl lg:text-5xl text-white tracking-tight leading-none"
-                        style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-                      >
-                        {selectedClinician.name}
-                      </h1>
-                      <div className="flex items-center gap-3 mt-2">
-                        <span className="text-stone-400 text-sm">
-                          {selectedClinician.role} · {selectedClinician.tenure}
-                        </span>
+                      <div className="flex items-center gap-3 mb-1">
+                        <h1
+                          className="text-3xl sm:text-4xl lg:text-5xl text-white tracking-tight leading-none"
+                          style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                        >
+                          {selectedClinician.name}
+                        </h1>
                         {/* Health Status Badge */}
                         <div
                           className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold"
@@ -851,113 +943,184 @@ export const ClinicianDetailsTab: React.FC = () => {
                           {healthConfig.label}
                         </div>
                       </div>
+                      {/* Title (License) */}
+                      <p className="text-stone-300 text-lg lg:text-xl mb-2">
+                        {selectedClinician.title}
+                      </p>
+                      {/* Role, Tenure, Take Rate, Supervisor */}
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-base lg:text-lg text-stone-400">
+                        <span>{selectedClinician.role}</span>
+                        <span className="text-stone-600">•</span>
+                        <span>{selectedClinician.tenure}</span>
+                        <span className="text-stone-600">•</span>
+                        <span>{selectedClinician.takeRate}% take rate</span>
+                        {selectedClinician.supervisor && (
+                          <>
+                            <span className="text-stone-600">•</span>
+                            <span>Supervised by {selectedClinician.supervisor}</span>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
 
-                  {/* Right: Quick Stats Strip */}
-                  <div className="flex-1 lg:max-w-xl">
-                    {/* AI Insight */}
-                    <p className="text-stone-400 text-sm leading-relaxed mb-4 lg:mb-5 italic">
+                  {/* AI Insight - grows to fill middle space */}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-stone-400 text-lg lg:text-xl leading-relaxed italic max-w-2xl">
                       "{selectedClinician.insight}"
                     </p>
+                  </div>
 
-                    {/* Stats Grid */}
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                      {/* Revenue */}
-                      <div
-                        className="px-4 py-3 rounded-xl"
+                  {/* Right: Time Period Selector - always at far right */}
+                  <div className="hidden lg:flex flex-shrink-0 self-end ml-auto" ref={timeDropdownRef}>
+                    <div className="relative">
+                      <button
+                        onClick={() => {
+                          setIsTimeDropdownOpen(!isTimeDropdownOpen);
+                          setIsClinicianDropdownOpen(false);
+                          setShowCustomPicker(false);
+                        }}
+                        className="group flex items-center gap-3 px-5 py-3 rounded-2xl transition-all duration-300"
                         style={{
-                          background: 'rgba(255, 255, 255, 0.05)',
-                          border: '1px solid rgba(255, 255, 255, 0.08)',
+                          background: 'rgba(255, 255, 255, 0.08)',
+                          border: '1px solid rgba(255, 255, 255, 0.12)',
+                          boxShadow: isTimeDropdownOpen
+                            ? '0 0 0 2px rgba(251, 191, 36, 0.3), 0 8px 32px rgba(0, 0, 0, 0.3)'
+                            : '0 2px 8px rgba(0, 0, 0, 0.15)',
                         }}
                       >
-                        <div className="flex items-center gap-1.5 text-stone-500 text-xs mb-1">
-                          <DollarSign size={12} />
-                          Revenue
-                        </div>
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-white text-lg font-bold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
-                            {formatCurrency(selectedClinician.metrics.revenue)}
-                          </span>
-                          <span className={`text-xs font-semibold flex items-center gap-0.5 ${selectedClinician.metrics.revenueVsGoal >= 100 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                            {selectedClinician.metrics.revenueVsGoal >= 100 ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
-                            {selectedClinician.metrics.revenueVsGoal}%
-                          </span>
-                        </div>
-                      </div>
+                        <Calendar size={18} className="text-amber-400/80" strokeWidth={1.5} />
+                        <span
+                          className="text-white text-[15px] font-semibold tracking-[-0.01em]"
+                          style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                        >
+                          {getCurrentPeriodLabel()}
+                        </span>
+                        <ChevronDown
+                          size={16}
+                          className={`text-stone-400 transition-transform duration-300 ${isTimeDropdownOpen ? 'rotate-180' : ''}`}
+                          strokeWidth={2}
+                        />
+                      </button>
 
-                      {/* Sessions */}
-                      <div
-                        className="px-4 py-3 rounded-xl"
-                        style={{
-                          background: 'rgba(255, 255, 255, 0.05)',
-                          border: '1px solid rgba(255, 255, 255, 0.08)',
-                        }}
-                      >
-                        <div className="flex items-center gap-1.5 text-stone-500 text-xs mb-1">
-                          <Activity size={12} />
-                          Sessions
-                        </div>
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-white text-lg font-bold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
-                            {selectedClinician.metrics.sessions}
-                          </span>
-                          <span className={`text-xs font-semibold flex items-center gap-0.5 ${selectedClinician.metrics.sessionsVsGoal >= 100 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                            {selectedClinician.metrics.sessionsVsGoal >= 100 ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
-                            {selectedClinician.metrics.sessionsVsGoal}%
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Rebook Rate */}
-                      <div
-                        className="px-4 py-3 rounded-xl"
-                        style={{
-                          background: 'rgba(255, 255, 255, 0.05)',
-                          border: '1px solid rgba(255, 255, 255, 0.08)',
-                        }}
-                      >
-                        <div className="flex items-center gap-1.5 text-stone-500 text-xs mb-1">
-                          <Users size={12} />
-                          Rebook
-                        </div>
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-white text-lg font-bold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
-                            {selectedClinician.metrics.rebookRate}%
-                          </span>
-                          <span className={`text-xs font-semibold ${selectedClinician.metrics.rebookRate >= 85 ? 'text-emerald-400' : selectedClinician.metrics.rebookRate >= 75 ? 'text-amber-400' : 'text-rose-400'}`}>
-                            {selectedClinician.metrics.rebookRate >= 85 ? 'Good' : selectedClinician.metrics.rebookRate >= 75 ? 'Fair' : 'Low'}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Notes Overdue */}
-                      <div
-                        className="px-4 py-3 rounded-xl"
-                        style={{
-                          background: selectedClinician.metrics.notesOverdue > 10 ? 'rgba(239, 68, 68, 0.1)' : 'rgba(255, 255, 255, 0.05)',
-                          border: `1px solid ${selectedClinician.metrics.notesOverdue > 10 ? 'rgba(239, 68, 68, 0.2)' : 'rgba(255, 255, 255, 0.08)'}`,
-                        }}
-                      >
-                        <div className="flex items-center gap-1.5 text-stone-500 text-xs mb-1">
-                          <FileText size={12} />
-                          Notes Due
-                        </div>
-                        <div className="flex items-baseline gap-2">
-                          <span
-                            className="text-lg font-bold"
+                      {/* Time Period Dropdown - Spotlight Mode */}
+                      {isTimeDropdownOpen && !showCustomPicker && (
+                        <div
+                          className="absolute top-full right-0 mt-2 z-[100000] overflow-hidden"
+                          style={{
+                            minWidth: '240px',
+                            background: 'linear-gradient(135deg, #292524 0%, #1c1917 100%)',
+                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                            borderRadius: '20px',
+                            boxShadow: '0 25px 60px -12px rgba(0, 0, 0, 0.5)',
+                            animation: 'dropdownReveal 0.2s ease-out',
+                          }}
+                        >
+                          <div
+                            className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-16 opacity-30 pointer-events-none"
                             style={{
-                              fontFamily: "'DM Serif Display', Georgia, serif",
-                              color: selectedClinician.metrics.notesOverdue > 10 ? '#ef4444' : selectedClinician.metrics.notesOverdue > 5 ? '#f59e0b' : 'white',
+                              background: 'radial-gradient(ellipse at center top, #f59e0b 0%, transparent 70%)',
                             }}
-                          >
-                            {selectedClinician.metrics.notesOverdue}
-                          </span>
-                          <span className={`text-xs font-semibold ${selectedClinician.metrics.notesOverdue <= 5 ? 'text-emerald-400' : selectedClinician.metrics.notesOverdue <= 10 ? 'text-amber-400' : 'text-rose-400'}`}>
-                            {selectedClinician.metrics.notesOverdue <= 5 ? 'Good' : selectedClinician.metrics.notesOverdue <= 10 ? 'Behind' : 'Critical'}
-                          </span>
+                          />
+                          <div className="relative py-2">
+                            {TIME_PERIODS.map((period) => {
+                              const isSelected = timePeriod === period.id;
+                              return (
+                                <button
+                                  key={period.id}
+                                  onClick={() => handlePeriodSelect(period.id)}
+                                  className="w-full flex items-center justify-between px-5 py-3 transition-all duration-200 group/item"
+                                  style={{
+                                    background: isSelected ? 'linear-gradient(90deg, rgba(251, 191, 36, 0.15) 0%, transparent 100%)' : 'transparent',
+                                  }}
+                                >
+                                  <span className={`text-[15px] font-medium ${isSelected ? 'text-amber-300' : 'text-stone-300 group-hover/item:text-white'}`}>
+                                    {period.label}
+                                  </span>
+                                  {isSelected && <Check size={16} className="text-amber-400" strokeWidth={2.5} />}
+                                </button>
+                              );
+                            })}
+                            <div className="mx-4 my-2 h-px bg-white/10" />
+                            <button
+                              onClick={() => setShowCustomPicker(true)}
+                              className="w-full flex items-center gap-3 px-5 py-3 text-stone-300 hover:text-white transition-colors"
+                            >
+                              <Calendar size={16} className="text-stone-500" />
+                              <span className="text-[15px] font-medium">Custom Range</span>
+                            </button>
+                          </div>
                         </div>
-                      </div>
+                      )}
+
+                      {/* Custom Date Picker - Spotlight Mode */}
+                      {showCustomPicker && (
+                        <div
+                          className="absolute top-full right-0 mt-2 z-[100000] overflow-hidden"
+                          style={{
+                            width: '320px',
+                            background: 'linear-gradient(135deg, #292524 0%, #1c1917 100%)',
+                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                            borderRadius: '20px',
+                            boxShadow: '0 25px 60px -12px rgba(0, 0, 0, 0.5)',
+                            animation: 'dropdownReveal 0.2s ease-out',
+                          }}
+                        >
+                          <div className="p-5">
+                            <div className="flex items-center justify-between mb-4">
+                              <button onClick={() => setShowCustomPicker(false)} className="flex items-center gap-1 text-stone-400 hover:text-white transition-colors text-sm">
+                                <ChevronLeft size={16} />
+                                Back
+                              </button>
+                              <span className="text-white font-semibold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>Custom Range</span>
+                              <button onClick={() => { setShowCustomPicker(false); setIsTimeDropdownOpen(false); }} className="text-stone-500 hover:text-white transition-colors">
+                                <X size={16} />
+                              </button>
+                            </div>
+                            <div className="flex items-center justify-center gap-4 mb-4 pb-4 border-b border-white/10">
+                              <button onClick={() => setCustomYear(prev => prev - 1)} className="text-stone-400 hover:text-white"><ChevronLeft size={20} /></button>
+                              <span className="text-white text-2xl font-bold w-20 text-center" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>{customYear}</span>
+                              <button onClick={() => setCustomYear(prev => prev + 1)} className="text-stone-400 hover:text-white"><ChevronRight size={20} /></button>
+                            </div>
+                            <div className="grid grid-cols-4 gap-2 mb-4">
+                              {months.map((month, idx) => {
+                                const isStart = idx === customStartMonth;
+                                const isEnd = idx === customEndMonth;
+                                const isInRange = idx > customStartMonth && idx < customEndMonth;
+                                const isSelectedMonth = isStart || isEnd;
+                                return (
+                                  <button
+                                    key={month}
+                                    onClick={() => {
+                                      if (customStartMonth === customEndMonth) {
+                                        if (idx < customStartMonth) setCustomStartMonth(idx);
+                                        else if (idx > customStartMonth) setCustomEndMonth(idx);
+                                      } else {
+                                        setCustomStartMonth(idx);
+                                        setCustomEndMonth(idx);
+                                      }
+                                    }}
+                                    className="h-10 rounded-lg text-sm font-medium transition-all"
+                                    style={{
+                                      background: isSelectedMonth ? 'linear-gradient(135deg, #fef3c7, #fde68a)' : isInRange ? 'rgba(251, 191, 36, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+                                      color: isSelectedMonth ? '#1c1917' : isInRange ? '#fcd34d' : '#a8a29e',
+                                    }}
+                                  >
+                                    {month}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                            <button
+                              onClick={applyCustomRange}
+                              className="w-full py-3 rounded-xl font-semibold transition-all"
+                              style={{ background: 'linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%)', color: '#1c1917' }}
+                            >
+                              Apply Range
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1000,6 +1163,38 @@ export const ClinicianDetailsTab: React.FC = () => {
           )}
 
           {/* ---------------------------------------------------------
+              HERO STATS ROW - Key metrics at a glance
+              --------------------------------------------------------- */}
+          {isSpotlightMode && selectedClinician && (
+            <AnimatedGrid cols={4} gap="md" staggerDelay={60}>
+              <StatCard
+                title="Revenue"
+                value={formatCurrency(selectedClinician.metrics.revenue)}
+                subtitle={`${selectedClinician.metrics.revenueVsGoal >= 100 ? '+' : ''}${selectedClinician.metrics.revenueVsGoal - 100}% vs goal · ${financialData?.practiceRevenueShare || 0}% of practice`}
+                variant={selectedClinician.metrics.revenueVsGoal >= 100 ? 'positive' : 'negative'}
+              />
+              <StatCard
+                title="Sessions"
+                value={selectedClinician.metrics.sessions}
+                subtitle={`${selectedClinician.metrics.sessionsVsGoal >= 100 ? '+' : ''}${selectedClinician.metrics.sessionsVsGoal - 100}% vs goal`}
+                variant={selectedClinician.metrics.sessionsVsGoal >= 100 ? 'positive' : 'negative'}
+              />
+              <StatCard
+                title="Rebook Rate"
+                value={`${selectedClinician.metrics.rebookRate}%`}
+                subtitle={selectedClinician.metrics.rebookRate >= 85 ? 'Above 85% target' : 'Below 85% target'}
+                variant={selectedClinician.metrics.rebookRate >= 85 ? 'positive' : selectedClinician.metrics.rebookRate >= 75 ? 'default' : 'negative'}
+              />
+              <StatCard
+                title="Notes Overdue"
+                value={selectedClinician.metrics.notesOverdue}
+                subtitle={selectedClinician.metrics.notesOverdue <= 5 ? 'On track' : selectedClinician.metrics.notesOverdue <= 10 ? 'Needs attention' : 'Critical backlog'}
+                variant={selectedClinician.metrics.notesOverdue <= 5 ? 'positive' : selectedClinician.metrics.notesOverdue <= 10 ? 'default' : 'negative'}
+              />
+            </AnimatedGrid>
+          )}
+
+          {/* ---------------------------------------------------------
               SECTION 1: Priority Alerts (Only show if there are issues)
               --------------------------------------------------------- */}
           {isSpotlightMode && selectedClinician && selectedClinician.healthStatus !== 'healthy' && (
@@ -1023,7 +1218,7 @@ export const ClinicianDetailsTab: React.FC = () => {
           {/* ---------------------------------------------------------
               SECTION 2: Financial Performance
               --------------------------------------------------------- */}
-          {isSpotlightMode && selectedClinician && (
+          {isSpotlightMode && selectedClinician && financialData && (
           <SectionContainer accent="emerald" index={selectedClinician.healthStatus !== 'healthy' ? 1 : 0} isFirst={selectedClinician.healthStatus === 'healthy'}>
             <SectionHeader
               number={selectedClinician.healthStatus !== 'healthy' ? 2 : 1}
@@ -1034,13 +1229,56 @@ export const ClinicianDetailsTab: React.FC = () => {
               compact
             />
             <Grid cols={2}>
-              <div className="h-64 bg-stone-100 rounded-2xl flex items-center justify-center text-stone-400">
-                Revenue Over Time Chart
-              </div>
-              <div className="space-y-4">
-                <div className="h-[120px] bg-stone-100 rounded-2xl flex items-center justify-center text-stone-400">Revenue Stats</div>
-                <div className="h-[120px] bg-stone-100 rounded-2xl flex items-center justify-center text-stone-400">Revenue per Session</div>
-              </div>
+              {/* Revenue Over Time Chart */}
+              <ChartCard
+                title="Revenue Over Time"
+                subtitle="Monthly revenue with goal tracking"
+                headerControls={
+                  <>
+                    <GoalIndicator
+                      value={formatCurrencyShort(financialData.revenueGoal)}
+                      label="Goal"
+                      color="amber"
+                    />
+                    <ActionButton
+                      label="Details"
+                      icon={<ArrowRight size={16} />}
+                    />
+                  </>
+                }
+                insights={revenueInsights}
+                minHeight="420px"
+              >
+                <BarChart
+                  data={revenueBarData}
+                  mode="single"
+                  goal={{ value: financialData.revenueGoal }}
+                  getBarColor={(value) =>
+                    value >= financialData.revenueGoal
+                      ? {
+                          gradient: 'linear-gradient(180deg, #34d399 0%, #059669 100%)',
+                          shadow: '0 4px 12px -2px rgba(16, 185, 129, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
+                          textColor: 'text-emerald-600',
+                        }
+                      : {
+                          gradient: 'linear-gradient(180deg, #60a5fa 0%, #2563eb 100%)',
+                          shadow: '0 4px 12px -2px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
+                          textColor: 'text-blue-600',
+                        }
+                  }
+                  formatValue={formatCurrencyShort}
+                  height="280px"
+                />
+              </ChartCard>
+
+              {/* Revenue per Session - Using StatCard */}
+              <StatCard
+                title="Revenue per Session"
+                value={`$${financialData.avgRevenuePerSession}`}
+                subtitle={`${revenuePerSessionDiff >= 0 ? '+' : ''}$${revenuePerSessionDiff} vs $${financialData.teamAvgPerSession} team avg`}
+                variant={revenuePerSessionDiff >= 0 ? 'positive' : 'negative'}
+                className="h-full min-h-[420px]"
+              />
             </Grid>
           </SectionContainer>
           )}

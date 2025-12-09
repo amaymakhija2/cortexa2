@@ -6,8 +6,9 @@ import { Info, X, ArrowRight, Calendar, ChevronLeft, ChevronRight, Maximize2, Mi
 import { useIsMobile } from '../hooks/useIsMobile';
 import { ToggleButton, GoalIndicator, ActionButton } from './design-system';
 import { FinancialAnalysisTab, SessionsAnalysisTab, CapacityClientTab, RetentionTab, InsuranceTab, AdminTab } from './analysis';
+import { ClientRoster } from './ClientRoster';
 
-type TabType = 'financial' | 'sessions' | 'capacity-client' | 'retention' | 'insurance' | 'admin';
+type TabType = 'clients' | 'financial' | 'sessions' | 'capacity-client' | 'retention' | 'insurance' | 'admin';
 
 // Full data set for all time periods
 const ALL_REVENUE_DATA = [
@@ -461,7 +462,7 @@ export const PracticeAnalysis: React.FC = () => {
   const [searchParams] = useSearchParams();
 
   // Read active tab from URL search params (managed by UnifiedNavigation)
-  const activeTab = (searchParams.get('tab') || 'financial') as TabType;
+  const activeTab = (searchParams.get('tab') || 'clients') as TabType;
   const [hoveredSessionValue, setHoveredSessionValue] = useState<number | null>(null);
   const [hoveredYTDValue, setHoveredYTDValue] = useState<number | null>(null);
   const [hoveredWeeklySessions, setHoveredWeeklySessions] = useState<number | null>(null);
@@ -497,6 +498,7 @@ export const PracticeAnalysis: React.FC = () => {
   const [customEndYear] = useState<number>(2024); // For compatibility
 
   const tabs: { id: TabType; label: string; shortLabel: string }[] = [
+    { id: 'clients', label: 'Client Roster', shortLabel: 'Clients' },
     { id: 'financial', label: 'Financial Analysis', shortLabel: 'Financial' },
     { id: 'sessions', label: 'Sessions Analysis', shortLabel: 'Sessions' },
     { id: 'capacity-client', label: 'Client & Capacity Analysis', shortLabel: 'Client & Capacity' },
@@ -703,6 +705,7 @@ export const PracticeAnalysis: React.FC = () => {
   const formatCurrency = (value: number) => `$${(value / 1000).toFixed(1)}k`;
 
   // Render tabs with new design system
+  const isClientsTab = activeTab === 'clients';
   const isFinancialTab = activeTab === 'financial';
   const isSessionsTab = activeTab === 'sessions';
   const isCapacityClientTab = activeTab === 'capacity-client';
@@ -711,7 +714,12 @@ export const PracticeAnalysis: React.FC = () => {
   const isAdminTab = activeTab === 'admin';
 
   // All tabs now use the design system
-  const usesDesignSystem = isFinancialTab || isSessionsTab || isCapacityClientTab || isRetentionTab || isInsuranceTab || isAdminTab;
+  const usesDesignSystem = isClientsTab || isFinancialTab || isSessionsTab || isCapacityClientTab || isRetentionTab || isInsuranceTab || isAdminTab;
+
+  // Client Roster tab - render directly without wrapper div
+  if (isClientsTab) {
+    return <ClientRoster />;
+  }
 
   return (
     <div
