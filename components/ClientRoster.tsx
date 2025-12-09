@@ -55,19 +55,44 @@ const STATUS_COLORS: Record<ClientStatus, { bg: string; text: string; dot: strin
   'churned': { bg: 'bg-stone-100', text: 'text-stone-600', dot: 'bg-stone-400' },
 };
 
+// Helper to generate healthy clients
+const FIRST_NAMES = ['Emma', 'Michael', 'Jessica', 'David', 'Sarah', 'Christopher', 'Amanda', 'Daniel', 'Jennifer', 'Robert', 'Ashley', 'Matthew', 'Emily', 'Andrew', 'Megan', 'Joshua', 'Lauren', 'Brandon', 'Rachel', 'Justin', 'Samantha', 'Ryan', 'Nicole', 'Tyler', 'Stephanie', 'Kevin', 'Heather', 'Jason', 'Michelle', 'Aaron', 'Amber', 'Adam', 'Brittany', 'Nathan', 'Danielle', 'Zachary', 'Rebecca', 'Kyle', 'Laura', 'Jeremy', 'Kayla', 'Eric', 'Christina', 'Brian', 'Melissa', 'Mark', 'Amy', 'Steven', 'Angela', 'Thomas', 'Kimberly', 'Timothy', 'Mary', 'Sean', 'Lisa', 'Patrick', 'Elizabeth', 'Gregory', 'Anna', 'Jonathan', 'Victoria', 'Kenneth', 'Allison', 'Benjamin', 'Julia', 'Scott', 'Katherine', 'Paul', 'Alexandra', 'Peter', 'Catherine', 'Raymond', 'Sophia', 'Douglas', 'Hannah', 'George', 'Natalie', 'Edward', 'Grace', 'Henry', 'Olivia', 'Walter', 'Chloe', 'Arthur', 'Madison', 'Lawrence', 'Abigail', 'Albert', 'Ella', 'Joe', 'Lily', 'Louis', 'Zoe', 'Carl', 'Mia', 'Harry', 'Ava', 'Samuel', 'Charlotte', 'Jack', 'Harper', 'Dennis', 'Aria', 'Jerry', 'Riley', 'Alexander', 'Layla', 'Philip', 'Luna', 'Russell', 'Nora', 'Randy', 'Hazel', 'Howard', 'Violet', 'Eugene', 'Aurora', 'Carlos', 'Savannah', 'Bruce', 'Brooklyn', 'Jordan', 'Leah', 'Wayne', 'Stella', 'Roy', 'Bella', 'Vincent', 'Claire'];
+const LAST_NAMES = ['Thompson', 'Brown', 'Davis', 'Wilson', 'Miller', 'Lee', 'Garcia', 'Martinez', 'Anderson', 'Taylor', 'Thomas', 'Jackson', 'White', 'Harris', 'Martin', 'Robinson', 'Clark', 'Lewis', 'Walker', 'Hall', 'Young', 'Allen', 'King', 'Wright', 'Scott', 'Green', 'Baker', 'Adams', 'Nelson', 'Hill', 'Moore', 'Campbell', 'Mitchell', 'Roberts', 'Carter', 'Phillips', 'Evans', 'Turner', 'Torres', 'Parker', 'Collins', 'Edwards', 'Stewart', 'Flores', 'Morris', 'Nguyen', 'Murphy', 'Rivera', 'Cook', 'Rogers', 'Morgan', 'Peterson', 'Cooper', 'Reed', 'Bailey', 'Bell', 'Gomez', 'Kelly', 'Howard', 'Ward', 'Cox', 'Diaz', 'Richardson', 'Wood', 'Watson', 'Brooks', 'Bennett', 'Gray', 'James', 'Reyes', 'Cruz', 'Hughes', 'Price', 'Myers', 'Long', 'Foster', 'Sanders', 'Ross', 'Morales', 'Powell', 'Sullivan', 'Russell', 'Ortiz', 'Jenkins', 'Gutierrez', 'Perry', 'Butler', 'Barnes', 'Fisher', 'Henderson', 'Coleman', 'Simmons', 'Patterson', 'Jordan', 'Reynolds', 'Hamilton', 'Graham', 'Kim', 'Gonzalez', 'Alexander', 'Ramos', 'Wallace', 'Griffin', 'West', 'Cole', 'Hayes', 'Chavez', 'Gibson', 'Bryant', 'Ellis', 'Stevens', 'Murray', 'Ford', 'Marshall', 'Owens', 'McDonald', 'Harrison', 'Ruiz', 'Kennedy', 'Wells', 'Alvarez', 'Woods', 'Mendoza', 'Castillo', 'Olson', 'Webb', 'Washington', 'Tucker', 'Freeman', 'Burns', 'Henry', 'Vasquez'];
+const CLINICIANS = [
+  { full: 'Dr. Sarah Chen', short: 'S. Chen' },
+  { full: 'Dr. Maria Rodriguez', short: 'M. Rodriguez' },
+  { full: 'Dr. Aisha Patel', short: 'A. Patel' },
+  { full: 'Dr. James Kim', short: 'J. Kim' },
+  { full: 'Dr. Michelle Johnson', short: 'M. Johnson' },
+];
+const APPOINTMENTS = ['Dec 8', 'Dec 9', 'Dec 10', 'Dec 11', 'Dec 12', 'Dec 13', 'Dec 14', 'Dec 15', 'Dec 16', 'Dec 17', 'Dec 18', 'Dec 19', 'Dec 20'];
+
+// Generate 128 healthy clients
+const generateHealthyClients = (): Client[] => {
+  const clients: Client[] = [];
+  for (let i = 0; i < 128; i++) {
+    const firstName = FIRST_NAMES[i % FIRST_NAMES.length];
+    const lastName = LAST_NAMES[i % LAST_NAMES.length];
+    const clinician = CLINICIANS[i % CLINICIANS.length];
+    clients.push({
+      id: `h${i + 1}`,
+      name: `${firstName} ${lastName}`,
+      initials: `${firstName[0]}${lastName[0]}`,
+      clinician: clinician.full,
+      clinicianShort: clinician.short,
+      totalSessions: 8 + (i % 40), // 8-47 sessions
+      lastSeenDays: 1 + (i % 7), // 1-7 days ago
+      nextAppointment: APPOINTMENTS[i % APPOINTMENTS.length],
+      status: 'healthy' as const,
+    });
+  }
+  return clients;
+};
+
 // Mock client data
 const MOCK_CLIENTS: Client[] = [
-  // Healthy clients (128 total, showing representative sample)
-  { id: 'h1', name: 'Emma Thompson', initials: 'ET', clinician: 'Dr. Sarah Chen', clinicianShort: 'S. Chen', totalSessions: 24, lastSeenDays: 5, nextAppointment: 'Dec 12', status: 'healthy' },
-  { id: 'h2', name: 'Michael Brown', initials: 'MB', clinician: 'Dr. Sarah Chen', clinicianShort: 'S. Chen', totalSessions: 18, lastSeenDays: 3, nextAppointment: 'Dec 10', status: 'healthy' },
-  { id: 'h3', name: 'Jessica Davis', initials: 'JD', clinician: 'Dr. Maria Rodriguez', clinicianShort: 'M. Rodriguez', totalSessions: 32, lastSeenDays: 7, nextAppointment: 'Dec 14', status: 'healthy' },
-  { id: 'h4', name: 'David Wilson', initials: 'DW', clinician: 'Dr. Maria Rodriguez', clinicianShort: 'M. Rodriguez', totalSessions: 15, lastSeenDays: 2, nextAppointment: 'Dec 9', status: 'healthy' },
-  { id: 'h5', name: 'Sarah Miller', initials: 'SM', clinician: 'Dr. Aisha Patel', clinicianShort: 'A. Patel', totalSessions: 28, lastSeenDays: 4, nextAppointment: 'Dec 11', status: 'healthy' },
-  { id: 'h6', name: 'Christopher Lee', initials: 'CL', clinician: 'Dr. Aisha Patel', clinicianShort: 'A. Patel', totalSessions: 11, lastSeenDays: 6, nextAppointment: 'Dec 13', status: 'healthy' },
-  { id: 'h7', name: 'Amanda Garcia', initials: 'AG', clinician: 'Dr. James Kim', clinicianShort: 'J. Kim', totalSessions: 45, lastSeenDays: 1, nextAppointment: 'Dec 8', status: 'healthy' },
-  { id: 'h8', name: 'Daniel Martinez', initials: 'DM', clinician: 'Dr. James Kim', clinicianShort: 'J. Kim', totalSessions: 22, lastSeenDays: 5, nextAppointment: 'Dec 12', status: 'healthy' },
-  { id: 'h9', name: 'Jennifer Anderson', initials: 'JA', clinician: 'Dr. Michelle Johnson', clinicianShort: 'M. Johnson', totalSessions: 19, lastSeenDays: 3, nextAppointment: 'Dec 10', status: 'healthy' },
-  { id: 'h10', name: 'Robert Taylor', initials: 'RT', clinician: 'Dr. Michelle Johnson', clinicianShort: 'M. Johnson', totalSessions: 37, lastSeenDays: 7, nextAppointment: 'Dec 16', status: 'healthy' },
+  // Healthy clients (128 total)
+  ...generateHealthyClients(),
 
   // At-risk clients (8)
   { id: 'r1', name: 'Sarah Mitchell', initials: 'SM', clinician: 'Dr. Sarah Chen', clinicianShort: 'S. Chen', totalSessions: 12, lastSeenDays: 28, nextAppointment: null, status: 'at-risk' },
