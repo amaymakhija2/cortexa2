@@ -23,6 +23,13 @@ const FallingLinesCanvas: React.FC = () => {
   const linesRef = useRef<Line[]>([]);
   const animationRef = useRef<number>();
   const dimensionsRef = useRef({ width: 0, height: 0 });
+  const lastFrameTimeRef = useRef<number>(0);
+  const isVisibleRef = useRef<boolean>(true);
+
+  // Target 30 FPS (33.33ms per frame) - visually identical for falling lines
+  const FRAME_INTERVAL = 1000 / 30;
+  // Cap line count for large screens
+  const MAX_LINES = 150;
 
   const createLine = useCallback((width: number, height: number, isInitial: boolean = false): Line => {
     const baseAngle = -15 + Math.random() * 30;
@@ -78,17 +85,42 @@ const FallingLinesCanvas: React.FC = () => {
       glowGradient.addColorStop(0, 'rgba(180, 120, 60, 0.03)');
       glowGradient.addColorStop(1, 'transparent');
 
-      // Original line density
-      const lineCount = Math.floor((width * height) / 8000);
+      // Optimized line density with cap for large screens
+      const rawLineCount = Math.floor((width * height) / 12000);
+      const lineCount = Math.min(rawLineCount, MAX_LINES);
       linesRef.current = Array.from({ length: lineCount }, () =>
         createLine(width, height, true)
       );
     };
 
+    // Pause animation when tab is hidden (saves CPU/battery)
+    const handleVisibilityChange = () => {
+      isVisibleRef.current = !document.hidden;
+      if (!document.hidden && !animationRef.current) {
+        lastFrameTimeRef.current = performance.now();
+        animationRef.current = requestAnimationFrame(animate);
+      }
+    };
+
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
-    const animate = () => {
+    const animate = (currentTime: number) => {
+      // Skip frame if tab is hidden
+      if (!isVisibleRef.current) {
+        animationRef.current = undefined;
+        return;
+      }
+
+      // Throttle to 30 FPS
+      const elapsed = currentTime - lastFrameTimeRef.current;
+      if (elapsed < FRAME_INTERVAL) {
+        animationRef.current = requestAnimationFrame(animate);
+        return;
+      }
+      lastFrameTimeRef.current = currentTime - (elapsed % FRAME_INTERVAL);
+
       const { width, height } = dimensionsRef.current;
       const lines = linesRef.current;
 
@@ -104,16 +136,19 @@ const FallingLinesCanvas: React.FC = () => {
         ctx.fillRect(0, 0, width, height);
       }
 
-      // Batch non-glow lines together
       ctx.lineCap = 'round';
 
-      // Draw non-glow lines first (no shadow = faster)
+      // Group lines by opacity ranges for batched drawing
+      const opacityGroups: { [key: string]: Line[] } = {};
+      const glowLines: Line[] = [];
+
+      // Update positions and group lines
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
 
-        // Update position
-        line.y += line.speed;
-        line.x += line.sinAngle * line.speed;
+        // Update position (scale speed by 2 since we're at 30 FPS now)
+        line.y += line.speed * 2;
+        line.x += line.sinAngle * line.speed * 2;
 
         // Reset if off screen
         if (line.y > height + line.length) {
@@ -121,40 +156,60 @@ const FallingLinesCanvas: React.FC = () => {
           line.y = -line.length;
         }
 
-        if (line.hasGlow) continue; // Skip glow lines for now
+        if (line.hasGlow) {
+          glowLines.push(line);
+        } else {
+          // Group by rounded opacity and thickness for batching
+          const key = `${Math.round(line.opacity * 10)}_${Math.round(line.thickness)}`;
+          if (!opacityGroups[key]) opacityGroups[key] = [];
+          opacityGroups[key].push(line);
+        }
+      }
 
-        ctx.strokeStyle = `rgba(255, 255, 255, ${line.opacity})`;
-        ctx.lineWidth = line.thickness;
+      // Draw non-glow lines in batched groups (single path per group)
+      for (const key in opacityGroups) {
+        const group = opacityGroups[key];
+        if (group.length === 0) continue;
+
+        const firstLine = group[0];
+        ctx.strokeStyle = `rgba(255, 255, 255, ${firstLine.opacity})`;
+        ctx.lineWidth = firstLine.thickness;
         ctx.beginPath();
-        ctx.moveTo(line.x, line.y);
-        ctx.lineTo(
-          line.x + Math.sin(line.angleRad) * line.length,
-          line.y + Math.cos(line.angleRad) * line.length
-        );
+
+        for (let i = 0; i < group.length; i++) {
+          const line = group[i];
+          ctx.moveTo(line.x, line.y);
+          ctx.lineTo(
+            line.x + Math.sin(line.angleRad) * line.length,
+            line.y + Math.cos(line.angleRad) * line.length
+          );
+        }
         ctx.stroke();
       }
 
-      // Draw glow lines separately (fewer of them, with shadow)
-      ctx.shadowColor = 'rgba(245, 158, 11, 0.5)';
-      ctx.shadowBlur = 10;
+      // Draw glow lines with thicker stroke + secondary layer (no shadow blur!)
+      // This simulates glow much more efficiently than shadowBlur
+      for (let i = 0; i < glowLines.length; i++) {
+        const line = glowLines[i];
+        const endX = line.x + Math.sin(line.angleRad) * line.length;
+        const endY = line.y + Math.cos(line.angleRad) * line.length;
 
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        if (!line.hasGlow) continue;
+        // Outer glow layer (thicker, more transparent)
+        ctx.strokeStyle = `rgba(245, 158, 11, ${line.opacity * 0.3})`;
+        ctx.lineWidth = line.thickness + 4;
+        ctx.beginPath();
+        ctx.moveTo(line.x, line.y);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
 
+        // Inner bright core
         ctx.strokeStyle = `rgba(245, 180, 100, ${line.opacity * 1.3})`;
         ctx.lineWidth = line.thickness;
         ctx.beginPath();
         ctx.moveTo(line.x, line.y);
-        ctx.lineTo(
-          line.x + Math.sin(line.angleRad) * line.length,
-          line.y + Math.cos(line.angleRad) * line.length
-        );
+        ctx.lineTo(endX, endY);
         ctx.stroke();
       }
-
-      // Reset shadow for next frame
-      ctx.shadowBlur = 0;
 
       animationRef.current = requestAnimationFrame(animate);
     };
@@ -163,6 +218,7 @@ const FallingLinesCanvas: React.FC = () => {
 
     return () => {
       window.removeEventListener('resize', resizeCanvas);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
       }
@@ -173,7 +229,7 @@ const FallingLinesCanvas: React.FC = () => {
     <canvas
       ref={canvasRef}
       className="absolute inset-0 w-full h-full"
-      style={{ background: '#0a0a0a' }}
+      style={{ background: '#0a0a0a', willChange: 'transform' }}
     />
   );
 };
@@ -216,6 +272,15 @@ export const LoginPage: React.FC = () => {
         .input-glow:focus {
           box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.3),
                       0 0 20px -5px rgba(245, 158, 11, 0.2);
+        }
+
+        .focus-glow {
+          box-shadow: 0 0 0px 0px transparent;
+          transition: box-shadow 0.3s ease-out;
+        }
+
+        .focus-glow:focus {
+          box-shadow: 0 0 30px -10px rgba(245, 158, 11, 0.3);
         }
 
         .btn-shine {
@@ -271,10 +336,20 @@ export const LoginPage: React.FC = () => {
         {/* Noise texture overlay */}
         <div className="absolute inset-0 noise-overlay pointer-events-none" />
 
-        {/* Gradient overlays */}
+        {/* Gradient overlays - using radial gradients instead of blur-3xl for performance */}
         <div className="absolute inset-0 bg-gradient-to-br from-stone-900 via-stone-800/50 to-stone-900" />
-        <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-stone-700/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+        <div
+          className="absolute top-0 right-0 w-96 h-96 -translate-y-1/2 translate-x-1/2 pointer-events-none"
+          style={{
+            background: 'radial-gradient(circle, rgba(245, 158, 11, 0.05) 0%, transparent 70%)',
+          }}
+        />
+        <div
+          className="absolute bottom-0 left-0 w-64 h-64 translate-y-1/2 -translate-x-1/2 pointer-events-none"
+          style={{
+            background: 'radial-gradient(circle, rgba(68, 64, 60, 0.2) 0%, transparent 70%)',
+          }}
+        />
 
         {/* Form Container */}
         <motion.div
@@ -337,27 +412,18 @@ export const LoginPage: React.FC = () => {
                   onBlur={() => setFocusedField(null)}
                   className={`
                     font-body w-full px-6 py-5
-                    bg-stone-800/60 backdrop-blur-sm
+                    bg-stone-800/80
                     border-2 rounded-2xl text-white text-lg
                     placeholder-stone-500
                     transition-all duration-300 ease-out
-                    outline-none input-glow
+                    outline-none input-glow focus-glow
                     ${focusedField === 'username'
-                      ? 'border-amber-500/50 bg-stone-800/80'
+                      ? 'border-amber-500/50 bg-stone-800/90'
                       : 'border-stone-700/50 hover:border-stone-600/50'}
                   `}
                   placeholder="Enter your username"
                   required
                   autoComplete="username"
-                />
-                <motion.div
-                  className="absolute inset-0 rounded-xl pointer-events-none"
-                  animate={{
-                    boxShadow: focusedField === 'username'
-                      ? '0 0 30px -10px rgba(245, 158, 11, 0.3)'
-                      : '0 0 0px 0px transparent'
-                  }}
-                  transition={{ duration: 0.3 }}
                 />
               </div>
             </motion.div>
@@ -380,13 +446,13 @@ export const LoginPage: React.FC = () => {
                   onBlur={() => setFocusedField(null)}
                   className={`
                     font-body w-full px-6 py-5 pr-16
-                    bg-stone-800/60 backdrop-blur-sm
+                    bg-stone-800/80
                     border-2 rounded-2xl text-white text-lg
                     placeholder-stone-500
                     transition-all duration-300 ease-out
-                    outline-none input-glow
+                    outline-none input-glow focus-glow
                     ${focusedField === 'password'
-                      ? 'border-amber-500/50 bg-stone-800/80'
+                      ? 'border-amber-500/50 bg-stone-800/90'
                       : 'border-stone-700/50 hover:border-stone-600/50'}
                   `}
                   placeholder="Enter your password"
@@ -410,15 +476,6 @@ export const LoginPage: React.FC = () => {
                     </svg>
                   )}
                 </button>
-                <motion.div
-                  className="absolute inset-0 rounded-xl pointer-events-none"
-                  animate={{
-                    boxShadow: focusedField === 'password'
-                      ? '0 0 30px -10px rgba(245, 158, 11, 0.3)'
-                      : '0 0 0px 0px transparent'
-                  }}
-                  transition={{ duration: 0.3 }}
-                />
               </div>
             </motion.div>
 
