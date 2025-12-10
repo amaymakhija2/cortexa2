@@ -13,6 +13,7 @@ import {
   Lock,
   PanelLeftClose,
   PanelLeft,
+  Component,
 } from 'lucide-react';
 
 // =============================================================================
@@ -64,6 +65,12 @@ const NAVIGATION = {
         { id: 'insurance', label: 'Insurance' },
         { id: 'admin', label: 'Admin' },
       ]
+    },
+    {
+      path: '/components',
+      label: 'Components',
+      icon: Component,
+      description: 'Design system reference'
     },
   ],
   upcoming: [

@@ -10,6 +10,7 @@ import {
 import { MonthPicker } from './MonthPicker';
 import { useSettings, getDisplayName } from '../context/SettingsContext';
 import { ClinicianDetailsTab } from './ClinicianDetailsTab';
+import { PageHeader } from './design-system';
 
 // Practice settings - kept here since hooks can't provide these synchronously
 // These are static configuration values that don't change
@@ -625,180 +626,145 @@ export const ClinicianOverview: React.FC = () => {
         {/* =============================================
             PART 1: METRIC SELECTOR - THE HERO SECTION
             ============================================= */}
-        <div
-          className="relative"
-          style={{
-            background: 'linear-gradient(135deg, #1c1917 0%, #292524 50%, #1c1917 100%)'
-          }}
-        >
-          {/* Glow container - contains overflow for blur effects */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            {/* Subtle grid pattern */}
-            <div
-              className="absolute inset-0 opacity-10"
-              style={{
-                backgroundImage: `linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
-                                 linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px)`,
-                backgroundSize: '32px 32px'
-              }}
-            />
-
-            {/* Warm glow accent */}
-            <div
-              className="absolute top-0 left-1/4 w-96 h-96 rounded-full opacity-20 blur-3xl"
-              style={{ background: 'radial-gradient(circle, #f59e0b 0%, transparent 70%)' }}
-            />
-          </div>
-
-          <div className="relative px-6 sm:px-8 lg:px-12 py-8 lg:py-10">
-            {/* Header row */}
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
-              <div>
-                <p className="text-amber-500/80 text-sm font-semibold tracking-widest uppercase mb-2">
-                  Team Performance
-                </p>
-                <h1
-                  className="text-4xl sm:text-5xl lg:text-6xl text-white tracking-tight"
-                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-                >
-                  Clinician Rankings
-                </h1>
-                <p className="text-stone-400 text-base sm:text-lg mt-2">{getDateRangeLabel()}</p>
-              </div>
-
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                {/* Sessions: Weekly/Monthly Toggle */}
-                {selectedGroupId === 'sessions' && (
-                  <div className="flex items-center gap-1 p-1 rounded-xl bg-white/10 backdrop-blur-sm">
-                    <button
-                      onClick={() => setSessionGoalView('weekly')}
-                      className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
-                        sessionGoalView === 'weekly'
-                          ? 'bg-amber-500 text-white shadow-lg'
-                          : 'text-white/70 hover:text-white hover:bg-white/10'
-                      }`}
-                    >
-                      Weekly
-                    </button>
-                    <button
-                      onClick={() => setSessionGoalView('monthly')}
-                      className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
-                        sessionGoalView === 'monthly'
-                          ? 'bg-amber-500 text-white shadow-lg'
-                          : 'text-white/70 hover:text-white hover:bg-white/10'
-                      }`}
-                    >
-                      Monthly
-                    </button>
-                  </div>
-                )}
-
-                {/* Time Period Selector */}
-                <div className="flex items-center gap-3">
-                  {selectedGroupId === 'documentation' ? (
-                    /* Documentation: Show disabled "Current Month" only (point-in-time metric) */
-                    <div className="flex items-center gap-1 p-1 rounded-xl bg-white/5">
-                      <div className="px-4 py-2.5 rounded-lg text-sm font-semibold bg-white/10 text-white/50 cursor-not-allowed">
-                        Current Month
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      {/* View Mode Toggle: Last 12 Months / Live / Historical */}
-                      <div className="flex items-center gap-1 p-1 rounded-xl bg-white/10 backdrop-blur-sm">
-                        <button
-                          onClick={() => setViewMode('last-12-months')}
-                          className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
-                            viewMode === 'last-12-months'
-                              ? 'bg-white text-stone-900 shadow-lg'
-                              : 'text-white/70 hover:text-white hover:bg-white/10'
-                          }`}
-                        >
-                          Last 12 Months
-                        </button>
-                        <button
-                          onClick={() => setViewMode('live')}
-                          className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
-                            viewMode === 'live'
-                              ? 'bg-white text-stone-900 shadow-lg'
-                              : 'text-white/70 hover:text-white hover:bg-white/10'
-                          }`}
-                        >
-                          Live
-                        </button>
-                        <button
-                          onClick={() => setViewMode('historical')}
-                          className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
-                            viewMode === 'historical'
-                              ? 'bg-white text-stone-900 shadow-lg'
-                              : 'text-white/70 hover:text-white hover:bg-white/10'
-                          }`}
-                        >
-                          Historical
-                        </button>
-                      </div>
-
-                      {/* Month Picker - only shown in Historical mode */}
-                      {viewMode === 'historical' && dataRange && (
-                        <MonthPicker
-                          selectedMonth={selectedMonth}
-                          selectedYear={selectedYear}
-                          onSelect={handleMonthSelect}
-                          minYear={dataRange.earliest.getFullYear()}
-                          maxYear={dataRange.latest.getFullYear()}
-                          autoOpen={true}
-                        />
-                      )}
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Metric selector label */}
-            <p className="text-stone-500 text-sm font-medium mb-4 uppercase tracking-wider">
-              Select metric to rank by
-              {!metric.higherIsBetter && (
-                <span className="ml-3 text-amber-500">· Lower values rank higher</span>
-              )}
-            </p>
-
-            {/* Metric buttons - 8 metric groups in 2 rows of 4 */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              {METRIC_GROUPS.map((group) => {
-                const isSelected = selectedGroupId === group.id;
-
-                return (
+        <PageHeader
+          accent="amber"
+          label="Team Performance"
+          title="Clinician Rankings"
+          subtitle={getDateRangeLabel()}
+          showGridPattern
+          actions={
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              {/* Sessions: Weekly/Monthly Toggle */}
+              {selectedGroupId === 'sessions' && (
+                <div className="flex items-center gap-1 p-1 rounded-xl bg-white/10 backdrop-blur-sm">
                   <button
-                    key={group.id}
-                    onClick={() => handleGroupChange(group.id)}
-                    className={`relative px-6 py-6 rounded-2xl font-semibold transition-all duration-300 text-left min-h-[100px] ${
-                      isSelected
-                        ? 'bg-white text-stone-900 shadow-xl scale-[1.02]'
-                        : 'bg-white/10 text-white/80 hover:bg-white/20 hover:text-white hover:scale-[1.01]'
+                    onClick={() => setSessionGoalView('weekly')}
+                    className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
+                      sessionGoalView === 'weekly'
+                        ? 'bg-amber-500 text-white shadow-lg'
+                        : 'text-white/70 hover:text-white hover:bg-white/10'
                     }`}
-                    style={{
-                      boxShadow: isSelected
-                        ? '0 8px 32px -4px rgba(0, 0, 0, 0.3), 0 4px 16px -2px rgba(0, 0, 0, 0.2)'
-                        : undefined
-                    }}
                   >
-                    <span className="block text-xl font-bold leading-tight">{group.label}</span>
-                    <span className={`block text-base mt-2 leading-relaxed ${isSelected ? 'text-stone-500' : 'text-white/70'}`}>
-                      {group.description}
-                    </span>
-                    {isSelected && (
-                      <div
-                        className="absolute bottom-0 left-6 right-6 h-1.5 rounded-full"
-                        style={{ background: 'linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%)' }}
+                    Weekly
+                  </button>
+                  <button
+                    onClick={() => setSessionGoalView('monthly')}
+                    className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
+                      sessionGoalView === 'monthly'
+                        ? 'bg-amber-500 text-white shadow-lg'
+                        : 'text-white/70 hover:text-white hover:bg-white/10'
+                    }`}
+                  >
+                    Monthly
+                  </button>
+                </div>
+              )}
+
+              {/* Time Period Selector */}
+              <div className="flex items-center gap-3">
+                {selectedGroupId === 'documentation' ? (
+                  /* Documentation: Show disabled "Current Month" only (point-in-time metric) */
+                  <div className="flex items-center gap-1 p-1 rounded-xl bg-white/5">
+                    <div className="px-4 py-2.5 rounded-lg text-sm font-semibold bg-white/10 text-white/50 cursor-not-allowed">
+                      Current Month
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    {/* View Mode Toggle: Last 12 Months / Live / Historical */}
+                    <div className="flex items-center gap-1 p-1 rounded-xl bg-white/10 backdrop-blur-sm">
+                      <button
+                        onClick={() => setViewMode('last-12-months')}
+                        className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
+                          viewMode === 'last-12-months'
+                            ? 'bg-white text-stone-900 shadow-lg'
+                            : 'text-white/70 hover:text-white hover:bg-white/10'
+                        }`}
+                      >
+                        Last 12 Months
+                      </button>
+                      <button
+                        onClick={() => setViewMode('live')}
+                        className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
+                          viewMode === 'live'
+                            ? 'bg-white text-stone-900 shadow-lg'
+                            : 'text-white/70 hover:text-white hover:bg-white/10'
+                        }`}
+                      >
+                        Live
+                      </button>
+                      <button
+                        onClick={() => setViewMode('historical')}
+                        className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
+                          viewMode === 'historical'
+                            ? 'bg-white text-stone-900 shadow-lg'
+                            : 'text-white/70 hover:text-white hover:bg-white/10'
+                        }`}
+                      >
+                        Historical
+                      </button>
+                    </div>
+
+                    {/* Month Picker - only shown in Historical mode */}
+                    {viewMode === 'historical' && dataRange && (
+                      <MonthPicker
+                        selectedMonth={selectedMonth}
+                        selectedYear={selectedYear}
+                        onSelect={handleMonthSelect}
+                        minYear={dataRange.earliest.getFullYear()}
+                        maxYear={dataRange.latest.getFullYear()}
+                        autoOpen={true}
                       />
                     )}
-                  </button>
-                );
-              })}
+                  </>
+                )}
+              </div>
             </div>
+          }
+        >
+          {/* Metric selector label */}
+          <p className="text-stone-500 text-sm font-medium mb-4 uppercase tracking-wider">
+            Select metric to rank by
+            {!metric.higherIsBetter && (
+              <span className="ml-3 text-amber-500">· Lower values rank higher</span>
+            )}
+          </p>
+
+          {/* Metric buttons - 8 metric groups in 2 rows of 4 */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {METRIC_GROUPS.map((group) => {
+              const isSelected = selectedGroupId === group.id;
+
+              return (
+                <button
+                  key={group.id}
+                  onClick={() => handleGroupChange(group.id)}
+                  className={`relative px-6 py-6 rounded-2xl font-semibold transition-all duration-300 text-left min-h-[100px] ${
+                    isSelected
+                      ? 'bg-white text-stone-900 shadow-xl scale-[1.02]'
+                      : 'bg-white/10 text-white/80 hover:bg-white/20 hover:text-white hover:scale-[1.01]'
+                  }`}
+                  style={{
+                    boxShadow: isSelected
+                      ? '0 8px 32px -4px rgba(0, 0, 0, 0.3), 0 4px 16px -2px rgba(0, 0, 0, 0.2)'
+                      : undefined
+                  }}
+                >
+                  <span className="block text-xl font-bold leading-tight">{group.label}</span>
+                  <span className={`block text-base mt-2 leading-relaxed ${isSelected ? 'text-stone-500' : 'text-white/70'}`}>
+                    {group.description}
+                  </span>
+                  {isSelected && (
+                    <div
+                      className="absolute bottom-0 left-6 right-6 h-1.5 rounded-full"
+                      style={{ background: 'linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%)' }}
+                    />
+                  )}
+                </button>
+              );
+            })}
           </div>
-        </div>
+        </PageHeader>
 
         {/* =============================================
             PART 2: RANKING LIST - COMPACT & EFFICIENT

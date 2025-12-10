@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Calendar, Check } from 'lucide-react';
+import { PageHeader } from './design-system';
 
 // =============================================================================
 // CLIENT ROSTER COMPONENT
@@ -190,114 +191,76 @@ export const ClientRoster: React.FC = () => {
         {/* =============================================
             HERO SECTION - SEGMENT SELECTOR
             ============================================= */}
-        <div
-          className="relative"
-          style={{
-            background: 'linear-gradient(135deg, #1c1917 0%, #292524 50%, #1c1917 100%)'
-          }}
+        <PageHeader
+          accent="amber"
+          label="Client Health"
+          title="Client Roster"
+          subtitle={`${segmentCounts['at-risk'] + segmentCounts['new'] + segmentCounts['milestone']} clients need attention`}
+          showGridPattern
+          actions={
+            <div className="flex items-center gap-6">
+              <div className="text-right">
+                <p className="text-3xl font-bold text-white" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                  {segmentCounts['all']}
+                </p>
+                <p className="text-stone-500 text-sm">Active Clients</p>
+              </div>
+              <div className="w-px h-12 bg-white/10" />
+              <div className="text-right">
+                <p className="text-3xl font-bold text-emerald-400" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                  {Math.round((segmentCounts['healthy'] / segmentCounts['all']) * 100)}%
+                </p>
+                <p className="text-stone-500 text-sm">Healthy</p>
+              </div>
+            </div>
+          }
         >
-          {/* Glow container */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            {/* Subtle grid pattern */}
-            <div
-              className="absolute inset-0 opacity-10"
-              style={{
-                backgroundImage: `linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
-                                 linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px)`,
-                backgroundSize: '32px 32px'
-              }}
-            />
+          {/* Segment selector label */}
+          <p className="text-stone-500 text-sm font-medium mb-4 uppercase tracking-wider">
+            Select client segment to view
+          </p>
 
-            {/* Warm glow accent */}
-            <div
-              className="absolute top-0 left-1/4 w-96 h-96 rounded-full opacity-20 blur-3xl"
-              style={{ background: 'radial-gradient(circle, #f59e0b 0%, transparent 70%)' }}
-            />
-          </div>
+          {/* Segment selector buttons - 6 items in 2 rows of 3 */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            {CLIENT_SEGMENTS.map((segment) => {
+              const isSelected = selectedSegment === segment.id;
+              const count = segmentCounts[segment.id];
 
-          <div className="relative px-6 sm:px-8 lg:px-12 py-8 lg:py-10">
-            {/* Header row */}
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
-              <div>
-                <p className="text-amber-500/80 text-sm font-semibold tracking-widest uppercase mb-2">
-                  Client Health
-                </p>
-                <h1
-                  className="text-4xl sm:text-5xl lg:text-6xl text-white tracking-tight"
-                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+              return (
+                <button
+                  key={segment.id}
+                  onClick={() => setSelectedSegment(segment.id)}
+                  className={`relative px-6 py-6 rounded-2xl font-semibold transition-all duration-300 text-left min-h-[100px] ${
+                    isSelected
+                      ? 'bg-white text-stone-900 shadow-xl scale-[1.02]'
+                      : 'bg-white/10 text-white/80 hover:bg-white/20 hover:text-white hover:scale-[1.01]'
+                  }`}
+                  style={{
+                    boxShadow: isSelected
+                      ? '0 8px 32px -4px rgba(0, 0, 0, 0.3), 0 4px 16px -2px rgba(0, 0, 0, 0.2)'
+                      : undefined
+                  }}
                 >
-                  Client Roster
-                </h1>
-                <p className="text-stone-400 text-base sm:text-lg mt-2">
-                  {segmentCounts['at-risk'] + segmentCounts['new'] + segmentCounts['milestone']} clients need attention
-                </p>
-              </div>
-
-              {/* Summary stats */}
-              <div className="flex items-center gap-6">
-                <div className="text-right">
-                  <p className="text-3xl font-bold text-white" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
-                    {segmentCounts['all']}
-                  </p>
-                  <p className="text-stone-500 text-sm">Active Clients</p>
-                </div>
-                <div className="w-px h-12 bg-white/10" />
-                <div className="text-right">
-                  <p className="text-3xl font-bold text-emerald-400" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
-                    {Math.round((segmentCounts['healthy'] / segmentCounts['all']) * 100)}%
-                  </p>
-                  <p className="text-stone-500 text-sm">Healthy</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Segment selector label */}
-            <p className="text-stone-500 text-sm font-medium mb-4 uppercase tracking-wider">
-              Select client segment to view
-            </p>
-
-            {/* Segment selector buttons - 6 items in 2 rows of 3 */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              {CLIENT_SEGMENTS.map((segment) => {
-                const isSelected = selectedSegment === segment.id;
-                const count = segmentCounts[segment.id];
-
-                return (
-                  <button
-                    key={segment.id}
-                    onClick={() => setSelectedSegment(segment.id)}
-                    className={`relative px-6 py-6 rounded-2xl font-semibold transition-all duration-300 text-left min-h-[100px] ${
-                      isSelected
-                        ? 'bg-white text-stone-900 shadow-xl scale-[1.02]'
-                        : 'bg-white/10 text-white/80 hover:bg-white/20 hover:text-white hover:scale-[1.01]'
-                    }`}
-                    style={{
-                      boxShadow: isSelected
-                        ? '0 8px 32px -4px rgba(0, 0, 0, 0.3), 0 4px 16px -2px rgba(0, 0, 0, 0.2)'
-                        : undefined
-                    }}
-                  >
-                    <span className="block text-xl font-bold leading-tight">
-                      {segment.label}
-                      <span className={`ml-2 ${isSelected ? 'text-amber-600' : 'text-amber-400'}`}>
-                        · {count}
-                      </span>
+                  <span className="block text-xl font-bold leading-tight">
+                    {segment.label}
+                    <span className={`ml-2 ${isSelected ? 'text-amber-600' : 'text-amber-400'}`}>
+                      · {count}
                     </span>
-                    <span className={`block text-base mt-2 leading-relaxed ${isSelected ? 'text-stone-500' : 'text-white/70'}`}>
-                      {segment.description}
-                    </span>
-                    {isSelected && (
-                      <div
-                        className="absolute bottom-0 left-6 right-6 h-1.5 rounded-full"
-                        style={{ background: 'linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%)' }}
-                      />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
+                  </span>
+                  <span className={`block text-base mt-2 leading-relaxed ${isSelected ? 'text-stone-500' : 'text-white/70'}`}>
+                    {segment.description}
+                  </span>
+                  {isSelected && (
+                    <div
+                      className="absolute bottom-0 left-6 right-6 h-1.5 rounded-full"
+                      style={{ background: 'linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%)' }}
+                    />
+                  )}
+                </button>
+              );
+            })}
           </div>
-        </div>
+        </PageHeader>
 
         {/* =============================================
             CLIENT LIST SECTION
