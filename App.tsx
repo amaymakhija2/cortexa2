@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { SettingsProvider } from './context/SettingsContext';
 import { LoginPage } from './components/LoginPage';
@@ -80,51 +80,73 @@ interface SignUpData {
   role: string;
 }
 
+// =============================================================================
+// AUTH PAGES WITH ROUTING
+// =============================================================================
+
+const LoginPageWithNav: React.FC = () => {
+  const navigate = useNavigate();
+  return <LoginPage onSwitchToSignUp={() => navigate('/signup')} />;
+};
+
+const SignUpPageWithNav: React.FC = () => {
+  const navigate = useNavigate();
+  const [signUpData, setSignUpData] = useState<SignUpData | null>(null);
+
+  const handleSignUpComplete = (data: SignUpData) => {
+    setSignUpData(data);
+    // Store data in sessionStorage for onboarding page
+    sessionStorage.setItem('signUpData', JSON.stringify(data));
+    navigate('/onboarding');
+  };
+
+  return (
+    <SignUpPage
+      onSwitchToLogin={() => navigate('/login')}
+      onSignUpComplete={handleSignUpComplete}
+    />
+  );
+};
+
+const OnboardingPageWithNav: React.FC = () => {
+  const navigate = useNavigate();
+
+  // Get sign-up data from sessionStorage
+  const storedData = sessionStorage.getItem('signUpData');
+  const signUpData: SignUpData | null = storedData ? JSON.parse(storedData) : null;
+
+  const handleOnboardingComplete = () => {
+    sessionStorage.removeItem('signUpData');
+    navigate('/login');
+  };
+
+  // Redirect to signup if no data
+  if (!signUpData) {
+    return <Navigate to="/signup" replace />;
+  }
+
+  return (
+    <OnboardingWizard
+      initialData={signUpData}
+      onComplete={handleOnboardingComplete}
+    />
+  );
+};
+
 const ProtectedApp: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [authView, setAuthView] = useState<'login' | 'signup' | 'onboarding'>('login');
-  const [signUpData, setSignUpData] = useState<SignUpData | null>(null);
-
-  // Handle sign-up completion → transition to onboarding
-  const handleSignUpComplete = (data: SignUpData) => {
-    setSignUpData(data);
-    setAuthView('onboarding');
-  };
-
-  // Handle onboarding completion → transition to authenticated state
-  const handleOnboardingComplete = () => {
-    // In a real app, this would set the user as authenticated
-    // For now, we'll just redirect to login with a success state
-    // TODO: Integrate with actual auth flow
-    setAuthView('login');
-    setSignUpData(null);
-  };
 
   if (!isAuthenticated) {
-    // Onboarding flow (after sign-up)
-    if (authView === 'onboarding' && signUpData) {
-      return (
-        <OnboardingWizard
-          initialData={signUpData}
-          onComplete={handleOnboardingComplete}
-        />
-      );
-    }
-
-    // Sign-up flow
-    if (authView === 'signup') {
-      return (
-        <SignUpPage
-          onSwitchToLogin={() => setAuthView('login')}
-          onSignUpComplete={handleSignUpComplete}
-        />
-      );
-    }
-
-    // Default: Login flow
-    return <LoginPage onSwitchToSignUp={() => setAuthView('signup')} />;
+    return (
+      <Routes>
+        <Route path="/login" element={<LoginPageWithNav />} />
+        <Route path="/signup" element={<SignUpPageWithNav />} />
+        <Route path="/onboarding" element={<OnboardingPageWithNav />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    );
   }
 
   // Dynamic margin based on sidebar state
