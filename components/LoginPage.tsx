@@ -314,7 +314,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignUp }) => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1 }}
-        className="hidden lg:block lg:w-1/2 xl:w-3/5 relative overflow-hidden"
+        className="hidden lg:block lg:w-1/2 relative overflow-hidden"
       >
         <FallingLinesCanvas />
 
@@ -336,7 +336,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignUp }) => {
       </motion.div>
 
       {/* RIGHT SIDE - Login Form */}
-      <div className="w-full lg:w-1/2 xl:w-2/5 h-full relative flex items-center justify-center bg-stone-900">
+      <div className="w-full lg:w-1/2 h-full relative flex items-center justify-center bg-stone-900">
         {/* Noise texture overlay */}
         <div className="absolute inset-0 noise-overlay pointer-events-none" />
 

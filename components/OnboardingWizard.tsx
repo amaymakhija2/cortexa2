@@ -127,13 +127,13 @@ const StepSelectEhr: React.FC<{
 
   return (
     <div className="space-y-8">
-      <div>
-        <h2 className="font-display text-4xl text-white mb-3">Which EHR do you use?</h2>
+      <div className="mb-2">
+        <h2 className="font-display text-4xl text-white mb-4">Which EHR do you use?</h2>
         <p className="font-body text-stone-400 text-lg">We'll connect to pull your practice data automatically.</p>
       </div>
 
       {/* Popular EHRs */}
-      <div className="space-y-3">
+      <div className="space-y-4">
         <p className="font-body text-sm text-stone-500 uppercase tracking-wider font-medium">Popular</p>
         <div className="grid grid-cols-1 gap-3">
           {popularEhrs.map((ehr) => (
@@ -156,7 +156,7 @@ const StepSelectEhr: React.FC<{
       </div>
 
       {/* Other EHRs */}
-      <div className="space-y-3">
+      <div className="space-y-4">
         <p className="font-body text-sm text-stone-500 uppercase tracking-wider font-medium">Others</p>
         <div className="grid grid-cols-2 gap-3">
           {otherEhrs.map((ehr) => (
@@ -216,12 +216,12 @@ const StepLegalAgreements: React.FC<{
 
   return (
     <div className="space-y-8">
-      <div>
-        <h2 className="font-display text-4xl text-white mb-3">Quick legal stuff</h2>
+      <div className="mb-2">
+        <h2 className="font-display text-4xl text-white mb-4">Quick legal stuff</h2>
         <p className="font-body text-stone-400 text-lg">We take your data security seriously.</p>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-5">
         {/* Terms */}
         <div
           onClick={onToggleTerms}
@@ -358,10 +358,10 @@ const StepConnectEhr: React.FC<{
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Header with clear explanation */}
-      <div>
-        <h2 className="font-display text-3xl text-white mb-3">Connect {ehrName}</h2>
+      <div className="mb-2">
+        <h2 className="font-display text-4xl text-white mb-4">Connect {ehrName}</h2>
         <p className="font-body text-stone-300 text-lg leading-relaxed">
           To access your practice data, we need a <span className="text-amber-400 font-medium">Biller account</span> in {ehrName}.
           Create one using the details below — this gives Cortexa read-only access to generate your insights.
@@ -369,7 +369,7 @@ const StepConnectEhr: React.FC<{
       </div>
 
       {/* Copy Fields - Large and readable */}
-      <div className="space-y-4 py-2">
+      <div className="space-y-5">
         <CopyField
           label="First Name"
           value={copyValues.firstName}
@@ -604,12 +604,12 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ initialData,
         }
       `}</style>
 
-      {/* LEFT SIDE - Falling Lines Animation */}
+      {/* LEFT SIDE - Falling Lines Animation (50% width) */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1 }}
-        className="hidden lg:block lg:w-1/2 xl:w-3/5 relative overflow-hidden"
+        className="hidden lg:block lg:w-1/2 relative overflow-hidden"
       >
         <FallingLinesCanvas />
         <div className="absolute inset-0 pointer-events-none bg-gradient-to-r from-transparent via-transparent to-black/30" />
@@ -628,8 +628,8 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ initialData,
         </motion.div>
       </motion.div>
 
-      {/* RIGHT SIDE - Onboarding Content */}
-      <div className="w-full lg:w-1/2 xl:w-2/5 h-full relative flex flex-col bg-stone-900 overflow-hidden">
+      {/* RIGHT SIDE - Onboarding Content (50% width) */}
+      <div className="w-full lg:w-1/2 h-full relative flex flex-col bg-stone-900 overflow-hidden">
         {/* Noise overlay */}
         <div className="absolute inset-0 noise-overlay pointer-events-none" />
 
@@ -639,12 +639,12 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ initialData,
 
         {/* Header */}
         <header className="relative z-10 px-10 py-6 flex items-center justify-between border-b border-stone-800/50">
-          <h1 className="font-display text-2xl text-white">Cortexa</h1>
+          <h1 className="font-display text-3xl text-white">Cortexa</h1>
           <ProgressIndicator currentStep={currentStep} />
         </header>
 
         {/* Content - Scrollable for mobile, centered on desktop */}
-        <main className="relative z-10 flex-1 overflow-y-auto px-10 py-8">
+        <main className="relative z-10 flex-1 overflow-y-auto px-10 py-10">
           <div className="w-full max-w-lg mx-auto">
             <AnimatePresence mode="wait">
               <motion.div
