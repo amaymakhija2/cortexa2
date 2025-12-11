@@ -218,8 +218,8 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSwitchToLogin, onSignU
           <ProgressIndicator />
         </header>
 
-        {/* Content - Scrollable */}
-        <main className="relative z-10 flex-1 overflow-y-auto px-10 py-10">
+        {/* Content - No scrolling, everything must fit */}
+        <main className="relative z-10 flex-1 flex items-center px-10 py-6 overflow-hidden">
           <div className="w-full max-w-lg mx-auto">
             <AnimatePresence mode="wait">
               {success ? (
@@ -289,9 +289,16 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSwitchToLogin, onSignU
                   {/* Header */}
                   <div className="mb-10">
                     <h2 className="font-display text-4xl text-white mb-4">Get started</h2>
-                    <p className="font-body text-stone-400 text-lg">
-                      Tell us about yourself and your practice to begin.
+                    <p className="font-body text-stone-300 text-lg leading-relaxed">
+                      See what's really happening in your practice —<br />
+                      <span className="text-stone-400">no spreadsheets, no guesswork.</span>
                     </p>
+                    <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-stone-800/80 border border-stone-700/50">
+                      <svg className="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span className="font-body text-sm text-stone-400">Takes about 5 minutes</span>
+                    </div>
                   </div>
 
                   {/* Error Message */}

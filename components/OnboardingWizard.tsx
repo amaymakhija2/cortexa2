@@ -126,14 +126,30 @@ const StepSelectEhr: React.FC<{
   const otherEhrs = EHR_OPTIONS.filter(e => !e.popular);
 
   return (
-    <div className="space-y-8">
-      <div className="mb-2">
-        <h2 className="font-display text-4xl text-white mb-4">Which EHR do you use?</h2>
+    <div className="space-y-6">
+      <div>
+        <h2 className="font-display text-4xl text-white mb-3">Which EHR do you use?</h2>
         <p className="font-body text-stone-400 text-lg">We'll connect to pull your practice data automatically.</p>
+        {/* HIPAA + Read-only trust signals */}
+        <div className="mt-4 flex items-center gap-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-stone-800/80 border border-stone-700/50">
+            <svg className="w-4 h-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+            <span className="font-body text-sm text-stone-400">HIPAA Compliant</span>
+          </div>
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-stone-800/80 border border-stone-700/50">
+            <svg className="w-4 h-4 text-stone-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            <span className="font-body text-sm text-stone-400">Read-only access</span>
+          </div>
+        </div>
       </div>
 
       {/* Popular EHRs */}
-      <div className="space-y-4">
+      <div className="space-y-3">
         <p className="font-body text-sm text-stone-500 uppercase tracking-wider font-medium">Popular</p>
         <div className="grid grid-cols-1 gap-3">
           {popularEhrs.map((ehr) => (
@@ -141,7 +157,7 @@ const StepSelectEhr: React.FC<{
               key={ehr.id}
               onClick={() => onSelect(ehr.id)}
               className={`
-                p-5 rounded-2xl border-2 text-left transition-all duration-200
+                p-4 rounded-xl border-2 text-left transition-all duration-200
                 ${selectedEhr === ehr.id
                   ? 'border-amber-500 bg-amber-500/10'
                   : 'border-stone-700/50 bg-stone-800/50 hover:border-stone-600'}
@@ -156,7 +172,7 @@ const StepSelectEhr: React.FC<{
       </div>
 
       {/* Other EHRs */}
-      <div className="space-y-4">
+      <div className="space-y-3">
         <p className="font-body text-sm text-stone-500 uppercase tracking-wider font-medium">Others</p>
         <div className="grid grid-cols-2 gap-3">
           {otherEhrs.map((ehr) => (
@@ -164,7 +180,7 @@ const StepSelectEhr: React.FC<{
               key={ehr.id}
               onClick={() => onSelect(ehr.id)}
               className={`
-                p-4 rounded-xl border-2 text-left transition-all duration-200
+                p-3 rounded-xl border-2 text-left transition-all duration-200
                 ${selectedEhr === ehr.id
                   ? 'border-amber-500 bg-amber-500/10'
                   : 'border-stone-700/50 bg-stone-800/50 hover:border-stone-600'}
@@ -358,37 +374,100 @@ const StepConnectEhr: React.FC<{
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Header with clear explanation */}
-      <div className="mb-2">
-        <h2 className="font-display text-4xl text-white mb-4">Connect {ehrName}</h2>
+      <div>
+        <h2 className="font-display text-4xl text-white mb-3">Connect {ehrName}</h2>
         <p className="font-body text-stone-300 text-lg leading-relaxed">
-          To access your practice data, we need a <span className="text-amber-400 font-medium">Biller account</span> in {ehrName}.
-          Create one using the details below — this gives Cortexa read-only access to generate your insights.
+          Create a <span className="text-amber-400 font-medium">Biller account</span> in {ehrName} using these details.
+          This gives Cortexa read-only access — we can never modify your data.
         </p>
       </div>
 
-      {/* Copy Fields - Large and readable */}
-      <div className="space-y-5">
-        <CopyField
-          label="First Name"
-          value={copyValues.firstName}
-          copied={copiedField === 'firstName'}
-          onCopy={() => handleCopy('firstName', copyValues.firstName)}
-        />
-        <CopyField
-          label="Last Name"
-          value={copyValues.lastName}
-          copied={copiedField === 'lastName'}
-          onCopy={() => handleCopy('lastName', copyValues.lastName)}
-        />
-        <CopyField
-          label="Email"
-          value={copyValues.email}
-          copied={copiedField === 'email'}
-          onCopy={() => handleCopy('email', copyValues.email)}
-          highlight
-        />
+      {/* Copy Fields - Individual copy buttons */}
+      <div className="p-5 rounded-2xl bg-stone-800/50 border border-stone-700/50 space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="font-body text-sm text-stone-500 mb-1">First Name</p>
+            <p className="font-body text-xl text-white font-medium">{copyValues.firstName}</p>
+          </div>
+          <motion.button
+            onClick={() => handleCopy('firstName', copyValues.firstName)}
+            whileTap={{ scale: 0.95 }}
+            className={`px-4 py-2 rounded-lg font-body text-sm font-semibold transition-all ${
+              copiedField === 'firstName'
+                ? 'bg-green-500/20 text-green-400'
+                : 'bg-amber-500 text-stone-900 hover:bg-amber-400'
+            }`}
+          >
+            {copiedField === 'firstName' ? 'Copied!' : 'Copy'}
+          </motion.button>
+        </div>
+        <div className="border-t border-stone-700/50" />
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="font-body text-sm text-stone-500 mb-1">Last Name</p>
+            <p className="font-body text-xl text-white font-medium">{copyValues.lastName}</p>
+          </div>
+          <motion.button
+            onClick={() => handleCopy('lastName', copyValues.lastName)}
+            whileTap={{ scale: 0.95 }}
+            className={`px-4 py-2 rounded-lg font-body text-sm font-semibold transition-all ${
+              copiedField === 'lastName'
+                ? 'bg-green-500/20 text-green-400'
+                : 'bg-amber-500 text-stone-900 hover:bg-amber-400'
+            }`}
+          >
+            {copiedField === 'lastName' ? 'Copied!' : 'Copy'}
+          </motion.button>
+        </div>
+        <div className="border-t border-stone-700/50" />
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="font-body text-sm text-stone-500 mb-1">Email</p>
+            <p className="font-mono text-lg text-amber-400 font-medium">{copyValues.email}</p>
+          </div>
+          <motion.button
+            onClick={() => handleCopy('email', copyValues.email)}
+            whileTap={{ scale: 0.95 }}
+            className={`px-4 py-2 rounded-lg font-body text-sm font-semibold transition-all ${
+              copiedField === 'email'
+                ? 'bg-green-500/20 text-green-400'
+                : 'bg-amber-500 text-stone-900 hover:bg-amber-400'
+            }`}
+          >
+            {copiedField === 'email' ? 'Copied!' : 'Copy'}
+          </motion.button>
+        </div>
+      </div>
+
+      {/* Instructions + Trust Signals Combined */}
+      <div className="p-4 rounded-xl bg-stone-800/30 border border-stone-700/30">
+        <p className="font-body text-stone-300 text-base leading-relaxed mb-3">
+          In {ehrName}: <span className="text-white font-medium">Settings → Team Members → Add New</span>.
+          Select <span className="text-white font-medium">"Biller"</span> as the role. <span className="text-stone-400">No permissions required — leave all unchecked.</span>
+        </p>
+        <div className="flex items-center gap-5">
+          <div className="flex items-center gap-2">
+            <svg className="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            <span className="font-body text-sm text-stone-400">Read-only</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <svg className="w-4 h-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+            <span className="font-body text-sm text-stone-400">HIPAA Compliant</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <svg className="w-4 h-4 text-stone-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            <span className="font-body text-sm text-stone-400">Encrypted</span>
+          </div>
+        </div>
       </div>
 
       {/* Open EHR Button */}
@@ -397,9 +476,9 @@ const StepConnectEhr: React.FC<{
         whileHover={{ scale: 1.01 }}
         whileTap={{ scale: 0.99 }}
         className={`
-          w-full py-4 rounded-2xl font-body text-lg font-semibold transition-all duration-300 flex items-center justify-center gap-3
+          w-full py-4 rounded-xl font-body text-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2
           ${hasOpenedEhr
-            ? 'bg-stone-800 text-stone-300 border-2 border-stone-700'
+            ? 'bg-stone-800 text-stone-300 border border-stone-700'
             : 'bg-white text-stone-900 hover:shadow-lg hover:shadow-white/10'}
         `}
       >
@@ -420,20 +499,12 @@ const StepConnectEhr: React.FC<{
         )}
       </motion.button>
 
-      {/* Instructions */}
-      <div className="p-4 rounded-xl bg-stone-800/50 border border-stone-700/50">
-        <p className="font-body text-stone-400 text-base leading-relaxed">
-          In {ehrName}: <span className="text-stone-200">Settings → Team Members → Add New</span>.
-          Paste the values above and select <span className="text-stone-200">"Biller"</span> as the role.
-        </p>
-      </div>
-
       {/* Status */}
       {connectionStatus === 'waiting' && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="p-4 rounded-xl bg-amber-500/10 border-2 border-amber-500/30 flex items-center gap-3"
+          className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center gap-3"
         >
           <div className="w-5 h-5 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
           <p className="font-body text-amber-400 text-lg">Checking for connection...</p>
@@ -441,10 +512,10 @@ const StepConnectEhr: React.FC<{
       )}
 
       {/* Bottom Buttons */}
-      <div className="flex gap-4 pt-2">
+      <div className="flex gap-4">
         <button
           onClick={onBack}
-          className="px-6 py-4 rounded-2xl font-body text-lg font-medium text-stone-500 hover:text-white transition-colors"
+          className="px-6 py-4 rounded-xl font-body text-lg font-medium text-stone-500 hover:text-white transition-colors"
         >
           Back
         </button>
@@ -454,7 +525,7 @@ const StepConnectEhr: React.FC<{
           whileHover={connectionStatus !== 'waiting' ? { scale: 1.01 } : {}}
           whileTap={connectionStatus !== 'waiting' ? { scale: 0.99 } : {}}
           className={`
-            flex-1 py-4 rounded-2xl font-body text-lg font-semibold transition-all duration-300
+            flex-1 py-4 rounded-xl font-body text-lg font-semibold transition-all duration-300
             ${connectionStatus === 'waiting'
               ? 'bg-stone-700 text-stone-500 cursor-not-allowed'
               : 'bg-amber-500 text-stone-900 hover:bg-amber-400'}
@@ -464,12 +535,29 @@ const StepConnectEhr: React.FC<{
         </motion.button>
       </div>
 
-      {/* Help Link */}
-      <p className="text-center">
-        <button className="font-body text-stone-500 hover:text-stone-300 text-base transition-colors">
-          Need help? Watch a quick video →
+      {/* Help Options */}
+      <div className="flex items-center justify-center gap-4">
+        <span className="font-body text-stone-400 text-base">Need help?</span>
+        <button
+          onClick={() => window.open('https://calendly.com/cortexa', '_blank')}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 font-body text-base font-medium hover:bg-amber-500/20 transition-all"
+        >
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+          </svg>
+          Book a call
         </button>
-      </p>
+        <button
+          onClick={() => window.open('https://www.loom.com/cortexa-setup', '_blank')}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-stone-700/50 border border-stone-600/50 text-stone-300 font-body text-base font-medium hover:bg-stone-700 transition-all"
+        >
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Watch video
+        </button>
+      </div>
     </div>
   );
 };
@@ -546,17 +634,36 @@ const StepConnected: React.FC<{
       )}
 
       {status === 'ready' && (
-        <motion.button
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          onClick={onComplete}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          className="px-12 py-4 rounded-2xl font-body text-xl font-semibold bg-white text-stone-900 hover:shadow-lg hover:shadow-white/10 transition-all"
-        >
-          Go to Dashboard →
-        </motion.button>
+        <>
+          <motion.button
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            onClick={onComplete}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="px-12 py-4 rounded-2xl font-body text-xl font-semibold bg-white text-stone-900 hover:shadow-lg hover:shadow-white/10 transition-all"
+          >
+            Go to Dashboard →
+          </motion.button>
+
+          {/* Social proof - reinforces they made the right choice */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+            className="mt-10 max-w-md mx-auto"
+          >
+            <div className="p-5 rounded-2xl bg-stone-800/50 border border-stone-700/50">
+              <p className="font-body text-stone-300 text-base italic leading-relaxed">
+                "I finally know what's happening in my practice without digging through spreadsheets."
+              </p>
+              <p className="font-body text-stone-500 text-sm mt-3">
+                — Practice Owner, Brooklyn
+              </p>
+            </div>
+          </motion.div>
+        </>
       )}
     </div>
   );
@@ -643,8 +750,8 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ initialData,
           <ProgressIndicator currentStep={currentStep} />
         </header>
 
-        {/* Content - Scrollable for mobile, centered on desktop */}
-        <main className="relative z-10 flex-1 overflow-y-auto px-10 py-10">
+        {/* Content - No scrolling, everything must fit */}
+        <main className="relative z-10 flex-1 flex items-center px-10 py-6 overflow-hidden">
           <div className="w-full max-w-lg mx-auto">
             <AnimatePresence mode="wait">
               <motion.div
