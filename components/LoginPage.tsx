@@ -238,7 +238,11 @@ const FallingLinesCanvas: React.FC = () => {
 // MAIN LOGIN PAGE COMPONENT
 // ============================================================================
 
-export const LoginPage: React.FC = () => {
+interface LoginPageProps {
+  onSwitchToSignUp?: () => void;
+}
+
+export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignUp }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -528,11 +532,23 @@ export const LoginPage: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.7, duration: 0.6 }}
-            className="mt-14 text-center"
+            className="mt-14 text-center space-y-3"
           >
             <p className="font-body text-stone-500 text-base">
               Secure access to your practice analytics
             </p>
+            {onSwitchToSignUp && (
+              <p className="font-body text-stone-500 text-base">
+                Don't have an account?{' '}
+                <button
+                  type="button"
+                  onClick={onSwitchToSignUp}
+                  className="text-amber-500 hover:text-amber-400 transition-colors font-medium"
+                >
+                  Sign up
+                </button>
+              </p>
+            )}
           </motion.div>
 
           {/* Decorative line */}

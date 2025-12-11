@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { SettingsProvider } from './context/SettingsContext';
 import { LoginPage } from './components/LoginPage';
+import { SignUpPage } from './components/SignUpPage';
+import { OnboardingWizard } from './components/OnboardingWizard';
 import { Sidebar } from './components/Sidebar';
 import { BottomNav } from './components/BottomNav';
 import { Dashboard } from './components/Dashboard';
@@ -69,13 +71,60 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({ onMenuOpen }) => {
   );
 };
 
+// Types for onboarding data
+interface SignUpData {
+  name: string;
+  email: string;
+  practiceName: string;
+  phone: string;
+  role: string;
+}
+
 const ProtectedApp: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [authView, setAuthView] = useState<'login' | 'signup' | 'onboarding'>('login');
+  const [signUpData, setSignUpData] = useState<SignUpData | null>(null);
+
+  // Handle sign-up completion → transition to onboarding
+  const handleSignUpComplete = (data: SignUpData) => {
+    setSignUpData(data);
+    setAuthView('onboarding');
+  };
+
+  // Handle onboarding completion → transition to authenticated state
+  const handleOnboardingComplete = () => {
+    // In a real app, this would set the user as authenticated
+    // For now, we'll just redirect to login with a success state
+    // TODO: Integrate with actual auth flow
+    setAuthView('login');
+    setSignUpData(null);
+  };
 
   if (!isAuthenticated) {
-    return <LoginPage />;
+    // Onboarding flow (after sign-up)
+    if (authView === 'onboarding' && signUpData) {
+      return (
+        <OnboardingWizard
+          initialData={signUpData}
+          onComplete={handleOnboardingComplete}
+        />
+      );
+    }
+
+    // Sign-up flow
+    if (authView === 'signup') {
+      return (
+        <SignUpPage
+          onSwitchToLogin={() => setAuthView('login')}
+          onSignUpComplete={handleSignUpComplete}
+        />
+      );
+    }
+
+    // Default: Login flow
+    return <LoginPage onSwitchToSignUp={() => setAuthView('signup')} />;
   }
 
   // Dynamic margin based on sidebar state
