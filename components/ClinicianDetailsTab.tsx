@@ -10,6 +10,7 @@ import {
   ActionButton,
   StatCard,
   AnimatedGrid,
+  DonutChartCard,
 } from './design-system';
 
 // =============================================================================
@@ -247,6 +248,106 @@ const CLINICIAN_FINANCIAL_DATA: Record<number, {
   },
 };
 
+// Mock monthly session data for each clinician (12 months)
+const CLINICIAN_SESSION_DATA: Record<number, {
+  monthlySessions: {
+    month: string;
+    completed: number;
+    booked: number;
+    clientCancelled: number;
+    clinicianCancelled: number;
+    lateCancelled: number;
+    noShow: number;
+  }[];
+  sessionGoal: number;
+}> = {
+  1: { // Sarah Chen - Clinical Director (high performer)
+    monthlySessions: [
+      { month: 'Jan', completed: 42, booked: 48, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+      { month: 'Feb', completed: 44, booked: 50, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+      { month: 'Mar', completed: 40, booked: 46, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+      { month: 'Apr', completed: 45, booked: 51, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+      { month: 'May', completed: 43, booked: 49, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+      { month: 'Jun', completed: 41, booked: 47, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+      { month: 'Jul', completed: 38, booked: 44, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+      { month: 'Aug', completed: 42, booked: 48, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+      { month: 'Sep', completed: 46, booked: 52, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+      { month: 'Oct', completed: 44, booked: 50, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+      { month: 'Nov', completed: 39, booked: 45, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+      { month: 'Dec', completed: 33, booked: 40, clientCancelled: 4, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+    ],
+    sessionGoal: 40,
+  },
+  2: { // Maria Rodriguez - Senior Therapist
+    monthlySessions: [
+      { month: 'Jan', completed: 36, booked: 42, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+      { month: 'Feb', completed: 38, booked: 44, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+      { month: 'Mar', completed: 35, booked: 41, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+      { month: 'Apr', completed: 39, booked: 45, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+      { month: 'May', completed: 36, booked: 42, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+      { month: 'Jun', completed: 34, booked: 40, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+      { month: 'Jul', completed: 32, booked: 38, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+      { month: 'Aug', completed: 35, booked: 41, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+      { month: 'Sep', completed: 37, booked: 43, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+      { month: 'Oct', completed: 36, booked: 42, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+      { month: 'Nov', completed: 33, booked: 39, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+      { month: 'Dec', completed: 31, booked: 38, clientCancelled: 4, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+    ],
+    sessionGoal: 35,
+  },
+  3: { // Priya Patel - Therapist (needs attention)
+    monthlySessions: [
+      { month: 'Jan', completed: 32, booked: 40, clientCancelled: 4, clinicianCancelled: 1, lateCancelled: 2, noShow: 1 },
+      { month: 'Feb', completed: 33, booked: 42, clientCancelled: 5, clinicianCancelled: 1, lateCancelled: 2, noShow: 1 },
+      { month: 'Mar', completed: 30, booked: 39, clientCancelled: 5, clinicianCancelled: 1, lateCancelled: 2, noShow: 1 },
+      { month: 'Apr', completed: 31, booked: 40, clientCancelled: 5, clinicianCancelled: 1, lateCancelled: 2, noShow: 1 },
+      { month: 'May', completed: 29, booked: 38, clientCancelled: 5, clinicianCancelled: 1, lateCancelled: 2, noShow: 1 },
+      { month: 'Jun', completed: 27, booked: 36, clientCancelled: 5, clinicianCancelled: 1, lateCancelled: 2, noShow: 1 },
+      { month: 'Jul', completed: 25, booked: 34, clientCancelled: 5, clinicianCancelled: 1, lateCancelled: 2, noShow: 1 },
+      { month: 'Aug', completed: 28, booked: 37, clientCancelled: 5, clinicianCancelled: 1, lateCancelled: 2, noShow: 1 },
+      { month: 'Sep', completed: 26, booked: 35, clientCancelled: 5, clinicianCancelled: 1, lateCancelled: 2, noShow: 1 },
+      { month: 'Oct', completed: 27, booked: 36, clientCancelled: 5, clinicianCancelled: 1, lateCancelled: 2, noShow: 1 },
+      { month: 'Nov', completed: 25, booked: 34, clientCancelled: 5, clinicianCancelled: 1, lateCancelled: 2, noShow: 1 },
+      { month: 'Dec', completed: 29, booked: 38, clientCancelled: 5, clinicianCancelled: 1, lateCancelled: 2, noShow: 1 },
+    ],
+    sessionGoal: 35,
+  },
+  4: { // James Kim - Associate Therapist (ramping up)
+    monthlySessions: [
+      { month: 'Jan', completed: 22, booked: 26, clientCancelled: 2, clinicianCancelled: 1, lateCancelled: 1, noShow: 0 },
+      { month: 'Feb', completed: 24, booked: 28, clientCancelled: 2, clinicianCancelled: 1, lateCancelled: 1, noShow: 0 },
+      { month: 'Mar', completed: 25, booked: 29, clientCancelled: 2, clinicianCancelled: 1, lateCancelled: 1, noShow: 0 },
+      { month: 'Apr', completed: 26, booked: 30, clientCancelled: 2, clinicianCancelled: 1, lateCancelled: 1, noShow: 0 },
+      { month: 'May', completed: 27, booked: 31, clientCancelled: 2, clinicianCancelled: 1, lateCancelled: 1, noShow: 0 },
+      { month: 'Jun', completed: 25, booked: 29, clientCancelled: 2, clinicianCancelled: 1, lateCancelled: 1, noShow: 0 },
+      { month: 'Jul', completed: 24, booked: 28, clientCancelled: 2, clinicianCancelled: 1, lateCancelled: 1, noShow: 0 },
+      { month: 'Aug', completed: 26, booked: 30, clientCancelled: 2, clinicianCancelled: 1, lateCancelled: 1, noShow: 0 },
+      { month: 'Sep', completed: 28, booked: 32, clientCancelled: 2, clinicianCancelled: 1, lateCancelled: 1, noShow: 0 },
+      { month: 'Oct', completed: 26, booked: 30, clientCancelled: 2, clinicianCancelled: 1, lateCancelled: 1, noShow: 0 },
+      { month: 'Nov', completed: 24, booked: 28, clientCancelled: 2, clinicianCancelled: 1, lateCancelled: 1, noShow: 0 },
+      { month: 'Dec', completed: 21, booked: 25, clientCancelled: 2, clinicianCancelled: 1, lateCancelled: 1, noShow: 0 },
+    ],
+    sessionGoal: 25,
+  },
+  5: { // Michael Johnson - Associate Therapist (critical)
+    monthlySessions: [
+      { month: 'Jan', completed: 18, booked: 24, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+      { month: 'Feb', completed: 19, booked: 26, clientCancelled: 4, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+      { month: 'Mar', completed: 17, booked: 24, clientCancelled: 4, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+      { month: 'Apr', completed: 16, booked: 23, clientCancelled: 4, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+      { month: 'May', completed: 15, booked: 22, clientCancelled: 4, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+      { month: 'Jun', completed: 14, booked: 21, clientCancelled: 4, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+      { month: 'Jul', completed: 13, booked: 20, clientCancelled: 4, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+      { month: 'Aug', completed: 14, booked: 21, clientCancelled: 4, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+      { month: 'Sep', completed: 16, booked: 23, clientCancelled: 4, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+      { month: 'Oct', completed: 14, booked: 21, clientCancelled: 4, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+      { month: 'Nov', completed: 13, booked: 20, clientCancelled: 4, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+      { month: 'Dec', completed: 7, booked: 14, clientCancelled: 4, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+    ],
+    sessionGoal: 25,
+  },
+};
+
 type TimePeriod = 'last-12-months' | 'this-year' | 'this-quarter' | 'last-quarter' | 'this-month' | 'last-month' | 'custom';
 
 const TIME_PERIODS: { id: TimePeriod; label: string }[] = [
@@ -465,10 +566,10 @@ export const ClinicianDetailsTab: React.FC = () => {
         textColor: 'text-emerald-600',
       },
       {
-        value: `${momChange >= 0 ? '+' : ''}${momChange.toFixed(1)}%`,
-        label: 'MoM Trend',
-        bgColor: momChange >= 0 ? 'bg-emerald-50' : 'bg-rose-50',
-        textColor: momChange >= 0 ? 'text-emerald-600' : 'text-rose-600',
+        value: `$${financialData.avgRevenuePerSession}`,
+        label: `Per Session (${revenuePerSessionDiff >= 0 ? '+' : ''}$${revenuePerSessionDiff} vs avg)`,
+        bgColor: revenuePerSessionDiff >= 0 ? 'bg-emerald-50' : 'bg-rose-50',
+        textColor: revenuePerSessionDiff >= 0 ? 'text-emerald-600' : 'text-rose-600',
       },
       {
         value: `${monthsAtGoal}/${financialData.monthlyRevenue.length}`,
@@ -477,7 +578,109 @@ export const ClinicianDetailsTab: React.FC = () => {
         textColor: monthsAtGoal >= 6 ? 'text-emerald-600' : 'text-amber-600',
       },
     ];
-  }, [financialData, bestMonth, momChange, monthsAtGoal]);
+  }, [financialData, bestMonth, monthsAtGoal, revenuePerSessionDiff]);
+
+  // ==========================================================================
+  // SESSION COMPUTED VALUES
+  // ==========================================================================
+
+  // Get session data for selected clinician
+  const sessionData = selectedClinician ? CLINICIAN_SESSION_DATA[selectedClinician.id] : null;
+
+  // Session bar chart data
+  const sessionBarData = useMemo(() => {
+    if (!sessionData) return [];
+    return sessionData.monthlySessions.map((item) => ({
+      label: item.month,
+      value: item.completed,
+    }));
+  }, [sessionData]);
+
+  // Session totals
+  const totalCompleted = useMemo(() => {
+    if (!sessionData) return 0;
+    return sessionData.monthlySessions.reduce((sum, item) => sum + item.completed, 0);
+  }, [sessionData]);
+
+  const totalBooked = useMemo(() => {
+    if (!sessionData) return 0;
+    return sessionData.monthlySessions.reduce((sum, item) => sum + item.booked, 0);
+  }, [sessionData]);
+
+  const totalClientCancelled = useMemo(() => {
+    if (!sessionData) return 0;
+    return sessionData.monthlySessions.reduce((sum, item) => sum + item.clientCancelled, 0);
+  }, [sessionData]);
+
+  const totalClinicianCancelled = useMemo(() => {
+    if (!sessionData) return 0;
+    return sessionData.monthlySessions.reduce((sum, item) => sum + item.clinicianCancelled, 0);
+  }, [sessionData]);
+
+  const totalLateCancelled = useMemo(() => {
+    if (!sessionData) return 0;
+    return sessionData.monthlySessions.reduce((sum, item) => sum + item.lateCancelled, 0);
+  }, [sessionData]);
+
+  const totalNoShow = useMemo(() => {
+    if (!sessionData) return 0;
+    return sessionData.monthlySessions.reduce((sum, item) => sum + item.noShow, 0);
+  }, [sessionData]);
+
+  // Show rate calculation
+  const showRate = useMemo(() => {
+    if (!totalBooked) return 0;
+    return (totalCompleted / totalBooked) * 100;
+  }, [totalCompleted, totalBooked]);
+
+  // Months hitting session goal
+  const sessionMonthsAtGoal = useMemo(() => {
+    if (!sessionData) return 0;
+    return sessionData.monthlySessions.filter((item) => item.completed >= sessionData.sessionGoal).length;
+  }, [sessionData]);
+
+  // Best session month
+  const bestSessionMonth = useMemo(() => {
+    if (!sessionData || sessionData.monthlySessions.length === 0) return { month: '-', value: 0 };
+    return sessionData.monthlySessions.reduce((best, item) =>
+      item.completed > best.value ? { month: item.month, value: item.completed } : best,
+      { month: sessionData.monthlySessions[0].month, value: sessionData.monthlySessions[0].completed }
+    );
+  }, [sessionData]);
+
+  // Attendance donut segments
+  const attendanceSegments = useMemo(() => [
+    { label: 'Attended', value: totalCompleted, color: '#10b981' },
+    { label: 'Client Cancelled', value: totalClientCancelled, color: '#ef4444' },
+    { label: 'Clinician Cancelled', value: totalClinicianCancelled, color: '#3b82f6' },
+    { label: 'Late Cancelled', value: totalLateCancelled, color: '#f59e0b' },
+    { label: 'No Show', value: totalNoShow, color: '#6b7280' },
+  ], [totalCompleted, totalClientCancelled, totalClinicianCancelled, totalLateCancelled, totalNoShow]);
+
+  // Session insights for chart
+  const sessionInsights = useMemo(() => {
+    if (!sessionData) return [];
+    return [
+      {
+        value: bestSessionMonth.month,
+        label: `Best (${bestSessionMonth.value})`,
+        bgColor: 'bg-emerald-50',
+        textColor: 'text-emerald-600',
+      },
+      {
+        value: `${showRate.toFixed(0)}%`,
+        label: 'Show Rate',
+        bgColor: showRate >= 85 ? 'bg-emerald-50' : 'bg-amber-50',
+        textColor: showRate >= 85 ? 'text-emerald-600' : 'text-amber-600',
+      },
+      {
+        value: `${sessionMonthsAtGoal}/${sessionData.monthlySessions.length}`,
+        label: 'Hit Goal',
+        bgColor: sessionMonthsAtGoal >= 6 ? 'bg-emerald-50' : 'bg-amber-50',
+        textColor: sessionMonthsAtGoal >= 6 ? 'text-emerald-600' : 'text-amber-600',
+      },
+    ];
+  }, [sessionData, bestSessionMonth, showRate, sessionMonthsAtGoal]);
 
   return (
     <>
@@ -538,7 +741,7 @@ export const ClinicianDetailsTab: React.FC = () => {
           />
         </div>
 
-        <div className="relative px-6 sm:px-8 lg:px-12 pt-4 pb-6 lg:pt-5 lg:pb-8" style={{ zIndex: 1 }}>
+        <div className="relative px-6 sm:px-8 lg:px-12 py-8 lg:py-10" style={{ zIndex: 1 }}>
 
           {/* =====================================================
               DEFAULT MODE - Standard header with selectors on right
@@ -1228,15 +1431,72 @@ export const ClinicianDetailsTab: React.FC = () => {
               showAccentLine={false}
               compact
             />
+            {/* Revenue Over Time Chart - Full Width */}
+            <ChartCard
+              title="Revenue Over Time"
+              subtitle="Monthly revenue with goal tracking"
+              headerControls={
+                <>
+                  <GoalIndicator
+                    value={formatCurrencyShort(financialData.revenueGoal)}
+                    label="Goal"
+                    color="amber"
+                  />
+                  <ActionButton
+                    label="Details"
+                    icon={<ArrowRight size={16} />}
+                  />
+                </>
+              }
+              insights={revenueInsights}
+              minHeight="420px"
+            >
+              <BarChart
+                data={revenueBarData}
+                mode="single"
+                goal={{ value: financialData.revenueGoal }}
+                getBarColor={(value) =>
+                  value >= financialData.revenueGoal
+                    ? {
+                        gradient: 'linear-gradient(180deg, #34d399 0%, #059669 100%)',
+                        shadow: '0 4px 12px -2px rgba(16, 185, 129, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
+                        textColor: 'text-emerald-600',
+                      }
+                    : {
+                        gradient: 'linear-gradient(180deg, #60a5fa 0%, #2563eb 100%)',
+                        shadow: '0 4px 12px -2px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
+                        textColor: 'text-blue-600',
+                      }
+                }
+                formatValue={formatCurrencyShort}
+                height="280px"
+              />
+            </ChartCard>
+          </SectionContainer>
+          )}
+
+          {/* ---------------------------------------------------------
+              SECTION 3: Session Performance
+              --------------------------------------------------------- */}
+          {isSpotlightMode && selectedClinician && sessionData && (
+          <SectionContainer accent="cyan" index={selectedClinician.healthStatus !== 'healthy' ? 2 : 1}>
+            <SectionHeader
+              number={selectedClinician.healthStatus !== 'healthy' ? 3 : 2}
+              question="How are their sessions performing?"
+              description="Session volume, attendance breakdown, and show rates"
+              accent="cyan"
+              showAccentLine={false}
+              compact
+            />
             <Grid cols={2}>
-              {/* Revenue Over Time Chart */}
+              {/* Completed Sessions Chart */}
               <ChartCard
-                title="Revenue Over Time"
-                subtitle="Monthly revenue with goal tracking"
+                title="Completed Sessions"
+                subtitle="Monthly session volume"
                 headerControls={
                   <>
                     <GoalIndicator
-                      value={formatCurrencyShort(financialData.revenueGoal)}
+                      value={sessionData.sessionGoal}
                       label="Goal"
                       color="amber"
                     />
@@ -1246,15 +1506,15 @@ export const ClinicianDetailsTab: React.FC = () => {
                     />
                   </>
                 }
-                insights={revenueInsights}
+                insights={sessionInsights}
                 minHeight="420px"
               >
                 <BarChart
-                  data={revenueBarData}
+                  data={sessionBarData}
                   mode="single"
-                  goal={{ value: financialData.revenueGoal }}
+                  goal={{ value: sessionData.sessionGoal }}
                   getBarColor={(value) =>
-                    value >= financialData.revenueGoal
+                    value >= sessionData.sessionGoal
                       ? {
                           gradient: 'linear-gradient(180deg, #34d399 0%, #059669 100%)',
                           shadow: '0 4px 12px -2px rgba(16, 185, 129, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
@@ -1266,43 +1526,21 @@ export const ClinicianDetailsTab: React.FC = () => {
                           textColor: 'text-blue-600',
                         }
                   }
-                  formatValue={formatCurrencyShort}
+                  formatValue={(v) => v.toString()}
                   height="280px"
                 />
               </ChartCard>
 
-              {/* Revenue per Session - Using StatCard */}
-              <StatCard
-                title="Revenue per Session"
-                value={`$${financialData.avgRevenuePerSession}`}
-                subtitle={`${revenuePerSessionDiff >= 0 ? '+' : ''}$${revenuePerSessionDiff} vs $${financialData.teamAvgPerSession} team avg`}
-                variant={revenuePerSessionDiff >= 0 ? 'positive' : 'negative'}
-                className="h-full min-h-[420px]"
+              {/* Attendance Breakdown Donut */}
+              <DonutChartCard
+                title="Attendance Breakdown"
+                subtitle={`${showRate >= 87.5 ? '+' : ''}${(showRate - 87.5).toFixed(1)}% vs 87.5% practice avg`}
+                segments={attendanceSegments}
+                centerLabel="Show Rate"
+                centerValue={`${showRate.toFixed(1)}%`}
+                centerValueColor={showRate >= 87.5 ? 'text-emerald-600' : 'text-rose-600'}
+                valueFormat="number"
               />
-            </Grid>
-          </SectionContainer>
-          )}
-
-          {/* ---------------------------------------------------------
-              SECTION 3: Session Performance
-              --------------------------------------------------------- */}
-          {isSpotlightMode && selectedClinician && (
-          <SectionContainer accent="cyan" index={selectedClinician.healthStatus !== 'healthy' ? 2 : 1}>
-            <SectionHeader
-              number={selectedClinician.healthStatus !== 'healthy' ? 3 : 2}
-              question="How are their sessions performing?"
-              description="Session volume, attendance breakdown, and show rates"
-              accent="cyan"
-              showAccentLine={false}
-              compact
-            />
-            <Grid cols={2}>
-              <div className="h-64 bg-stone-100 rounded-2xl flex items-center justify-center text-stone-400">
-                Sessions Over Time Chart
-              </div>
-              <div className="h-64 bg-stone-100 rounded-2xl flex items-center justify-center text-stone-400">
-                Attendance Breakdown Donut
-              </div>
             </Grid>
           </SectionContainer>
           )}
