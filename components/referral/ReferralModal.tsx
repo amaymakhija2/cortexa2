@@ -152,8 +152,8 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({ isOpen, onClose })
                 </div>
               </div>
 
-              {/* Tab Content */}
-              <div className="relative px-8 pb-10 pt-8">
+              {/* Tab Content - Fixed height to prevent layout shift */}
+              <div className="relative px-8 pb-10 pt-8" style={{ minHeight: '480px' }}>
                 <AnimatePresence mode="wait">
                   {activeTab === 'invite' ? (
                     <motion.div
