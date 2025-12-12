@@ -827,7 +827,7 @@ export const SettingsPage: React.FC = () => {
                     <div className="flex flex-wrap gap-4 text-sm text-stone-500">
                       <div className="flex items-center gap-2">
                         <Mail size={14} className="text-stone-400" />
-                        <span>sarah.mitchell@cortexa.io</span>
+                        <span>sarah@harmonywellness.com</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Building2 size={14} className="text-stone-400" />
