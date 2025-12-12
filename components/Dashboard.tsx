@@ -7,6 +7,7 @@ import { SimpleAlertCard } from './SimpleAlertCard';
 import { MonthlyReviewCard } from './MonthlyReviewCard';
 import { MonthPicker } from './MonthPicker';
 import { PageHeader, SectionHeader } from './design-system';
+import { ReferralBadge, ReferralModal } from './referral';
 import { PracticeMetrics } from '../types';
 import { useMetrics, useDataDateRange, DashboardMetrics } from '../hooks';
 import { allPriorityCards } from '../data/priorityCardsData';
@@ -149,6 +150,7 @@ export const Dashboard: React.FC = () => {
   const [canScrollRight, setCanScrollRight] = useState(true);
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
   const [viewMode, setViewMode] = useState<'live' | 'historical'>('live');
+  const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
   const now = new Date();
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth()); // 0-11
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
@@ -278,6 +280,9 @@ export const Dashboard: React.FC = () => {
           title={getTitle()}
           actions={
             <div className="flex items-center gap-3">
+              {/* Referral Badge */}
+              <ReferralBadge onClick={() => setIsReferralModalOpen(true)} />
+
               <div className="flex items-center gap-1 p-1 rounded-xl bg-white/10 backdrop-blur-sm">
                 <button
                   onClick={() => setViewMode('live')}
@@ -313,6 +318,12 @@ export const Dashboard: React.FC = () => {
               )}
             </div>
           }
+        />
+
+        {/* Referral Modal */}
+        <ReferralModal
+          isOpen={isReferralModalOpen}
+          onClose={() => setIsReferralModalOpen(false)}
         />
 
         {/* =============================================

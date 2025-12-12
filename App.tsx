@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { SettingsProvider } from './context/SettingsContext';
+import { ReferralProvider } from './components/referral';
 import { LoginPage } from './components/LoginPage';
 import { OnboardingFlow } from './components/OnboardingFlow';
 import { Sidebar } from './components/Sidebar';
@@ -178,7 +179,9 @@ const App: React.FC = () => {
     <Router>
       <AuthProvider>
         <SettingsProvider>
-          <ProtectedApp />
+          <ReferralProvider>
+            <ProtectedApp />
+          </ReferralProvider>
         </SettingsProvider>
       </AuthProvider>
     </Router>
