@@ -77,7 +77,7 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({ isOpen, onClose })
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             className="fixed inset-0 z-[99998]"
-            style={{ background: 'rgba(0, 0, 0, 0.8)', backdropFilter: 'blur(12px)' }}
+            style={{ background: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(8px)' }}
             onClick={onClose}
           />
 
@@ -91,67 +91,69 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({ isOpen, onClose })
             onClick={(e) => e.stopPropagation()}
           >
             <div
-              className="relative w-full max-w-md overflow-hidden"
+              className="relative w-full max-w-xl overflow-hidden"
               style={{
-                background: '#0c0a09',
-                borderRadius: '24px',
-                border: '1px solid rgba(255, 255, 255, 0.06)',
-                boxShadow: '0 40px 80px -20px rgba(0, 0, 0, 0.8)',
+                background: 'linear-gradient(145deg, #1c1917 0%, #292524 100%)',
+                borderRadius: '28px',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                boxShadow: '0 40px 80px -20px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255,255,255,0.05)',
               }}
             >
               {/* Ambient glow */}
               <div
-                className="absolute -top-32 left-1/2 -translate-x-1/2 w-64 h-64 pointer-events-none"
+                className="absolute -top-40 left-1/2 -translate-x-1/2 w-80 h-80 pointer-events-none"
                 style={{
-                  background: 'radial-gradient(circle, rgba(251, 191, 36, 0.15) 0%, transparent 70%)',
+                  background: 'radial-gradient(circle, rgba(251, 191, 36, 0.2) 0%, transparent 60%)',
                 }}
               />
 
               {/* Close button */}
               <button
                 onClick={onClose}
-                className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full flex items-center justify-center text-stone-600 hover:text-stone-400 hover:bg-white/5 transition-all duration-200"
+                className="absolute top-5 right-5 z-10 w-10 h-10 rounded-full flex items-center justify-center text-stone-400 hover:text-white hover:bg-white/10 transition-all duration-200"
               >
-                <X size={18} strokeWidth={1.5} />
+                <X size={20} strokeWidth={1.5} />
               </button>
 
               {/* Tab Navigation */}
-              <div className="relative px-6 pt-6">
+              <div className="relative px-8 pt-8">
                 <div
-                  className="flex p-1 rounded-xl"
-                  style={{ background: 'rgba(255, 255, 255, 0.03)' }}
+                  className="flex p-1.5 rounded-2xl"
+                  style={{ background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255,255,255,0.05)' }}
                 >
                   <button
                     onClick={() => setActiveTab('invite')}
-                    className="flex-1 flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-semibold transition-all duration-300"
+                    className="flex-1 flex items-center justify-center gap-2.5 py-4 rounded-xl text-base font-semibold transition-all duration-300"
                     style={{
                       background: activeTab === 'invite'
-                        ? 'linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(245, 158, 11, 0.1) 100%)'
+                        ? 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)'
                         : 'transparent',
-                      color: activeTab === 'invite' ? '#fcd34d' : '#78716c',
+                      color: activeTab === 'invite' ? '#1c1917' : '#a8a29e',
+                      boxShadow: activeTab === 'invite' ? '0 4px 20px rgba(251, 191, 36, 0.3)' : 'none',
                     }}
                   >
-                    <Send size={16} />
+                    <Send size={18} />
                     Invite
                   </button>
                   <button
                     onClick={() => setActiveTab('earnings')}
-                    className="flex-1 flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-semibold transition-all duration-300"
+                    className="flex-1 flex items-center justify-center gap-2.5 py-4 rounded-xl text-base font-semibold transition-all duration-300"
                     style={{
                       background: activeTab === 'earnings'
-                        ? 'linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(245, 158, 11, 0.1) 100%)'
+                        ? 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)'
                         : 'transparent',
-                      color: activeTab === 'earnings' ? '#fcd34d' : '#78716c',
+                      color: activeTab === 'earnings' ? '#1c1917' : '#a8a29e',
+                      boxShadow: activeTab === 'earnings' ? '0 4px 20px rgba(251, 191, 36, 0.3)' : 'none',
                     }}
                   >
-                    <DollarSign size={16} />
+                    <DollarSign size={18} />
                     Earnings
                   </button>
                 </div>
               </div>
 
               {/* Tab Content */}
-              <div className="relative px-6 pb-8 pt-6">
+              <div className="relative px-8 pb-10 pt-8">
                 <AnimatePresence mode="wait">
                   {activeTab === 'invite' ? (
                     <motion.div
@@ -162,75 +164,81 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({ isOpen, onClose })
                       transition={{ duration: 0.2 }}
                     >
                       {/* Invites Remaining - Hero Display */}
-                      <div className="text-center mb-8">
-                        <p className="text-stone-500 text-xs font-medium tracking-widest uppercase mb-3">
+                      <div className="text-center mb-10">
+                        <p className="text-stone-400 text-sm font-semibold tracking-widest uppercase mb-4">
                           Invites Remaining
                         </p>
 
                         {/* Visual invite indicators */}
-                        <div className="flex justify-center gap-2 mb-4">
+                        <div className="flex justify-center gap-3 mb-5">
                           {Array.from({ length: totalInvites }).map((_, i) => (
                             <div
                               key={i}
-                              className="w-3 h-10 rounded-full transition-all duration-500"
+                              className="w-4 h-14 rounded-full transition-all duration-500"
                               style={{
                                 background: i < usedInvites
-                                  ? 'rgba(120, 113, 108, 0.2)'
+                                  ? 'rgba(168, 162, 158, 0.2)'
                                   : 'linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%)',
                                 boxShadow: i >= usedInvites
-                                  ? '0 0 16px rgba(251, 191, 36, 0.5)'
+                                  ? '0 0 20px rgba(251, 191, 36, 0.6), 0 0 40px rgba(251, 191, 36, 0.3)'
                                   : 'none',
                               }}
                             />
                           ))}
                         </div>
 
-                        <div className="flex items-baseline justify-center gap-2">
+                        <div className="flex items-baseline justify-center gap-3">
                           <span
-                            className="text-5xl font-bold text-white"
+                            className="text-7xl font-bold text-white"
                             style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                           >
                             {invitesRemaining}
                           </span>
-                          <span className="text-stone-500 text-lg">left</span>
+                          <span className="text-stone-400 text-xl font-medium">left</span>
                         </div>
 
-                        <p className="text-amber-500/80 text-sm font-medium mt-2">
+                        <p className="text-amber-400 text-lg font-semibold mt-3">
                           ${rewardPerReferral} for each referral
                         </p>
                       </div>
 
                       {/* Referral Code */}
-                      <div className="mb-6">
-                        <p className="text-stone-500 text-xs font-medium tracking-widest uppercase mb-3 text-center">
+                      <div className="mb-8">
+                        <p className="text-stone-400 text-sm font-semibold tracking-widest uppercase mb-4 text-center">
                           Your Code
                         </p>
                         <div
-                          className="flex items-center justify-between rounded-2xl px-5 py-4"
+                          className="flex items-center justify-between rounded-2xl px-6 py-5"
                           style={{
-                            background: 'rgba(255, 255, 255, 0.03)',
-                            border: '1px solid rgba(255, 255, 255, 0.06)',
+                            background: 'rgba(255, 255, 255, 0.08)',
+                            border: '1px solid rgba(255, 255, 255, 0.1)',
                           }}
                         >
                           <span
-                            className="text-2xl text-white font-mono tracking-[0.15em]"
+                            className="text-3xl text-white font-bold tracking-[0.2em]"
+                            style={{ fontFamily: "'DM Mono', 'SF Mono', monospace" }}
                           >
                             {referralCode}
                           </span>
                           <button
                             onClick={handleCopyCode}
-                            className="flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200"
+                            className="flex items-center gap-2.5 px-5 py-3 rounded-xl font-semibold transition-all duration-200"
                             style={{
-                              background: copied ? 'rgba(34, 197, 94, 0.15)' : 'rgba(255, 255, 255, 0.06)',
+                              background: copied
+                                ? 'rgba(34, 197, 94, 0.2)'
+                                : 'rgba(255, 255, 255, 0.1)',
+                              border: copied
+                                ? '1px solid rgba(34, 197, 94, 0.3)'
+                                : '1px solid rgba(255, 255, 255, 0.1)',
                             }}
                           >
                             {copied ? (
-                              <Check size={16} className="text-green-400" />
+                              <Check size={18} className="text-green-400" />
                             ) : (
-                              <Copy size={16} className="text-stone-400" />
+                              <Copy size={18} className="text-white" />
                             )}
-                            <span className={`text-sm font-medium ${copied ? 'text-green-400' : 'text-stone-400'}`}>
-                              {copied ? 'Copied' : 'Copy'}
+                            <span className={`text-base ${copied ? 'text-green-400' : 'text-white'}`}>
+                              {copied ? 'Copied!' : 'Copy'}
                             </span>
                           </button>
                         </div>
@@ -239,19 +247,19 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({ isOpen, onClose })
                       {/* Primary Action */}
                       <button
                         onClick={handleEmailShare}
-                        className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl font-semibold text-base transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                        className="w-full flex items-center justify-center gap-3 py-5 rounded-2xl font-bold text-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
                         style={{
                           background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 50%, #fcd34d 100%)',
                           color: '#1c1917',
-                          boxShadow: '0 8px 32px rgba(251, 191, 36, 0.25)',
+                          boxShadow: '0 8px 32px rgba(251, 191, 36, 0.35)',
                         }}
                       >
-                        <Mail size={20} />
+                        <Mail size={22} />
                         Share via Email
                       </button>
 
                       {/* Footer note */}
-                      <p className="text-center text-stone-600 text-xs mt-6">
+                      <p className="text-center text-stone-500 text-sm mt-6">
                         Earn ${rewardPerReferral} when they complete their first month
                       </p>
                     </motion.div>
@@ -264,21 +272,21 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({ isOpen, onClose })
                       transition={{ duration: 0.2 }}
                     >
                       {/* Earnings Summary */}
-                      <div className="text-center mb-8">
-                        <p className="text-stone-500 text-xs font-medium tracking-widest uppercase mb-3">
+                      <div className="text-center mb-10">
+                        <p className="text-stone-400 text-sm font-semibold tracking-widest uppercase mb-4">
                           Total Earned
                         </p>
                         <div className="flex items-baseline justify-center gap-1">
-                          <span className="text-stone-500 text-2xl">$</span>
+                          <span className="text-stone-400 text-3xl font-medium">$</span>
                           <span
-                            className="text-5xl font-bold text-white"
+                            className="text-7xl font-bold text-white"
                             style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                           >
                             {confirmedEarnings}
                           </span>
                         </div>
                         {pendingEarnings > 0 && (
-                          <p className="text-amber-500/70 text-sm mt-2">
+                          <p className="text-amber-400 text-lg font-semibold mt-3">
                             + ${pendingEarnings} pending
                           </p>
                         )}
@@ -286,43 +294,43 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({ isOpen, onClose })
 
                       {/* Referral List */}
                       {referrals.length > 0 ? (
-                        <div className="space-y-3 mb-6">
-                          <p className="text-stone-500 text-xs font-medium tracking-widest uppercase">
+                        <div className="mb-8">
+                          <p className="text-stone-400 text-sm font-semibold tracking-widest uppercase mb-4">
                             Referrals
                           </p>
                           <div
                             className="rounded-2xl overflow-hidden"
                             style={{
-                              background: 'rgba(255, 255, 255, 0.02)',
-                              border: '1px solid rgba(255, 255, 255, 0.04)',
+                              background: 'rgba(255, 255, 255, 0.05)',
+                              border: '1px solid rgba(255, 255, 255, 0.08)',
                             }}
                           >
                             {referrals.map((referral, index) => (
                               <div
                                 key={referral.id}
-                                className="flex items-center justify-between px-4 py-3"
+                                className="flex items-center justify-between px-5 py-4"
                                 style={{
-                                  borderTop: index > 0 ? '1px solid rgba(255, 255, 255, 0.04)' : 'none',
+                                  borderTop: index > 0 ? '1px solid rgba(255, 255, 255, 0.06)' : 'none',
                                 }}
                               >
-                                <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-4">
                                   <div
-                                    className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold"
+                                    className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold"
                                     style={{
                                       background: referral.status === 'confirmed'
-                                        ? 'rgba(34, 197, 94, 0.15)'
-                                        : 'rgba(255, 255, 255, 0.05)',
-                                      color: referral.status === 'confirmed' ? '#86efac' : '#a8a29e',
+                                        ? 'rgba(34, 197, 94, 0.2)'
+                                        : 'rgba(255, 255, 255, 0.1)',
+                                      color: referral.status === 'confirmed' ? '#86efac' : '#e7e5e4',
                                     }}
                                   >
                                     {referral.email.charAt(0).toUpperCase()}
                                   </div>
-                                  <span className="text-stone-300 text-sm truncate max-w-[140px]">
+                                  <span className="text-stone-200 text-base font-medium truncate max-w-[180px]">
                                     {referral.email}
                                   </span>
                                 </div>
                                 <span
-                                  className="text-sm font-semibold"
+                                  className="text-base font-bold"
                                   style={{
                                     color: referral.status === 'confirmed' ? '#86efac' : '#fcd34d',
                                   }}
@@ -335,16 +343,16 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({ isOpen, onClose })
                         </div>
                       ) : (
                         <div
-                          className="text-center py-8 mb-6 rounded-2xl"
+                          className="text-center py-10 mb-8 rounded-2xl"
                           style={{
-                            background: 'rgba(255, 255, 255, 0.02)',
-                            border: '1px solid rgba(255, 255, 255, 0.04)',
+                            background: 'rgba(255, 255, 255, 0.05)',
+                            border: '1px solid rgba(255, 255, 255, 0.08)',
                           }}
                         >
-                          <p className="text-stone-500 text-sm">
+                          <p className="text-stone-300 text-lg font-medium">
                             No referrals yet
                           </p>
-                          <p className="text-stone-600 text-xs mt-1">
+                          <p className="text-stone-500 text-base mt-2">
                             Share your code to start earning
                           </p>
                         </div>
@@ -354,10 +362,10 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({ isOpen, onClose })
                       {confirmedEarnings >= rewardPerReferral && !isPayoutSetup ? (
                         <button
                           onClick={() => setPayoutSetup(true)}
-                          className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-semibold text-base transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                          className="w-full flex items-center justify-center gap-3 py-5 rounded-2xl font-bold text-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
                           style={{
-                            background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(34, 197, 94, 0.08) 100%)',
-                            border: '1px solid rgba(34, 197, 94, 0.2)',
+                            background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(34, 197, 94, 0.1) 100%)',
+                            border: '1px solid rgba(34, 197, 94, 0.3)',
                             color: '#86efac',
                           }}
                         >
@@ -365,17 +373,18 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({ isOpen, onClose })
                         </button>
                       ) : isPayoutSetup ? (
                         <div
-                          className="text-center py-3 rounded-xl"
+                          className="text-center py-4 rounded-2xl"
                           style={{
-                            background: 'rgba(34, 197, 94, 0.08)',
+                            background: 'rgba(34, 197, 94, 0.1)',
+                            border: '1px solid rgba(34, 197, 94, 0.2)',
                           }}
                         >
-                          <p className="text-green-400/80 text-sm">
+                          <p className="text-green-400 text-base font-semibold">
                             Payout connected
                           </p>
                         </div>
                       ) : (
-                        <p className="text-center text-stone-600 text-xs">
+                        <p className="text-center text-stone-500 text-base">
                           Earn ${rewardPerReferral} to unlock payouts
                         </p>
                       )}

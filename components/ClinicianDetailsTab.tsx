@@ -12,6 +12,7 @@ import {
   AnimatedGrid,
   DonutChartCard,
   DivergingBarChart,
+  ToggleButton,
 } from './design-system';
 
 // =============================================================================
@@ -502,6 +503,9 @@ export const ClinicianDetailsTab: React.FC = () => {
   // Animation state for clinician change
   const [isTransitioning, setIsTransitioning] = useState(false);
 
+  // Toggle for sessions view (monthly total vs weekly average)
+  const [showWeeklyAvg, setShowWeeklyAvg] = useState(false);
+
   // Track if we're in spotlight mode (clinician has been selected)
   const isSpotlightMode = selectedClinician !== null;
 
@@ -692,13 +696,28 @@ export const ClinicianDetailsTab: React.FC = () => {
   // Get session data for selected clinician
   const sessionData = selectedClinician ? CLINICIAN_SESSION_DATA[selectedClinician.id] : null;
 
-  // Session bar chart data
+  // Session bar chart data (monthly totals)
   const sessionBarData = useMemo(() => {
     if (!sessionData) return [];
     return sessionData.monthlySessions.map((item) => ({
       label: item.month,
       value: item.completed,
     }));
+  }, [sessionData]);
+
+  // Session bar chart data (weekly averages per month)
+  const sessionWeeklyBarData = useMemo(() => {
+    if (!sessionData) return [];
+    return sessionData.monthlySessions.map((item) => ({
+      label: item.month,
+      value: Math.round(item.completed / 4.33),
+    }));
+  }, [sessionData]);
+
+  // Weekly goal (monthly goal / 4.33 weeks)
+  const weeklySessionGoal = useMemo(() => {
+    if (!sessionData) return 0;
+    return Math.round(sessionData.sessionGoal / 4.33);
   }, [sessionData]);
 
   // Session totals
