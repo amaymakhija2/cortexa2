@@ -1690,23 +1690,31 @@ export const ClinicianDetailsTab: React.FC = () => {
               {/* Completed Sessions Chart */}
               <ChartCard
                 title="Completed Sessions"
-                subtitle="Monthly session volume"
+                subtitle={showWeeklyAvg ? "Average sessions per week" : "Monthly session volume"}
                 headerControls={
-                  <GoalIndicator
-                    value={sessionData.sessionGoal}
-                    label="Goal"
-                    color="amber"
-                  />
+                  <>
+                    <ToggleButton
+                      label="Weekly Avg"
+                      active={showWeeklyAvg}
+                      onToggle={() => setShowWeeklyAvg(!showWeeklyAvg)}
+                    />
+                    <GoalIndicator
+                      value={showWeeklyAvg ? weeklySessionGoal : sessionData.sessionGoal}
+                      label="Goal"
+                      color="amber"
+                    />
+                  </>
                 }
                 insights={sessionInsights}
                 minHeight="420px"
               >
                 <BarChart
-                  data={sessionBarData}
+                  data={showWeeklyAvg ? sessionWeeklyBarData : sessionBarData}
                   mode="single"
-                  goal={{ value: sessionData.sessionGoal }}
-                  getBarColor={(value) =>
-                    value >= sessionData.sessionGoal
+                  goal={{ value: showWeeklyAvg ? weeklySessionGoal : sessionData.sessionGoal }}
+                  getBarColor={(value) => {
+                    const goal = showWeeklyAvg ? weeklySessionGoal : sessionData.sessionGoal;
+                    return value >= goal
                       ? {
                           gradient: 'linear-gradient(180deg, #34d399 0%, #059669 100%)',
                           shadow: '0 4px 12px -2px rgba(16, 185, 129, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
@@ -1716,8 +1724,8 @@ export const ClinicianDetailsTab: React.FC = () => {
                           gradient: 'linear-gradient(180deg, #60a5fa 0%, #2563eb 100%)',
                           shadow: '0 4px 12px -2px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
                           textColor: 'text-blue-600',
-                        }
-                  }
+                        };
+                  }}
                   formatValue={(v) => v.toString()}
                   height="280px"
                 />

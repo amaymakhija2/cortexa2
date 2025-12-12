@@ -197,9 +197,24 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({ isOpen, onClose })
                           <span className="text-stone-400 text-xl font-medium">left</span>
                         </div>
 
-                        <p className="text-amber-400 text-lg font-semibold mt-3">
-                          ${rewardPerReferral} for each referral
-                        </p>
+                        {/* Big reward callout */}
+                        <div
+                          className="inline-flex items-center gap-3 mt-5 px-6 py-3 rounded-2xl"
+                          style={{
+                            background: 'linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(245, 158, 11, 0.08) 100%)',
+                            border: '1px solid rgba(251, 191, 36, 0.25)',
+                          }}
+                        >
+                          <span
+                            className="text-4xl font-bold text-amber-400"
+                            style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                          >
+                            ${rewardPerReferral}
+                          </span>
+                          <span className="text-amber-300/80 text-lg font-medium">
+                            per referral
+                          </span>
+                        </div>
                       </div>
 
                       {/* Referral Code */}
