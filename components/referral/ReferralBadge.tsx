@@ -51,13 +51,12 @@ export const ReferralBadge: React.FC<ReferralBadgeProps> = ({ onClick }) => {
       {/* Text content */}
       <div className="relative flex flex-col items-start">
         <span
-          className="text-amber-200/90 text-[15px] font-semibold tracking-wide leading-none"
-          style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}
+          className="text-white text-[15px] font-semibold tracking-wide leading-none"
         >
           {invitesRemaining} invite{invitesRemaining !== 1 ? 's' : ''} left
         </span>
         <span
-          className="text-amber-400/70 text-[12px] font-medium mt-1"
+          className="text-amber-400 text-[15px] font-bold mt-1"
         >
           ${rewardPerReferral} each
         </span>

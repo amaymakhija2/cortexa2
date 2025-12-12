@@ -169,7 +169,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
                 {label}
               </p>
             )}
-            <div className="flex items-center gap-6 flex-wrap">
+            <div className="flex items-center gap-10 flex-wrap">
               <h1
                 className="text-4xl sm:text-5xl lg:text-6xl text-white tracking-tight"
                 style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}

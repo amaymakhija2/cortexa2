@@ -110,13 +110,13 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({ isOpen, onClose })
               {/* Close button */}
               <button
                 onClick={onClose}
-                className="absolute top-5 right-5 z-10 w-10 h-10 rounded-full flex items-center justify-center text-stone-400 hover:text-white hover:bg-white/10 transition-all duration-200"
+                className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full flex items-center justify-center text-stone-500 hover:text-white hover:bg-white/10 transition-all duration-200"
               >
-                <X size={20} strokeWidth={1.5} />
+                <X size={18} strokeWidth={1.5} />
               </button>
 
               {/* Tab Navigation */}
-              <div className="relative px-8 pt-8">
+              <div className="relative px-8 pt-14">
                 <div
                   className="flex p-1.5 rounded-2xl"
                   style={{ background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255,255,255,0.05)' }}
@@ -152,260 +152,255 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({ isOpen, onClose })
                 </div>
               </div>
 
-              {/* Tab Content - Fixed height to prevent layout shift */}
-              <div className="relative px-8 pb-10 pt-8" style={{ minHeight: '480px' }}>
-                <AnimatePresence mode="wait">
-                  {activeTab === 'invite' ? (
-                    <motion.div
-                      key="invite"
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: 10 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      {/* Invites Remaining - Hero Display */}
-                      <div className="text-center mb-10">
-                        <p className="text-stone-400 text-sm font-semibold tracking-widest uppercase mb-4">
-                          Invites Remaining
-                        </p>
+              {/* Tab Content - Single container with both tabs, toggle visibility */}
+              <div className="relative px-8 pb-10 pt-8">
+                <div className="grid">
+                  {/* Invite Tab */}
+                  <div
+                    className={`col-start-1 row-start-1 transition-opacity duration-200 ${activeTab === 'invite' ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                  >
+                    {/* Invites Remaining - Hero Display */}
+                    <div className="text-center mb-10">
+                      <p className="text-stone-400 text-sm font-semibold tracking-widest uppercase mb-4">
+                        Invites Remaining
+                      </p>
 
-                        {/* Visual invite indicators */}
-                        <div className="flex justify-center gap-3 mb-5">
-                          {Array.from({ length: totalInvites }).map((_, i) => (
-                            <div
-                              key={i}
-                              className="w-4 h-14 rounded-full transition-all duration-500"
-                              style={{
-                                background: i < usedInvites
-                                  ? 'rgba(168, 162, 158, 0.2)'
-                                  : 'linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%)',
-                                boxShadow: i >= usedInvites
-                                  ? '0 0 20px rgba(251, 191, 36, 0.6), 0 0 40px rgba(251, 191, 36, 0.3)'
-                                  : 'none',
-                              }}
-                            />
-                          ))}
-                        </div>
-
-                        <div className="flex items-baseline justify-center gap-3">
-                          <span
-                            className="text-7xl font-bold text-white"
-                            style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-                          >
-                            {invitesRemaining}
-                          </span>
-                          <span className="text-stone-400 text-xl font-medium">left</span>
-                        </div>
-
-                        {/* Big reward callout */}
-                        <div
-                          className="inline-flex items-center gap-3 mt-5 px-6 py-3 rounded-2xl"
-                          style={{
-                            background: 'linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(245, 158, 11, 0.08) 100%)',
-                            border: '1px solid rgba(251, 191, 36, 0.25)',
-                          }}
-                        >
-                          <span
-                            className="text-4xl font-bold text-amber-400"
-                            style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-                          >
-                            ${rewardPerReferral}
-                          </span>
-                          <span className="text-amber-300/80 text-lg font-medium">
-                            per referral
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Referral Code */}
-                      <div className="mb-8">
-                        <p className="text-stone-400 text-sm font-semibold tracking-widest uppercase mb-4 text-center">
-                          Your Code
-                        </p>
-                        <div
-                          className="flex items-center justify-between rounded-2xl px-6 py-5"
-                          style={{
-                            background: 'rgba(255, 255, 255, 0.08)',
-                            border: '1px solid rgba(255, 255, 255, 0.1)',
-                          }}
-                        >
-                          <span
-                            className="text-3xl text-white font-bold tracking-[0.2em]"
-                            style={{ fontFamily: "'DM Mono', 'SF Mono', monospace" }}
-                          >
-                            {referralCode}
-                          </span>
-                          <button
-                            onClick={handleCopyCode}
-                            className="flex items-center gap-2.5 px-5 py-3 rounded-xl font-semibold transition-all duration-200"
+                      {/* Visual invite indicators */}
+                      <div className="flex justify-center gap-3 mb-5">
+                        {Array.from({ length: totalInvites }).map((_, i) => (
+                          <div
+                            key={i}
+                            className="w-4 h-14 rounded-full transition-all duration-500"
                             style={{
-                              background: copied
-                                ? 'rgba(34, 197, 94, 0.2)'
-                                : 'rgba(255, 255, 255, 0.1)',
-                              border: copied
-                                ? '1px solid rgba(34, 197, 94, 0.3)'
-                                : '1px solid rgba(255, 255, 255, 0.1)',
+                              background: i < usedInvites
+                                ? 'rgba(168, 162, 158, 0.2)'
+                                : 'linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%)',
+                              boxShadow: i >= usedInvites
+                                ? '0 0 20px rgba(251, 191, 36, 0.6), 0 0 40px rgba(251, 191, 36, 0.3)'
+                                : 'none',
                             }}
-                          >
-                            {copied ? (
-                              <Check size={18} className="text-green-400" />
-                            ) : (
-                              <Copy size={18} className="text-white" />
-                            )}
-                            <span className={`text-base ${copied ? 'text-green-400' : 'text-white'}`}>
-                              {copied ? 'Copied!' : 'Copy'}
-                            </span>
-                          </button>
-                        </div>
+                          />
+                        ))}
                       </div>
 
-                      {/* Primary Action */}
-                      <button
-                        onClick={handleEmailShare}
-                        className="w-full flex items-center justify-center gap-3 py-5 rounded-2xl font-bold text-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                      <div className="flex items-baseline justify-center gap-3">
+                        <span
+                          className="text-7xl font-bold text-white"
+                          style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                        >
+                          {invitesRemaining}
+                        </span>
+                        <span className="text-stone-400 text-xl font-medium">left</span>
+                      </div>
+
+                      {/* Big reward callout */}
+                      <div
+                        className="inline-flex items-center gap-3 mt-5 px-6 py-3 rounded-2xl"
                         style={{
-                          background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 50%, #fcd34d 100%)',
-                          color: '#1c1917',
-                          boxShadow: '0 8px 32px rgba(251, 191, 36, 0.35)',
+                          background: 'linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(245, 158, 11, 0.08) 100%)',
+                          border: '1px solid rgba(251, 191, 36, 0.25)',
                         }}
                       >
-                        <Mail size={22} />
-                        Share via Email
-                      </button>
-
-                      {/* Footer note */}
-                      <p className="text-center text-stone-500 text-sm mt-6">
-                        Earn ${rewardPerReferral} when they complete their first month
-                      </p>
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key="earnings"
-                      initial={{ opacity: 0, x: 10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -10 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      {/* Earnings Summary */}
-                      <div className="text-center mb-10">
-                        <p className="text-stone-400 text-sm font-semibold tracking-widest uppercase mb-4">
-                          Total Earned
-                        </p>
-                        <div className="flex items-baseline justify-center gap-1">
-                          <span className="text-stone-400 text-3xl font-medium">$</span>
-                          <span
-                            className="text-7xl font-bold text-white"
-                            style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-                          >
-                            {confirmedEarnings}
-                          </span>
-                        </div>
-                        {pendingEarnings > 0 && (
-                          <p className="text-amber-400 text-lg font-semibold mt-3">
-                            + ${pendingEarnings} pending
-                          </p>
-                        )}
+                        <span
+                          className="text-4xl font-bold text-amber-400"
+                          style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                        >
+                          ${rewardPerReferral}
+                        </span>
+                        <span className="text-amber-300/80 text-lg font-medium">
+                          per referral
+                        </span>
                       </div>
+                    </div>
 
-                      {/* Referral List */}
-                      {referrals.length > 0 ? (
-                        <div className="mb-8">
-                          <p className="text-stone-400 text-sm font-semibold tracking-widest uppercase mb-4">
-                            Referrals
-                          </p>
-                          <div
-                            className="rounded-2xl overflow-hidden"
-                            style={{
-                              background: 'rgba(255, 255, 255, 0.05)',
-                              border: '1px solid rgba(255, 255, 255, 0.08)',
-                            }}
-                          >
-                            {referrals.map((referral, index) => (
-                              <div
-                                key={referral.id}
-                                className="flex items-center justify-between px-5 py-4"
-                                style={{
-                                  borderTop: index > 0 ? '1px solid rgba(255, 255, 255, 0.06)' : 'none',
-                                }}
-                              >
-                                <div className="flex items-center gap-4">
-                                  <div
-                                    className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold"
-                                    style={{
-                                      background: referral.status === 'confirmed'
-                                        ? 'rgba(34, 197, 94, 0.2)'
-                                        : 'rgba(255, 255, 255, 0.1)',
-                                      color: referral.status === 'confirmed' ? '#86efac' : '#e7e5e4',
-                                    }}
-                                  >
-                                    {referral.email.charAt(0).toUpperCase()}
-                                  </div>
-                                  <span className="text-stone-200 text-base font-medium truncate max-w-[180px]">
-                                    {referral.email}
-                                  </span>
-                                </div>
-                                <span
-                                  className="text-base font-bold"
-                                  style={{
-                                    color: referral.status === 'confirmed' ? '#86efac' : '#fcd34d',
-                                  }}
-                                >
-                                  {referral.status === 'confirmed' ? `+$${rewardPerReferral}` : 'Pending'}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      ) : (
+                    {/* Referral Code */}
+                    <div className="mb-8">
+                      <p className="text-stone-400 text-sm font-semibold tracking-widest uppercase mb-4 text-center">
+                        Your Code
+                      </p>
+                      <div
+                        className="flex items-center justify-between rounded-2xl px-6 py-5"
+                        style={{
+                          background: 'rgba(255, 255, 255, 0.08)',
+                          border: '1px solid rgba(255, 255, 255, 0.1)',
+                        }}
+                      >
+                        <span
+                          className="text-3xl text-white font-bold tracking-[0.2em]"
+                          style={{ fontFamily: "'DM Mono', 'SF Mono', monospace" }}
+                        >
+                          {referralCode}
+                        </span>
+                        <button
+                          onClick={handleCopyCode}
+                          className="flex items-center gap-2.5 px-5 py-3 rounded-xl font-semibold transition-all duration-200"
+                          style={{
+                            background: copied
+                              ? 'rgba(34, 197, 94, 0.2)'
+                              : 'rgba(255, 255, 255, 0.1)',
+                            border: copied
+                              ? '1px solid rgba(34, 197, 94, 0.3)'
+                              : '1px solid rgba(255, 255, 255, 0.1)',
+                          }}
+                        >
+                          {copied ? (
+                            <Check size={18} className="text-green-400" />
+                          ) : (
+                            <Copy size={18} className="text-white" />
+                          )}
+                          <span className={`text-base ${copied ? 'text-green-400' : 'text-white'}`}>
+                            {copied ? 'Copied!' : 'Copy'}
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Primary Action */}
+                    <button
+                      onClick={handleEmailShare}
+                      className="w-full flex items-center justify-center gap-3 py-5 rounded-2xl font-bold text-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                      style={{
+                        background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 50%, #fcd34d 100%)',
+                        color: '#1c1917',
+                        boxShadow: '0 8px 32px rgba(251, 191, 36, 0.35)',
+                      }}
+                    >
+                      <Mail size={22} />
+                      Share via Email
+                    </button>
+
+                    {/* Footer note */}
+                    <p className="text-center text-stone-500 text-sm mt-6">
+                      Earn ${rewardPerReferral} when they complete their first month
+                    </p>
+                  </div>
+
+                  {/* Earnings Tab */}
+                  <div
+                    className={`col-start-1 row-start-1 transition-opacity duration-200 flex flex-col ${activeTab === 'earnings' ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                  >
+                    {/* Earnings Summary */}
+                    <div className="text-center mb-10">
+                      <p className="text-stone-400 text-sm font-semibold tracking-widest uppercase mb-4">
+                        Total Earned
+                      </p>
+                      <div className="flex items-baseline justify-center gap-1">
+                        <span className="text-stone-400 text-3xl font-medium">$</span>
+                        <span
+                          className="text-7xl font-bold text-white"
+                          style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                        >
+                          {confirmedEarnings}
+                        </span>
+                      </div>
+                      {pendingEarnings > 0 && (
+                        <p className="text-amber-400 text-lg font-semibold mt-3">
+                          + ${pendingEarnings} pending
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Referral List */}
+                    {referrals.length > 0 ? (
+                      <div className="mb-8">
+                        <p className="text-stone-400 text-sm font-semibold tracking-widest uppercase mb-4">
+                          Referrals
+                        </p>
                         <div
-                          className="text-center py-10 mb-8 rounded-2xl"
+                          className="rounded-2xl overflow-hidden"
                           style={{
                             background: 'rgba(255, 255, 255, 0.05)',
                             border: '1px solid rgba(255, 255, 255, 0.08)',
                           }}
                         >
-                          <p className="text-stone-300 text-lg font-medium">
-                            No referrals yet
-                          </p>
-                          <p className="text-stone-500 text-base mt-2">
-                            Share your code to start earning
-                          </p>
+                          {referrals.map((referral, index) => (
+                            <div
+                              key={referral.id}
+                              className="flex items-center justify-between px-5 py-4"
+                              style={{
+                                borderTop: index > 0 ? '1px solid rgba(255, 255, 255, 0.06)' : 'none',
+                              }}
+                            >
+                              <div className="flex items-center gap-4">
+                                <div
+                                  className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold"
+                                  style={{
+                                    background: referral.status === 'confirmed'
+                                      ? 'rgba(34, 197, 94, 0.2)'
+                                      : 'rgba(255, 255, 255, 0.1)',
+                                    color: referral.status === 'confirmed' ? '#86efac' : '#e7e5e4',
+                                  }}
+                                >
+                                  {referral.email.charAt(0).toUpperCase()}
+                                </div>
+                                <span className="text-stone-200 text-base font-medium truncate max-w-[180px]">
+                                  {referral.email}
+                                </span>
+                              </div>
+                              <span
+                                className="text-base font-bold"
+                                style={{
+                                  color: referral.status === 'confirmed' ? '#86efac' : '#fcd34d',
+                                }}
+                              >
+                                {referral.status === 'confirmed' ? `+$${rewardPerReferral}` : 'Pending'}
+                              </span>
+                            </div>
+                          ))}
                         </div>
-                      )}
-
-                      {/* Payout CTA */}
-                      {confirmedEarnings >= rewardPerReferral && !isPayoutSetup ? (
-                        <button
-                          onClick={() => setPayoutSetup(true)}
-                          className="w-full flex items-center justify-center gap-3 py-5 rounded-2xl font-bold text-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
-                          style={{
-                            background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(34, 197, 94, 0.1) 100%)',
-                            border: '1px solid rgba(34, 197, 94, 0.3)',
-                            color: '#86efac',
-                          }}
-                        >
-                          Set Up Payout
-                        </button>
-                      ) : isPayoutSetup ? (
-                        <div
-                          className="text-center py-4 rounded-2xl"
-                          style={{
-                            background: 'rgba(34, 197, 94, 0.1)',
-                            border: '1px solid rgba(34, 197, 94, 0.2)',
-                          }}
-                        >
-                          <p className="text-green-400 text-base font-semibold">
-                            Payout connected
-                          </p>
-                        </div>
-                      ) : (
-                        <p className="text-center text-stone-500 text-base">
-                          Earn ${rewardPerReferral} to unlock payouts
+                      </div>
+                    ) : (
+                      <div
+                        className="text-center py-10 mb-8 rounded-2xl"
+                        style={{
+                          background: 'rgba(255, 255, 255, 0.05)',
+                          border: '1px solid rgba(255, 255, 255, 0.08)',
+                        }}
+                      >
+                        <p className="text-stone-300 text-lg font-medium">
+                          No referrals yet
                         </p>
-                      )}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                        <p className="text-stone-500 text-base mt-2">
+                          Share your code to start earning
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Spacer to push payout button to bottom */}
+                    <div className="flex-grow" />
+
+                    {/* Payout CTA */}
+                    {confirmedEarnings >= rewardPerReferral && !isPayoutSetup ? (
+                      <button
+                        onClick={() => setPayoutSetup(true)}
+                        className="w-full flex items-center justify-center gap-3 py-5 rounded-2xl font-bold text-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                        style={{
+                          background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(34, 197, 94, 0.1) 100%)',
+                          border: '1px solid rgba(34, 197, 94, 0.3)',
+                          color: '#86efac',
+                        }}
+                      >
+                        Set Up Payout
+                      </button>
+                    ) : isPayoutSetup ? (
+                      <div
+                        className="text-center py-4 rounded-2xl"
+                        style={{
+                          background: 'rgba(34, 197, 94, 0.1)',
+                          border: '1px solid rgba(34, 197, 94, 0.2)',
+                        }}
+                      >
+                        <p className="text-green-400 text-base font-semibold">
+                          Payout connected
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="text-center text-stone-500 text-base">
+                        Earn ${rewardPerReferral} to unlock payouts
+                      </p>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           </motion.div>
