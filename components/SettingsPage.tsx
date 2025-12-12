@@ -22,6 +22,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { PageHeader } from './design-system';
+import { PracticeConfiguration } from './settings/PracticeConfiguration';
 
 // ============================================================================
 // TOGGLE SWITCH COMPONENT - Refined for dark/light contexts
@@ -318,7 +319,7 @@ export const SettingsPage: React.FC = () => {
               MAIN CONTENT AREA
               ============================================= */}
           <div className="flex-1 px-6 sm:px-8 lg:px-12 py-8 lg:py-10">
-            <div className="max-w-2xl mx-auto space-y-6">
+            <div className="max-w-4xl mx-auto space-y-6">
 
               {/* Profile Card - Hero style */}
               <motion.div
@@ -419,6 +420,9 @@ export const SettingsPage: React.FC = () => {
                   </motion.button>
                 </div>
               </motion.div>
+
+              {/* Practice Configuration - New comprehensive section */}
+              <PracticeConfiguration />
 
               {/* Data & Metrics Section */}
               <SettingsSection title="Data & Metrics" delay={0.05}>
