@@ -36,6 +36,9 @@ export type { CompactCardProps, StackedBarCardProps, StackedBarSegment, MetricLi
 export { DonutChartCard } from './cards/DonutChartCard';
 export type { DonutChartCardProps, DonutSegment, ValueFormat } from './cards/DonutChartCard';
 
+export { ClientRosterCard } from './cards/ClientRosterCard';
+export type { ClientRosterCardProps, ClientData, ClientStatus as RosterClientStatus } from './cards/ClientRosterCard';
+
 export { DataTableCard } from './cards/DataTableCard';
 export type { DataTableCardProps, DataTableSize, TableColumn, TableRow } from './cards/DataTableCard';
 

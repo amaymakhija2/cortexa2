@@ -5,7 +5,6 @@ import {
   Users,
   Calculator,
   Banknote,
-  Settings,
   X,
   BarChart3,
   MessageSquare,
@@ -13,6 +12,7 @@ import {
   Lock,
   PanelLeftClose,
   PanelLeft,
+  Settings,
 } from 'lucide-react';
 
 // =============================================================================
@@ -369,72 +369,71 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </NavLink>
             )}
 
-            <div className="pt-6 border-t border-stone-700/50">
-              {/* Settings */}
-              <NavLink
-                to="/settings"
-                onClick={() => setMobileMenuOpen?.(false)}
-                title={!isExpanded ? 'Settings' : undefined}
-                className={({ isActive }) => `
-                  flex items-center rounded-xl
-                  transition-colors duration-200
-                  ${isActive ? 'bg-white/10 text-white' : 'text-stone-400 hover:text-white hover:bg-white/[0.05]'}
-                `}
-                style={isExpanded ? {
-                  padding: '14px 16px',
-                  justifyContent: 'flex-start',
-                  gap: '16px',
-                } : {
-                  width: ICON_BOX_SIZE,
-                  height: ICON_BOX_SIZE,
-                  marginLeft: (COLLAPSED_WIDTH - ICON_BOX_SIZE) / 2,
-                  marginRight: (COLLAPSED_WIDTH - ICON_BOX_SIZE) / 2,
-                  justifyContent: 'center',
-                }}
-              >
-                <Settings size={22} strokeWidth={1.5} className="flex-shrink-0" />
-                {isExpanded && (
-                  <span className="text-[16px] whitespace-nowrap">Settings</span>
-                )}
-              </NavLink>
-            </div>
-
-            {/* User */}
-            <div
-              className="mt-5 pt-5 border-t border-stone-700/40 flex"
-              style={{
-                justifyContent: isExpanded ? 'flex-start' : 'center',
-                paddingLeft: isExpanded ? 8 : 0,
-                paddingRight: isExpanded ? 8 : 0,
-              }}
+            {/* User Profile → Settings */}
+            <NavLink
+              to="/settings"
+              onClick={() => setMobileMenuOpen?.(false)}
+              title={!isExpanded ? 'Settings' : undefined}
+              className={({ isActive }) => `
+                group block pt-6 border-t border-stone-700/50
+                transition-all duration-200
+                ${isActive ? '' : ''}
+              `}
             >
-              <div
-                className="flex items-center"
-                style={{
-                  gap: isExpanded ? '16px' : '0',
-                }}
-              >
+              {({ isActive }) => (
                 <div
-                  className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-amber-500/30 flex-shrink-0"
+                  className={`
+                    flex items-center rounded-xl
+                    transition-all duration-200
+                    ${isActive ? 'bg-white/10' : 'hover:bg-white/[0.05]'}
+                  `}
+                  style={isExpanded ? {
+                    padding: '12px',
+                    justifyContent: 'flex-start',
+                    gap: '14px',
+                  } : {
+                    width: ICON_BOX_SIZE,
+                    height: ICON_BOX_SIZE,
+                    marginLeft: (COLLAPSED_WIDTH - ICON_BOX_SIZE) / 2,
+                    marginRight: (COLLAPSED_WIDTH - ICON_BOX_SIZE) / 2,
+                    justifyContent: 'center',
+                  }}
                 >
-                  <img
-                    src="https://picsum.photos/100/100?random=1"
-                    alt="Profile"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                {isExpanded && (
-                  <div className="min-w-0">
-                    <p className="text-[16px] font-medium text-stone-200 truncate whitespace-nowrap">
-                      Sarah Mitchell
-                    </p>
-                    <p className="text-[14px] text-stone-500 truncate whitespace-nowrap">
-                      Practice Admin
-                    </p>
+                  {/* Avatar */}
+                  <div
+                    className={`
+                      w-10 h-10 rounded-xl overflow-hidden flex-shrink-0
+                      ring-2 transition-all duration-200
+                      ${isActive ? 'ring-amber-500/50' : 'ring-stone-600 group-hover:ring-stone-500'}
+                    `}
+                  >
+                    <img
+                      src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=100&h=100&fit=crop&crop=face"
+                      alt="Profile"
+                      className="w-full h-full object-cover"
+                    />
                   </div>
-                )}
-              </div>
-            </div>
+
+                  {isExpanded && (
+                    <>
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-[15px] font-medium truncate whitespace-nowrap transition-colors ${isActive ? 'text-white' : 'text-stone-200 group-hover:text-white'}`}>
+                          Sarah Mitchell
+                        </p>
+                        <p className="text-[13px] text-stone-500 truncate whitespace-nowrap">
+                          Practice Admin
+                        </p>
+                      </div>
+                      <Settings
+                        size={18}
+                        strokeWidth={1.5}
+                        className={`flex-shrink-0 transition-colors ${isActive ? 'text-amber-400' : 'text-stone-500 group-hover:text-stone-400'}`}
+                      />
+                    </>
+                  )}
+                </div>
+              )}
+            </NavLink>
           </div>
         </div>
       </aside>

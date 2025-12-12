@@ -6,6 +6,7 @@ import {
   Grid,
   ChartCard,
   BarChart,
+  LineChart,
   GoalIndicator,
   ActionButton,
   StatCard,
@@ -13,7 +14,10 @@ import {
   DonutChartCard,
   DivergingBarChart,
   ToggleButton,
+  ClientRosterCard,
+  DataTableCard,
 } from './design-system';
+import type { ClientData } from './design-system';
 
 // =============================================================================
 // CLINICIAN DETAILS TAB
@@ -454,6 +458,204 @@ const CLINICIAN_CASELOAD_DATA: Record<number, {
   },
 };
 
+// Client status types
+type ClientStatus = 'healthy' | 'at-risk' | 'new' | 'milestone';
+
+// Client data structure for roster
+interface ClinicianClient {
+  id: string;
+  name: string;
+  initials: string;
+  totalSessions: number;
+  lastSeenDays: number;
+  nextAppointment: string | null;
+  status: ClientStatus;
+  milestone?: number;
+}
+
+// Mock client data per clinician
+const CLINICIAN_CLIENTS: Record<number, ClinicianClient[]> = {
+  1: [ // Sarah Chen
+    { id: 'c1-1', name: 'Emma Thompson', initials: 'ET', totalSessions: 24, lastSeenDays: 3, nextAppointment: 'Dec 12', status: 'healthy' },
+    { id: 'c1-2', name: 'Michael Davis', initials: 'MD', totalSessions: 18, lastSeenDays: 5, nextAppointment: 'Dec 14', status: 'healthy' },
+    { id: 'c1-3', name: 'Sarah Mitchell', initials: 'SM', totalSessions: 12, lastSeenDays: 28, nextAppointment: null, status: 'at-risk' },
+    { id: 'c1-4', name: 'Amanda Foster', initials: 'AF', totalSessions: 2, lastSeenDays: 5, nextAppointment: 'Dec 12', status: 'new' },
+    { id: 'c1-5', name: 'Nicole Adams', initials: 'NA', totalSessions: 2, lastSeenDays: 5, nextAppointment: 'Dec 12', status: 'milestone', milestone: 3 },
+    { id: 'c1-6', name: 'David Park', initials: 'DP', totalSessions: 22, lastSeenDays: 15, nextAppointment: null, status: 'at-risk' },
+    { id: 'c1-7', name: 'Jennifer White', initials: 'JW', totalSessions: 31, lastSeenDays: 2, nextAppointment: 'Dec 10', status: 'healthy' },
+    { id: 'c1-8', name: 'Robert Garcia', initials: 'RG', totalSessions: 15, lastSeenDays: 4, nextAppointment: 'Dec 11', status: 'healthy' },
+  ],
+  2: [ // Maria Rodriguez
+    { id: 'c2-1', name: 'Jessica Brown', initials: 'JB', totalSessions: 19, lastSeenDays: 2, nextAppointment: 'Dec 9', status: 'healthy' },
+    { id: 'c2-2', name: 'Christopher Lee', initials: 'CL', totalSessions: 14, lastSeenDays: 6, nextAppointment: 'Dec 13', status: 'healthy' },
+    { id: 'c2-3', name: 'Daniel Williams', initials: 'DW', totalSessions: 1, lastSeenDays: 2, nextAppointment: 'Dec 9', status: 'new' },
+    { id: 'c2-4', name: 'Oliver Scott', initials: 'OS', totalSessions: 4, lastSeenDays: 3, nextAppointment: 'Dec 10', status: 'milestone', milestone: 5 },
+    { id: 'c2-5', name: 'Michael Chen', initials: 'MC', totalSessions: 6, lastSeenDays: 18, nextAppointment: null, status: 'at-risk' },
+    { id: 'c2-6', name: 'Ashley Taylor', initials: 'AT', totalSessions: 27, lastSeenDays: 4, nextAppointment: 'Dec 11', status: 'healthy' },
+    { id: 'c2-7', name: 'Brandon Moore', initials: 'BM', totalSessions: 11, lastSeenDays: 3, nextAppointment: 'Dec 10', status: 'healthy' },
+  ],
+  3: [ // Priya Patel
+    { id: 'c3-1', name: 'James Rodriguez', initials: 'JR', totalSessions: 8, lastSeenDays: 24, nextAppointment: null, status: 'at-risk' },
+    { id: 'c3-2', name: 'Emily Watson', initials: 'EW', totalSessions: 11, lastSeenDays: 7, nextAppointment: 'Dec 14', status: 'milestone', milestone: 12 },
+    { id: 'c3-3', name: 'Patricia Moore', initials: 'PM', totalSessions: 4, lastSeenDays: 6, nextAppointment: 'Dec 13', status: 'milestone', milestone: 5 },
+    { id: 'c3-4', name: 'Jennifer Lee', initials: 'JL', totalSessions: 9, lastSeenDays: 12, nextAppointment: null, status: 'at-risk' },
+    { id: 'c3-5', name: 'Brian Martinez', initials: 'BM', totalSessions: 1, lastSeenDays: 3, nextAppointment: 'Dec 10', status: 'new' },
+    { id: 'c3-6', name: 'Grace O\'Brien', initials: 'GO', totalSessions: 1, lastSeenDays: 1, nextAppointment: 'Dec 8', status: 'new' },
+    { id: 'c3-7', name: 'Kevin Wilson', initials: 'KW', totalSessions: 16, lastSeenDays: 21, nextAppointment: null, status: 'at-risk' },
+    { id: 'c3-8', name: 'Laura Harris', initials: 'LH', totalSessions: 23, lastSeenDays: 5, nextAppointment: 'Dec 12', status: 'healthy' },
+  ],
+  4: [ // James Kim
+    { id: 'c4-1', name: 'Emily Watson', initials: 'EW', totalSessions: 15, lastSeenDays: 21, nextAppointment: null, status: 'at-risk' },
+    { id: 'c4-2', name: 'Christina Liu', initials: 'CL', totalSessions: 2, lastSeenDays: 7, nextAppointment: 'Dec 14', status: 'new' },
+    { id: 'c4-3', name: 'Henry Kim', initials: 'HK', totalSessions: 2, lastSeenDays: 5, nextAppointment: 'Dec 12', status: 'new' },
+    { id: 'c4-4', name: 'Quinn Johnson', initials: 'QJ', totalSessions: 11, lastSeenDays: 4, nextAppointment: 'Dec 11', status: 'milestone', milestone: 12 },
+    { id: 'c4-5', name: 'Steven Clark', initials: 'SC', totalSessions: 19, lastSeenDays: 3, nextAppointment: 'Dec 10', status: 'healthy' },
+    { id: 'c4-6', name: 'Rachel Green', initials: 'RG', totalSessions: 8, lastSeenDays: 6, nextAppointment: 'Dec 13', status: 'healthy' },
+  ],
+  5: [ // Michael Johnson
+    { id: 'c5-1', name: 'Lisa Thompson', initials: 'LT', totalSessions: 4, lastSeenDays: 16, nextAppointment: null, status: 'at-risk' },
+    { id: 'c5-2', name: 'Elena Petrova', initials: 'EP', totalSessions: 3, lastSeenDays: 4, nextAppointment: 'Dec 11', status: 'new' },
+    { id: 'c5-3', name: 'Jack Thompson', initials: 'JT', totalSessions: 3, lastSeenDays: 7, nextAppointment: 'Dec 15', status: 'new' },
+    { id: 'c5-4', name: 'Rachel Green', initials: 'RG', totalSessions: 11, lastSeenDays: 7, nextAppointment: 'Dec 14', status: 'milestone', milestone: 12 },
+    { id: 'c5-5', name: 'Thomas Anderson', initials: 'TA', totalSessions: 7, lastSeenDays: 25, nextAppointment: null, status: 'at-risk' },
+    { id: 'c5-6', name: 'Maria Santos', initials: 'MS', totalSessions: 2, lastSeenDays: 30, nextAppointment: null, status: 'at-risk' },
+  ],
+};
+
+// Mock retention data for each clinician (12 months of rebook rates)
+const CLINICIAN_RETENTION_DATA: Record<number, {
+  monthlyRebookRate: { month: string; rate: number }[];
+  currentRebookRate: number;
+  practiceAvgRebookRate: number;
+  avgSessionsBeforeChurn: number;
+  practiceAvgSessionsBeforeChurn: number;
+  clientRetention3Month: number;
+  practiceAvgRetention3Month: number;
+  clientRetention6Month: number;
+  practiceAvgRetention6Month: number;
+}> = {
+  1: { // Sarah Chen - Clinical Director (high performer)
+    monthlyRebookRate: [
+      { month: 'Jan', rate: 91 },
+      { month: 'Feb', rate: 89 },
+      { month: 'Mar', rate: 92 },
+      { month: 'Apr', rate: 88 },
+      { month: 'May', rate: 90 },
+      { month: 'Jun', rate: 91 },
+      { month: 'Jul', rate: 87 },
+      { month: 'Aug', rate: 89 },
+      { month: 'Sep', rate: 93 },
+      { month: 'Oct', rate: 90 },
+      { month: 'Nov', rate: 88 },
+      { month: 'Dec', rate: 89 },
+    ],
+    currentRebookRate: 89,
+    practiceAvgRebookRate: 78,
+    avgSessionsBeforeChurn: 18.5,
+    practiceAvgSessionsBeforeChurn: 12.3,
+    clientRetention3Month: 94,
+    practiceAvgRetention3Month: 82,
+    clientRetention6Month: 87,
+    practiceAvgRetention6Month: 68,
+  },
+  2: { // Maria Rodriguez - Senior Therapist
+    monthlyRebookRate: [
+      { month: 'Jan', rate: 87 },
+      { month: 'Feb', rate: 85 },
+      { month: 'Mar', rate: 88 },
+      { month: 'Apr', rate: 84 },
+      { month: 'May', rate: 86 },
+      { month: 'Jun', rate: 85 },
+      { month: 'Jul', rate: 83 },
+      { month: 'Aug', rate: 85 },
+      { month: 'Sep', rate: 87 },
+      { month: 'Oct', rate: 86 },
+      { month: 'Nov', rate: 84 },
+      { month: 'Dec', rate: 85 },
+    ],
+    currentRebookRate: 85,
+    practiceAvgRebookRate: 78,
+    avgSessionsBeforeChurn: 15.2,
+    practiceAvgSessionsBeforeChurn: 12.3,
+    clientRetention3Month: 89,
+    practiceAvgRetention3Month: 82,
+    clientRetention6Month: 78,
+    practiceAvgRetention6Month: 68,
+  },
+  3: { // Priya Patel - Therapist (needs attention)
+    monthlyRebookRate: [
+      { month: 'Jan', rate: 78 },
+      { month: 'Feb', rate: 76 },
+      { month: 'Mar', rate: 74 },
+      { month: 'Apr', rate: 73 },
+      { month: 'May', rate: 72 },
+      { month: 'Jun', rate: 70 },
+      { month: 'Jul', rate: 68 },
+      { month: 'Aug', rate: 70 },
+      { month: 'Sep', rate: 69 },
+      { month: 'Oct', rate: 71 },
+      { month: 'Nov', rate: 70 },
+      { month: 'Dec', rate: 71 },
+    ],
+    currentRebookRate: 71,
+    practiceAvgRebookRate: 78,
+    avgSessionsBeforeChurn: 8.4,
+    practiceAvgSessionsBeforeChurn: 12.3,
+    clientRetention3Month: 72,
+    practiceAvgRetention3Month: 82,
+    clientRetention6Month: 54,
+    practiceAvgRetention6Month: 68,
+  },
+  4: { // James Kim - Associate Therapist (ramping up)
+    monthlyRebookRate: [
+      { month: 'Jan', rate: 79 },
+      { month: 'Feb', rate: 80 },
+      { month: 'Mar', rate: 81 },
+      { month: 'Apr', rate: 82 },
+      { month: 'May', rate: 83 },
+      { month: 'Jun', rate: 81 },
+      { month: 'Jul', rate: 80 },
+      { month: 'Aug', rate: 82 },
+      { month: 'Sep', rate: 84 },
+      { month: 'Oct', rate: 83 },
+      { month: 'Nov', rate: 81 },
+      { month: 'Dec', rate: 82 },
+    ],
+    currentRebookRate: 82,
+    practiceAvgRebookRate: 78,
+    avgSessionsBeforeChurn: 11.8,
+    practiceAvgSessionsBeforeChurn: 12.3,
+    clientRetention3Month: 85,
+    practiceAvgRetention3Month: 82,
+    clientRetention6Month: 71,
+    practiceAvgRetention6Month: 68,
+  },
+  5: { // Michael Johnson - Associate Therapist (critical)
+    monthlyRebookRate: [
+      { month: 'Jan', rate: 72 },
+      { month: 'Feb', rate: 70 },
+      { month: 'Mar', rate: 68 },
+      { month: 'Apr', rate: 66 },
+      { month: 'May', rate: 64 },
+      { month: 'Jun', rate: 62 },
+      { month: 'Jul', rate: 60 },
+      { month: 'Aug', rate: 62 },
+      { month: 'Sep', rate: 65 },
+      { month: 'Oct', rate: 63 },
+      { month: 'Nov', rate: 62 },
+      { month: 'Dec', rate: 64 },
+    ],
+    currentRebookRate: 64,
+    practiceAvgRebookRate: 78,
+    avgSessionsBeforeChurn: 6.2,
+    practiceAvgSessionsBeforeChurn: 12.3,
+    clientRetention3Month: 58,
+    practiceAvgRetention3Month: 82,
+    clientRetention6Month: 38,
+    practiceAvgRetention6Month: 68,
+  },
+};
+
 type TimePeriod = 'last-12-months' | 'this-year' | 'this-quarter' | 'last-quarter' | 'this-month' | 'last-month' | 'custom';
 
 const TIME_PERIODS: { id: TimePeriod; label: string }[] = [
@@ -859,6 +1061,9 @@ export const ClinicianDetailsTab: React.FC = () => {
     }));
   }, [caseloadData]);
 
+  // Get clients for this clinician (typed to match ClientRosterCard)
+  const clinicianClients: ClientData[] = selectedClinician ? CLINICIAN_CLIENTS[selectedClinician.id] || [] : [];
+
   // Client movement insights
   const clientMovementInsights = useMemo(() => {
     if (!caseloadData) return [];
@@ -885,6 +1090,128 @@ export const ClinicianDetailsTab: React.FC = () => {
       },
     ];
   }, [caseloadData, netClientGrowth, totalNewClients, totalChurnedClients]);
+
+  // ==========================================================================
+  // RETENTION COMPUTED VALUES
+  // ==========================================================================
+
+  // Get retention data for selected clinician
+  const retentionData = selectedClinician ? CLINICIAN_RETENTION_DATA[selectedClinician.id] : null;
+
+  // Rebook rate chart data for LineChart
+  const rebookRateChartData = useMemo(() => {
+    if (!retentionData) return [];
+    return retentionData.monthlyRebookRate.map(item => ({
+      month: item.month,
+      rate: item.rate,
+    }));
+  }, [retentionData]);
+
+  // Calculate rebook rate trend (comparing first half to second half of year)
+  const rebookRateTrend = useMemo(() => {
+    if (!retentionData || retentionData.monthlyRebookRate.length < 6) return 0;
+    const rates = retentionData.monthlyRebookRate;
+    const firstHalf = rates.slice(0, 6).reduce((sum, r) => sum + r.rate, 0) / 6;
+    const secondHalf = rates.slice(6).reduce((sum, r) => sum + r.rate, 0) / 6;
+    return secondHalf - firstHalf;
+  }, [retentionData]);
+
+  // Best month for rebook rate
+  const bestRebookMonth = useMemo(() => {
+    if (!retentionData) return { month: '', rate: 0 };
+    return retentionData.monthlyRebookRate.reduce(
+      (best, current) => current.rate > best.rate ? { month: current.month, rate: current.rate } : best,
+      { month: '', rate: 0 }
+    );
+  }, [retentionData]);
+
+  // Rebook rate insights
+  const rebookRateInsights = useMemo(() => {
+    if (!retentionData) return [];
+    const vsAvg = retentionData.currentRebookRate - retentionData.practiceAvgRebookRate;
+    return [
+      {
+        value: `${retentionData.currentRebookRate}%`,
+        label: 'Current Rate',
+        bgColor: retentionData.currentRebookRate >= retentionData.practiceAvgRebookRate ? 'bg-emerald-50' : 'bg-rose-50',
+        textColor: retentionData.currentRebookRate >= retentionData.practiceAvgRebookRate ? 'text-emerald-600' : 'text-rose-600',
+      },
+      {
+        value: vsAvg >= 0 ? `+${vsAvg}%` : `${vsAvg}%`,
+        label: 'vs Practice Avg',
+        bgColor: vsAvg >= 0 ? 'bg-emerald-50' : 'bg-rose-50',
+        textColor: vsAvg >= 0 ? 'text-emerald-600' : 'text-rose-600',
+      },
+      {
+        value: `${bestRebookMonth.rate}%`,
+        label: `Best: ${bestRebookMonth.month}`,
+        bgColor: 'bg-stone-100',
+        textColor: 'text-stone-700',
+      },
+    ];
+  }, [retentionData, bestRebookMonth]);
+
+  // Retention comparison table columns and rows
+  const retentionTableColumns = [
+    { key: 'clinician', header: selectedClinician?.name.split(' ')[0] || 'Clinician', align: 'right' as const },
+    { key: 'practice', header: 'Practice Avg', align: 'right' as const },
+    { key: 'diff', header: 'Diff', align: 'right' as const, isTotals: true },
+  ];
+
+  const retentionTableRows = useMemo(() => {
+    if (!retentionData) return [];
+    const rebookDiff = retentionData.currentRebookRate - retentionData.practiceAvgRebookRate;
+    const sessionsDiff = retentionData.avgSessionsBeforeChurn - retentionData.practiceAvgSessionsBeforeChurn;
+    const retention3Diff = retentionData.clientRetention3Month - retentionData.practiceAvgRetention3Month;
+    const retention6Diff = retentionData.clientRetention6Month - retentionData.practiceAvgRetention6Month;
+
+    return [
+      {
+        id: 'rebook',
+        label: 'Rebook Rate',
+        values: {
+          clinician: `${retentionData.currentRebookRate}%`,
+          practice: `${retentionData.practiceAvgRebookRate}%`,
+          diff: rebookDiff >= 0 ? `+${rebookDiff}%` : `${rebookDiff}%`,
+        },
+        valueColor: rebookDiff >= 0 ? 'text-emerald-600' : 'text-rose-600',
+        indicator: { color: rebookDiff >= 0 ? '#10b981' : '#f43f5e' },
+      },
+      {
+        id: 'sessions',
+        label: 'Avg Sessions Before Churn',
+        values: {
+          clinician: retentionData.avgSessionsBeforeChurn.toFixed(1),
+          practice: retentionData.practiceAvgSessionsBeforeChurn.toFixed(1),
+          diff: sessionsDiff >= 0 ? `+${sessionsDiff.toFixed(1)}` : sessionsDiff.toFixed(1),
+        },
+        valueColor: sessionsDiff >= 0 ? 'text-emerald-600' : 'text-rose-600',
+        indicator: { color: sessionsDiff >= 0 ? '#10b981' : '#f43f5e' },
+      },
+      {
+        id: 'retention3',
+        label: '3-Month Retention',
+        values: {
+          clinician: `${retentionData.clientRetention3Month}%`,
+          practice: `${retentionData.practiceAvgRetention3Month}%`,
+          diff: retention3Diff >= 0 ? `+${retention3Diff}%` : `${retention3Diff}%`,
+        },
+        valueColor: retention3Diff >= 0 ? 'text-emerald-600' : 'text-rose-600',
+        indicator: { color: retention3Diff >= 0 ? '#10b981' : '#f43f5e' },
+      },
+      {
+        id: 'retention6',
+        label: '6-Month Retention',
+        values: {
+          clinician: `${retentionData.clientRetention6Month}%`,
+          practice: `${retentionData.practiceAvgRetention6Month}%`,
+          diff: retention6Diff >= 0 ? `+${retention6Diff}%` : `${retention6Diff}%`,
+        },
+        valueColor: retention6Diff >= 0 ? 'text-emerald-600' : 'text-rose-600',
+        indicator: { color: retention6Diff >= 0 ? '#10b981' : '#f43f5e' },
+      },
+    ];
+  }, [retentionData, selectedClinician]);
 
   return (
     <>
@@ -1753,38 +2080,30 @@ export const ClinicianDetailsTab: React.FC = () => {
             <SectionHeader
               number={selectedClinician.healthStatus !== 'healthy' ? 4 : 3}
               question="How is their caseload?"
-              description="Capacity utilization, client movement, and at-risk clients"
+              description="Client movement and current roster"
               accent="amber"
               showAccentLine={false}
               compact
             />
-            <Grid cols={3}>
-              {/* Caseload Utilization StatCard */}
-              <StatCard
-                title="Caseload Capacity"
-                value={`${caseloadUtilization.toFixed(0)}%`}
-                subtitle={`${currentActiveClients} of ${currentCapacity} clients · ${caseloadUtilization >= caseloadData.practiceAvgUtilization ? '+' : ''}${(caseloadUtilization - caseloadData.practiceAvgUtilization).toFixed(0)}% vs ${caseloadData.practiceAvgUtilization}% avg`}
-                variant={caseloadUtilization >= caseloadData.practiceAvgUtilization ? 'positive' : 'negative'}
-              />
-
+            <Grid cols={2}>
               {/* Client Movement Chart */}
               <ChartCard
                 title="Client Movement"
                 subtitle="New vs churned clients"
                 headerControls={
-                  <div className="flex items-center gap-4 bg-stone-50 rounded-xl px-4 py-2">
+                  <div className="flex items-center gap-5 bg-stone-50 rounded-xl px-5 py-2.5">
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-sm bg-gradient-to-b from-emerald-400 to-emerald-500"></div>
-                      <span className="text-stone-600 text-sm font-medium">New</span>
+                      <div className="w-4 h-4 rounded-md bg-gradient-to-b from-emerald-400 to-emerald-500"></div>
+                      <span className="text-stone-700 text-base font-semibold">New</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-sm bg-gradient-to-b from-rose-400 to-rose-500"></div>
-                      <span className="text-stone-600 text-sm font-medium">Churned</span>
+                      <div className="w-4 h-4 rounded-md bg-gradient-to-b from-rose-400 to-rose-500"></div>
+                      <span className="text-stone-700 text-base font-semibold">Churned</span>
                     </div>
                   </div>
                 }
                 insights={clientMovementInsights}
-                minHeight="320px"
+                minHeight="420px"
               >
                 <DivergingBarChart
                   data={clientMovementData}
@@ -1798,16 +2117,15 @@ export const ClinicianDetailsTab: React.FC = () => {
                     color: '#fb7185',
                     colorEnd: '#f43f5e',
                   }}
-                  height="200px"
+                  height="280px"
                 />
               </ChartCard>
 
-              {/* At-Risk Clients StatCard */}
-              <StatCard
-                title="At-Risk Clients"
-                value={caseloadData.atRiskClients.toString()}
-                subtitle={caseloadData.atRiskClients <= 2 ? 'Low risk level' : caseloadData.atRiskClients <= 4 ? 'Monitor closely' : 'Needs attention'}
-                variant={caseloadData.atRiskClients <= 2 ? 'positive' : caseloadData.atRiskClients <= 4 ? 'neutral' : 'negative'}
+              {/* Client Roster */}
+              <ClientRosterCard
+                title="Client Roster"
+                subtitle={`${clinicianClients.length} active clients`}
+                clients={clinicianClients}
               />
             </Grid>
           </SectionContainer>
@@ -1816,7 +2134,7 @@ export const ClinicianDetailsTab: React.FC = () => {
           {/* ---------------------------------------------------------
               SECTION 5: Retention
               --------------------------------------------------------- */}
-          {isSpotlightMode && selectedClinician && (
+          {isSpotlightMode && selectedClinician && retentionData && (
           <SectionContainer accent="rose" index={selectedClinician.healthStatus !== 'healthy' ? 4 : 3}>
             <SectionHeader
               number={selectedClinician.healthStatus !== 'healthy' ? 5 : 4}
@@ -1827,12 +2145,46 @@ export const ClinicianDetailsTab: React.FC = () => {
               compact
             />
             <Grid cols={2}>
-              <div className="h-64 bg-stone-100 rounded-2xl flex items-center justify-center text-stone-400">
-                Rebook Rate Trend
-              </div>
-              <div className="h-64 bg-stone-100 rounded-2xl flex items-center justify-center text-stone-400">
-                Retention Comparison Table
-              </div>
+              {/* Rebook Rate Trend Chart */}
+              <ChartCard
+                title="Rebook Rate Trend"
+                subtitle="Monthly client rebook rates"
+                headerControls={
+                  <div className="flex items-center gap-3 bg-stone-50 rounded-xl px-5 py-2.5">
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 rounded-full bg-rose-500"></div>
+                      <span className="text-stone-700 text-base font-semibold">Clinician</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-0.5 bg-stone-400" style={{ borderTop: '2px dashed #a8a29e' }}></div>
+                      <span className="text-stone-500 text-base font-semibold">Practice Avg ({retentionData.practiceAvgRebookRate}%)</span>
+                    </div>
+                  </div>
+                }
+                insights={rebookRateInsights}
+                minHeight="420px"
+              >
+                <LineChart
+                  data={rebookRateChartData}
+                  xAxisKey="month"
+                  lines={[{ dataKey: 'rate', color: '#f43f5e', name: 'Rebook Rate' }]}
+                  yDomain={[50, 100]}
+                  yTickFormatter={(v) => `${v}%`}
+                  tooltipFormatter={(value) => [`${value}%`, 'Rebook Rate']}
+                  referenceLines={[
+                    { value: retentionData.practiceAvgRebookRate, label: 'Practice Avg', color: '#a8a29e', dashed: true }
+                  ]}
+                  height={280}
+                />
+              </ChartCard>
+
+              {/* Retention Comparison Table */}
+              <DataTableCard
+                title="Retention Comparison"
+                subtitle="vs practice average"
+                columns={retentionTableColumns}
+                rows={retentionTableRows}
+              />
             </Grid>
           </SectionContainer>
           )}

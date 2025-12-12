@@ -134,13 +134,13 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
 
   return (
     <div
-      className="relative overflow-hidden"
+      className="relative"
       style={{
         background: 'linear-gradient(135deg, #1c1917 0%, #292524 50%, #1c1917 100%)'
       }}
     >
-      {/* Glow container - contains overflow */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {/* Glow container - contains overflow for decorative elements only */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         {/* Grid pattern overlay */}
         {showGridPattern && (
           <div

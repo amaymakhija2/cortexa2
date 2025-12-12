@@ -118,7 +118,7 @@ export const MonthPicker: React.FC<MonthPickerProps> = ({
       {isOpen && (
         <div
           ref={dropdownRef}
-          className="absolute top-full right-0 mt-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200"
+          className="absolute top-full right-0 mt-2 z-[100] animate-in fade-in slide-in-from-top-2 duration-200"
         >
           <div
             className="bg-white rounded-2xl shadow-2xl border border-stone-200/80 overflow-hidden"
