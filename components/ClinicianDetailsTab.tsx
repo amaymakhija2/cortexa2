@@ -762,6 +762,13 @@ export const ClinicianDetailsTab: React.FC = () => {
     { label: 'No Show', value: totalNoShow, color: '#6b7280' },
   ], [totalCompleted, totalClientCancelled, totalClinicianCancelled, totalLateCancelled, totalNoShow]);
 
+  // Average weekly sessions
+  const avgWeeklySessions = useMemo(() => {
+    if (!sessionData) return 0;
+    const avgMonthly = totalCompleted / sessionData.monthlySessions.length;
+    return Math.round(avgMonthly / 4.33);
+  }, [sessionData, totalCompleted]);
+
   // Session insights for chart
   const sessionInsights = useMemo(() => {
     if (!sessionData) return [];
@@ -773,10 +780,10 @@ export const ClinicianDetailsTab: React.FC = () => {
         textColor: 'text-emerald-600',
       },
       {
-        value: `${showRate.toFixed(0)}%`,
-        label: 'Show Rate',
-        bgColor: showRate >= 85 ? 'bg-emerald-50' : 'bg-amber-50',
-        textColor: showRate >= 85 ? 'text-emerald-600' : 'text-amber-600',
+        value: `${avgWeeklySessions}/wk`,
+        label: 'Avg Weekly',
+        bgColor: 'bg-blue-50',
+        textColor: 'text-blue-600',
       },
       {
         value: `${sessionMonthsAtGoal}/${sessionData.monthlySessions.length}`,
@@ -785,7 +792,7 @@ export const ClinicianDetailsTab: React.FC = () => {
         textColor: sessionMonthsAtGoal >= 6 ? 'text-emerald-600' : 'text-amber-600',
       },
     ];
-  }, [sessionData, bestSessionMonth, showRate, sessionMonthsAtGoal]);
+  }, [sessionData, bestSessionMonth, avgWeeklySessions, sessionMonthsAtGoal]);
 
   // ==========================================================================
   // CASELOAD COMPUTED VALUES
@@ -1556,15 +1563,15 @@ export const ClinicianDetailsTab: React.FC = () => {
               />
               <StatCard
                 title="Sessions"
-                value={selectedClinician.metrics.sessions}
-                subtitle={`${selectedClinician.metrics.sessionsVsGoal >= 100 ? '+' : ''}${selectedClinician.metrics.sessionsVsGoal - 100}% vs goal`}
+                value={sessionData ? `${Math.round(totalCompleted / sessionData.monthlySessions.length)}/mo` : '-'}
+                subtitle={sessionData ? `~${Math.round(totalCompleted / sessionData.monthlySessions.length / 4.33)}/week · ${totalCompleted} total` : '-'}
                 variant={selectedClinician.metrics.sessionsVsGoal >= 100 ? 'positive' : 'negative'}
               />
               <StatCard
-                title="Rebook Rate"
-                value={`${selectedClinician.metrics.rebookRate}%`}
-                subtitle={selectedClinician.metrics.rebookRate >= 85 ? 'Above 85% target' : 'Below 85% target'}
-                variant={selectedClinician.metrics.rebookRate >= 85 ? 'positive' : selectedClinician.metrics.rebookRate >= 75 ? 'default' : 'negative'}
+                title={`Caseload (${caseloadData?.monthlyCaseload[caseloadData.monthlyCaseload.length - 1]?.month || 'Current'})`}
+                value={caseloadData ? `${currentActiveClients}/${currentCapacity}` : '-'}
+                subtitle={caseloadData ? `${caseloadUtilization.toFixed(0)}% capacity · ${caseloadUtilization >= caseloadData.practiceAvgUtilization ? '+' : ''}${(caseloadUtilization - caseloadData.practiceAvgUtilization).toFixed(0)}% vs avg` : '-'}
+                variant={caseloadData && caseloadUtilization >= caseloadData.practiceAvgUtilization ? 'positive' : 'negative'}
               />
               <StatCard
                 title="Notes Overdue"
@@ -1614,17 +1621,11 @@ export const ClinicianDetailsTab: React.FC = () => {
               title="Revenue Over Time"
               subtitle="Monthly revenue with goal tracking"
               headerControls={
-                <>
-                  <GoalIndicator
-                    value={formatCurrencyShort(financialData.revenueGoal)}
-                    label="Goal"
-                    color="amber"
-                  />
-                  <ActionButton
-                    label="Details"
-                    icon={<ArrowRight size={16} />}
-                  />
-                </>
+                <GoalIndicator
+                  value={formatCurrencyShort(financialData.revenueGoal)}
+                  label="Goal"
+                  color="amber"
+                />
               }
               insights={revenueInsights}
               minHeight="420px"
@@ -1672,17 +1673,11 @@ export const ClinicianDetailsTab: React.FC = () => {
                 title="Completed Sessions"
                 subtitle="Monthly session volume"
                 headerControls={
-                  <>
-                    <GoalIndicator
-                      value={sessionData.sessionGoal}
-                      label="Goal"
-                      color="amber"
-                    />
-                    <ActionButton
-                      label="Details"
-                      icon={<ArrowRight size={16} />}
-                    />
-                  </>
+                  <GoalIndicator
+                    value={sessionData.sessionGoal}
+                    label="Goal"
+                    color="amber"
+                  />
                 }
                 insights={sessionInsights}
                 minHeight="420px"
