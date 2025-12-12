@@ -629,7 +629,7 @@ export const ClinicianOverview: React.FC = () => {
         <PageHeader
           accent="amber"
           label="Team Performance"
-          title="Clinician Rankings"
+          title="Clinician Spotlight"
           subtitle={getDateRangeLabel()}
           showGridPattern
           actions={

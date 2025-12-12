@@ -578,7 +578,7 @@ export const ClinicianRankingTab: React.FC<ClinicianRankingTabProps> = ({
       <PageHeader
         accent="violet"
         label="Team Performance"
-        title="Clinician Rankings"
+        title="Clinician Spotlight"
         subtitle="Compare your team across key performance areas"
         tabs={tabs}
         activeTab={activeTab}

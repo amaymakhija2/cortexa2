@@ -13,7 +13,6 @@ import {
   Lock,
   PanelLeftClose,
   PanelLeft,
-  Component,
 } from 'lucide-react';
 
 // =============================================================================
@@ -47,7 +46,7 @@ const NAVIGATION = {
       icon: Users,
       description: 'Team performance',
       subItems: [
-        { id: 'ranking', label: 'Rankings' },
+        { id: 'ranking', label: 'Spotlight' },
         { id: 'details', label: 'Individual Details' },
       ]
     },
@@ -65,12 +64,6 @@ const NAVIGATION = {
         { id: 'insurance', label: 'Insurance' },
         { id: 'admin', label: 'Admin' },
       ]
-    },
-    {
-      path: '/components',
-      label: 'Components',
-      icon: Component,
-      description: 'Design system reference'
     },
   ],
   upcoming: [
@@ -355,39 +348,56 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           {/* ==================== FOOTER ==================== */}
           <div
-            className="mt-auto pt-6 border-t border-stone-700/50"
+            className="mt-auto"
             style={{
               paddingLeft: isExpanded ? 16 : 0,
               paddingRight: isExpanded ? 16 : 0,
             }}
           >
-            {/* Settings */}
-            <NavLink
-              to="/settings"
-              onClick={() => setMobileMenuOpen?.(false)}
-              title={!isExpanded ? 'Settings' : undefined}
-              className={({ isActive }) => `
-                flex items-center rounded-xl
-                transition-colors duration-200
-                ${isActive ? 'bg-white/10 text-white' : 'text-stone-400 hover:text-white hover:bg-white/[0.05]'}
-              `}
-              style={isExpanded ? {
-                padding: '14px 16px',
-                justifyContent: 'flex-start',
-                gap: '16px',
-              } : {
-                width: ICON_BOX_SIZE,
-                height: ICON_BOX_SIZE,
-                marginLeft: (COLLAPSED_WIDTH - ICON_BOX_SIZE) / 2,
-                marginRight: (COLLAPSED_WIDTH - ICON_BOX_SIZE) / 2,
-                justifyContent: 'center',
-              }}
-            >
-              <Settings size={22} strokeWidth={1.5} className="flex-shrink-0" />
-              {isExpanded && (
-                <span className="text-[16px] whitespace-nowrap">Settings</span>
-              )}
-            </NavLink>
+            {/* Components - internal dev tool */}
+            {isExpanded && (
+              <NavLink
+                to="/components"
+                onClick={() => setMobileMenuOpen?.(false)}
+                className={({ isActive }) => `
+                  block text-center py-2 mb-4
+                  text-[14px] transition-colors duration-200
+                  ${isActive ? 'text-stone-400' : 'text-stone-600 hover:text-stone-400'}
+                `}
+              >
+                Components
+              </NavLink>
+            )}
+
+            <div className="pt-6 border-t border-stone-700/50">
+              {/* Settings */}
+              <NavLink
+                to="/settings"
+                onClick={() => setMobileMenuOpen?.(false)}
+                title={!isExpanded ? 'Settings' : undefined}
+                className={({ isActive }) => `
+                  flex items-center rounded-xl
+                  transition-colors duration-200
+                  ${isActive ? 'bg-white/10 text-white' : 'text-stone-400 hover:text-white hover:bg-white/[0.05]'}
+                `}
+                style={isExpanded ? {
+                  padding: '14px 16px',
+                  justifyContent: 'flex-start',
+                  gap: '16px',
+                } : {
+                  width: ICON_BOX_SIZE,
+                  height: ICON_BOX_SIZE,
+                  marginLeft: (COLLAPSED_WIDTH - ICON_BOX_SIZE) / 2,
+                  marginRight: (COLLAPSED_WIDTH - ICON_BOX_SIZE) / 2,
+                  justifyContent: 'center',
+                }}
+              >
+                <Settings size={22} strokeWidth={1.5} className="flex-shrink-0" />
+                {isExpanded && (
+                  <span className="text-[16px] whitespace-nowrap">Settings</span>
+                )}
+              </NavLink>
+            </div>
 
             {/* User */}
             <div
