@@ -70,53 +70,69 @@ function transformClinicianData(
 function aggregateClinicianData(
   monthsData: Record<string, MonthlyMetrics>
 ): ClinicianMetricsCalculated[] {
+  const monthCount = Object.keys(monthsData).length;
+  if (monthCount === 0) return [];
+
   const aggregated: Record<string, {
     revenue: number;
     sessions: number;
-    clients: Set<string>; // Track unique clients (approximation)
+    maxClients: number; // Track max clients seen in any month
+    totalClientsAcrossMonths: number; // For averaging
+    monthsWithData: number;
     newClients: number;
-    churned: number;
   }> = {};
 
-  let totalChurned = 0;
+  // Track monthly churn rates to average them
+  let totalMonthlyChurnRates = 0;
+  let monthsWithChurnData = 0;
 
   Object.values(monthsData).forEach(monthData => {
-    totalChurned += monthData.churnedClients;
+    // Calculate this month's churn rate (churned / active * 100)
+    if (monthData.activeClients > 0) {
+      const monthChurnRate = (monthData.churnedClients / monthData.activeClients) * 100;
+      totalMonthlyChurnRates += monthChurnRate;
+      monthsWithChurnData++;
+    }
 
     Object.entries(monthData.clinicians).forEach(([name, data]) => {
       if (!aggregated[name]) {
         aggregated[name] = {
           revenue: 0,
           sessions: 0,
-          clients: new Set(),
+          maxClients: 0,
+          totalClientsAcrossMonths: 0,
+          monthsWithData: 0,
           newClients: 0,
-          churned: 0,
         };
       }
       aggregated[name].revenue += data.revenue;
       aggregated[name].sessions += data.sessions;
-      // Approximate unique clients by taking max seen
-      for (let i = 0; i < data.clients; i++) {
-        aggregated[name].clients.add(`${name}-client-${i}`);
-      }
+      aggregated[name].maxClients = Math.max(aggregated[name].maxClients, data.clients);
+      aggregated[name].totalClientsAcrossMonths += data.clients;
+      aggregated[name].monthsWithData++;
     });
   });
 
-  const totalClients = Object.values(aggregated).reduce(
-    (sum, c) => sum + c.clients.size,
-    0
-  );
+  // Calculate average monthly churn rate for the practice
+  const avgPracticeChurnRate = monthsWithChurnData > 0
+    ? totalMonthlyChurnRates / monthsWithChurnData
+    : 0;
 
   return Object.entries(aggregated).map(([name, data]) => {
-    const avgClients = data.clients.size;
+    const avgClients = data.monthsWithData > 0
+      ? Math.round(data.totalClientsAcrossMonths / data.monthsWithData)
+      : 0;
     const revenuePerSession = data.sessions > 0 ? data.revenue / data.sessions : 0;
     const avgSessionsPerClient = avgClients > 0 ? data.sessions / avgClients : 0;
 
-    // Distribute churn proportionally
-    const clinicianChurnShare = totalClients > 0
-      ? (avgClients / totalClients) * totalChurned
+    // Estimate this clinician's churn rate proportionally to practice average
+    // Clinicians with more clients relative to practice will have proportionally similar churn
+    const churnRate = avgPracticeChurnRate; // Use practice average as baseline
+
+    // Estimate churned clients for this clinician over the period
+    const clinicianChurnedEstimate = avgClients > 0
+      ? Math.round((churnRate / 100) * avgClients * monthCount)
       : 0;
-    const churnRate = avgClients > 0 ? (clinicianChurnShare / avgClients) * 100 : 0;
 
     return {
       clinicianId: name,
@@ -126,9 +142,9 @@ function aggregateClinicianData(
       revenuePerSession,
       activeClients: avgClients,
       newClients: data.newClients,
-      clientsChurned: Math.round(clinicianChurnShare),
+      clientsChurned: clinicianChurnedEstimate,
       avgSessionsPerClient,
-      churnRate,
+      churnRate: Math.round(churnRate * 10) / 10, // Round to 1 decimal
     };
   });
 }

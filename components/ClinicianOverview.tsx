@@ -593,20 +593,6 @@ export const ClinicianOverview: React.FC = () => {
     return { sortedClinicians: sorted, avgRankIndex: avgIndex };
   }, [metric.key, metric.higherIsBetter, teamAvg]);
 
-  // Calculate bar widths
-  const maxVal = Math.max(...sortedClinicians.map(c => c.metrics[metric.key]));
-  const minVal = Math.min(...sortedClinicians.map(c => c.metrics[metric.key]));
-
-  const getBarWidth = (value: number) => {
-    if (metric.higherIsBetter) {
-      return (value / maxVal) * 100;
-    } else {
-      const range = maxVal - minVal;
-      if (range === 0) return 100;
-      return ((maxVal - value) / range) * 80 + 20;
-    }
-  };
-
   // If details tab is selected, render the details component
   if (activeTab === 'details') {
     return (
@@ -775,23 +761,22 @@ export const ClinicianOverview: React.FC = () => {
           <div className="hidden lg:grid gap-4 py-4 text-sm font-bold text-stone-700 uppercase tracking-wide border-b-2 border-stone-300 mb-3"
             style={{
               gridTemplateColumns: displayGroup.supporting.length === 6
-                ? '60px 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr'
+                ? '60px 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr'
                 : displayGroup.supporting.length === 5
-                  ? '60px 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr'
+                  ? '60px 1fr 1fr 1fr 1fr 1fr 1fr 1fr'
                   : displayGroup.supporting.length === 4
-                    ? '60px 1fr 1fr 1fr 1fr 1fr 1fr 1fr'
+                    ? '60px 1fr 1fr 1fr 1fr 1fr 1fr'
                     : displayGroup.supporting.length === 3
-                      ? '60px 1fr 1fr 1fr 1fr 1fr 1fr'
+                      ? '60px 1fr 1fr 1fr 1fr 1fr'
                       : displayGroup.supporting.length === 2
-                        ? '60px 1fr 1fr 1fr 1fr 1fr'
+                        ? '60px 1fr 1fr 1fr 1fr'
                         : displayGroup.supporting.length === 1
-                          ? '60px 1.5fr 1fr 1fr 1fr'
-                          : '60px 2fr 1fr 1fr'
+                          ? '60px 1.5fr 1fr 1fr'
+                          : '60px 2fr 1fr'
             }}
           >
             <div>Rank</div>
             <div>Clinician</div>
-            <div>{metric.label}</div>
             <div className="text-right">{metric.label}</div>
             {displayGroup.supporting.map((s) => (
               <div key={s.key} className="text-right text-stone-500">
@@ -855,18 +840,18 @@ export const ClinicianOverview: React.FC = () => {
                     <div className="hidden lg:grid gap-4 items-center"
                       style={{
                         gridTemplateColumns: displayGroup.supporting.length === 6
-                          ? '60px 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr'
+                          ? '60px 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr'
                           : displayGroup.supporting.length === 5
-                            ? '60px 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr'
+                            ? '60px 1fr 1fr 1fr 1fr 1fr 1fr 1fr'
                             : displayGroup.supporting.length === 4
-                              ? '60px 1fr 1fr 1fr 1fr 1fr 1fr 1fr'
+                              ? '60px 1fr 1fr 1fr 1fr 1fr 1fr'
                               : displayGroup.supporting.length === 3
-                                ? '60px 1fr 1fr 1fr 1fr 1fr 1fr'
+                                ? '60px 1fr 1fr 1fr 1fr 1fr'
                                 : displayGroup.supporting.length === 2
-                                  ? '60px 1fr 1fr 1fr 1fr 1fr'
+                                  ? '60px 1fr 1fr 1fr 1fr'
                                   : displayGroup.supporting.length === 1
-                                    ? '60px 1.5fr 1fr 1fr 1fr'
-                                    : '60px 2fr 1fr 1fr'
+                                    ? '60px 1.5fr 1fr 1fr'
+                                    : '60px 2fr 1fr'
                       }}
                     >
                       {/* Icon instead of rank */}
@@ -882,11 +867,6 @@ export const ClinicianOverview: React.FC = () => {
                           Team Average
                         </h3>
                         <p className="text-stone-500 text-xs">{CLINICIANS_DATA.length} clinicians</p>
-                      </div>
-
-                      {/* Bar space */}
-                      <div className="flex items-center">
-                        <div className="h-4 bg-stone-200 rounded-full w-full" />
                       </div>
 
                       {/* Primary Value */}
@@ -912,28 +892,23 @@ export const ClinicianOverview: React.FC = () => {
                 </div>
               );
 
-              const barWidth = getBarWidth(value);
-
               // Color theming
               const getTheme = () => {
                 if (isFirst) return {
                   accent: '#10b981',
                   accentLight: '#ecfdf5',
-                  bar: 'linear-gradient(90deg, #10b981 0%, #34d399 100%)',
                   text: '#059669',
                   shadow: '0 4px 24px -4px rgba(16, 185, 129, 0.25)'
                 };
                 if (isLast) return {
                   accent: '#ef4444',
                   accentLight: '#fef2f2',
-                  bar: 'linear-gradient(90deg, #ef4444 0%, #f87171 100%)',
                   text: '#dc2626',
                   shadow: '0 4px 24px -4px rgba(239, 68, 68, 0.15)'
                 };
                 return {
                   accent: '#78716c',
                   accentLight: '#f5f5f4',
-                  bar: 'linear-gradient(90deg, #78716c 0%, #a8a29e 100%)',
                   text: '#44403c',
                   shadow: '0 2px 12px -2px rgba(0, 0, 0, 0.08)'
                 };
@@ -951,7 +926,7 @@ export const ClinicianOverview: React.FC = () => {
                     style={{ boxShadow: theme.shadow }}
                   >
                     {/* Accent bar - thin and elegant */}
-                    <div className="h-0.5" style={{ background: theme.bar }} />
+                    <div className="h-0.5" style={{ background: theme.accent }} />
 
                     <div className="px-4 sm:px-6 py-4 lg:py-5">
                       {/* Mobile layout */}
@@ -998,30 +973,24 @@ export const ClinicianOverview: React.FC = () => {
                             ))}
                           </div>
                         )}
-                        {/* Mobile bar */}
-                        <div className="mt-3">
-                          <div className="h-2 bg-stone-100 rounded-full overflow-hidden">
-                            <div className="h-full rounded-full transition-all duration-500" style={{ width: `${barWidth}%`, background: theme.bar }} />
-                          </div>
-                        </div>
                       </div>
 
                       {/* Desktop layout */}
                       <div className="hidden lg:grid gap-4 items-center"
                         style={{
                           gridTemplateColumns: displayGroup.supporting.length === 6
-                            ? '60px 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr'
+                            ? '60px 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr'
                             : displayGroup.supporting.length === 5
-                              ? '60px 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr'
+                              ? '60px 1fr 1fr 1fr 1fr 1fr 1fr 1fr'
                               : displayGroup.supporting.length === 4
-                                ? '60px 1fr 1fr 1fr 1fr 1fr 1fr 1fr'
+                                ? '60px 1fr 1fr 1fr 1fr 1fr 1fr'
                                 : displayGroup.supporting.length === 3
-                                  ? '60px 1fr 1fr 1fr 1fr 1fr 1fr'
+                                  ? '60px 1fr 1fr 1fr 1fr 1fr'
                                   : displayGroup.supporting.length === 2
-                                    ? '60px 1fr 1fr 1fr 1fr 1fr'
+                                    ? '60px 1fr 1fr 1fr 1fr'
                                     : displayGroup.supporting.length === 1
-                                      ? '60px 1.5fr 1fr 1fr 1fr'
-                                      : '60px 2fr 1fr 1fr'
+                                      ? '60px 1.5fr 1fr 1fr'
+                                      : '60px 2fr 1fr'
                         }}
                       >
                         {/* RANK */}
@@ -1061,19 +1030,6 @@ export const ClinicianOverview: React.FC = () => {
                             <p className="text-stone-500 text-xs truncate">
                               {clinician.role}
                             </p>
-                          </div>
-                        </div>
-
-                        {/* BAR */}
-                        <div className="flex items-center">
-                          <div className="h-4 bg-stone-100 rounded-full overflow-hidden w-full">
-                            <div
-                              className="h-full rounded-full transition-all duration-500 ease-out"
-                              style={{
-                                width: `${barWidth}%`,
-                                background: theme.bar
-                              }}
-                            />
                           </div>
                         </div>
 
