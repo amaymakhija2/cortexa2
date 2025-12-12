@@ -3,8 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavig
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { SettingsProvider } from './context/SettingsContext';
 import { LoginPage } from './components/LoginPage';
-import { SignUpPage } from './components/SignUpPage';
-import { OnboardingWizard } from './components/OnboardingWizard';
+import { OnboardingFlow } from './components/OnboardingFlow';
 import { Sidebar } from './components/Sidebar';
 import { BottomNav } from './components/BottomNav';
 import { Dashboard } from './components/Dashboard';
@@ -71,15 +70,6 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({ onMenuOpen }) => {
   );
 };
 
-// Types for onboarding data
-interface SignUpData {
-  name: string;
-  email: string;
-  practiceName: string;
-  phone: string;
-  role: string;
-}
-
 // =============================================================================
 // AUTH PAGES WITH ROUTING
 // =============================================================================
@@ -89,46 +79,17 @@ const LoginPageWithNav: React.FC = () => {
   return <LoginPage onSwitchToSignUp={() => navigate('/signup')} />;
 };
 
-const SignUpPageWithNav: React.FC = () => {
+const SignUpFlowWithNav: React.FC = () => {
   const navigate = useNavigate();
-  const [signUpData, setSignUpData] = useState<SignUpData | null>(null);
-
-  const handleSignUpComplete = (data: SignUpData) => {
-    setSignUpData(data);
-    // Store data in sessionStorage for onboarding page
-    sessionStorage.setItem('signUpData', JSON.stringify(data));
-    navigate('/onboarding');
-  };
-
-  return (
-    <SignUpPage
-      onSwitchToLogin={() => navigate('/login')}
-      onSignUpComplete={handleSignUpComplete}
-    />
-  );
-};
-
-const OnboardingPageWithNav: React.FC = () => {
-  const navigate = useNavigate();
-
-  // Get sign-up data from sessionStorage
-  const storedData = sessionStorage.getItem('signUpData');
-  const signUpData: SignUpData | null = storedData ? JSON.parse(storedData) : null;
 
   const handleOnboardingComplete = () => {
-    sessionStorage.removeItem('signUpData');
     navigate('/login');
   };
 
-  // Redirect to signup if no data
-  if (!signUpData) {
-    return <Navigate to="/signup" replace />;
-  }
-
   return (
-    <OnboardingWizard
-      initialData={signUpData}
+    <OnboardingFlow
       onComplete={handleOnboardingComplete}
+      onSwitchToLogin={() => navigate('/login')}
     />
   );
 };
@@ -142,8 +103,7 @@ const ProtectedApp: React.FC = () => {
     return (
       <Routes>
         <Route path="/login" element={<LoginPageWithNav />} />
-        <Route path="/signup" element={<SignUpPageWithNav />} />
-        <Route path="/onboarding" element={<OnboardingPageWithNav />} />
+        <Route path="/signup" element={<SignUpFlowWithNav />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     );
