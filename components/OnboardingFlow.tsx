@@ -4,6 +4,14 @@ import { FallingLinesCanvas } from './FallingLinesCanvas';
 import { usePictureInPicture } from './PiPCopyWidget';
 
 // ============================================================================
+// CONFIGURATION
+// ============================================================================
+// Toggle this to switch between two onboarding modes:
+// - true:  Password collected in Get Started step (shorter flow, skips Create Account)
+// - false: Separate Create Account step after Payment (longer flow, Google OAuth option)
+const COLLECT_PASSWORD_IN_SIGNUP = false;
+
+// ============================================================================
 // TYPES
 // ============================================================================
 
@@ -31,6 +39,8 @@ interface FormData {
   practiceName: string;
   phone: string;
   title: string;
+  password: string;
+  confirmPassword: string;
 }
 
 // ============================================================================
@@ -76,15 +86,15 @@ const generateEmailFromPractice = (practiceName: string): string => {
 // PROGRESS INDICATOR
 // ============================================================================
 
-const ProgressIndicator: React.FC<{ currentStep: number }> = ({ currentStep }) => {
-  const steps = [
-    { num: 0, label: 'Start' },
-    { num: 1, label: 'EHR' },
-    { num: 2, label: 'Legal' },
-    { num: 3, label: 'Connect' },
-    { num: 4, label: 'Account' },
-    { num: 5, label: 'Done' },
-  ];
+const ProgressIndicator: React.FC<{ currentStep: number; totalSteps: number }> = ({ currentStep, totalSteps }) => {
+  // Generate steps dynamically based on totalSteps
+  // When COLLECT_PASSWORD_IN_SIGNUP is true: 6 steps (no Account step)
+  // When COLLECT_PASSWORD_IN_SIGNUP is false: 7 steps (includes Account step)
+  const stepLabelsShort = totalSteps === 6
+    ? ['Start', 'EHR', 'Legal', 'Connect', 'Subscribe', 'Done']
+    : ['Start', 'EHR', 'Legal', 'Connect', 'Subscribe', 'Account', 'Done'];
+
+  const steps = stepLabelsShort.map((label, index) => ({ num: index, label }));
 
   return (
     <div className="flex items-center gap-2">
@@ -131,10 +141,12 @@ const StepGetStarted: React.FC<{
   onFormChange: (field: keyof FormData, value: string) => void;
   onContinue: () => void;
   onSwitchToLogin?: () => void;
-}> = ({ formData, onFormChange, onContinue, onSwitchToLogin }) => {
+  collectPassword?: boolean;
+}> = ({ formData, onFormChange, onContinue, onSwitchToLogin, collectPassword = false }) => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (field: keyof FormData) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     onFormChange(field, e.target.value);
@@ -157,6 +169,14 @@ const StepGetStarted: React.FC<{
     if (!formData.practiceName.trim()) return 'Please enter your practice name';
     if (!formData.phone.trim()) return 'Please enter your phone number';
     if (!/^[\d\s\-\+\(\)]{10,}$/.test(formData.phone.replace(/\s/g, ''))) return 'Please enter a valid phone number';
+
+    // Password validation only if collecting password in this step
+    if (collectPassword) {
+      if (!formData.password) return 'Please create a password';
+      if (formData.password.length < 8) return 'Password must be at least 8 characters';
+      if (formData.password !== formData.confirmPassword) return 'Passwords do not match';
+    }
+
     return null;
   };
 
@@ -189,8 +209,8 @@ const StepGetStarted: React.FC<{
   return (
     <div>
       {/* Header */}
-      <div className="mb-10">
-        <h2 className="font-display text-4xl text-white mb-4">Get started</h2>
+      <div className="mb-6 sm:mb-10">
+        <h2 className="font-display text-3xl sm:text-4xl text-white mb-3 sm:mb-4">Get started</h2>
         <p className="font-body text-stone-300 text-lg leading-relaxed">
           See what's really happening in your practice —<br />
           <span className="text-stone-400">no spreadsheets, no guesswork.</span>
@@ -300,6 +320,93 @@ const StepGetStarted: React.FC<{
           </div>
         </motion.div>
 
+        {/* Password Fields - Only shown when collectPassword is true */}
+        {collectPassword && (
+          <>
+            {/* Password */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35, duration: 0.4 }}
+            >
+              <label className="font-body text-sm text-stone-500 uppercase tracking-wider font-medium block mb-2">
+                Create Password
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={formData.password}
+                  onChange={handleChange('password')}
+                  onFocus={() => setFocusedField('password')}
+                  onBlur={() => setFocusedField(null)}
+                  className={`
+                    font-body w-full px-4 py-3 pr-12
+                    bg-stone-800 border rounded-xl
+                    text-white text-lg
+                    placeholder-stone-500
+                    transition-all duration-200
+                    outline-none input-glow
+                    ${focusedField === 'password'
+                      ? 'border-amber-500/50 bg-stone-800/90'
+                      : 'border-stone-700 hover:border-stone-600'}
+                  `}
+                  placeholder="At least 8 characters"
+                  required
+                  autoComplete="new-password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-500 hover:text-stone-300 transition-colors"
+                >
+                  {showPassword ? (
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                    </svg>
+                  ) : (
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  )}
+                </button>
+              </div>
+            </motion.div>
+
+            {/* Confirm Password */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4, duration: 0.4 }}
+            >
+              <label className="font-body text-sm text-stone-500 uppercase tracking-wider font-medium block mb-2">
+                Confirm Password
+              </label>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={formData.confirmPassword}
+                onChange={handleChange('confirmPassword')}
+                onFocus={() => setFocusedField('confirmPassword')}
+                onBlur={() => setFocusedField(null)}
+                className={`
+                  font-body w-full px-4 py-3
+                  bg-stone-800 border rounded-xl
+                  text-white text-lg
+                  placeholder-stone-500
+                  transition-all duration-200
+                  outline-none input-glow
+                  ${focusedField === 'confirmPassword'
+                    ? 'border-amber-500/50 bg-stone-800/90'
+                    : 'border-stone-700 hover:border-stone-600'}
+                `}
+                placeholder="Re-enter your password"
+                required
+                autoComplete="new-password"
+              />
+            </motion.div>
+          </>
+        )}
+
         {/* Submit Button */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -383,7 +490,7 @@ const StepSelectEhr: React.FC<{
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="font-display text-4xl text-white mb-3">Which EHR do you use?</h2>
+        <h2 className="font-display text-3xl sm:text-4xl text-white mb-3">Which EHR do you use?</h2>
         <p className="font-body text-stone-400 text-lg">We'll connect to pull your practice data automatically.</p>
         {/* HIPAA + Read-only trust signals */}
         <div className="mt-4 flex items-center gap-4">
@@ -453,25 +560,32 @@ const StepSelectEhr: React.FC<{
         Don't see yours? Let us know →
       </button>
 
-      <div className="flex gap-4">
-        <button onClick={onBack} className="px-6 py-4 rounded-2xl font-body text-lg font-medium text-stone-400 hover:text-white transition-colors">
-          Back
-        </button>
-        <motion.button
-          onClick={onContinue}
-          disabled={!selectedEhr}
-          whileHover={selectedEhr ? { scale: 1.01 } : {}}
-          whileTap={selectedEhr ? { scale: 0.99 } : {}}
-          className={`
-            flex-1 py-4 rounded-2xl font-body text-lg font-semibold transition-all duration-300
-            ${selectedEhr
-              ? 'bg-white text-stone-900 hover:shadow-lg hover:shadow-white/10'
-              : 'bg-stone-700 text-stone-500 cursor-not-allowed'}
-          `}
-        >
-          Continue
-        </motion.button>
-      </div>
+      {/* Continue Button */}
+      <motion.button
+        onClick={onContinue}
+        disabled={!selectedEhr}
+        whileHover={selectedEhr ? { scale: 1.01 } : {}}
+        whileTap={selectedEhr ? { scale: 0.99 } : {}}
+        className={`
+          w-full py-4 rounded-2xl font-body text-lg font-semibold transition-all duration-300
+          ${selectedEhr
+            ? 'bg-white text-stone-900 hover:shadow-lg hover:shadow-white/10'
+            : 'bg-stone-700 text-stone-500 cursor-not-allowed'}
+        `}
+      >
+        Continue
+      </motion.button>
+
+      {/* Back Button - Consistent */}
+      <button
+        onClick={onBack}
+        className="w-full py-3 rounded-xl font-body text-base font-medium text-stone-500 hover:text-stone-300 hover:bg-white/5 transition-all duration-200 flex items-center justify-center gap-2"
+      >
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
+        Back
+      </button>
     </div>
   );
 };
@@ -493,7 +607,7 @@ const StepLegalAgreements: React.FC<{
   return (
     <div className="space-y-8">
       <div className="mb-2">
-        <h2 className="font-display text-4xl text-white mb-4">Quick legal stuff</h2>
+        <h2 className="font-display text-3xl sm:text-4xl text-white mb-3 sm:mb-4">Quick legal stuff</h2>
         <p className="font-body text-stone-400 text-lg">We take your data security seriously.</p>
       </div>
 
@@ -549,20 +663,27 @@ const StepLegalAgreements: React.FC<{
         By checking above, you confirm you have authority to sign on behalf of your practice.
       </p>
 
-      <div className="flex gap-4">
-        <button onClick={onBack} className="px-6 py-4 rounded-2xl font-body text-lg font-medium text-stone-400 hover:text-white transition-colors">
-          Back
-        </button>
-        <motion.button
-          onClick={onContinue}
-          disabled={!canContinue}
-          whileHover={canContinue ? { scale: 1.01 } : {}}
-          whileTap={canContinue ? { scale: 0.99 } : {}}
-          className={`flex-1 py-4 rounded-2xl font-body text-lg font-semibold transition-all duration-300 ${canContinue ? 'bg-white text-stone-900 hover:shadow-lg hover:shadow-white/10' : 'bg-stone-700 text-stone-500 cursor-not-allowed'}`}
-        >
-          I Agree & Continue
-        </motion.button>
-      </div>
+      {/* Continue Button */}
+      <motion.button
+        onClick={onContinue}
+        disabled={!canContinue}
+        whileHover={canContinue ? { scale: 1.01 } : {}}
+        whileTap={canContinue ? { scale: 0.99 } : {}}
+        className={`w-full py-4 rounded-2xl font-body text-lg font-semibold transition-all duration-300 ${canContinue ? 'bg-white text-stone-900 hover:shadow-lg hover:shadow-white/10' : 'bg-stone-700 text-stone-500 cursor-not-allowed'}`}
+      >
+        I Agree & Continue
+      </motion.button>
+
+      {/* Back Button - Consistent */}
+      <button
+        onClick={onBack}
+        className="w-full py-3 rounded-xl font-body text-base font-medium text-stone-500 hover:text-stone-300 hover:bg-white/5 transition-all duration-200 flex items-center justify-center gap-2"
+      >
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
+        Back
+      </button>
     </div>
   );
 };
@@ -641,7 +762,7 @@ const StepConnectEhr: React.FC<{
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h2 className="font-display text-4xl text-white mb-3">Working in {ehrName}?</h2>
+          <h2 className="font-display text-3xl sm:text-4xl text-white mb-3">Working in {ehrName}?</h2>
           <p className="font-body text-stone-400 text-lg">
             Add the biller account, then come back here to confirm.
           </p>
@@ -668,25 +789,29 @@ const StepConnectEhr: React.FC<{
           </motion.button>
         )}
 
-        {/* Text links */}
-        <div className="flex items-center justify-center gap-3 text-base">
+        {/* Copy Helper Link */}
+        <div className="flex items-center justify-center">
           <button
             onClick={openPiP}
-            className="font-body text-amber-500 hover:text-amber-400 transition-colors"
+            className="font-body text-amber-500 hover:text-amber-400 transition-colors text-base"
           >
             Open copy helper
-          </button>
-          <span className="text-stone-700">•</span>
-          <button
-            onClick={onBack}
-            className="font-body text-stone-500 hover:text-white transition-colors"
-          >
-            Back
           </button>
         </div>
 
         {/* Help section */}
         <HelpSection />
+
+        {/* Back Button - Consistent */}
+        <button
+          onClick={onBack}
+          className="w-full py-3 rounded-xl font-body text-base font-medium text-stone-500 hover:text-stone-300 hover:bg-white/5 transition-all duration-200 flex items-center justify-center gap-2"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Back
+        </button>
       </div>
     );
   }
@@ -696,7 +821,7 @@ const StepConnectEhr: React.FC<{
     <div className="space-y-5">
       {/* Header */}
       <div>
-        <h2 className="font-display text-4xl text-white mb-2">Connect {ehrName}</h2>
+        <h2 className="font-display text-3xl sm:text-4xl text-white mb-2">Connect {ehrName}</h2>
         <p className="font-body text-stone-400 text-base">
           Create a <span className="text-amber-400">Biller account</span> using these details.
         </p>
@@ -785,31 +910,253 @@ const StepConnectEhr: React.FC<{
         </svg>
       </motion.button>
 
-      {/* Text links */}
-      <div className="flex items-center justify-center gap-3 text-base">
+      {/* Copy Helper Link */}
+      <div className="flex items-center justify-center">
         <button
           onClick={openPiP}
-          className="font-body text-amber-500 hover:text-amber-400 transition-colors"
+          className="font-body text-amber-500 hover:text-amber-400 transition-colors text-base"
         >
           Open copy helper
-        </button>
-        <span className="text-stone-700">•</span>
-        <button
-          onClick={onBack}
-          className="font-body text-stone-500 hover:text-white transition-colors"
-        >
-          Back
         </button>
       </div>
 
       {/* Help section */}
       <HelpSection />
+
+      {/* Back Button - Consistent */}
+      <button
+        onClick={onBack}
+        className="w-full py-3 rounded-xl font-body text-base font-medium text-stone-500 hover:text-stone-300 hover:bg-white/5 transition-all duration-200 flex items-center justify-center gap-2"
+      >
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
+        Back
+      </button>
     </div>
   );
 };
 
 // ============================================================================
-// STEP 4: CREATE ACCOUNT
+// STEP 4: PAYMENT
+// ============================================================================
+
+const StepPayment: React.FC<{
+  practiceName: string;
+  ehrName: string;
+  onContinue: () => void;
+  onBack: () => void;
+}> = ({ practiceName, ehrName, onContinue, onBack }) => {
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [selectedPlan] = useState<'monthly' | 'annual'>('monthly');
+
+  const handleSubscribe = async () => {
+    setIsProcessing(true);
+    // TODO: Integrate with Stripe Checkout
+    // In production: redirect to Stripe or open Stripe Elements modal
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    setIsProcessing(false);
+    onContinue();
+  };
+
+  const plans = {
+    monthly: { price: 199, period: 'month', savings: null },
+    annual: { price: 149, period: 'month', savings: 'Save $600/year' },
+  };
+
+  const currentPlan = plans[selectedPlan];
+
+  return (
+    <div className="space-y-6">
+      {/* Success Header */}
+      <div className="text-center mb-8">
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+          className="w-16 h-16 mx-auto mb-5 rounded-full flex items-center justify-center"
+          style={{
+            background: 'linear-gradient(135deg, rgba(52, 211, 153, 0.2) 0%, rgba(52, 211, 153, 0.05) 100%)',
+            border: '2px solid rgba(52, 211, 153, 0.3)',
+          }}
+        >
+          <svg className="w-8 h-8 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+          </svg>
+        </motion.div>
+        <h2 className="font-display text-3xl text-white mb-2">You're connected!</h2>
+        <p className="font-body text-stone-400 text-lg">
+          {ehrName} is linked to <span className="text-white">{practiceName}</span>
+        </p>
+      </div>
+
+      {/* Pricing Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="rounded-2xl overflow-hidden"
+        style={{
+          background: 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)',
+          border: '1px solid rgba(255,255,255,0.1)',
+        }}
+      >
+        {/* Plan Header */}
+        <div className="px-6 py-5 border-b border-white/5">
+          <div className="flex items-baseline gap-2">
+            <span className="font-display text-3xl sm:text-4xl text-white">${currentPlan.price}</span>
+            <span className="font-body text-stone-400 text-lg">/{currentPlan.period}</span>
+          </div>
+          <p className="font-body text-stone-500 mt-1">
+            Everything you need to understand your practice
+          </p>
+        </div>
+
+        {/* Features */}
+        <div className="px-6 py-5 space-y-3">
+          {[
+            'Full dashboard access',
+            'All clinician analytics',
+            'Client retention tracking',
+            'Revenue & session insights',
+            'Daily data refresh from ' + ehrName,
+          ].map((feature, index) => (
+            <motion.div
+              key={feature}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 + index * 0.05 }}
+              className="flex items-center gap-3"
+            >
+              <div className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                <svg className="w-3 h-3 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <span className="font-body text-stone-300 text-base">{feature}</span>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Money-back Guarantee */}
+        <div className="mx-6 mb-5">
+          <div
+            className="px-4 py-3 rounded-xl flex items-center gap-3"
+            style={{
+              background: 'linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, rgba(251, 191, 36, 0.05) 100%)',
+              border: '1px solid rgba(251, 191, 36, 0.2)',
+            }}
+          >
+            <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+              <svg className="w-5 h-5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+            </div>
+            <div>
+              <p className="font-body font-semibold text-amber-300 text-sm">30-Day Money-Back Guarantee</p>
+              <p className="font-body text-amber-400/70 text-sm">Not what you expected? Full refund, no questions asked.</p>
+            </div>
+          </div>
+        </div>
+
+        {/* CTA Button */}
+        <div className="px-6 pb-6">
+          <motion.button
+            onClick={handleSubscribe}
+            disabled={isProcessing}
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
+            className="w-full py-4 rounded-xl font-body text-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+            style={{
+              background: 'linear-gradient(135deg, #ffffff 0%, #f5f5f4 100%)',
+              color: '#1c1917',
+              boxShadow: '0 4px 20px rgba(255, 255, 255, 0.15)',
+            }}
+          >
+            {isProcessing ? (
+              <>
+                <div className="w-5 h-5 border-2 border-stone-900 border-t-transparent rounded-full animate-spin" />
+                <span>Processing...</span>
+              </>
+            ) : (
+              <>
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                <span>Subscribe & Continue</span>
+              </>
+            )}
+          </motion.button>
+        </div>
+      </motion.div>
+
+      {/* Trust Elements */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.5 }}
+        className="flex items-center justify-center gap-6 pt-2"
+      >
+        <div className="flex items-center gap-2 text-stone-500">
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+          <span className="font-body text-sm">Secure payment</span>
+        </div>
+        <div className="flex items-center gap-2 text-stone-500">
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+          </svg>
+          <span className="font-body text-sm">Cancel anytime</span>
+        </div>
+      </motion.div>
+
+      {/* Book a Call - Prominent */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.55 }}
+        className="pt-4"
+      >
+        <button
+          onClick={() => window.open('https://calendly.com/cortexa', '_blank')}
+          className="w-full py-3 rounded-xl font-body text-base font-medium transition-all duration-200 flex items-center justify-center gap-2"
+          style={{
+            background: 'rgba(251, 191, 36, 0.1)',
+            border: '1px solid rgba(251, 191, 36, 0.25)',
+            color: '#fbbf24',
+          }}
+        >
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+          </svg>
+          Questions? Book a quick call
+        </button>
+      </motion.div>
+
+      {/* Back Button - Consistent */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.6 }}
+        className="pt-2"
+      >
+        <button
+          onClick={onBack}
+          className="w-full py-3 rounded-xl font-body text-base font-medium text-stone-500 hover:text-stone-300 hover:bg-white/5 transition-all duration-200 flex items-center justify-center gap-2"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Back
+        </button>
+      </motion.div>
+    </div>
+  );
+};
+
+// ============================================================================
+// STEP 5: CREATE ACCOUNT
 // ============================================================================
 
 const StepCreateAccount: React.FC<{
@@ -854,11 +1201,21 @@ const StepCreateAccount: React.FC<{
 
   return (
     <div className="space-y-6">
+      {/* Final Step Badge */}
+      <div className="flex justify-center">
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+          <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+          <span className="font-body text-sm font-medium text-emerald-400">Final step</span>
+        </div>
+      </div>
+
       {/* Header */}
-      <div>
-        <h2 className="font-display text-4xl text-white mb-3">Create your account</h2>
+      <div className="text-center">
+        <h2 className="font-display text-3xl sm:text-4xl text-white mb-3">You're almost there!</h2>
         <p className="font-body text-stone-400 text-lg">
-          Almost done! Secure your account to access your dashboard.
+          Create your login to access your practice dashboard.
         </p>
       </div>
 
@@ -996,21 +1353,22 @@ const StepCreateAccount: React.FC<{
         </>
       )}
 
-      {/* Back link */}
-      <div className="flex items-center justify-center pt-2">
-        <button
-          onClick={onBack}
-          className="font-body text-stone-500 hover:text-white text-base transition-colors"
-        >
-          ← Back
-        </button>
-      </div>
+      {/* Back Button - Consistent */}
+      <button
+        onClick={onBack}
+        className="w-full py-3 rounded-xl font-body text-base font-medium text-stone-500 hover:text-stone-300 hover:bg-white/5 transition-all duration-200 flex items-center justify-center gap-2"
+      >
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
+        Back
+      </button>
     </div>
   );
 };
 
 // ============================================================================
-// STEP 5: COMPLETE
+// STEP 6: COMPLETE
 // ============================================================================
 
 const StepComplete: React.FC<{
@@ -1060,10 +1418,10 @@ const StepComplete: React.FC<{
       </motion.div>
 
       <div>
-        <h2 className="font-display text-4xl text-white mb-3">
+        <h2 className="font-display text-3xl sm:text-4xl text-white mb-3">
           {status === 'ready' ? `Welcome, ${practiceName}!` : statusMessages[status]}
         </h2>
-        <p className="font-body text-stone-400 text-xl">
+        <p className="font-body text-stone-400 text-lg sm:text-xl">
           {status === 'ready' ? 'Your practice dashboard is ready.' : 'This usually takes less than a minute.'}
         </p>
       </div>
@@ -1128,6 +1486,8 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onSw
     practiceName: '',
     phone: '',
     title: '',
+    password: '',
+    confirmPassword: '',
   });
   const [data, setData] = useState<OnboardingData>({
     name: '',
@@ -1169,13 +1529,26 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onSw
     // Simulate connection (in real app: webhook/polling)
     setTimeout(() => {
       setData(prev => ({ ...prev, connectionStatus: 'connected' }));
-      setCurrentStep(4);
+      setCurrentStep(4); // Go to Payment step
     }, 3000);
   };
 
   const goToStep = (step: number) => setCurrentStep(step);
 
-  const stepLabels = ['Get Started', 'Select EHR', 'Legal', 'Connect EHR', 'Create Account', 'Complete'];
+  // Get EHR name for display
+  const getEhrName = () => {
+    const ehr = EHR_OPTIONS.find(e => e.id === data.selectedEhr);
+    return ehr?.name || 'your EHR';
+  };
+
+  // Step labels change based on whether we collect password in signup
+  // When COLLECT_PASSWORD_IN_SIGNUP is true:
+  //   Steps: 0=Start, 1=EHR, 2=Legal, 3=Connect, 4=Subscribe, 5=Complete (6 steps)
+  // When COLLECT_PASSWORD_IN_SIGNUP is false:
+  //   Steps: 0=Start, 1=EHR, 2=Legal, 3=Connect, 4=Subscribe, 5=Account, 6=Complete (7 steps)
+  const stepLabels = COLLECT_PASSWORD_IN_SIGNUP
+    ? ['Get Started', 'Select EHR', 'Legal', 'Connect EHR', 'Subscribe', 'Complete']
+    : ['Get Started', 'Select EHR', 'Legal', 'Connect EHR', 'Subscribe', 'Create Account', 'Complete'];
 
   return (
     <div className="h-screen w-full flex overflow-hidden">
@@ -1231,7 +1604,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onSw
       </motion.div>
 
       {/* RIGHT SIDE - Onboarding Content (50% width) */}
-      <div className="w-full lg:w-1/2 h-full relative flex flex-col bg-stone-900 overflow-hidden">
+      <div className="w-full lg:w-1/2 h-full relative flex flex-col bg-stone-900">
         {/* Noise overlay */}
         <div className="absolute inset-0 noise-overlay pointer-events-none" />
 
@@ -1239,15 +1612,15 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onSw
         <div className="absolute inset-0 bg-gradient-to-br from-stone-900 via-stone-800/50 to-stone-900" />
         <div className="absolute top-0 right-0 w-96 h-96 -translate-y-1/2 translate-x-1/2 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(245, 158, 11, 0.05) 0%, transparent 70%)' }} />
 
-        {/* Header */}
-        <header className="relative z-10 px-10 py-6 flex items-center justify-between border-b border-stone-800/50">
-          <h1 className="font-display text-3xl text-white">Cortexa</h1>
-          <ProgressIndicator currentStep={currentStep} />
+        {/* Header - fixed height, doesn't scroll */}
+        <header className="relative z-10 px-6 sm:px-10 py-4 sm:py-6 flex items-center justify-between border-b border-stone-800/50 flex-shrink-0">
+          <h1 className="font-display text-2xl sm:text-3xl text-white">Cortexa</h1>
+          <ProgressIndicator currentStep={currentStep} totalSteps={stepLabels.length} />
         </header>
 
-        {/* Content */}
-        <main className="relative z-10 flex-1 flex items-center px-10 py-6 overflow-auto">
-          <div className="w-full max-w-lg mx-auto">
+        {/* Content - scrollable area */}
+        <main className="relative z-10 flex-1 min-h-0 overflow-y-auto overscroll-contain">
+          <div className="w-full max-w-lg mx-auto px-6 sm:px-10 py-6 sm:py-8 pb-8 sm:pb-12">
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentStep}
@@ -1262,6 +1635,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onSw
                     onFormChange={handleFormChange}
                     onContinue={handleStep0Complete}
                     onSwitchToLogin={onSwitchToLogin}
+                    collectPassword={COLLECT_PASSWORD_IN_SIGNUP}
                   />
                 )}
                 {currentStep === 1 && (
@@ -1292,13 +1666,23 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onSw
                   />
                 )}
                 {currentStep === 4 && (
-                  <StepCreateAccount
-                    email={data.email}
-                    onContinue={() => goToStep(5)}
+                  <StepPayment
+                    practiceName={data.practiceName}
+                    ehrName={getEhrName()}
+                    onContinue={() => goToStep(COLLECT_PASSWORD_IN_SIGNUP ? 5 : 5)}
                     onBack={() => goToStep(3)}
                   />
                 )}
-                {currentStep === 5 && (
+                {/* Create Account step - only shown when NOT collecting password in signup */}
+                {!COLLECT_PASSWORD_IN_SIGNUP && currentStep === 5 && (
+                  <StepCreateAccount
+                    email={data.email}
+                    onContinue={() => goToStep(6)}
+                    onBack={() => goToStep(4)}
+                  />
+                )}
+                {/* Complete step - step 5 when collecting password in signup, step 6 otherwise */}
+                {((COLLECT_PASSWORD_IN_SIGNUP && currentStep === 5) || (!COLLECT_PASSWORD_IN_SIGNUP && currentStep === 6)) && (
                   <StepComplete
                     practiceName={data.practiceName}
                     onComplete={onComplete}
@@ -1309,9 +1693,9 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onSw
           </div>
         </main>
 
-        {/* Footer */}
-        <footer className="relative z-10 px-10 py-5 text-center border-t border-stone-800/50">
-          <p className="font-body text-stone-500 text-base">
+        {/* Footer - fixed height, doesn't scroll */}
+        <footer className="relative z-10 px-6 sm:px-10 py-4 sm:py-5 text-center border-t border-stone-800/50 flex-shrink-0">
+          <p className="font-body text-stone-500 text-sm sm:text-base">
             Questions? support@usecortexa.com
           </p>
         </footer>
