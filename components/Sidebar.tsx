@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink, useLocation, useSearchParams } from 'react-router-dom';
 import {
   LayoutGrid,
@@ -13,7 +13,9 @@ import {
   PanelLeftClose,
   PanelLeft,
   Settings,
+  Sliders,
 } from 'lucide-react';
+import { DataFreshnessIndicator } from './DataFreshnessIndicator';
 
 // =============================================================================
 // REFINED SIDEBAR NAVIGATION
@@ -84,6 +86,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const currentPath = location.pathname;
 
   const isExpanded = mobileMenuOpen || !isCollapsed;
+
+  // Data sync state (demo - in production this would come from a global store/context)
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [lastSyncTime] = useState(() => {
+    // Demo: last synced 2 hours ago
+    const time = new Date();
+    time.setHours(time.getHours() - 2);
+    return time;
+  });
+
+  const handleRefresh = () => {
+    setIsSyncing(true);
+    // Demo: simulate sync for 3 seconds
+    setTimeout(() => setIsSyncing(false), 3000);
+  };
 
   const handleSubItemClick = (itemId: string) => {
     const newParams = new URLSearchParams(searchParams);
@@ -207,6 +224,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <PanelLeft size={20} strokeWidth={1.5} />
               </button>
             )}
+
+            {/* Data Freshness Indicator - below logo */}
+            <div
+              className="mt-4 w-full"
+              style={!isExpanded ? {
+                display: 'flex',
+                justifyContent: 'center',
+                marginTop: 16,
+              } : undefined}
+            >
+              <DataFreshnessIndicator
+                isCollapsed={!isExpanded}
+                lastSyncTime={lastSyncTime}
+                isSyncing={isSyncing}
+                onRefresh={handleRefresh}
+                canRefresh={true}
+                minutesUntilNextRefresh={0}
+              />
+            </div>
           </div>
 
           {/* ==================== MAIN NAVIGATION ==================== */}
@@ -315,7 +351,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               })}
             </div>
 
-            {/* Divider & Coming Soon - only when expanded */}
+            {/* Coming Soon - only when expanded */}
             {isExpanded && (
               <>
                 <div className="my-6 mx-5 h-px bg-stone-700/50" />
@@ -355,19 +391,84 @@ export const Sidebar: React.FC<SidebarProps> = ({
             }}
           >
             {/* Components - internal dev tool */}
-            {isExpanded && (
-              <NavLink
-                to="/components"
-                onClick={() => setMobileMenuOpen?.(false)}
-                className={({ isActive }) => `
-                  block text-center py-2 mb-4
-                  text-[14px] transition-colors duration-200
-                  ${isActive ? 'text-stone-400' : 'text-stone-600 hover:text-stone-400'}
-                `}
-              >
-                Components
-              </NavLink>
-            )}
+            <NavLink
+              to="/components"
+              onClick={() => setMobileMenuOpen?.(false)}
+              className="group block mb-2"
+              title={!isExpanded ? 'Components' : undefined}
+            >
+              {({ isActive }) => (
+                <div
+                  className={`
+                    flex items-center rounded-xl
+                    transition-all duration-200
+                    ${isActive ? 'bg-stone-700/40' : 'hover:bg-white/[0.05]'}
+                  `}
+                  style={isExpanded ? {
+                    padding: '12px 14px',
+                    justifyContent: 'flex-start',
+                    gap: '12px',
+                  } : {
+                    width: ICON_BOX_SIZE,
+                    height: ICON_BOX_SIZE,
+                    marginLeft: (COLLAPSED_WIDTH - ICON_BOX_SIZE) / 2,
+                    marginRight: (COLLAPSED_WIDTH - ICON_BOX_SIZE) / 2,
+                    justifyContent: 'center',
+                  }}
+                >
+                  <LayoutGrid
+                    size={18}
+                    strokeWidth={1.8}
+                    className={`flex-shrink-0 ${isActive ? 'text-stone-300' : 'text-stone-500 group-hover:text-stone-400'}`}
+                  />
+                  {isExpanded && (
+                    <span className={`text-[14px] font-medium ${isActive ? 'text-stone-200' : 'text-stone-400 group-hover:text-stone-300'}`}>
+                      Components
+                    </span>
+                  )}
+                </div>
+              )}
+            </NavLink>
+
+            {/* Configure Practice - above user section */}
+            <NavLink
+              to="/configure"
+              onClick={() => setMobileMenuOpen?.(false)}
+              className="group block mb-4"
+              title={!isExpanded ? 'Configure' : undefined}
+            >
+              {({ isActive }) => (
+                <div
+                  className={`
+                    flex items-center rounded-xl
+                    transition-all duration-200
+                    ${isActive ? 'bg-stone-700/40' : 'hover:bg-white/[0.05]'}
+                  `}
+                  style={isExpanded ? {
+                    padding: '12px 14px',
+                    justifyContent: 'flex-start',
+                    gap: '12px',
+                  } : {
+                    width: ICON_BOX_SIZE,
+                    height: ICON_BOX_SIZE,
+                    marginLeft: (COLLAPSED_WIDTH - ICON_BOX_SIZE) / 2,
+                    marginRight: (COLLAPSED_WIDTH - ICON_BOX_SIZE) / 2,
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Sliders
+                    size={18}
+                    strokeWidth={1.8}
+                    className={`flex-shrink-0 ${isActive ? 'text-stone-300' : 'text-stone-500 group-hover:text-stone-400'}`}
+                  />
+                  {isExpanded && (
+                    <span className={`text-[14px] font-medium ${isActive ? 'text-stone-200' : 'text-stone-400 group-hover:text-stone-300'}`}>
+                      Configure Practice
+                    </span>
+                  )}
+                </div>
+              )}
+            </NavLink>
 
             {/* User Profile → Settings */}
             <NavLink

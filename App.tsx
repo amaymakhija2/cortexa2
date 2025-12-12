@@ -12,7 +12,7 @@ import { PracticeAnalysis } from './components/PracticeAnalysis';
 import { ClinicianOverview } from './components/ClinicianOverview';
 import { ClinicianDetails } from './components/ClinicianDetails';
 import { SettingsPage } from './components/SettingsPage';
-import { MetricDefinitionsPage } from './components/MetricDefinitionsPage';
+import { PracticeConfigurationPage } from './components/PracticeConfigurationPage';
 import { Reference as Components } from './components/design-system';
 import { Menu } from 'lucide-react';
 
@@ -27,9 +27,9 @@ const PAGE_TITLES: Record<string, string> = {
   '/clinician-overview': 'Clinicians',
   '/practice-analysis': 'Practice Details',
   '/clinician-details': 'Clinician Details',
+  '/configure': 'Configure',
   '/components': 'Components',
   '/settings': 'Settings',
-  '/settings/metric-definitions': 'Metric Definitions',
 };
 
 interface MobileHeaderProps {
@@ -158,9 +158,9 @@ const ProtectedApp: React.FC = () => {
               <Route path="/practice-analysis" element={<PracticeAnalysis />} />
               <Route path="/clinician-overview" element={<ClinicianOverview />} />
               <Route path="/clinician-details" element={<ClinicianDetails />} />
+              <Route path="/configure" element={<PracticeConfigurationPage />} />
               <Route path="/components" element={<Components />} />
               <Route path="/settings" element={<SettingsPage />} />
-              <Route path="/settings/metric-definitions" element={<MetricDefinitionsPage />} />
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Routes>
           </div>
