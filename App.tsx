@@ -160,6 +160,7 @@ const ProtectedApp: React.FC = () => {
               <Route path="/components" element={<Components />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/settings/metric-definitions" element={<MetricDefinitionsPage />} />
+              <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Routes>
           </div>
 
