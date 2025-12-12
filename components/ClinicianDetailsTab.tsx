@@ -533,6 +533,7 @@ const CLINICIAN_RETENTION_DATA: Record<number, {
   practiceAvgRetention3Month: number;
   clientRetention6Month: number;
   practiceAvgRetention6Month: number;
+  churnTiming: { early: number; medium: number; late: number }; // <5, 5-15, >15 sessions
 }> = {
   1: { // Sarah Chen - Clinical Director (high performer)
     monthlyRebookRate: [
@@ -557,6 +558,7 @@ const CLINICIAN_RETENTION_DATA: Record<number, {
     practiceAvgRetention3Month: 82,
     clientRetention6Month: 87,
     practiceAvgRetention6Month: 68,
+    churnTiming: { early: 3, medium: 5, late: 8 }, // Most churn late = good retention
   },
   2: { // Maria Rodriguez - Senior Therapist
     monthlyRebookRate: [
@@ -581,6 +583,7 @@ const CLINICIAN_RETENTION_DATA: Record<number, {
     practiceAvgRetention3Month: 82,
     clientRetention6Month: 78,
     practiceAvgRetention6Month: 68,
+    churnTiming: { early: 4, medium: 7, late: 6 }, // Balanced churn distribution
   },
   3: { // Priya Patel - Therapist (needs attention)
     monthlyRebookRate: [
@@ -605,6 +608,7 @@ const CLINICIAN_RETENTION_DATA: Record<number, {
     practiceAvgRetention3Month: 82,
     clientRetention6Month: 54,
     practiceAvgRetention6Month: 68,
+    churnTiming: { early: 12, medium: 6, late: 2 }, // High early churn = concerning
   },
   4: { // James Kim - Associate Therapist (ramping up)
     monthlyRebookRate: [
@@ -629,6 +633,7 @@ const CLINICIAN_RETENTION_DATA: Record<number, {
     practiceAvgRetention3Month: 82,
     clientRetention6Month: 71,
     practiceAvgRetention6Month: 68,
+    churnTiming: { early: 5, medium: 4, late: 3 }, // Improving, fewer early churns
   },
   5: { // Michael Johnson - Associate Therapist (critical)
     monthlyRebookRate: [
@@ -653,6 +658,7 @@ const CLINICIAN_RETENTION_DATA: Record<number, {
     practiceAvgRetention3Month: 82,
     clientRetention6Month: 38,
     practiceAvgRetention6Month: 68,
+    churnTiming: { early: 18, medium: 8, late: 2 }, // Very high early churn = critical
   },
 };
 
@@ -1098,58 +1104,12 @@ export const ClinicianDetailsTab: React.FC = () => {
   // Get retention data for selected clinician
   const retentionData = selectedClinician ? CLINICIAN_RETENTION_DATA[selectedClinician.id] : null;
 
-  // Rebook rate chart data for LineChart
-  const rebookRateChartData = useMemo(() => {
-    if (!retentionData) return [];
-    return retentionData.monthlyRebookRate.map(item => ({
-      month: item.month,
-      rate: item.rate,
-    }));
+  // Calculate churn timing totals for donut chart
+  const churnTimingTotals = useMemo(() => {
+    if (!retentionData?.churnTiming) return { early: 0, medium: 0, late: 0, total: 0 };
+    const { early, medium, late } = retentionData.churnTiming;
+    return { early, medium, late, total: early + medium + late };
   }, [retentionData]);
-
-  // Calculate rebook rate trend (comparing first half to second half of year)
-  const rebookRateTrend = useMemo(() => {
-    if (!retentionData || retentionData.monthlyRebookRate.length < 6) return 0;
-    const rates = retentionData.monthlyRebookRate;
-    const firstHalf = rates.slice(0, 6).reduce((sum, r) => sum + r.rate, 0) / 6;
-    const secondHalf = rates.slice(6).reduce((sum, r) => sum + r.rate, 0) / 6;
-    return secondHalf - firstHalf;
-  }, [retentionData]);
-
-  // Best month for rebook rate
-  const bestRebookMonth = useMemo(() => {
-    if (!retentionData) return { month: '', rate: 0 };
-    return retentionData.monthlyRebookRate.reduce(
-      (best, current) => current.rate > best.rate ? { month: current.month, rate: current.rate } : best,
-      { month: '', rate: 0 }
-    );
-  }, [retentionData]);
-
-  // Rebook rate insights
-  const rebookRateInsights = useMemo(() => {
-    if (!retentionData) return [];
-    const vsAvg = retentionData.currentRebookRate - retentionData.practiceAvgRebookRate;
-    return [
-      {
-        value: `${retentionData.currentRebookRate}%`,
-        label: 'Current Rate',
-        bgColor: retentionData.currentRebookRate >= retentionData.practiceAvgRebookRate ? 'bg-emerald-50' : 'bg-rose-50',
-        textColor: retentionData.currentRebookRate >= retentionData.practiceAvgRebookRate ? 'text-emerald-600' : 'text-rose-600',
-      },
-      {
-        value: vsAvg >= 0 ? `+${vsAvg}%` : `${vsAvg}%`,
-        label: 'vs Practice Avg',
-        bgColor: vsAvg >= 0 ? 'bg-emerald-50' : 'bg-rose-50',
-        textColor: vsAvg >= 0 ? 'text-emerald-600' : 'text-rose-600',
-      },
-      {
-        value: `${bestRebookMonth.rate}%`,
-        label: `Best: ${bestRebookMonth.month}`,
-        bgColor: 'bg-stone-100',
-        textColor: 'text-stone-700',
-      },
-    ];
-  }, [retentionData, bestRebookMonth]);
 
   // Retention comparison table columns and rows
   const retentionTableColumns = [
@@ -2145,38 +2105,20 @@ export const ClinicianDetailsTab: React.FC = () => {
               compact
             />
             <Grid cols={2}>
-              {/* Rebook Rate Trend Chart */}
-              <ChartCard
-                title="Rebook Rate Trend"
-                subtitle="Monthly client rebook rates"
-                headerControls={
-                  <div className="flex items-center gap-3 bg-stone-50 rounded-xl px-5 py-2.5">
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 rounded-full bg-rose-500"></div>
-                      <span className="text-stone-700 text-base font-semibold">Clinician</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-0.5 bg-stone-400" style={{ borderTop: '2px dashed #a8a29e' }}></div>
-                      <span className="text-stone-500 text-base font-semibold">Practice Avg ({retentionData.practiceAvgRebookRate}%)</span>
-                    </div>
-                  </div>
-                }
-                insights={rebookRateInsights}
-                minHeight="420px"
-              >
-                <LineChart
-                  data={rebookRateChartData}
-                  xAxisKey="month"
-                  lines={[{ dataKey: 'rate', color: '#f43f5e', name: 'Rebook Rate' }]}
-                  yDomain={[50, 100]}
-                  yTickFormatter={(v) => `${v}%`}
-                  tooltipFormatter={(value) => [`${value}%`, 'Rebook Rate']}
-                  referenceLines={[
-                    { value: retentionData.practiceAvgRebookRate, label: 'Practice Avg', color: '#a8a29e', dashed: true }
-                  ]}
-                  height={280}
-                />
-              </ChartCard>
+              {/* Churn Timing - Donut Chart */}
+              <DonutChartCard
+                title="Churn Timing"
+                subtitle="When clients leave by session count"
+                segments={[
+                  { label: 'Early (<5 sessions)', value: churnTimingTotals.early, color: '#ef4444' },
+                  { label: 'Medium (5-15)', value: churnTimingTotals.medium, color: '#f59e0b' },
+                  { label: 'Late (>15)', value: churnTimingTotals.late, color: '#10b981' },
+                ]}
+                centerLabel="Total Churned"
+                centerValue={churnTimingTotals.total.toString()}
+                valueFormat="number"
+                size="md"
+              />
 
               {/* Retention Comparison Table */}
               <DataTableCard
