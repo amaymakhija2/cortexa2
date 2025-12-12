@@ -1619,7 +1619,7 @@ export const Reference: React.FC = () => {
               {/* Interactive Demo */}
               <div className="mb-8">
                 <ChartCard
-                  title="Client Movement"
+                  title="New and Churned Clients Per Month"
                   subtitle="New acquisitions vs churned clients"
                   headerControls={
                     <>

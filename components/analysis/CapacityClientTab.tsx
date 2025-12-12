@@ -404,9 +404,9 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
               </div>
             </ChartCard>
 
-            {/* Client Movement - Diverging Bar Chart */}
+            {/* New and Churned Clients - Diverging Bar Chart */}
             <ChartCard
-              title="Client Movement"
+              title="New and Churned Clients Per Month"
               subtitle="New acquisitions vs churned clients"
               headerControls={
                 <>
@@ -673,11 +673,11 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
         </div>
       </ExpandedChartModal>
 
-      {/* Client Movement Expanded */}
+      {/* New and Churned Clients Expanded */}
       <ExpandedChartModal
         isOpen={expandedCard === 'client-movement'}
         onClose={() => setExpandedCard(null)}
-        title="Client Movement"
+        title="New and Churned Clients Per Month"
         subtitle="New acquisitions vs churned clients"
         headerControls={
           <>

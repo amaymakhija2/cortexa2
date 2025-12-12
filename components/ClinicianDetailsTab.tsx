@@ -2046,9 +2046,9 @@ export const ClinicianDetailsTab: React.FC = () => {
               compact
             />
             <Grid cols={2}>
-              {/* Client Movement Chart */}
+              {/* New and Churned Clients Chart */}
               <ChartCard
-                title="Client Movement"
+                title="New and Churned Clients Per Month"
                 subtitle="New vs churned clients"
                 headerControls={
                   <div className="flex items-center gap-5 bg-stone-50 rounded-xl px-5 py-2.5">
