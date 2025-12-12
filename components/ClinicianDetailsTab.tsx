@@ -2049,7 +2049,7 @@ export const ClinicianDetailsTab: React.FC = () => {
               {/* New and Churned Clients Chart */}
               <ChartCard
                 title="New and Churned Clients Per Month"
-                subtitle="New vs churned clients"
+                subtitle="Net client growth over time"
                 headerControls={
                   <div className="flex items-center gap-5 bg-stone-50 rounded-xl px-5 py-2.5">
                     <div className="flex items-center gap-2">
