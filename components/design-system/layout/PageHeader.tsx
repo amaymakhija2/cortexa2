@@ -33,6 +33,8 @@ export interface PageHeaderProps {
   label?: string;
   /** Main page title */
   title: string;
+  /** Content to render inline next to the title */
+  titleAction?: React.ReactNode;
   /** Subtitle/description below title */
   subtitle?: string;
   /** Show grid pattern overlay (default: false) */
@@ -70,6 +72,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   accent = 'amber',
   label,
   title,
+  titleAction,
   subtitle,
   showGridPattern = false,
   showTimePeriod = false,
@@ -166,12 +169,15 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
                 {label}
               </p>
             )}
-            <h1
-              className="text-4xl sm:text-5xl lg:text-6xl text-white tracking-tight"
-              style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-            >
-              {title}
-            </h1>
+            <div className="flex items-center gap-6 flex-wrap">
+              <h1
+                className="text-4xl sm:text-5xl lg:text-6xl text-white tracking-tight"
+                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+              >
+                {title}
+              </h1>
+              {titleAction}
+            </div>
             {subtitle && (
               <p className="text-stone-400 text-base sm:text-lg mt-2">{subtitle}</p>
             )}

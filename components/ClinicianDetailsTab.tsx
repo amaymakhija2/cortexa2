@@ -11,6 +11,7 @@ import {
   StatCard,
   AnimatedGrid,
   DonutChartCard,
+  DivergingBarChart,
 } from './design-system';
 
 // =============================================================================
@@ -348,6 +349,110 @@ const CLINICIAN_SESSION_DATA: Record<number, {
   },
 };
 
+// Mock caseload data for each clinician (12 months)
+const CLINICIAN_CASELOAD_DATA: Record<number, {
+  monthlyCaseload: {
+    month: string;
+    activeClients: number;
+    capacity: number;
+    newClients: number;
+    churned: number;
+  }[];
+  atRiskClients: number;
+  practiceAvgUtilization: number;
+}> = {
+  1: { // Sarah Chen - Clinical Director (high performer)
+    monthlyCaseload: [
+      { month: 'Jan', activeClients: 28, capacity: 30, newClients: 3, churned: 1 },
+      { month: 'Feb', activeClients: 29, capacity: 30, newClients: 2, churned: 1 },
+      { month: 'Mar', activeClients: 28, capacity: 30, newClients: 1, churned: 2 },
+      { month: 'Apr', activeClients: 30, capacity: 30, newClients: 3, churned: 1 },
+      { month: 'May', activeClients: 29, capacity: 30, newClients: 1, churned: 2 },
+      { month: 'Jun', activeClients: 28, capacity: 30, newClients: 2, churned: 3 },
+      { month: 'Jul', activeClients: 27, capacity: 30, newClients: 1, churned: 2 },
+      { month: 'Aug', activeClients: 29, capacity: 30, newClients: 3, churned: 1 },
+      { month: 'Sep', activeClients: 30, capacity: 30, newClients: 2, churned: 1 },
+      { month: 'Oct', activeClients: 29, capacity: 30, newClients: 1, churned: 2 },
+      { month: 'Nov', activeClients: 28, capacity: 30, newClients: 2, churned: 3 },
+      { month: 'Dec', activeClients: 27, capacity: 30, newClients: 1, churned: 2 },
+    ],
+    atRiskClients: 2,
+    practiceAvgUtilization: 85,
+  },
+  2: { // Maria Rodriguez - Senior Therapist
+    monthlyCaseload: [
+      { month: 'Jan', activeClients: 24, capacity: 28, newClients: 2, churned: 1 },
+      { month: 'Feb', activeClients: 25, capacity: 28, newClients: 2, churned: 1 },
+      { month: 'Mar', activeClients: 24, capacity: 28, newClients: 1, churned: 2 },
+      { month: 'Apr', activeClients: 26, capacity: 28, newClients: 3, churned: 1 },
+      { month: 'May', activeClients: 25, capacity: 28, newClients: 1, churned: 2 },
+      { month: 'Jun', activeClients: 24, capacity: 28, newClients: 2, churned: 3 },
+      { month: 'Jul', activeClients: 23, capacity: 28, newClients: 1, churned: 2 },
+      { month: 'Aug', activeClients: 25, capacity: 28, newClients: 3, churned: 1 },
+      { month: 'Sep', activeClients: 26, capacity: 28, newClients: 2, churned: 1 },
+      { month: 'Oct', activeClients: 25, capacity: 28, newClients: 1, churned: 2 },
+      { month: 'Nov', activeClients: 24, capacity: 28, newClients: 2, churned: 3 },
+      { month: 'Dec', activeClients: 23, capacity: 28, newClients: 1, churned: 2 },
+    ],
+    atRiskClients: 3,
+    practiceAvgUtilization: 85,
+  },
+  3: { // Priya Patel - Therapist (needs attention)
+    monthlyCaseload: [
+      { month: 'Jan', activeClients: 22, capacity: 28, newClients: 2, churned: 2 },
+      { month: 'Feb', activeClients: 21, capacity: 28, newClients: 1, churned: 2 },
+      { month: 'Mar', activeClients: 20, capacity: 28, newClients: 1, churned: 2 },
+      { month: 'Apr', activeClients: 19, capacity: 28, newClients: 1, churned: 2 },
+      { month: 'May', activeClients: 18, capacity: 28, newClients: 1, churned: 2 },
+      { month: 'Jun', activeClients: 17, capacity: 28, newClients: 1, churned: 2 },
+      { month: 'Jul', activeClients: 16, capacity: 28, newClients: 1, churned: 2 },
+      { month: 'Aug', activeClients: 17, capacity: 28, newClients: 2, churned: 1 },
+      { month: 'Sep', activeClients: 16, capacity: 28, newClients: 1, churned: 2 },
+      { month: 'Oct', activeClients: 17, capacity: 28, newClients: 2, churned: 1 },
+      { month: 'Nov', activeClients: 16, capacity: 28, newClients: 1, churned: 2 },
+      { month: 'Dec', activeClients: 18, capacity: 28, newClients: 3, churned: 1 },
+    ],
+    atRiskClients: 5,
+    practiceAvgUtilization: 85,
+  },
+  4: { // James Kim - Associate Therapist (ramping up)
+    monthlyCaseload: [
+      { month: 'Jan', activeClients: 12, capacity: 25, newClients: 3, churned: 0 },
+      { month: 'Feb', activeClients: 14, capacity: 25, newClients: 3, churned: 1 },
+      { month: 'Mar', activeClients: 16, capacity: 25, newClients: 3, churned: 1 },
+      { month: 'Apr', activeClients: 18, capacity: 25, newClients: 3, churned: 1 },
+      { month: 'May', activeClients: 19, capacity: 25, newClients: 2, churned: 1 },
+      { month: 'Jun', activeClients: 18, capacity: 25, newClients: 1, churned: 2 },
+      { month: 'Jul', activeClients: 17, capacity: 25, newClients: 1, churned: 2 },
+      { month: 'Aug', activeClients: 19, capacity: 25, newClients: 3, churned: 1 },
+      { month: 'Sep', activeClients: 21, capacity: 25, newClients: 3, churned: 1 },
+      { month: 'Oct', activeClients: 20, capacity: 25, newClients: 1, churned: 2 },
+      { month: 'Nov', activeClients: 19, capacity: 25, newClients: 1, churned: 2 },
+      { month: 'Dec', activeClients: 18, capacity: 25, newClients: 1, churned: 2 },
+    ],
+    atRiskClients: 1,
+    practiceAvgUtilization: 85,
+  },
+  5: { // Michael Johnson - Associate Therapist (critical)
+    monthlyCaseload: [
+      { month: 'Jan', activeClients: 14, capacity: 25, newClients: 1, churned: 2 },
+      { month: 'Feb', activeClients: 13, capacity: 25, newClients: 1, churned: 2 },
+      { month: 'Mar', activeClients: 12, capacity: 25, newClients: 1, churned: 2 },
+      { month: 'Apr', activeClients: 11, capacity: 25, newClients: 1, churned: 2 },
+      { month: 'May', activeClients: 10, capacity: 25, newClients: 1, churned: 2 },
+      { month: 'Jun', activeClients: 9, capacity: 25, newClients: 1, churned: 2 },
+      { month: 'Jul', activeClients: 8, capacity: 25, newClients: 1, churned: 2 },
+      { month: 'Aug', activeClients: 9, capacity: 25, newClients: 2, churned: 1 },
+      { month: 'Sep', activeClients: 10, capacity: 25, newClients: 2, churned: 1 },
+      { month: 'Oct', activeClients: 9, capacity: 25, newClients: 1, churned: 2 },
+      { month: 'Nov', activeClients: 8, capacity: 25, newClients: 1, churned: 2 },
+      { month: 'Dec', activeClients: 6, capacity: 25, newClients: 0, churned: 2 },
+    ],
+    atRiskClients: 4,
+    practiceAvgUtilization: 85,
+  },
+};
+
 type TimePeriod = 'last-12-months' | 'this-year' | 'this-quarter' | 'last-quarter' | 'this-month' | 'last-month' | 'custom';
 
 const TIME_PERIODS: { id: TimePeriod; label: string }[] = [
@@ -681,6 +786,79 @@ export const ClinicianDetailsTab: React.FC = () => {
       },
     ];
   }, [sessionData, bestSessionMonth, showRate, sessionMonthsAtGoal]);
+
+  // ==========================================================================
+  // CASELOAD COMPUTED VALUES
+  // ==========================================================================
+
+  // Get caseload data for selected clinician
+  const caseloadData = selectedClinician ? CLINICIAN_CASELOAD_DATA[selectedClinician.id] : null;
+
+  // Current caseload metrics (latest month)
+  const currentActiveClients = useMemo(() => {
+    if (!caseloadData) return 0;
+    return caseloadData.monthlyCaseload[caseloadData.monthlyCaseload.length - 1]?.activeClients || 0;
+  }, [caseloadData]);
+
+  const currentCapacity = useMemo(() => {
+    if (!caseloadData) return 0;
+    return caseloadData.monthlyCaseload[caseloadData.monthlyCaseload.length - 1]?.capacity || 0;
+  }, [caseloadData]);
+
+  const caseloadUtilization = useMemo(() => {
+    if (!currentCapacity) return 0;
+    return (currentActiveClients / currentCapacity) * 100;
+  }, [currentActiveClients, currentCapacity]);
+
+  // Net client growth
+  const totalNewClients = useMemo(() => {
+    if (!caseloadData) return 0;
+    return caseloadData.monthlyCaseload.reduce((sum, item) => sum + item.newClients, 0);
+  }, [caseloadData]);
+
+  const totalChurnedClients = useMemo(() => {
+    if (!caseloadData) return 0;
+    return caseloadData.monthlyCaseload.reduce((sum, item) => sum + item.churned, 0);
+  }, [caseloadData]);
+
+  const netClientGrowth = useMemo(() => totalNewClients - totalChurnedClients, [totalNewClients, totalChurnedClients]);
+
+  // Client movement chart data for DivergingBarChart
+  const clientMovementData = useMemo(() => {
+    if (!caseloadData) return [];
+    return caseloadData.monthlyCaseload.map(item => ({
+      label: item.month,
+      positive: item.newClients,
+      negative: item.churned,
+    }));
+  }, [caseloadData]);
+
+  // Client movement insights
+  const clientMovementInsights = useMemo(() => {
+    if (!caseloadData) return [];
+    const avgNew = totalNewClients / caseloadData.monthlyCaseload.length;
+    const avgChurn = totalChurnedClients / caseloadData.monthlyCaseload.length;
+    return [
+      {
+        value: netClientGrowth >= 0 ? `+${netClientGrowth}` : `${netClientGrowth}`,
+        label: 'Net Change',
+        bgColor: netClientGrowth >= 0 ? 'bg-emerald-50' : 'bg-rose-50',
+        textColor: netClientGrowth >= 0 ? 'text-emerald-600' : 'text-rose-600',
+      },
+      {
+        value: `+${avgNew.toFixed(1)}`,
+        label: 'Avg New/mo',
+        bgColor: 'bg-emerald-50',
+        textColor: 'text-emerald-600',
+      },
+      {
+        value: `-${avgChurn.toFixed(1)}`,
+        label: 'Avg Churn/mo',
+        bgColor: 'bg-rose-50',
+        textColor: 'text-rose-600',
+      },
+    ];
+  }, [caseloadData, netClientGrowth, totalNewClients, totalChurnedClients]);
 
   return (
     <>
@@ -1548,7 +1726,7 @@ export const ClinicianDetailsTab: React.FC = () => {
           {/* ---------------------------------------------------------
               SECTION 4: Client & Caseload
               --------------------------------------------------------- */}
-          {isSpotlightMode && selectedClinician && (
+          {isSpotlightMode && selectedClinician && caseloadData && (
           <SectionContainer accent="amber" index={selectedClinician.healthStatus !== 'healthy' ? 3 : 2}>
             <SectionHeader
               number={selectedClinician.healthStatus !== 'healthy' ? 4 : 3}
@@ -1559,15 +1737,56 @@ export const ClinicianDetailsTab: React.FC = () => {
               compact
             />
             <Grid cols={3}>
-              <div className="h-48 bg-stone-100 rounded-2xl flex items-center justify-center text-stone-400">
-                Caseload Gauge
-              </div>
-              <div className="h-48 bg-stone-100 rounded-2xl flex items-center justify-center text-stone-400">
-                Client Movement
-              </div>
-              <div className="h-48 bg-stone-100 rounded-2xl flex items-center justify-center text-stone-400">
-                At-Risk Clients
-              </div>
+              {/* Caseload Utilization StatCard */}
+              <StatCard
+                title="Caseload Capacity"
+                value={`${caseloadUtilization.toFixed(0)}%`}
+                subtitle={`${currentActiveClients} of ${currentCapacity} clients · ${caseloadUtilization >= caseloadData.practiceAvgUtilization ? '+' : ''}${(caseloadUtilization - caseloadData.practiceAvgUtilization).toFixed(0)}% vs ${caseloadData.practiceAvgUtilization}% avg`}
+                variant={caseloadUtilization >= caseloadData.practiceAvgUtilization ? 'positive' : 'negative'}
+              />
+
+              {/* Client Movement Chart */}
+              <ChartCard
+                title="Client Movement"
+                subtitle="New vs churned clients"
+                headerControls={
+                  <div className="flex items-center gap-4 bg-stone-50 rounded-xl px-4 py-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-sm bg-gradient-to-b from-emerald-400 to-emerald-500"></div>
+                      <span className="text-stone-600 text-sm font-medium">New</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-sm bg-gradient-to-b from-rose-400 to-rose-500"></div>
+                      <span className="text-stone-600 text-sm font-medium">Churned</span>
+                    </div>
+                  </div>
+                }
+                insights={clientMovementInsights}
+                minHeight="320px"
+              >
+                <DivergingBarChart
+                  data={clientMovementData}
+                  positiveConfig={{
+                    label: 'New Clients',
+                    color: '#34d399',
+                    colorEnd: '#10b981',
+                  }}
+                  negativeConfig={{
+                    label: 'Churned',
+                    color: '#fb7185',
+                    colorEnd: '#f43f5e',
+                  }}
+                  height="200px"
+                />
+              </ChartCard>
+
+              {/* At-Risk Clients StatCard */}
+              <StatCard
+                title="At-Risk Clients"
+                value={caseloadData.atRiskClients.toString()}
+                subtitle={caseloadData.atRiskClients <= 2 ? 'Low risk level' : caseloadData.atRiskClients <= 4 ? 'Monitor closely' : 'Needs attention'}
+                variant={caseloadData.atRiskClients <= 2 ? 'positive' : caseloadData.atRiskClients <= 4 ? 'neutral' : 'negative'}
+              />
             </Grid>
           </SectionContainer>
           )}

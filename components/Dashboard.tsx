@@ -278,6 +278,7 @@ export const Dashboard: React.FC = () => {
           accent="amber"
           label="Practice Overview"
           title={getTitle()}
+          titleAction={<ReferralBadge onClick={() => setIsReferralModalOpen(true)} />}
           actions={
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1 p-1 rounded-xl bg-white/10 backdrop-blur-sm">
@@ -315,12 +316,7 @@ export const Dashboard: React.FC = () => {
               )}
             </div>
           }
-        >
-          {/* Referral Badge - positioned below title */}
-          <div className="mt-5">
-            <ReferralBadge onClick={() => setIsReferralModalOpen(true)} />
-          </div>
-        </PageHeader>
+        />
 
         {/* Referral Modal */}
         <ReferralModal
