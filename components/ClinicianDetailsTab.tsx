@@ -1184,7 +1184,7 @@ export const ClinicianDetailsTab: React.FC = () => {
           />
         </div>
 
-        <div className="relative px-6 sm:px-8 lg:px-12 py-8 lg:py-10" style={{ zIndex: 1 }}>
+        <div className={`relative px-6 sm:px-8 lg:px-12 ${isSpotlightMode ? 'py-10 lg:py-14' : 'py-8 lg:py-10'}`} style={{ zIndex: 1 }}>
 
           {/* =====================================================
               DEFAULT MODE - Simple header (clinician selector moved to main content)
@@ -1364,95 +1364,59 @@ export const ClinicianDetailsTab: React.FC = () => {
               ===================================================== */}
           {isSpotlightMode && selectedClinician && healthConfig && (
             <>
-              {/* Top label */}
-              <p className="text-amber-500/80 text-sm font-semibold tracking-widest uppercase mb-4">
-                Individual Performance
-              </p>
-
-              {/* Clinician Spotlight Content */}
+              {/* Clinician Spotlight Content - Editorial Layout */}
               <div
                 className={`transition-all duration-300 ${isTransitioning ? 'opacity-0 transform translate-y-2' : 'opacity-100 transform translate-y-0'}`}
               >
-                {/* Main spotlight layout - with time selector at far right */}
-                <div className="flex flex-col lg:flex-row lg:items-end gap-6 lg:gap-10">
+                {/* Two-row layout for spacious organization */}
 
-                  {/* Left: Avatar + Identity */}
-                  <div className="flex items-end gap-5">
-                    {/* Large Avatar with glow ring (static, no dropdown) */}
-                    <div className="relative">
-                      {/* Glow ring */}
+                {/* ROW 1: Identity + Controls */}
+                <div className="flex items-start justify-between gap-8 mb-8">
+
+                  {/* Left: Avatar + Name + Badge */}
+                  <div className="flex items-center gap-6">
+                    {/* Large Avatar with subtle glow */}
+                    <div className="relative flex-shrink-0">
                       <div
-                        className="absolute inset-0 rounded-2xl blur-xl"
-                        style={{
-                          background: selectedClinician.color,
-                          opacity: 0.4,
-                          transform: 'scale(1.1)',
-                        }}
+                        className="absolute inset-0 rounded-2xl blur-2xl opacity-30"
+                        style={{ background: selectedClinician.color }}
                       />
-                      {/* Avatar */}
                       <div
-                        className="relative w-20 h-20 lg:w-24 lg:h-24 rounded-2xl flex items-center justify-center text-2xl lg:text-3xl font-bold text-white shadow-2xl"
+                        className="relative w-24 h-24 lg:w-28 lg:h-28 rounded-2xl flex items-center justify-center text-3xl lg:text-4xl font-bold text-white"
                         style={{
-                          background: `linear-gradient(135deg, ${selectedClinician.color} 0%, ${selectedClinician.color}cc 100%)`,
-                          boxShadow: `0 8px 32px -8px ${selectedClinician.color}80`,
+                          background: `linear-gradient(145deg, ${selectedClinician.color} 0%, ${selectedClinician.color}dd 100%)`,
+                          boxShadow: `0 12px 40px -8px ${selectedClinician.color}60`,
                         }}
                       >
                         {selectedClinician.initials}
                       </div>
                     </div>
 
-                    {/* Name + Details */}
-                    <div className="pb-1">
-                      <div className="flex items-center gap-3 mb-1">
-                        <h1
-                          className="text-3xl sm:text-4xl lg:text-5xl text-white tracking-tight leading-none"
-                          style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-                        >
-                          {selectedClinician.name}
-                        </h1>
-                        {/* Health Status Badge */}
-                        <div
-                          className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold"
-                          style={{
-                            background: healthConfig.bg,
-                            color: healthConfig.color,
-                            boxShadow: `0 0 20px ${healthConfig.glow}`,
-                          }}
-                        >
-                          <span className="text-[10px]">{healthConfig.icon}</span>
-                          {healthConfig.label}
-                        </div>
-                      </div>
-                      {/* Title (License) */}
-                      <p className="text-stone-300 text-lg lg:text-xl mb-2">
-                        {selectedClinician.title}
-                      </p>
-                      {/* Role, Tenure, Take Rate, Supervisor */}
-                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-base lg:text-lg text-stone-400">
-                        <span>{selectedClinician.role}</span>
-                        <span className="text-stone-600">•</span>
-                        <span>{selectedClinician.tenure}</span>
-                        <span className="text-stone-600">•</span>
-                        <span>{selectedClinician.takeRate}% take rate</span>
-                        {selectedClinician.supervisor && (
-                          <>
-                            <span className="text-stone-600">•</span>
-                            <span>Supervised by {selectedClinician.supervisor}</span>
-                          </>
-                        )}
+                    {/* Name + Health Badge */}
+                    <div>
+                      <h1
+                        className="text-4xl sm:text-5xl lg:text-6xl text-white tracking-tight leading-none mb-3"
+                        style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                      >
+                        {selectedClinician.name}
+                      </h1>
+                      {/* Health Status Badge */}
+                      <div
+                        className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-semibold"
+                        style={{
+                          background: healthConfig.bg,
+                          color: healthConfig.color,
+                          boxShadow: `0 0 24px ${healthConfig.glow}`,
+                        }}
+                      >
+                        <span className="text-xs">{healthConfig.icon}</span>
+                        {healthConfig.label}
                       </div>
                     </div>
                   </div>
 
-                  {/* AI Insight - grows to fill middle space */}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-stone-400 text-lg lg:text-xl leading-relaxed italic max-w-2xl">
-                      "{selectedClinician.insight}"
-                    </p>
-                  </div>
-
                   {/* Right: Clinician Switcher + Time Period Selector */}
-                  <div className="hidden lg:flex items-center gap-3 flex-shrink-0 self-end ml-auto">
+                  <div className="hidden lg:flex items-center gap-3 flex-shrink-0">
                     {/* Clinician Switcher Dropdown */}
                     <div className="relative" ref={clinicianDropdownRef}>
                       <button
@@ -1704,6 +1668,91 @@ export const ClinicianDetailsTab: React.FC = () => {
                           </div>
                         </div>
                       )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* ROW 2: Metadata Cards + AI Insight */}
+                <div className="flex flex-col lg:flex-row items-stretch gap-6 lg:gap-8">
+
+                  {/* Metadata Cards - Clean grid layout */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 lg:gap-4">
+                    {/* Role */}
+                    <div
+                      className="px-5 py-4 rounded-2xl"
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.06)',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                      }}
+                    >
+                      <p className="text-stone-500 text-xs uppercase tracking-wider mb-1">Role</p>
+                      <p className="text-white text-base lg:text-lg font-medium">{selectedClinician.role}</p>
+                    </div>
+
+                    {/* Tenure */}
+                    <div
+                      className="px-5 py-4 rounded-2xl"
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.06)',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                      }}
+                    >
+                      <p className="text-stone-500 text-xs uppercase tracking-wider mb-1">Tenure</p>
+                      <p className="text-white text-base lg:text-lg font-medium">{selectedClinician.tenure}</p>
+                    </div>
+
+                    {/* Take Rate */}
+                    <div
+                      className="px-5 py-4 rounded-2xl"
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.06)',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                      }}
+                    >
+                      <p className="text-stone-500 text-xs uppercase tracking-wider mb-1">Take Rate</p>
+                      <p className="text-white text-base lg:text-lg font-medium">{selectedClinician.takeRate}%</p>
+                    </div>
+
+                    {/* Supervisor or License */}
+                    <div
+                      className="px-5 py-4 rounded-2xl"
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.06)',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                      }}
+                    >
+                      <p className="text-stone-500 text-xs uppercase tracking-wider mb-1">
+                        {selectedClinician.supervisor ? 'Supervisor' : 'License'}
+                      </p>
+                      <p className="text-white text-base lg:text-lg font-medium truncate">
+                        {selectedClinician.supervisor || selectedClinician.title}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* AI Insight - Editorial quote style */}
+                  <div
+                    className="flex-1 px-6 py-5 rounded-2xl relative overflow-hidden"
+                    style={{
+                      background: 'linear-gradient(135deg, rgba(251, 191, 36, 0.08) 0%, rgba(251, 191, 36, 0.03) 100%)',
+                      border: '1px solid rgba(251, 191, 36, 0.15)',
+                    }}
+                  >
+                    {/* Decorative quote mark */}
+                    <div
+                      className="absolute -top-2 left-4 text-7xl leading-none opacity-20 pointer-events-none"
+                      style={{ fontFamily: "'DM Serif Display', Georgia, serif", color: '#f59e0b' }}
+                    >
+                      "
+                    </div>
+                    <div className="relative">
+                      <p className="text-amber-100/60 text-xs uppercase tracking-wider mb-2">AI Insight</p>
+                      <p
+                        className="text-stone-200 text-lg lg:text-xl leading-relaxed"
+                        style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                      >
+                        {selectedClinician.insight}
+                      </p>
                     </div>
                   </div>
                 </div>

@@ -298,7 +298,9 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
                       <span className="text-stone-700 text-base font-semibold">Capacity %</span>
                     </div>
                   </div>
+{/* Report button hidden for now
                   <ActionButton label="View Report" icon={<ArrowRight size={16} />} />
+*/}
                 </>
               }
               expandable
@@ -421,7 +423,9 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
                       <span className="text-stone-700 text-base font-semibold">Churned</span>
                     </div>
                   </div>
+{/* Report button hidden for now
                   <ActionButton label="View Report" icon={<ArrowRight size={16} />} />
+*/}
                 </>
               }
               expandable
@@ -582,7 +586,9 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
                 <span className="text-stone-700 text-base font-semibold">Capacity %</span>
               </div>
             </div>
+{/* Report button hidden for now
             <ActionButton label="View Report" icon={<ArrowRight size={16} />} />
+*/}
           </>
         }
         insights={clientUtilizationInsights}

@@ -379,7 +379,9 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
                       <span className="text-stone-500 text-sm">in {hoveredClinicianBar.label}</span>
                     </div>
                   )}
+{/* Report button hidden for now
                   <ActionButton label="Sessions Report" icon={<ArrowRight size={16} />} />
+*/}
                 </>
               }
               expandable
@@ -509,7 +511,9 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
               icon={<Users size={16} />}
             />
             <GoalIndicator value={sessionsGoal} label="Goal" color="amber" hidden={showClinicianBreakdown} />
+{/* Report button hidden for now
             <ActionButton label="Sessions Report" icon={<ArrowRight size={16} />} />
+*/}
           </>
         }
         insights={showClinicianBreakdown ? clinicianInsights : sessionsInsights}

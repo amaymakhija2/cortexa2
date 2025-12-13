@@ -427,24 +427,50 @@ export const ExpandedChartModal: React.FC<ExpandedChartModalProps> = ({
 }) => {
   if (!isOpen) return null;
 
+  // Sidebar dimensions - must match Sidebar.tsx
+  const COLLAPSED_WIDTH = 80;
+  const EXPANDED_WIDTH = 320;
+
   return (
-    <div
-      className="fixed inset-0 z-[99999] flex items-center justify-center p-4 sm:p-8"
-      style={{
-        backgroundColor: 'rgba(28, 25, 23, 0.6)',
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)'
-      }}
-      onClick={onClose}
-    >
+    <>
+      {/* Backdrop - only covers main content area on desktop */}
       <div
-        className="relative w-full max-w-[95vw] h-[90vh] rounded-3xl overflow-hidden"
+        className="fixed inset-0 z-[9999] lg:hidden"
         style={{
-          background: 'linear-gradient(145deg, #ffffff 0%, #fafaf9 100%)',
-          boxShadow: '0 50px 100px -20px rgba(0, 0, 0, 0.25), 0 30px 60px -30px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.05)'
+          backgroundColor: 'rgba(28, 25, 23, 0.6)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)'
         }}
-        onClick={(e) => e.stopPropagation()}
+        onClick={onClose}
+      />
+      {/* Desktop backdrop - offset by sidebar */}
+      <div
+        className="fixed inset-0 z-[9999] hidden lg:block"
+        style={{
+          left: COLLAPSED_WIDTH,
+          backgroundColor: 'rgba(28, 25, 23, 0.6)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)'
+        }}
+        onClick={onClose}
+      />
+
+      {/* Modal container - respects sidebar on desktop */}
+      <div
+        className="fixed inset-0 z-[10000] flex items-center justify-center p-4 sm:p-8 lg:p-12"
+        style={{
+          left: window.innerWidth >= 1024 ? COLLAPSED_WIDTH : 0,
+        }}
+        onClick={onClose}
       >
+        <div
+          className="relative w-full max-w-[98%] lg:max-w-[95%] h-[90vh] rounded-3xl overflow-hidden"
+          style={{
+            background: 'linear-gradient(145deg, #ffffff 0%, #fafaf9 100%)',
+            boxShadow: '0 50px 100px -20px rgba(0, 0, 0, 0.25), 0 30px 60px -30px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.05)'
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -523,8 +549,9 @@ export const ExpandedChartModal: React.FC<ExpandedChartModalProps> = ({
             </div>
           )}
         </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

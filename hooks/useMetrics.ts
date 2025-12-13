@@ -1,8 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { fetchMonthMetrics, MonthlyMetrics, PracticeSettings, AuthenticationError } from '../lib/apiClient';
-
-// Only import fallback in development (tree-shaken in production build)
-const isDev = import.meta.env.DEV;
+import { calculateDashboardMetrics } from '../data/metricsCalculator';
 
 // DashboardMetrics interface - matches what components expect
 export interface DashboardMetrics {
@@ -38,49 +35,9 @@ export interface UseMetricsResult {
   refetch: () => void;
 }
 
-// Format currency helper
-function formatCurrency(amount: number): string {
-  if (amount >= 1000) {
-    return `$${(amount / 1000).toFixed(1)}k`;
-  }
-  return `$${amount.toFixed(0)}`;
-}
-
-// Transform API response to DashboardMetrics format
-function transformToMetrics(
-  monthData: MonthlyMetrics,
-  settings: PracticeSettings
-): DashboardMetrics {
-  return {
-    revenue: {
-      value: monthData.revenue,
-      formatted: formatCurrency(monthData.revenue),
-    },
-    sessions: {
-      completed: monthData.sessions,
-    },
-    clients: {
-      active: monthData.activeClients,
-      new: monthData.newClients,
-      churned: monthData.churnedClients,
-      openings: settings.currentOpenings,
-    },
-    attendance: {
-      showRate: settings.attendance.showRate,
-      clientCancelRate: settings.attendance.clientCancelled,
-      lateCancelRate: settings.attendance.lateCancelled,
-      clinicianCancelRate: settings.attendance.clinicianCancelled,
-      rebookRate: settings.attendance.rebookRate,
-    },
-    notes: {
-      outstandingPercent: settings.outstandingNotesPercent,
-    },
-  };
-}
-
 /**
- * Hook to fetch dashboard metrics for a specific month
- * Replaces: calculateDashboardMetrics(month, year)
+ * Hook to get dashboard metrics for a specific month
+ * Uses local synthetic data
  *
  * @param month - Month (0-11, JavaScript Date format)
  * @param year - Full year (e.g., 2025)
@@ -90,43 +47,19 @@ export function useMetrics(month: number, year: number): UseMetricsResult {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  // Convert to API format: "YYYY-MM"
-  const monthStr = `${year}-${String(month + 1).padStart(2, '0')}`;
-
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(() => {
     setLoading(true);
     setError(null);
 
     try {
-      const response = await fetchMonthMetrics(monthStr);
-
-      // API returns single month data when month param is provided
-      const monthData = response.metrics as MonthlyMetrics;
-      const transformed = transformToMetrics(monthData, response.settings);
-
-      setData(transformed);
+      const localData = calculateDashboardMetrics(month, year);
+      setData(localData);
     } catch (err) {
-      if (err instanceof AuthenticationError) {
-        // Auth error - will trigger re-login via apiClient
-        setError(err);
-      } else if (isDev) {
-        // API not available (dev mode only) - fall back to local calculation
-        console.warn('API unavailable, using local data fallback');
-        try {
-          const { calculateDashboardMetrics } = await import('../data/metricsCalculator');
-          const localData = calculateDashboardMetrics(month, year);
-          setData(localData);
-        } catch (localErr) {
-          setError(err instanceof Error ? err : new Error('Failed to fetch metrics'));
-        }
-      } else {
-        // Production - no fallback, show error
-        setError(err instanceof Error ? err : new Error('Failed to fetch metrics'));
-      }
+      setError(err instanceof Error ? err : new Error('Failed to calculate metrics'));
     } finally {
       setLoading(false);
     }
-  }, [monthStr, month, year]);
+  }, [month, year]);
 
   useEffect(() => {
     fetchData();

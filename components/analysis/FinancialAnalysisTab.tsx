@@ -464,10 +464,12 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
                       </span>
                     </div>
                   )}
+{/* Report button hidden for now
                   <ActionButton
                     label="Revenue Report"
                     icon={<ArrowRight size={16} />}
                   />
+*/}
                 </>
               }
               expandable
@@ -769,10 +771,12 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
               color="amber"
               hidden={showClinicianBreakdown}
             />
+{/* Report button hidden for now
             <ActionButton
               label="Revenue Report"
               icon={<ArrowRight size={16} />}
             />
+*/}
           </>
         }
         insights={showClinicianBreakdown ? clinicianInsights : revenueInsights}

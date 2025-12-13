@@ -343,10 +343,12 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
                           </span>
                         </div>
                       )}
+{/* Report button hidden for now
                       <ActionButton
                         label="Retention Report"
                         icon={<ArrowRight size={16} />}
                       />
+*/}
                     </>
                   }
                   expandable
@@ -509,7 +511,9 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
               onToggle={() => setShowClinicianBreakdown(!showClinicianBreakdown)}
               icon={<Users size={16} />}
             />
+{/* Report button hidden for now
             <ActionButton label="Retention Report" icon={<ArrowRight size={16} />} />
+*/}
           </>
         }
         insights={churnInsights}
