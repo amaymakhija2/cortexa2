@@ -130,8 +130,11 @@ const ProtectedApp: React.FC = () => {
       <div
         className="flex flex-col flex-1 h-full relative"
       >
-        {/* Inject dynamic margin for desktop */}
+        {/* Inject dynamic margin for desktop and CSS variable for sidebar width */}
         <style>{`
+          :root {
+            --sidebar-width: ${sidebarWidth}px;
+          }
           @media (min-width: 1024px) {
             #main-content {
               margin-left: ${sidebarWidth}px;
