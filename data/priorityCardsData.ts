@@ -1,6 +1,6 @@
 // Priority Cards Data
-// All clinician names use short format: "Sarah M" not "Sarah Mitchell"
-// Demographics: ~60% White, ~18% Hispanic, ~12% Black, ~6% Asian (US Census)
+// All clinician names use short format from master list: data/clinicians.ts
+// Clinicians: Sarah C (Chen), Maria R (Rodriguez), Priya P (Patel), James K (Kim), Michael J (Johnson)
 
 export type CardStatus = "critical" | "warning" | "good" | "insight";
 export type StatColor = "red" | "amber" | "emerald" | "white" | "blue";
@@ -30,7 +30,7 @@ export interface PriorityCard {
 export const earlyEngagementWarning: PriorityCard = {
   id: "early-engagement-warning",
   title: "Early Engagement Warning",
-  aiGuidance: "Rachel K has lost 3 of their last 5 new clients before session 3. That's a 60% early drop-off rate — your practice average is 15%. This pattern suggests intake or early engagement issues worth investigating.",
+  aiGuidance: "Priya P has lost 3 of their last 5 new clients before session 3. That's a 60% early drop-off rate — your practice average is 15%. This pattern suggests intake or early engagement issues worth investigating.",
   action: "Review Intake Process",
   status: "critical",
   stats: [
@@ -45,7 +45,7 @@ export const earlyEngagementWarning: PriorityCard = {
 export const burnoutSignal: PriorityCard = {
   id: "burnout-signal",
   title: "Burnout Signal",
-  aiGuidance: "Maria G's patterns have changed significantly this month. Cancellations are up 4x, and she's had 3 same-day schedule changes. These combined signals often indicate burnout. A supportive check-in is recommended.",
+  aiGuidance: "Maria R's patterns have changed significantly this month. Cancellations are up 4x, and she's had 3 same-day schedule changes. These combined signals often indicate burnout. A supportive check-in is recommended.",
   action: "Schedule Check-in",
   status: "critical",
   stats: [
@@ -75,13 +75,13 @@ export const outstandingBalances: PriorityCard = {
 export const notesDueSoon: PriorityCard = {
   id: "notes-due-soon",
   title: "Notes Due Soon",
-  aiGuidance: "8 session notes are due within 3 days for insurance billing. Sarah M has the most with 4 notes. Late notes delay reimbursement and create audit risk.",
+  aiGuidance: "8 session notes are due within 3 days for insurance billing. Sarah C has the most with 4 notes. Late notes delay reimbursement and create audit risk.",
   action: "View Outstanding Notes",
   status: "critical",
   stats: [
     { value: 8, label: "notes", color: "red" },
     { value: "3d", label: "deadline", color: "amber" },
-    { value: "Sarah M", label: "most (4)", color: "white" },
+    { value: "Sarah C", label: "most (4)", color: "white" },
   ],
   comparisonText: "Billing deadline: 7 days",
   category: "urgent",
@@ -124,7 +124,7 @@ export const firstSessionDropoff: PriorityCard = {
 export const cancellationSpike: PriorityCard = {
   id: "cancellation-spike",
   title: "Cancellation Spike",
-  aiGuidance: "Maria G had 9 cancellations this month — that's 4x their usual rate of 2. The practice average is 3 cancellations per clinician. Worth a conversation.",
+  aiGuidance: "Maria R had 9 cancellations this month — that's 4x their usual rate of 2. The practice average is 3 cancellations per clinician. Worth a conversation.",
   action: "Explore Data",
   status: "warning",
   stats: [
@@ -169,15 +169,15 @@ export const sessionsBehindPace: PriorityCard = {
 export const caseloadImbalance: PriorityCard = {
   id: "caseload-imbalance",
   title: "Caseload Imbalance",
-  aiGuidance: "Sarah M is at 95% capacity while Jasmine W is at 38%. Consider rebalancing referrals. Sarah M may be at burnout risk; Jasmine W has room for 12 more clients.",
+  aiGuidance: "Sarah C is at 95% capacity while Michael J is at 38%. Consider rebalancing referrals. Sarah C may be at burnout risk; Michael J has room for 12 more clients.",
   action: "Rebalance Referrals",
   status: "warning",
   stats: [
-    { value: "95%", label: "Sarah M", color: "red" },
-    { value: "38%", label: "Jasmine W", color: "amber" },
+    { value: "95%", label: "Sarah C", color: "red" },
+    { value: "38%", label: "Michael J", color: "amber" },
     { value: "57%", label: "gap", color: "white" },
   ],
-  comparisonText: "Jasmine W has 12 openings",
+  comparisonText: "Michael J has 12 openings",
   category: "attention",
 };
 
@@ -214,7 +214,7 @@ export const rebookRateDropping: PriorityCard = {
 export const clinicianNeedsSupport: PriorityCard = {
   id: "clinician-needs-support",
   title: "Clinician Needs Support",
-  aiGuidance: "Jasmine W is 35% below team average on completed sessions. Their 42 sessions compares to the team average of 65. Consider a supportive check-in or coaching session.",
+  aiGuidance: "Michael J is 35% below team average on completed sessions. Their 42 sessions compares to the team average of 65. Consider a supportive check-in or coaching session.",
   action: "Schedule Coaching",
   status: "warning",
   stats: [
@@ -244,7 +244,7 @@ export const highValueClientRisk: PriorityCard = {
 export const sessionFrequencyDropping: PriorityCard = {
   id: "session-frequency-dropping",
   title: "Session Frequency Dropping",
-  aiGuidance: "David L has gone from weekly sessions to bi-weekly over the last 4 weeks. Frequency drops often precede churn. Their clinician (Sarah M) should check in about treatment goals.",
+  aiGuidance: "David L has gone from weekly sessions to bi-weekly over the last 4 weeks. Frequency drops often precede churn. Their clinician (Sarah C) should check in about treatment goals.",
   action: "Notify Clinician",
   status: "warning",
   stats: [
@@ -259,7 +259,7 @@ export const sessionFrequencyDropping: PriorityCard = {
 export const noShowSpike: PriorityCard = {
   id: "no-show-spike",
   title: "No-Show Spike",
-  aiGuidance: "Maria G had 6 no-shows this month — that's 3x their usual rate. No-shows can't be backfilled and often signal client disengagement. Review their caseload for patterns.",
+  aiGuidance: "Maria R had 6 no-shows this month — that's 3x their usual rate. No-shows can't be backfilled and often signal client disengagement. Review their caseload for patterns.",
   action: "Review Clients",
   status: "warning",
   stats: [
@@ -278,13 +278,13 @@ export const noShowSpike: PriorityCard = {
 export const openSlotsThisWeek: PriorityCard = {
   id: "open-slots-this-week",
   title: "Open Slots This Week",
-  aiGuidance: "You have 34 open slots this week across 5 clinicians. Jasmine W has the most availability with 12 slots. Great time to activate your waitlist or increase marketing.",
+  aiGuidance: "You have 34 open slots this week across 5 clinicians. Michael J has the most availability with 12 slots. Great time to activate your waitlist or increase marketing.",
   action: "Activate Waitlist",
   status: "good",
   stats: [
     { value: 34, label: "slots", color: "emerald" },
     { value: 5, label: "clinicians", color: "white" },
-    { value: "Jasmine W", label: "most (12)", color: "white" },
+    { value: "Michael J", label: "most (12)", color: "white" },
   ],
   comparisonText: "Utilization: 72%",
   category: "opportunity",
@@ -293,12 +293,12 @@ export const openSlotsThisWeek: PriorityCard = {
 export const caseloadOpenings: PriorityCard = {
   id: "caseload-openings",
   title: "Caseload Openings",
-  aiGuidance: "Your team can take on 28 new clients. Jasmine W has the most room with 12 openings. Route new consultations to clinicians with capacity.",
+  aiGuidance: "Your team can take on 28 new clients. Michael J has the most room with 12 openings. Route new consultations to clinicians with capacity.",
   action: "Route New Clients",
   status: "good",
   stats: [
     { value: 28, label: "openings", color: "emerald" },
-    { value: "Jasmine W", label: "most (12)", color: "white" },
+    { value: "Michael J", label: "most (12)", color: "white" },
     { value: "72%", label: "filled", color: "white" },
   ],
   comparisonText: "Team capacity: 72% filled",
@@ -323,13 +323,13 @@ export const aheadOfGoal: PriorityCard = {
 export const newClientMomentum: PriorityCard = {
   id: "new-client-momentum",
   title: "Strong Client Acquisition",
-  aiGuidance: "You've added 12 new clients this month — your best in 6 months! Sarah M brought in 4. Your client base is growing faster than usual.",
+  aiGuidance: "You've added 12 new clients this month — your best in 6 months! Sarah C brought in 4. Your client base is growing faster than usual.",
   action: "View Client Details",
   status: "good",
   stats: [
     { value: 12, label: "clients", color: "emerald" },
     { value: 7, label: "avg", color: "white" },
-    { value: "Sarah M", label: "top (4)", color: "white" },
+    { value: "Sarah C", label: "top (4)", color: "white" },
   ],
   comparisonText: "Best in 6 months",
   category: "opportunity",
@@ -338,11 +338,11 @@ export const newClientMomentum: PriorityCard = {
 export const topPerformer: PriorityCard = {
   id: "top-performer",
   title: "Top Performer",
-  aiGuidance: "Sarah M led the team in revenue this month with $32k. That's 28% above the team average. Consider recognition or sharing their approach with the team.",
+  aiGuidance: "Sarah C led the team in revenue this month with $32k. That's 28% above the team average. Consider recognition or sharing their approach with the team.",
   action: "View Team Rankings",
   status: "good",
   stats: [
-    { value: "$32k", label: "Sarah M", color: "emerald" },
+    { value: "$32k", label: "Sarah C", color: "emerald" },
     { value: "$25k", label: "avg", color: "white" },
     { value: "+28%", label: "above", color: "emerald" },
   ],
@@ -353,7 +353,7 @@ export const topPerformer: PriorityCard = {
 export const mostImproved: PriorityCard = {
   id: "most-improved",
   title: "Most Improved",
-  aiGuidance: "Emma T improved their completed sessions by 35% this month — from 48 to 65. Great momentum worth acknowledging.",
+  aiGuidance: "James K improved their completed sessions by 35% this month — from 48 to 65. Great momentum worth acknowledging.",
   action: "View Performance",
   status: "good",
   stats: [
@@ -368,7 +368,7 @@ export const mostImproved: PriorityCard = {
 export const retentionWin: PriorityCard = {
   id: "retention-win",
   title: "Exceptional Retention",
-  aiGuidance: "Sarah M has maintained 94% client retention over the last 6 months. Only 2 of their 32 clients churned. Their approach is worth studying.",
+  aiGuidance: "Sarah C has maintained 94% client retention over the last 6 months. Only 2 of their 32 clients churned. Their approach is worth studying.",
   action: "View Retention Details",
   status: "good",
   stats: [
@@ -462,12 +462,12 @@ export const marginShift: PriorityCard = {
 export const revenueConcentration: PriorityCard = {
   id: "revenue-concentration",
   title: "Revenue Concentration Risk",
-  aiGuidance: "Sarah M generated 45% of your revenue this month ($42k). If they left or reduced hours, you'd lose nearly half your income. Consider diversifying your caseload distribution.",
+  aiGuidance: "Sarah C generated 45% of your revenue this month ($42k). If they left or reduced hours, you'd lose nearly half your income. Consider diversifying your caseload distribution.",
   action: "View Team Distribution",
   status: "warning",
   stats: [
     { value: "45%", label: "share", color: "amber" },
-    { value: "$42k", label: "Sarah M", color: "white" },
+    { value: "$42k", label: "Sarah C", color: "white" },
     { value: "$93k", label: "total", color: "white" },
   ],
   comparisonText: "Threshold: 40%",
@@ -530,11 +530,11 @@ export const weeklySnapshot: PriorityCard = {
 
 export const allPriorityCards: PriorityCard[] = [
   // === THE DEMO 5 (first 5 cards they see) ===
-  earlyEngagementWarning,   // 1. HOOK - "Rachel K lost 60% of new clients" - shocking specificity
-  burnoutSignal,            // 2. DIFFERENTIATION - "Maria G showing burnout" - no EHR does this
+  earlyEngagementWarning,   // 1. HOOK - "Priya P lost 60% of new clients" - shocking specificity
+  burnoutSignal,            // 2. DIFFERENTIATION - "Maria R showing burnout" - no EHR does this
   outstandingBalances,      // 3. MONEY - "$2,450 outstanding" - direct ROI
   churnPattern,             // 4. INTELLIGENCE - "68% churn in first 5 sessions" - strategic insight
-  caseloadImbalance,        // 5. VALIDATION - "Sarah M 95%, Jasmine W 38%" - proves what they feel
+  caseloadImbalance,        // 5. VALIDATION - "Sarah C 95%, Michael J 38%" - proves what they feel
 
   // === ACT 2: "My Practice is Leaking" ===
   rebookNeeded,             // 6. Actionable today

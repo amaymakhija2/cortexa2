@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Users, ArrowRight } from 'lucide-react';
+import { useSettings } from '../../context/SettingsContext';
 import {
   PageHeader,
   PageContent,
@@ -52,8 +53,11 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
   clinicianSessionsData,
 }) => {
   // =========================================================================
-  // LOCAL STATE
+  // LOCAL STATE & SETTINGS
   // =========================================================================
+
+  const { settings } = useSettings();
+  const sessionsGoal = settings.practiceGoals.monthlySessions;
 
   const [showClinicianBreakdown, setShowClinicianBreakdown] = useState(false);
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
@@ -84,8 +88,8 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
   );
 
   const monthsAtGoal = useMemo(
-    () => sessionsData.filter(item => item.completed >= 700).length,
-    [sessionsData]
+    () => sessionsData.filter(item => item.completed >= sessionsGoal).length,
+    [sessionsData, sessionsGoal]
   );
 
   const totalCancelled = useMemo(
@@ -308,7 +312,7 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
         <Section spacing="md">
           <ExecutiveSummary
             headline="Sessions On Track, Monitor Cancellations"
-            summary={`Your practice completed **${totalCompleted.toLocaleString()} sessions** this period with a **${showRate.toFixed(1)}% show rate**. You hit the 700-session goal in **${monthsAtGoal} of ${sessionsData.length} months**. The client cancellation rate stands at **${clientCancelRate.toFixed(1)}%**—${clientCancelRate <= 15 ? 'within acceptable range' : 'consider reviewing scheduling practices to reduce lost revenue'}.`}
+            summary={`Your practice completed **${totalCompleted.toLocaleString()} sessions** this period with a **${showRate.toFixed(1)}% show rate**. You hit the ${sessionsGoal}-session goal in **${monthsAtGoal} of ${sessionsData.length} months**. The client cancellation rate stands at **${clientCancelRate.toFixed(1)}%**—${clientCancelRate <= 15 ? 'within acceptable range' : 'consider reviewing scheduling practices to reduce lost revenue'}.`}
             accent="indigo"
           />
         </Section>
@@ -329,7 +333,7 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
             <StatCard
               title="Goal Achievement"
               value={`${monthsAtGoal}/${sessionsData.length}`}
-              subtitle="months hit 700 goal"
+              subtitle={`months hit ${sessionsGoal} goal`}
             />
             <StatCard
               title="Client Cancel Rate"
@@ -357,7 +361,7 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
                     hidden={!!hoveredClinicianBar}
                   />
                   <GoalIndicator
-                    value={700}
+                    value={sessionsGoal}
                     label="Goal"
                     color="amber"
                     hidden={showClinicianBreakdown || !!hoveredClinicianBar}
@@ -400,10 +404,10 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
                 <BarChart
                   data={barChartData}
                   mode="single"
-                  goal={{ value: 700 }}
+                  goal={{ value: sessionsGoal }}
                   maxValue={900}
                   getBarColor={(value) =>
-                    value >= 700
+                    value >= sessionsGoal
                       ? {
                           gradient: 'linear-gradient(180deg, #34d399 0%, #059669 100%)',
                           shadow: '0 4px 12px -2px rgba(16, 185, 129, 0.35)',
@@ -495,7 +499,7 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
         isOpen={expandedCard === 'session-performance'}
         onClose={() => setExpandedCard(null)}
         title="Completed Sessions"
-        subtitle={showClinicianBreakdown ? 'Sessions by clinician breakdown' : 'Monthly performance with 700 goal'}
+        subtitle={showClinicianBreakdown ? 'Sessions by clinician breakdown' : `Monthly performance with ${sessionsGoal} goal`}
         headerControls={
           <>
             <ToggleButton
@@ -504,7 +508,7 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
               onToggle={() => setShowClinicianBreakdown(!showClinicianBreakdown)}
               icon={<Users size={16} />}
             />
-            <GoalIndicator value={700} label="Goal" color="amber" hidden={showClinicianBreakdown} />
+            <GoalIndicator value={sessionsGoal} label="Goal" color="amber" hidden={showClinicianBreakdown} />
             <ActionButton label="Sessions Report" icon={<ArrowRight size={16} />} />
           </>
         }
@@ -529,9 +533,9 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
             data={barChartData}
             mode="single"
             maxValue={900}
-            goal={{ value: 700 }}
+            goal={{ value: sessionsGoal }}
             getBarColor={(value) =>
-              value >= 700
+              value >= sessionsGoal
                 ? {
                     gradient: 'linear-gradient(180deg, #34d399 0%, #059669 100%)',
                     shadow: '0 4px 12px -2px rgba(16, 185, 129, 0.35)',

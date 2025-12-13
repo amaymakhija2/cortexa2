@@ -26,7 +26,7 @@ function parseCSVLine(line) {
   return result;
 }
 
-// Obscure clinician name: "Gaya Kodiyalam, LCSW" -> "Gaya K"
+// Obscure clinician name: "Sarah Chen, LCSW" -> "Sarah C"
 function obscureName(fullName) {
   // Remove credentials (everything after the last comma that looks like credentials)
   const namePart = fullName.replace(/,\s*(LCSW|LMHC|MHC-LP|LMSW|LAC|PhD|PsyD|MD).*$/i, '').trim();

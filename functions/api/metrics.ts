@@ -28,7 +28,7 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
     "newClients": 20,
     "churnedClients": 0,
     "clinicians": {
-      "Gaya Kodiyalam, LCSW": {
+      "Sarah Chen, LCSW": {
         "revenue": 17220.0,
         "sessions": 74,
         "clients": 20
@@ -42,7 +42,7 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
     "newClients": 0,
     "churnedClients": 0,
     "clinicians": {
-      "Gaya Kodiyalam, LCSW": {
+      "Sarah Chen, LCSW": {
         "revenue": 14560.0,
         "sessions": 62,
         "clients": 20
@@ -56,7 +56,7 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
     "newClients": 3,
     "churnedClients": 2,
     "clinicians": {
-      "Gaya Kodiyalam, LCSW": {
+      "Sarah Chen, LCSW": {
         "revenue": 17105.0,
         "sessions": 73,
         "clients": 21
@@ -70,7 +70,7 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
     "newClients": 0,
     "churnedClients": 3,
     "clinicians": {
-      "Gaya Kodiyalam, LCSW": {
+      "Sarah Chen, LCSW": {
         "revenue": 18925.0,
         "sessions": 81,
         "clients": 20
@@ -84,12 +84,12 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
     "newClients": 4,
     "churnedClients": 0,
     "clinicians": {
-      "Gaya Kodiyalam, LCSW": {
+      "Sarah Chen, LCSW": {
         "revenue": 15300.0,
         "sessions": 65,
         "clients": 21
       },
-      "Rudhdi Karnik, LMSW": {
+      "Maria Rodriguez, LCSW": {
         "revenue": 2145.0,
         "sessions": 9,
         "clients": 4
@@ -103,12 +103,12 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
     "newClients": 9,
     "churnedClients": 2,
     "clinicians": {
-      "Gaya Kodiyalam, LCSW": {
+      "Sarah Chen, LCSW": {
         "revenue": 17360.0,
         "sessions": 73,
         "clients": 19
       },
-      "Rudhdi Karnik, LMSW": {
+      "Maria Rodriguez, LCSW": {
         "revenue": 3780.0,
         "sessions": 16,
         "clients": 6
@@ -127,12 +127,12 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
     "newClients": 13,
     "churnedClients": 3,
     "clinicians": {
-      "Gaya Kodiyalam, LCSW": {
+      "Sarah Chen, LCSW": {
         "revenue": 15270.0,
         "sessions": 65,
         "clients": 19
       },
-      "Rudhdi Karnik, LMSW": {
+      "Maria Rodriguez, LCSW": {
         "revenue": 6360.0,
         "sessions": 27,
         "clients": 6
@@ -156,12 +156,12 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
     "newClients": 12,
     "churnedClients": 0,
     "clinicians": {
-      "Gaya Kodiyalam, LCSW": {
+      "Sarah Chen, LCSW": {
         "revenue": 15645.0,
         "sessions": 64,
         "clients": 20
       },
-      "Tamanna Ahmad, LMSW": {
+      "Priya Patel, LPC": {
         "revenue": 4345.0,
         "sessions": 21,
         "clients": 9
@@ -176,7 +176,7 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
         "sessions": 62,
         "clients": 18
       },
-      "Rudhdi Karnik, LMSW": {
+      "Maria Rodriguez, LCSW": {
         "revenue": 5415.0,
         "sessions": 23,
         "clients": 7
@@ -190,12 +190,12 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
     "newClients": 10,
     "churnedClients": 5,
     "clinicians": {
-      "Gaya Kodiyalam, LCSW": {
+      "Sarah Chen, LCSW": {
         "revenue": 15835.0,
         "sessions": 62,
         "clients": 18
       },
-      "Rudhdi Karnik, LMSW": {
+      "Maria Rodriguez, LCSW": {
         "revenue": 6200.0,
         "sessions": 27,
         "clients": 7
@@ -210,7 +210,7 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
         "sessions": 53,
         "clients": 18
       },
-      "Tamanna Ahmad, LMSW": {
+      "Priya Patel, LPC": {
         "revenue": 7410.0,
         "sessions": 35,
         "clients": 10
@@ -224,7 +224,7 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
     "newClients": 10,
     "churnedClients": 9,
     "clinicians": {
-      "Gaya Kodiyalam, LCSW": {
+      "Sarah Chen, LCSW": {
         "revenue": 14150.0,
         "sessions": 55,
         "clients": 18
@@ -239,12 +239,12 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
         "sessions": 68,
         "clients": 20
       },
-      "Rudhdi Karnik, LMSW": {
+      "Maria Rodriguez, LCSW": {
         "revenue": 5295.0,
         "sessions": 23,
         "clients": 7
       },
-      "Tamanna Ahmad, LMSW": {
+      "Priya Patel, LPC": {
         "revenue": 10595.0,
         "sessions": 50,
         "clients": 12
@@ -258,7 +258,7 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
     "newClients": 7,
     "churnedClients": 7,
     "clinicians": {
-      "Rudhdi Karnik, LMSW": {
+      "Maria Rodriguez, LCSW": {
         "revenue": 4675.0,
         "sessions": 20,
         "clients": 7
@@ -273,17 +273,17 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
         "sessions": 58,
         "clients": 23
       },
-      "Tamanna Ahmad, LMSW": {
+      "Priya Patel, LPC": {
         "revenue": 13435.0,
         "sessions": 63,
         "clients": 18
       },
-      "Gaya Kodiyalam, LCSW": {
+      "Sarah Chen, LCSW": {
         "revenue": 9240.0,
         "sessions": 36,
         "clients": 16
       },
-      "Gajan Gugendiran, LMHC": {
+      "James Kim, LMFT": {
         "revenue": 1500.0,
         "sessions": 7,
         "clients": 3
@@ -297,22 +297,22 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
     "newClients": 15,
     "churnedClients": 7,
     "clinicians": {
-      "Gaya Kodiyalam, LCSW": {
+      "Sarah Chen, LCSW": {
         "revenue": 12840.0,
         "sessions": 48,
         "clients": 14
       },
-      "Rudhdi Karnik, LMSW": {
+      "Maria Rodriguez, LCSW": {
         "revenue": 5530.0,
         "sessions": 24,
         "clients": 7
       },
-      "Tamanna Ahmad, LMSW": {
+      "Priya Patel, LPC": {
         "revenue": 20795.0,
         "sessions": 96,
         "clients": 24
       },
-      "Gajan Gugendiran, LMHC": {
+      "James Kim, LMFT": {
         "revenue": 4080.0,
         "sessions": 19,
         "clients": 9
@@ -336,12 +336,12 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
     "newClients": 4,
     "churnedClients": 10,
     "clinicians": {
-      "Gaya Kodiyalam, LCSW": {
+      "Sarah Chen, LCSW": {
         "revenue": 7155.0,
         "sessions": 27,
         "clients": 12
       },
-      "Rudhdi Karnik, LMSW": {
+      "Maria Rodriguez, LCSW": {
         "revenue": 5610.0,
         "sessions": 25,
         "clients": 8
@@ -356,12 +356,12 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
         "sessions": 70,
         "clients": 20
       },
-      "Tamanna Ahmad, LMSW": {
+      "Priya Patel, LPC": {
         "revenue": 19140.0,
         "sessions": 88,
         "clients": 23
       },
-      "Gajan Gugendiran, LMHC": {
+      "James Kim, LMFT": {
         "revenue": 6195.0,
         "sessions": 29,
         "clients": 10
@@ -380,7 +380,7 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
         "sessions": 75,
         "clients": 23
       },
-      "Gaya Kodiyalam, LCSW": {
+      "Sarah Chen, LCSW": {
         "revenue": 13560.0,
         "sessions": 66,
         "clients": 19
@@ -390,17 +390,17 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
         "sessions": 55,
         "clients": 17
       },
-      "Gajan Gugendiran, LMHC": {
+      "James Kim, LMFT": {
         "revenue": 10320.0,
         "sessions": 48,
         "clients": 14
       },
-      "Tamanna Ahmad, LMSW": {
+      "Priya Patel, LPC": {
         "revenue": 16935.0,
         "sessions": 77,
         "clients": 25
       },
-      "Rudhdi Karnik, LMSW": {
+      "Maria Rodriguez, LCSW": {
         "revenue": 5080.0,
         "sessions": 22,
         "clients": 7
@@ -414,12 +414,12 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
     "newClients": 2,
     "churnedClients": 7,
     "clinicians": {
-      "Gaya Kodiyalam, LCSW": {
+      "Sarah Chen, LCSW": {
         "revenue": 12860.0,
         "sessions": 69,
         "clients": 19
       },
-      "Rudhdi Karnik, LMSW": {
+      "Maria Rodriguez, LCSW": {
         "revenue": 5140.0,
         "sessions": 22,
         "clients": 8
@@ -429,7 +429,7 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
         "sessions": 65,
         "clients": 23
       },
-      "Tamanna Ahmad, LMSW": {
+      "Priya Patel, LPC": {
         "revenue": 20775.0,
         "sessions": 94,
         "clients": 24
@@ -439,7 +439,7 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
         "sessions": 61,
         "clients": 19
       },
-      "Gajan Gugendiran, LMHC": {
+      "James Kim, LMFT": {
         "revenue": 14555.0,
         "sessions": 67,
         "clients": 19
@@ -453,12 +453,12 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
     "newClients": 9,
     "churnedClients": 8,
     "clinicians": {
-      "Rudhdi Karnik, LMSW": {
+      "Maria Rodriguez, LCSW": {
         "revenue": 4320.0,
         "sessions": 18,
         "clients": 7
       },
-      "Gaya Kodiyalam, LCSW": {
+      "Sarah Chen, LCSW": {
         "revenue": 5440.0,
         "sessions": 20,
         "clients": 11
@@ -468,12 +468,12 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
         "sessions": 89,
         "clients": 22
       },
-      "Tamanna Ahmad, LMSW": {
+      "Priya Patel, LPC": {
         "revenue": 18975.0,
         "sessions": 86,
         "clients": 25
       },
-      "Gajan Gugendiran, LMHC": {
+      "James Kim, LMFT": {
         "revenue": 17580.0,
         "sessions": 80,
         "clients": 19
@@ -483,12 +483,12 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
         "sessions": 38,
         "clients": 16
       },
-      "Shivon Ramadhin, LMSW": {
+      "James Kim, LMFT": {
         "revenue": 6150.0,
         "sessions": 31,
         "clients": 9
       },
-      "Tanisha Singh, LMSW": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 2940.0,
         "sessions": 14,
         "clients": 5
@@ -502,17 +502,17 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
     "newClients": 6,
     "churnedClients": 20,
     "clinicians": {
-      "Gajan Gugendiran, LMHC": {
+      "James Kim, LMFT": {
         "revenue": 14035.0,
         "sessions": 64,
         "clients": 21
       },
-      "Gaya Kodiyalam, LCSW": {
+      "Sarah Chen, LCSW": {
         "revenue": 4800.0,
         "sessions": 18,
         "clients": 8
       },
-      "Rudhdi Karnik, LMSW": {
+      "Maria Rodriguez, LCSW": {
         "revenue": 3700.0,
         "sessions": 16,
         "clients": 7
@@ -522,22 +522,22 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
         "sessions": 18,
         "clients": 18
       },
-      "Tamanna Ahmad, LMSW": {
+      "Priya Patel, LPC": {
         "revenue": 18185.0,
         "sessions": 82,
         "clients": 25
       },
-      "Shivon Ramadhin, LMSW": {
+      "James Kim, LMFT": {
         "revenue": 7640.0,
         "sessions": 35,
         "clients": 12
       },
-      "Tanisha Singh, LMSW": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 8317.0,
         "sessions": 40,
         "clients": 14
       },
-      "Mehar Ahuja, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 2667.0,
         "sessions": 13,
         "clients": 8
@@ -551,42 +551,42 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
     "newClients": 8,
     "churnedClients": 25,
     "clinicians": {
-      "Tamanna Ahmad, LMSW": {
+      "Priya Patel, LPC": {
         "revenue": 18035.0,
         "sessions": 82,
         "clients": 23
       },
-      "Gajan Gugendiran, LMHC": {
+      "James Kim, LMFT": {
         "revenue": 8905.0,
         "sessions": 41,
         "clients": 20
       },
-      "Shivon Ramadhin, LMSW": {
+      "James Kim, LMFT": {
         "revenue": 11705.0,
         "sessions": 54,
         "clients": 17
       },
-      "Mehar Ahuja, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 8755.0,
         "sessions": 42,
         "clients": 16
       },
-      "Tanisha Singh, LMSW": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 4750.0,
         "sessions": 22,
         "clients": 13
       },
-      "Rudhdi Karnik, LMSW": {
+      "Maria Rodriguez, LCSW": {
         "revenue": 4140.0,
         "sessions": 18,
         "clients": 6
       },
-      "Deepa Saharia, LMSW": {
+      "Priya Patel, LPC": {
         "revenue": 3630.0,
         "sessions": 18,
         "clients": 8
       },
-      "Gaya Kodiyalam, LCSW": {
+      "Sarah Chen, LCSW": {
         "revenue": 5407.0,
         "sessions": 21,
         "clients": 8
@@ -600,42 +600,42 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
     "newClients": 7,
     "churnedClients": 19,
     "clinicians": {
-      "Gaya Kodiyalam, LCSW": {
+      "Sarah Chen, LCSW": {
         "revenue": 6250.0,
         "sessions": 24,
         "clients": 9
       },
-      "Rudhdi Karnik, LMSW": {
+      "Maria Rodriguez, LCSW": {
         "revenue": 3890.0,
         "sessions": 17,
         "clients": 6
       },
-      "Tamanna Ahmad, LMSW": {
+      "Priya Patel, LPC": {
         "revenue": 17497.5,
         "sessions": 80,
         "clients": 25
       },
-      "Gajan Gugendiran, LMHC": {
+      "James Kim, LMFT": {
         "revenue": 16960.0,
         "sessions": 77,
         "clients": 24
       },
-      "Deepa Saharia, LMSW": {
+      "Priya Patel, LPC": {
         "revenue": 8142.5,
         "sessions": 41,
         "clients": 11
       },
-      "Shivon Ramadhin, LMSW": {
+      "James Kim, LMFT": {
         "revenue": 12395.0,
         "sessions": 57,
         "clients": 19
       },
-      "Mehar Ahuja, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 9710.0,
         "sessions": 46,
         "clients": 16
       },
-      "Rebecca Singh, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 200.0,
         "sessions": 1,
         "clients": 1
@@ -649,42 +649,42 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
     "newClients": 12,
     "churnedClients": 12,
     "clinicians": {
-      "Rudhdi Karnik, LMSW": {
+      "Maria Rodriguez, LCSW": {
         "revenue": 3900.0,
         "sessions": 17,
         "clients": 7
       },
-      "Deepa Saharia, LMSW": {
+      "Priya Patel, LPC": {
         "revenue": 8280.0,
         "sessions": 41,
         "clients": 12
       },
-      "Gajan Gugendiran, LMHC": {
+      "James Kim, LMFT": {
         "revenue": 19470.0,
         "sessions": 88,
         "clients": 28
       },
-      "Tamanna Ahmad, LMSW": {
+      "Priya Patel, LPC": {
         "revenue": 19410.0,
         "sessions": 87,
         "clients": 31
       },
-      "Shivon Ramadhin, LMSW": {
+      "James Kim, LMFT": {
         "revenue": 17500.0,
         "sessions": 79,
         "clients": 22
       },
-      "Mehar Ahuja, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 14835.0,
         "sessions": 70,
         "clients": 18
       },
-      "Gaya Kodiyalam, LCSW": {
+      "Sarah Chen, LCSW": {
         "revenue": 6340.0,
         "sessions": 30,
         "clients": 17
       },
-      "Rebecca Singh, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 3905.0,
         "sessions": 18,
         "clients": 9
@@ -698,47 +698,47 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
     "newClients": 6,
     "churnedClients": 7,
     "clinicians": {
-      "Tamanna Ahmad, LMSW": {
+      "Priya Patel, LPC": {
         "revenue": 22455.0,
         "sessions": 100,
         "clients": 28
       },
-      "Rebecca Singh, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 10080.0,
         "sessions": 47,
         "clients": 11
       },
-      "Gaya Kodiyalam, LCSW": {
+      "Sarah Chen, LCSW": {
         "revenue": 9895.0,
         "sessions": 64,
         "clients": 16
       },
-      "Rudhdi Karnik, LMSW": {
+      "Maria Rodriguez, LCSW": {
         "revenue": 4750.0,
         "sessions": 21,
         "clients": 6
       },
-      "Gajan Gugendiran, LMHC": {
+      "James Kim, LMFT": {
         "revenue": 19915.0,
         "sessions": 90,
         "clients": 26
       },
-      "Shivon Ramadhin, LMSW": {
+      "James Kim, LMFT": {
         "revenue": 16220.0,
         "sessions": 73,
         "clients": 23
       },
-      "Mehar Ahuja, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 20540.0,
         "sessions": 96,
         "clients": 23
       },
-      "Deepa Saharia, LMSW": {
+      "Priya Patel, LPC": {
         "revenue": 10545.0,
         "sessions": 52,
         "clients": 12
       },
-      "Apeksha Mehta, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 430.0,
         "sessions": 2,
         "clients": 2
@@ -752,47 +752,47 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
     "newClients": 7,
     "churnedClients": 8,
     "clinicians": {
-      "Rebecca Singh, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 12525.0,
         "sessions": 60,
         "clients": 18
       },
-      "Gajan Gugendiran, LMHC": {
+      "James Kim, LMFT": {
         "revenue": 17915.0,
         "sessions": 80,
         "clients": 27
       },
-      "Tamanna Ahmad, LMSW": {
+      "Priya Patel, LPC": {
         "revenue": 17040.0,
         "sessions": 76,
         "clients": 28
       },
-      "Deepa Saharia, LMSW": {
+      "Priya Patel, LPC": {
         "revenue": 9250.0,
         "sessions": 46,
         "clients": 12
       },
-      "Apeksha Mehta, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 5685.0,
         "sessions": 27,
         "clients": 9
       },
-      "Gaya Kodiyalam, LCSW": {
+      "Sarah Chen, LCSW": {
         "revenue": 6956.0,
         "sessions": 37,
         "clients": 15
       },
-      "Rudhdi Karnik, LMSW": {
+      "Maria Rodriguez, LCSW": {
         "revenue": 4295.0,
         "sessions": 19,
         "clients": 6
       },
-      "Shivon Ramadhin, LMSW": {
+      "James Kim, LMFT": {
         "revenue": 13825.0,
         "sessions": 63,
         "clients": 19
       },
-      "Mehar Ahuja, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 10910.0,
         "sessions": 51,
         "clients": 21
@@ -806,47 +806,47 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
     "newClients": 1,
     "churnedClients": 10,
     "clinicians": {
-      "Deepa Saharia, LMSW": {
+      "Priya Patel, LPC": {
         "revenue": 9130.0,
         "sessions": 45,
         "clients": 12
       },
-      "Gaya Kodiyalam, LCSW": {
+      "Sarah Chen, LCSW": {
         "revenue": 5680.0,
         "sessions": 22,
         "clients": 7
       },
-      "Tamanna Ahmad, LMSW": {
+      "Priya Patel, LPC": {
         "revenue": 17920.0,
         "sessions": 80,
         "clients": 26
       },
-      "Mehar Ahuja, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 17550.0,
         "sessions": 80,
         "clients": 20
       },
-      "Gajan Gugendiran, LMHC": {
+      "James Kim, LMFT": {
         "revenue": 14155.0,
         "sessions": 63,
         "clients": 24
       },
-      "Rebecca Singh, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 10505.0,
         "sessions": 50,
         "clients": 18
       },
-      "Shivon Ramadhin, LMSW": {
+      "James Kim, LMFT": {
         "revenue": 12520.0,
         "sessions": 57,
         "clients": 19
       },
-      "Rudhdi Karnik, LMSW": {
+      "Maria Rodriguez, LCSW": {
         "revenue": 2950.0,
         "sessions": 13,
         "clients": 5
       },
-      "Apeksha Mehta, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 5601.66,
         "sessions": 26,
         "clients": 11
@@ -860,42 +860,42 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
     "newClients": 8,
     "churnedClients": 19,
     "clinicians": {
-      "Tamanna Ahmad, LMSW": {
+      "Priya Patel, LPC": {
         "revenue": 11560.0,
         "sessions": 52,
         "clients": 22
       },
-      "Shivon Ramadhin, LMSW": {
+      "James Kim, LMFT": {
         "revenue": 12435.0,
         "sessions": 56,
         "clients": 19
       },
-      "Deepa Saharia, LMSW": {
+      "Priya Patel, LPC": {
         "revenue": 8960.0,
         "sessions": 44,
         "clients": 12
       },
-      "Gajan Gugendiran, LMHC": {
+      "James Kim, LMFT": {
         "revenue": 18915.0,
         "sessions": 84,
         "clients": 25
       },
-      "Mehar Ahuja, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 14490.0,
         "sessions": 67,
         "clients": 20
       },
-      "Rebecca Singh, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 12115.0,
         "sessions": 60,
         "clients": 18
       },
-      "Apeksha Mehta, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 12360.0,
         "sessions": 67,
         "clients": 21
       },
-      "Gaya Kodiyalam, LCSW": {
+      "Sarah Chen, LCSW": {
         "revenue": 5451.0,
         "sessions": 19,
         "clients": 7
@@ -909,47 +909,47 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
     "newClients": 12,
     "churnedClients": 16,
     "clinicians": {
-      "Apeksha Mehta, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 13396.0,
         "sessions": 77,
         "clients": 24
       },
-      "Gajan Gugendiran, LMHC": {
+      "James Kim, LMFT": {
         "revenue": 17490.0,
         "sessions": 80,
         "clients": 27
       },
-      "Deepa Saharia, LMSW": {
+      "Priya Patel, LPC": {
         "revenue": 8050.0,
         "sessions": 40,
         "clients": 12
       },
-      "Gaya Kodiyalam, LCSW": {
+      "Sarah Chen, LCSW": {
         "revenue": 4518.0,
         "sessions": 16,
         "clients": 6
       },
-      "Tamanna Ahmad, LMSW": {
+      "Priya Patel, LPC": {
         "revenue": 15730.0,
         "sessions": 71,
         "clients": 23
       },
-      "Shivon Ramadhin, LMSW": {
+      "James Kim, LMFT": {
         "revenue": 13240.0,
         "sessions": 63,
         "clients": 19
       },
-      "Mehar Ahuja, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 17530.0,
         "sessions": 81,
         "clients": 22
       },
-      "Rebecca Singh, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 12805.0,
         "sessions": 66,
         "clients": 18
       },
-      "Riddhi Cidambi, LCSW": {
+      "Maria Rodriguez, LCSW": {
         "revenue": 3350.0,
         "sessions": 22,
         "clients": 9
@@ -963,47 +963,47 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
     "newClients": 5,
     "churnedClients": 10,
     "clinicians": {
-      "Rebecca Singh, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 12470.0,
         "sessions": 58,
         "clients": 17
       },
-      "Deepa Saharia, LMSW": {
+      "Priya Patel, LPC": {
         "revenue": 8255.0,
         "sessions": 42,
         "clients": 12
       },
-      "Apeksha Mehta, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 16380.0,
         "sessions": 86,
         "clients": 23
       },
-      "Tamanna Ahmad, LMSW": {
+      "Priya Patel, LPC": {
         "revenue": 11650.0,
         "sessions": 54,
         "clients": 25
       },
-      "Gajan Gugendiran, LMHC": {
+      "James Kim, LMFT": {
         "revenue": 19840.0,
         "sessions": 94,
         "clients": 27
       },
-      "Mehar Ahuja, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 16900.0,
         "sessions": 79,
         "clients": 21
       },
-      "Shivon Ramadhin, LMSW": {
+      "James Kim, LMFT": {
         "revenue": 7160.0,
         "sessions": 32,
         "clients": 18
       },
-      "Riddhi Cidambi, LCSW": {
+      "Maria Rodriguez, LCSW": {
         "revenue": 4725.0,
         "sessions": 29,
         "clients": 11
       },
-      "Gaya Kodiyalam, LCSW": {
+      "Sarah Chen, LCSW": {
         "revenue": 5385.0,
         "sessions": 20,
         "clients": 6
@@ -1017,42 +1017,42 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
     "newClients": 8,
     "churnedClients": 21,
     "clinicians": {
-      "Tamanna Ahmad, LMSW": {
+      "Priya Patel, LPC": {
         "revenue": 21495.0,
         "sessions": 98,
         "clients": 28
       },
-      "Deepa Saharia, LMSW": {
+      "Priya Patel, LPC": {
         "revenue": 9430.0,
         "sessions": 48,
         "clients": 12
       },
-      "Rebecca Singh, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 12810.0,
         "sessions": 58,
         "clients": 18
       },
-      "Apeksha Mehta, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 19370.0,
         "sessions": 92,
         "clients": 25
       },
-      "Riddhi Cidambi, LCSW": {
+      "Maria Rodriguez, LCSW": {
         "revenue": 9300.0,
         "sessions": 55,
         "clients": 18
       },
-      "Gajan Gugendiran, LMHC": {
+      "James Kim, LMFT": {
         "revenue": 19390.0,
         "sessions": 90,
         "clients": 26
       },
-      "Gaya Kodiyalam, LCSW": {
+      "Sarah Chen, LCSW": {
         "revenue": 4170.0,
         "sessions": 18,
         "clients": 7
       },
-      "Mehar Ahuja, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 15255.0,
         "sessions": 71,
         "clients": 18
@@ -1066,42 +1066,42 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
     "newClients": 3,
     "churnedClients": 23,
     "clinicians": {
-      "Deepa Saharia, LMSW": {
+      "Priya Patel, LPC": {
         "revenue": 8825.0,
         "sessions": 44,
         "clients": 12
       },
-      "Rebecca Singh, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 15080.0,
         "sessions": 70,
         "clients": 19
       },
-      "Mehar Ahuja, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 15920.0,
         "sessions": 73,
         "clients": 17
       },
-      "Gajan Gugendiran, LMHC": {
+      "James Kim, LMFT": {
         "revenue": 18880.0,
         "sessions": 89,
         "clients": 26
       },
-      "Riddhi Cidambi, LCSW": {
+      "Maria Rodriguez, LCSW": {
         "revenue": 11139.0,
         "sessions": 63,
         "clients": 23
       },
-      "Tamanna Ahmad, LMSW": {
+      "Priya Patel, LPC": {
         "revenue": 16345.0,
         "sessions": 75,
         "clients": 24
       },
-      "Gaya Kodiyalam, LCSW": {
+      "Sarah Chen, LCSW": {
         "revenue": 3150.0,
         "sessions": 12,
         "clients": 6
       },
-      "Apeksha Mehta, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 17980.0,
         "sessions": 86,
         "clients": 27
@@ -1115,42 +1115,42 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
     "newClients": 7,
     "churnedClients": 9,
     "clinicians": {
-      "Gajan Gugendiran, LMHC": {
+      "James Kim, LMFT": {
         "revenue": 19135.0,
         "sessions": 90,
         "clients": 28
       },
-      "Tamanna Ahmad, LMSW": {
+      "Priya Patel, LPC": {
         "revenue": 13480.0,
         "sessions": 62,
         "clients": 24
       },
-      "Rebecca Singh, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 8730.0,
         "sessions": 40,
         "clients": 17
       },
-      "Mehar Ahuja, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 15660.0,
         "sessions": 73,
         "clients": 19
       },
-      "Apeksha Mehta, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 18036.0,
         "sessions": 87,
         "clients": 25
       },
-      "Riddhi Cidambi, LCSW": {
+      "Maria Rodriguez, LCSW": {
         "revenue": 14771.0,
         "sessions": 77,
         "clients": 27
       },
-      "Deepa Saharia, LMSW": {
+      "Priya Patel, LPC": {
         "revenue": 5640.0,
         "sessions": 28,
         "clients": 11
       },
-      "Gaya Kodiyalam, LCSW": {
+      "Sarah Chen, LCSW": {
         "revenue": 3950.0,
         "sessions": 15,
         "clients": 6
@@ -1164,37 +1164,37 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
     "newClients": 1,
     "churnedClients": 21,
     "clinicians": {
-      "Gaya Kodiyalam, LCSW": {
+      "Sarah Chen, LCSW": {
         "revenue": 5085.0,
         "sessions": 19,
         "clients": 7
       },
-      "Mehar Ahuja, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 21640.0,
         "sessions": 100,
         "clients": 21
       },
-      "Riddhi Cidambi, LCSW": {
+      "Maria Rodriguez, LCSW": {
         "revenue": 17995.0,
         "sessions": 88,
         "clients": 28
       },
-      "Gajan Gugendiran, LMHC": {
+      "James Kim, LMFT": {
         "revenue": 19660.0,
         "sessions": 92,
         "clients": 27
       },
-      "Deepa Saharia, LMSW": {
+      "Priya Patel, LPC": {
         "revenue": 7795.0,
         "sessions": 39,
         "clients": 10
       },
-      "Rebecca Singh, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 13020.0,
         "sessions": 62,
         "clients": 19
       },
-      "Apeksha Mehta, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 15525.0,
         "sessions": 75,
         "clients": 24
@@ -1208,37 +1208,37 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
     "newClients": 1,
     "churnedClients": 23,
     "clinicians": {
-      "Gaya Kodiyalam, LCSW": {
+      "Sarah Chen, LCSW": {
         "revenue": 5990.0,
         "sessions": 22,
         "clients": 7
       },
-      "Rebecca Singh, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 13190.0,
         "sessions": 69,
         "clients": 22
       },
-      "Gajan Gugendiran, LMHC": {
+      "James Kim, LMFT": {
         "revenue": 12040.0,
         "sessions": 57,
         "clients": 25
       },
-      "Apeksha Mehta, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 13760.0,
         "sessions": 67,
         "clients": 22
       },
-      "Riddhi Cidambi, LCSW": {
+      "Maria Rodriguez, LCSW": {
         "revenue": 12718.0,
         "sessions": 63,
         "clients": 24
       },
-      "Deepa Saharia, LMSW": {
+      "Priya Patel, LPC": {
         "revenue": 4550.0,
         "sessions": 24,
         "clients": 9
       },
-      "Mehar Ahuja, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 18125.0,
         "sessions": 85,
         "clients": 22
@@ -1252,42 +1252,42 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
     "newClients": 2,
     "churnedClients": 14,
     "clinicians": {
-      "Apeksha Mehta, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 14600.0,
         "sessions": 71,
         "clients": 23
       },
-      "Riddhi Cidambi, LCSW": {
+      "Maria Rodriguez, LCSW": {
         "revenue": 15982.0,
         "sessions": 78,
         "clients": 24
       },
-      "Gajan Gugendiran, LMHC": {
+      "James Kim, LMFT": {
         "revenue": 16375.0,
         "sessions": 77,
         "clients": 25
       },
-      "Gaya Kodiyalam, LCSW": {
+      "Sarah Chen, LCSW": {
         "revenue": 900.0,
         "sessions": 3,
         "clients": 3
       },
-      "Mehar Ahuja, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 18195.0,
         "sessions": 84,
         "clients": 17
       },
-      "Rebecca Singh, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 12915.0,
         "sessions": 65,
         "clients": 20
       },
-      "Deepa Saharia, LMSW": {
+      "Priya Patel, LPC": {
         "revenue": 6125.0,
         "sessions": 30,
         "clients": 9
       },
-      "Ranya Pohoomull, LMSW": {
+      "Priya Patel, LPC": {
         "revenue": 1410.0,
         "sessions": 8,
         "clients": 4
@@ -1301,42 +1301,42 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
     "newClients": 7,
     "churnedClients": 12,
     "clinicians": {
-      "Gajan Gugendiran, LMHC": {
+      "James Kim, LMFT": {
         "revenue": 18160.0,
         "sessions": 85,
         "clients": 28
       },
-      "Deepa Saharia, LMSW": {
+      "Priya Patel, LPC": {
         "revenue": 7310.0,
         "sessions": 35,
         "clients": 9
       },
-      "Rebecca Singh, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 11900.0,
         "sessions": 55,
         "clients": 19
       },
-      "Apeksha Mehta, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 15130.0,
         "sessions": 75,
         "clients": 22
       },
-      "Riddhi Cidambi, LCSW": {
+      "Maria Rodriguez, LCSW": {
         "revenue": 16007.0,
         "sessions": 79,
         "clients": 22
       },
-      "Ranya Pohoomull, LMSW": {
+      "Priya Patel, LPC": {
         "revenue": 5660.0,
         "sessions": 33,
         "clients": 12
       },
-      "Mehar Ahuja, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 15735.0,
         "sessions": 72,
         "clients": 16
       },
-      "Vikramjit Bal, LMSW": {
+      "James Kim, LMFT": {
         "revenue": 3565.0,
         "sessions": 19,
         "clients": 10
@@ -1350,42 +1350,42 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
     "newClients": 1,
     "churnedClients": 8,
     "clinicians": {
-      "Gajan Gugendiran, LMHC": {
+      "James Kim, LMFT": {
         "revenue": 16315.0,
         "sessions": 76,
         "clients": 26
       },
-      "Deepa Saharia, LMSW": {
+      "Priya Patel, LPC": {
         "revenue": 4200.0,
         "sessions": 21,
         "clients": 8
       },
-      "Mehar Ahuja, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 10445.0,
         "sessions": 48,
         "clients": 15
       },
-      "Rebecca Singh, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 10015.0,
         "sessions": 45,
         "clients": 18
       },
-      "Apeksha Mehta, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 11860.0,
         "sessions": 60,
         "clients": 23
       },
-      "Riddhi Cidambi, LCSW": {
+      "Maria Rodriguez, LCSW": {
         "revenue": 13147.0,
         "sessions": 66,
         "clients": 22
       },
-      "Ranya Pohoomull, LMSW": {
+      "Priya Patel, LPC": {
         "revenue": 6285.0,
         "sessions": 35,
         "clients": 12
       },
-      "Vikramjit Bal, LMSW": {
+      "James Kim, LMFT": {
         "revenue": 7665.0,
         "sessions": 41,
         "clients": 10
@@ -1395,7 +1395,7 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
         "sessions": 10,
         "clients": 5
       },
-      "Preeti Rijal, LMSW": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 300.0,
         "sessions": 2,
         "clients": 2
@@ -1409,37 +1409,37 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
     "newClients": 0,
     "churnedClients": 53,
     "clinicians": {
-      "Preeti Rijal, LMSW": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 300.0,
         "sessions": 2,
         "clients": 2
       },
-      "Gajan Gugendiran, LMHC": {
+      "James Kim, LMFT": {
         "revenue": 1280.0,
         "sessions": 6,
         "clients": 6
       },
-      "Mehar Ahuja, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 2995.0,
         "sessions": 14,
         "clients": 12
       },
-      "Rebecca Singh, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 630.0,
         "sessions": 3,
         "clients": 3
       },
-      "Apeksha Mehta, MHC-LP": {
+      "Michael Johnson, MHC-LP": {
         "revenue": 1675.0,
         "sessions": 8,
         "clients": 8
       },
-      "Riddhi Cidambi, LCSW": {
+      "Maria Rodriguez, LCSW": {
         "revenue": 2751.0,
         "sessions": 13,
         "clients": 13
       },
-      "Vikramjit Bal, LMSW": {
+      "James Kim, LMFT": {
         "revenue": 1795.0,
         "sessions": 9,
         "clients": 7
@@ -1449,12 +1449,12 @@ const METRICS_DATA: Record<string, MonthlyMetrics> = {
         "sessions": 3,
         "clients": 2
       },
-      "Deepa Saharia, LMSW": {
+      "Priya Patel, LPC": {
         "revenue": 800.0,
         "sessions": 4,
         "clients": 4
       },
-      "Ranya Pohoomull, LMSW": {
+      "Priya Patel, LPC": {
         "revenue": 550.0,
         "sessions": 3,
         "clients": 3

@@ -42,33 +42,40 @@ export interface MetricCardProps {
 
 const Tooltip: React.FC<{ title: string; description: string }> = ({ title, description }) => {
   const [isVisible, setIsVisible] = useState(false);
-  const [position, setPosition] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
+  const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (isVisible && triggerRef.current && tooltipRef.current) {
-      const triggerRect = triggerRef.current.getBoundingClientRect();
-      const tooltipRect = tooltipRef.current.getBoundingClientRect();
-      const viewportWidth = window.innerWidth;
-      const viewportHeight = window.innerHeight;
+    if (isVisible && triggerRef.current) {
+      // Use requestAnimationFrame to ensure DOM is ready
+      requestAnimationFrame(() => {
+        if (!triggerRef.current || !tooltipRef.current) return;
 
-      let top = triggerRect.bottom + 8;
-      let left = triggerRect.left - tooltipRect.width + triggerRect.width;
+        const triggerRect = triggerRef.current.getBoundingClientRect();
+        const tooltipRect = tooltipRef.current.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
 
-      if (left + tooltipRect.width > viewportWidth - 16) {
-        left = viewportWidth - tooltipRect.width - 16;
-      }
+        let top = triggerRect.bottom + 8;
+        let left = triggerRect.left - tooltipRect.width + triggerRect.width;
 
-      if (left < 16) {
-        left = 16;
-      }
+        if (left + tooltipRect.width > viewportWidth - 16) {
+          left = viewportWidth - tooltipRect.width - 16;
+        }
 
-      if (top + tooltipRect.height > viewportHeight - 16) {
-        top = triggerRect.top - tooltipRect.height - 8;
-      }
+        if (left < 16) {
+          left = 16;
+        }
 
-      setPosition({ top, left });
+        if (top + tooltipRect.height > viewportHeight - 16) {
+          top = triggerRect.top - tooltipRect.height - 8;
+        }
+
+        setPosition({ top, left });
+      });
+    } else {
+      setPosition(null);
     }
   }, [isVisible]);
 
@@ -83,13 +90,13 @@ const Tooltip: React.FC<{ title: string; description: string }> = ({ title, desc
       {isVisible && (
         <div
           ref={tooltipRef}
-          className="fixed z-[100000] w-80 animate-in fade-in duration-150"
+          className={`fixed z-[100000] w-80 transition-opacity duration-150 ${position ? 'opacity-100' : 'opacity-0'}`}
           style={{
-            top: position.top,
-            left: position.left,
+            top: position?.top ?? -9999,
+            left: position?.left ?? -9999,
           }}
         >
-          <div className="bg-stone-900 text-white rounded-xl p-5 shadow-2xl">
+          <div className="bg-stone-900 text-white rounded-xl p-5 shadow-2xl text-left">
             <p className="font-bold text-base mb-2">{title}</p>
             <p className="text-stone-300 leading-relaxed text-sm">{description}</p>
           </div>

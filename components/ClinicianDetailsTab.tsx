@@ -24,119 +24,71 @@ import type { ClientData } from './design-system';
 // =============================================================================
 // Deep-dive analytics for individual clinician performance.
 // Features an innovative "Clinician Spotlight" header design.
+//
+// NOTE: Clinician base info (name, initials, color, title, role) comes from
+// the master list at data/clinicians.ts. Extended mock data below adds
+// component-specific metrics for demo purposes.
 // =============================================================================
+
+import { CLINICIANS as MASTER_CLINICIANS } from '../data/clinicians';
 
 // Health status type
 type HealthStatus = 'healthy' | 'attention' | 'critical';
 
-// Mock clinician data with extended details
-const MOCK_CLINICIANS = [
-  {
-    id: 1,
-    name: 'Sarah Chen',
-    initials: 'SC',
-    color: '#a855f7',
-    title: 'Licensed Clinical Psychologist',
-    role: 'Clinical Director',
-    tenure: '4 years',
-    supervisor: null, // No supervisor - she's the clinical director
-    takeRate: 45,
-    healthStatus: 'healthy' as HealthStatus,
-    metrics: {
-      revenue: 142500,
-      revenueVsGoal: 112,
-      sessions: 487,
-      sessionsVsGoal: 108,
-      rebookRate: 89,
-      notesOverdue: 2,
+// Extended clinician data for this component (adds metrics on top of master list)
+const MOCK_CLINICIANS = MASTER_CLINICIANS.map((clinician, index) => {
+  // Mock metrics data for each clinician
+  const mockMetricsData = [
+    { // Sarah Chen - Clinical Director
+      tenure: '4 years',
+      supervisor: null,
+      healthStatus: 'healthy' as HealthStatus,
+      metrics: { revenue: 142500, revenueVsGoal: 112, sessions: 487, sessionsVsGoal: 108, rebookRate: 89, notesOverdue: 2 },
+      insight: 'Exceptional quarter. Revenue up 12% with highest client retention on team.',
     },
-    insight: 'Exceptional quarter. Revenue up 12% with highest client retention on team.',
-  },
-  {
-    id: 2,
-    name: 'Maria Rodriguez',
-    initials: 'MR',
-    color: '#06b6d4',
-    title: 'Licensed Clinical Social Worker',
-    role: 'Senior Therapist',
-    tenure: '3 years',
-    supervisor: 'Sarah Chen',
-    takeRate: 55,
-    healthStatus: 'healthy' as HealthStatus,
-    metrics: {
-      revenue: 128000,
-      revenueVsGoal: 104,
-      sessions: 412,
-      sessionsVsGoal: 98,
-      rebookRate: 85,
-      notesOverdue: 4,
+    { // Maria Rodriguez - Senior Therapist
+      tenure: '3 years',
+      supervisor: 'Sarah Chen',
+      healthStatus: 'healthy' as HealthStatus,
+      metrics: { revenue: 128000, revenueVsGoal: 104, sessions: 412, sessionsVsGoal: 98, rebookRate: 85, notesOverdue: 4 },
+      insight: 'Strong performer. Slight dip in session volume but quality metrics remain high.',
     },
-    insight: 'Strong performer. Slight dip in session volume but quality metrics remain high.',
-  },
-  {
-    id: 3,
-    name: 'Priya Patel',
-    initials: 'PP',
-    color: '#f59e0b',
-    title: 'Licensed Professional Counselor',
-    role: 'Therapist',
-    tenure: '2 years',
-    supervisor: 'Sarah Chen',
-    takeRate: 50,
-    healthStatus: 'attention' as HealthStatus,
-    metrics: {
-      revenue: 98000,
-      revenueVsGoal: 89,
-      sessions: 342,
-      sessionsVsGoal: 82,
-      rebookRate: 71,
-      notesOverdue: 12,
+    { // Priya Patel - Therapist
+      tenure: '2 years',
+      supervisor: 'Sarah Chen',
+      healthStatus: 'attention' as HealthStatus,
+      metrics: { revenue: 98000, revenueVsGoal: 89, sessions: 342, sessionsVsGoal: 82, rebookRate: 71, notesOverdue: 12 },
+      insight: 'Rebook rate dropped 8% this month. 12 notes overdue—schedule a check-in.',
     },
-    insight: 'Rebook rate dropped 8% this month. 12 notes overdue—schedule a check-in.',
-  },
-  {
-    id: 4,
-    name: 'James Kim',
-    initials: 'JK',
-    color: '#ec4899',
-    title: 'Licensed Marriage & Family Therapist',
-    role: 'Associate Therapist',
-    tenure: '1 year',
-    supervisor: 'Maria Rodriguez',
-    takeRate: 45,
-    healthStatus: 'healthy' as HealthStatus,
-    metrics: {
-      revenue: 86000,
-      revenueVsGoal: 102,
-      sessions: 298,
-      sessionsVsGoal: 106,
-      rebookRate: 82,
-      notesOverdue: 3,
+    { // James Kim - Associate Therapist
+      tenure: '1 year',
+      supervisor: 'Maria Rodriguez',
+      healthStatus: 'healthy' as HealthStatus,
+      metrics: { revenue: 86000, revenueVsGoal: 102, sessions: 298, sessionsVsGoal: 106, rebookRate: 82, notesOverdue: 3 },
+      insight: 'Ramping up nicely. Exceeding goals for tenure level. Strong client feedback.',
     },
-    insight: 'Ramping up nicely. Exceeding goals for tenure level. Strong client feedback.',
-  },
-  {
-    id: 5,
-    name: 'Michael Johnson',
-    initials: 'MJ',
-    color: '#10b981',
-    title: 'Associate Professional Counselor',
-    role: 'Associate Therapist',
-    tenure: '8 months',
-    supervisor: 'Priya Patel',
-    takeRate: 40,
-    healthStatus: 'critical' as HealthStatus,
-    metrics: {
-      revenue: 52000,
-      revenueVsGoal: 68,
-      sessions: 186,
-      sessionsVsGoal: 62,
-      rebookRate: 64,
-      notesOverdue: 18,
+    { // Michael Johnson - Associate Therapist
+      tenure: '8 months',
+      supervisor: 'Priya Patel',
+      healthStatus: 'critical' as HealthStatus,
+      metrics: { revenue: 52000, revenueVsGoal: 68, sessions: 186, sessionsVsGoal: 62, rebookRate: 64, notesOverdue: 18 },
+      insight: 'Multiple red flags. 32% below revenue goal, 18 notes overdue. Urgent attention needed.',
     },
-    insight: 'Multiple red flags. 32% below revenue goal, 18 notes overdue. Urgent attention needed.',
-  },
-];
+  ];
+
+  const mockData = mockMetricsData[index] || mockMetricsData[0];
+
+  return {
+    id: parseInt(clinician.id),
+    name: clinician.name,
+    initials: clinician.initials,
+    color: clinician.color,
+    title: clinician.title,
+    role: clinician.role,
+    takeRate: clinician.takeRate,
+    ...mockData,
+  };
+});
 
 // Mock monthly revenue data for each clinician (12 months)
 const CLINICIAN_FINANCIAL_DATA: Record<number, {
@@ -267,88 +219,88 @@ const CLINICIAN_SESSION_DATA: Record<number, {
   }[];
   sessionGoal: number;
 }> = {
-  1: { // Sarah Chen - Clinical Director (high performer)
+  1: { // Sarah Chen - Clinical Director (high performer) - Excellent attendance
     monthlySessions: [
-      { month: 'Jan', completed: 42, booked: 48, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
-      { month: 'Feb', completed: 44, booked: 50, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
-      { month: 'Mar', completed: 40, booked: 46, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
-      { month: 'Apr', completed: 45, booked: 51, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
-      { month: 'May', completed: 43, booked: 49, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
-      { month: 'Jun', completed: 41, booked: 47, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
-      { month: 'Jul', completed: 38, booked: 44, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
-      { month: 'Aug', completed: 42, booked: 48, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
-      { month: 'Sep', completed: 46, booked: 52, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
-      { month: 'Oct', completed: 44, booked: 50, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
-      { month: 'Nov', completed: 39, booked: 45, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
-      { month: 'Dec', completed: 33, booked: 40, clientCancelled: 4, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+      { month: 'Jan', completed: 42, booked: 46, clientCancelled: 2, clinicianCancelled: 0, lateCancelled: 1, noShow: 1 },
+      { month: 'Feb', completed: 44, booked: 48, clientCancelled: 2, clinicianCancelled: 1, lateCancelled: 1, noShow: 0 },
+      { month: 'Mar', completed: 40, booked: 44, clientCancelled: 2, clinicianCancelled: 0, lateCancelled: 1, noShow: 1 },
+      { month: 'Apr', completed: 45, booked: 49, clientCancelled: 2, clinicianCancelled: 0, lateCancelled: 1, noShow: 1 },
+      { month: 'May', completed: 43, booked: 47, clientCancelled: 2, clinicianCancelled: 1, lateCancelled: 0, noShow: 1 },
+      { month: 'Jun', completed: 41, booked: 45, clientCancelled: 2, clinicianCancelled: 0, lateCancelled: 1, noShow: 1 },
+      { month: 'Jul', completed: 38, booked: 42, clientCancelled: 2, clinicianCancelled: 1, lateCancelled: 0, noShow: 1 },
+      { month: 'Aug', completed: 42, booked: 46, clientCancelled: 2, clinicianCancelled: 0, lateCancelled: 1, noShow: 1 },
+      { month: 'Sep', completed: 46, booked: 50, clientCancelled: 2, clinicianCancelled: 0, lateCancelled: 1, noShow: 1 },
+      { month: 'Oct', completed: 44, booked: 48, clientCancelled: 2, clinicianCancelled: 1, lateCancelled: 1, noShow: 0 },
+      { month: 'Nov', completed: 39, booked: 43, clientCancelled: 2, clinicianCancelled: 0, lateCancelled: 1, noShow: 1 },
+      { month: 'Dec', completed: 33, booked: 37, clientCancelled: 2, clinicianCancelled: 1, lateCancelled: 0, noShow: 1 },
     ],
     sessionGoal: 40,
   },
-  2: { // Maria Rodriguez - Senior Therapist
+  2: { // Maria Rodriguez - Senior Therapist - Good attendance, occasional issues
     monthlySessions: [
       { month: 'Jan', completed: 36, booked: 42, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
-      { month: 'Feb', completed: 38, booked: 44, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+      { month: 'Feb', completed: 38, booked: 45, clientCancelled: 4, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
       { month: 'Mar', completed: 35, booked: 41, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
-      { month: 'Apr', completed: 39, booked: 45, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
-      { month: 'May', completed: 36, booked: 42, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+      { month: 'Apr', completed: 39, booked: 46, clientCancelled: 4, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+      { month: 'May', completed: 36, booked: 43, clientCancelled: 4, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
       { month: 'Jun', completed: 34, booked: 40, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
       { month: 'Jul', completed: 32, booked: 38, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
-      { month: 'Aug', completed: 35, booked: 41, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
-      { month: 'Sep', completed: 37, booked: 43, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
-      { month: 'Oct', completed: 36, booked: 42, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
-      { month: 'Nov', completed: 33, booked: 39, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+      { month: 'Aug', completed: 35, booked: 42, clientCancelled: 4, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+      { month: 'Sep', completed: 37, booked: 44, clientCancelled: 4, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+      { month: 'Oct', completed: 36, booked: 43, clientCancelled: 4, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+      { month: 'Nov', completed: 33, booked: 40, clientCancelled: 4, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
       { month: 'Dec', completed: 31, booked: 38, clientCancelled: 4, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
     ],
     sessionGoal: 35,
   },
-  3: { // Priya Patel - Therapist (needs attention)
+  3: { // Priya Patel - Therapist (needs attention) - High cancellation rate
     monthlySessions: [
-      { month: 'Jan', completed: 32, booked: 40, clientCancelled: 4, clinicianCancelled: 1, lateCancelled: 2, noShow: 1 },
-      { month: 'Feb', completed: 33, booked: 42, clientCancelled: 5, clinicianCancelled: 1, lateCancelled: 2, noShow: 1 },
-      { month: 'Mar', completed: 30, booked: 39, clientCancelled: 5, clinicianCancelled: 1, lateCancelled: 2, noShow: 1 },
-      { month: 'Apr', completed: 31, booked: 40, clientCancelled: 5, clinicianCancelled: 1, lateCancelled: 2, noShow: 1 },
-      { month: 'May', completed: 29, booked: 38, clientCancelled: 5, clinicianCancelled: 1, lateCancelled: 2, noShow: 1 },
-      { month: 'Jun', completed: 27, booked: 36, clientCancelled: 5, clinicianCancelled: 1, lateCancelled: 2, noShow: 1 },
-      { month: 'Jul', completed: 25, booked: 34, clientCancelled: 5, clinicianCancelled: 1, lateCancelled: 2, noShow: 1 },
-      { month: 'Aug', completed: 28, booked: 37, clientCancelled: 5, clinicianCancelled: 1, lateCancelled: 2, noShow: 1 },
-      { month: 'Sep', completed: 26, booked: 35, clientCancelled: 5, clinicianCancelled: 1, lateCancelled: 2, noShow: 1 },
-      { month: 'Oct', completed: 27, booked: 36, clientCancelled: 5, clinicianCancelled: 1, lateCancelled: 2, noShow: 1 },
-      { month: 'Nov', completed: 25, booked: 34, clientCancelled: 5, clinicianCancelled: 1, lateCancelled: 2, noShow: 1 },
-      { month: 'Dec', completed: 29, booked: 38, clientCancelled: 5, clinicianCancelled: 1, lateCancelled: 2, noShow: 1 },
+      { month: 'Jan', completed: 32, booked: 44, clientCancelled: 6, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
+      { month: 'Feb', completed: 33, booked: 46, clientCancelled: 7, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
+      { month: 'Mar', completed: 30, booked: 43, clientCancelled: 7, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
+      { month: 'Apr', completed: 31, booked: 45, clientCancelled: 8, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
+      { month: 'May', completed: 29, booked: 43, clientCancelled: 8, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
+      { month: 'Jun', completed: 27, booked: 41, clientCancelled: 8, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
+      { month: 'Jul', completed: 25, booked: 39, clientCancelled: 8, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
+      { month: 'Aug', completed: 28, booked: 42, clientCancelled: 8, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
+      { month: 'Sep', completed: 26, booked: 40, clientCancelled: 8, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
+      { month: 'Oct', completed: 27, booked: 41, clientCancelled: 8, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
+      { month: 'Nov', completed: 25, booked: 39, clientCancelled: 8, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
+      { month: 'Dec', completed: 29, booked: 43, clientCancelled: 8, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
     ],
     sessionGoal: 35,
   },
-  4: { // James Kim - Associate Therapist (ramping up)
+  4: { // James Kim - Associate Therapist (ramping up) - Great attendance, building caseload
     monthlySessions: [
-      { month: 'Jan', completed: 22, booked: 26, clientCancelled: 2, clinicianCancelled: 1, lateCancelled: 1, noShow: 0 },
-      { month: 'Feb', completed: 24, booked: 28, clientCancelled: 2, clinicianCancelled: 1, lateCancelled: 1, noShow: 0 },
-      { month: 'Mar', completed: 25, booked: 29, clientCancelled: 2, clinicianCancelled: 1, lateCancelled: 1, noShow: 0 },
-      { month: 'Apr', completed: 26, booked: 30, clientCancelled: 2, clinicianCancelled: 1, lateCancelled: 1, noShow: 0 },
-      { month: 'May', completed: 27, booked: 31, clientCancelled: 2, clinicianCancelled: 1, lateCancelled: 1, noShow: 0 },
-      { month: 'Jun', completed: 25, booked: 29, clientCancelled: 2, clinicianCancelled: 1, lateCancelled: 1, noShow: 0 },
-      { month: 'Jul', completed: 24, booked: 28, clientCancelled: 2, clinicianCancelled: 1, lateCancelled: 1, noShow: 0 },
-      { month: 'Aug', completed: 26, booked: 30, clientCancelled: 2, clinicianCancelled: 1, lateCancelled: 1, noShow: 0 },
-      { month: 'Sep', completed: 28, booked: 32, clientCancelled: 2, clinicianCancelled: 1, lateCancelled: 1, noShow: 0 },
-      { month: 'Oct', completed: 26, booked: 30, clientCancelled: 2, clinicianCancelled: 1, lateCancelled: 1, noShow: 0 },
-      { month: 'Nov', completed: 24, booked: 28, clientCancelled: 2, clinicianCancelled: 1, lateCancelled: 1, noShow: 0 },
-      { month: 'Dec', completed: 21, booked: 25, clientCancelled: 2, clinicianCancelled: 1, lateCancelled: 1, noShow: 0 },
+      { month: 'Jan', completed: 22, booked: 24, clientCancelled: 1, clinicianCancelled: 0, lateCancelled: 1, noShow: 0 },
+      { month: 'Feb', completed: 24, booked: 26, clientCancelled: 1, clinicianCancelled: 0, lateCancelled: 1, noShow: 0 },
+      { month: 'Mar', completed: 25, booked: 27, clientCancelled: 1, clinicianCancelled: 0, lateCancelled: 1, noShow: 0 },
+      { month: 'Apr', completed: 26, booked: 28, clientCancelled: 1, clinicianCancelled: 0, lateCancelled: 1, noShow: 0 },
+      { month: 'May', completed: 27, booked: 29, clientCancelled: 1, clinicianCancelled: 0, lateCancelled: 1, noShow: 0 },
+      { month: 'Jun', completed: 25, booked: 27, clientCancelled: 1, clinicianCancelled: 0, lateCancelled: 1, noShow: 0 },
+      { month: 'Jul', completed: 24, booked: 26, clientCancelled: 1, clinicianCancelled: 0, lateCancelled: 1, noShow: 0 },
+      { month: 'Aug', completed: 26, booked: 28, clientCancelled: 1, clinicianCancelled: 0, lateCancelled: 1, noShow: 0 },
+      { month: 'Sep', completed: 28, booked: 30, clientCancelled: 1, clinicianCancelled: 0, lateCancelled: 1, noShow: 0 },
+      { month: 'Oct', completed: 26, booked: 28, clientCancelled: 1, clinicianCancelled: 0, lateCancelled: 1, noShow: 0 },
+      { month: 'Nov', completed: 24, booked: 26, clientCancelled: 1, clinicianCancelled: 0, lateCancelled: 1, noShow: 0 },
+      { month: 'Dec', completed: 21, booked: 23, clientCancelled: 1, clinicianCancelled: 0, lateCancelled: 1, noShow: 0 },
     ],
     sessionGoal: 25,
   },
-  5: { // Michael Johnson - Associate Therapist (critical)
+  5: { // Michael Johnson - Associate Therapist (critical) - Very high no-shows and cancellations
     monthlySessions: [
-      { month: 'Jan', completed: 18, booked: 24, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
-      { month: 'Feb', completed: 19, booked: 26, clientCancelled: 4, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
-      { month: 'Mar', completed: 17, booked: 24, clientCancelled: 4, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
-      { month: 'Apr', completed: 16, booked: 23, clientCancelled: 4, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
-      { month: 'May', completed: 15, booked: 22, clientCancelled: 4, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
-      { month: 'Jun', completed: 14, booked: 21, clientCancelled: 4, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
-      { month: 'Jul', completed: 13, booked: 20, clientCancelled: 4, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
-      { month: 'Aug', completed: 14, booked: 21, clientCancelled: 4, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
-      { month: 'Sep', completed: 16, booked: 23, clientCancelled: 4, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
-      { month: 'Oct', completed: 14, booked: 21, clientCancelled: 4, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
-      { month: 'Nov', completed: 13, booked: 20, clientCancelled: 4, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
-      { month: 'Dec', completed: 7, booked: 14, clientCancelled: 4, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+      { month: 'Jan', completed: 18, booked: 28, clientCancelled: 4, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
+      { month: 'Feb', completed: 19, booked: 30, clientCancelled: 5, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
+      { month: 'Mar', completed: 17, booked: 28, clientCancelled: 5, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
+      { month: 'Apr', completed: 16, booked: 28, clientCancelled: 6, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
+      { month: 'May', completed: 15, booked: 27, clientCancelled: 6, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
+      { month: 'Jun', completed: 14, booked: 26, clientCancelled: 6, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
+      { month: 'Jul', completed: 13, booked: 25, clientCancelled: 6, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
+      { month: 'Aug', completed: 14, booked: 26, clientCancelled: 6, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
+      { month: 'Sep', completed: 16, booked: 28, clientCancelled: 6, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
+      { month: 'Oct', completed: 14, booked: 26, clientCancelled: 6, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
+      { month: 'Nov', completed: 13, booked: 25, clientCancelled: 6, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
+      { month: 'Dec', completed: 7, booked: 19, clientCancelled: 6, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
     ],
     sessionGoal: 25,
   },
@@ -366,95 +318,95 @@ const CLINICIAN_CASELOAD_DATA: Record<number, {
   atRiskClients: number;
   practiceAvgUtilization: number;
 }> = {
-  1: { // Sarah Chen - Clinical Director (high performer)
+  1: { // Sarah Chen - Clinical Director (high performer) - Strong growth, low churn
     monthlyCaseload: [
-      { month: 'Jan', activeClients: 28, capacity: 30, newClients: 3, churned: 1 },
-      { month: 'Feb', activeClients: 29, capacity: 30, newClients: 2, churned: 1 },
-      { month: 'Mar', activeClients: 28, capacity: 30, newClients: 1, churned: 2 },
-      { month: 'Apr', activeClients: 30, capacity: 30, newClients: 3, churned: 1 },
-      { month: 'May', activeClients: 29, capacity: 30, newClients: 1, churned: 2 },
-      { month: 'Jun', activeClients: 28, capacity: 30, newClients: 2, churned: 3 },
-      { month: 'Jul', activeClients: 27, capacity: 30, newClients: 1, churned: 2 },
-      { month: 'Aug', activeClients: 29, capacity: 30, newClients: 3, churned: 1 },
+      { month: 'Jan', activeClients: 26, capacity: 30, newClients: 4, churned: 1 },
+      { month: 'Feb', activeClients: 28, capacity: 30, newClients: 3, churned: 1 },
+      { month: 'Mar', activeClients: 29, capacity: 30, newClients: 2, churned: 1 },
+      { month: 'Apr', activeClients: 30, capacity: 30, newClients: 2, churned: 1 },
+      { month: 'May', activeClients: 30, capacity: 30, newClients: 1, churned: 1 },
+      { month: 'Jun', activeClients: 29, capacity: 30, newClients: 1, churned: 2 },
+      { month: 'Jul', activeClients: 28, capacity: 30, newClients: 1, churned: 2 },
+      { month: 'Aug', activeClients: 29, capacity: 30, newClients: 2, churned: 1 },
       { month: 'Sep', activeClients: 30, capacity: 30, newClients: 2, churned: 1 },
-      { month: 'Oct', activeClients: 29, capacity: 30, newClients: 1, churned: 2 },
-      { month: 'Nov', activeClients: 28, capacity: 30, newClients: 2, churned: 3 },
-      { month: 'Dec', activeClients: 27, capacity: 30, newClients: 1, churned: 2 },
+      { month: 'Oct', activeClients: 30, capacity: 30, newClients: 1, churned: 1 },
+      { month: 'Nov', activeClients: 29, capacity: 30, newClients: 1, churned: 2 },
+      { month: 'Dec', activeClients: 28, capacity: 30, newClients: 1, churned: 2 },
     ],
     atRiskClients: 2,
-    practiceAvgUtilization: 85,
+    practiceAvgUtilization: 78,
   },
-  2: { // Maria Rodriguez - Senior Therapist
+  2: { // Maria Rodriguez - Senior Therapist - Steady state, balanced
     monthlyCaseload: [
-      { month: 'Jan', activeClients: 24, capacity: 28, newClients: 2, churned: 1 },
-      { month: 'Feb', activeClients: 25, capacity: 28, newClients: 2, churned: 1 },
-      { month: 'Mar', activeClients: 24, capacity: 28, newClients: 1, churned: 2 },
-      { month: 'Apr', activeClients: 26, capacity: 28, newClients: 3, churned: 1 },
-      { month: 'May', activeClients: 25, capacity: 28, newClients: 1, churned: 2 },
-      { month: 'Jun', activeClients: 24, capacity: 28, newClients: 2, churned: 3 },
-      { month: 'Jul', activeClients: 23, capacity: 28, newClients: 1, churned: 2 },
-      { month: 'Aug', activeClients: 25, capacity: 28, newClients: 3, churned: 1 },
-      { month: 'Sep', activeClients: 26, capacity: 28, newClients: 2, churned: 1 },
-      { month: 'Oct', activeClients: 25, capacity: 28, newClients: 1, churned: 2 },
-      { month: 'Nov', activeClients: 24, capacity: 28, newClients: 2, churned: 3 },
-      { month: 'Dec', activeClients: 23, capacity: 28, newClients: 1, churned: 2 },
+      { month: 'Jan', activeClients: 23, capacity: 28, newClients: 2, churned: 2 },
+      { month: 'Feb', activeClients: 24, capacity: 28, newClients: 3, churned: 2 },
+      { month: 'Mar', activeClients: 24, capacity: 28, newClients: 2, churned: 2 },
+      { month: 'Apr', activeClients: 25, capacity: 28, newClients: 3, churned: 2 },
+      { month: 'May', activeClients: 25, capacity: 28, newClients: 2, churned: 2 },
+      { month: 'Jun', activeClients: 24, capacity: 28, newClients: 1, churned: 2 },
+      { month: 'Jul', activeClients: 24, capacity: 28, newClients: 2, churned: 2 },
+      { month: 'Aug', activeClients: 25, capacity: 28, newClients: 3, churned: 2 },
+      { month: 'Sep', activeClients: 26, capacity: 28, newClients: 3, churned: 2 },
+      { month: 'Oct', activeClients: 26, capacity: 28, newClients: 2, churned: 2 },
+      { month: 'Nov', activeClients: 25, capacity: 28, newClients: 1, churned: 2 },
+      { month: 'Dec', activeClients: 24, capacity: 28, newClients: 1, churned: 2 },
     ],
     atRiskClients: 3,
-    practiceAvgUtilization: 85,
+    practiceAvgUtilization: 78,
   },
-  3: { // Priya Patel - Therapist (needs attention)
+  3: { // Priya Patel - Therapist (needs attention) - Declining caseload, high churn
     monthlyCaseload: [
-      { month: 'Jan', activeClients: 22, capacity: 28, newClients: 2, churned: 2 },
-      { month: 'Feb', activeClients: 21, capacity: 28, newClients: 1, churned: 2 },
-      { month: 'Mar', activeClients: 20, capacity: 28, newClients: 1, churned: 2 },
-      { month: 'Apr', activeClients: 19, capacity: 28, newClients: 1, churned: 2 },
-      { month: 'May', activeClients: 18, capacity: 28, newClients: 1, churned: 2 },
-      { month: 'Jun', activeClients: 17, capacity: 28, newClients: 1, churned: 2 },
-      { month: 'Jul', activeClients: 16, capacity: 28, newClients: 1, churned: 2 },
-      { month: 'Aug', activeClients: 17, capacity: 28, newClients: 2, churned: 1 },
-      { month: 'Sep', activeClients: 16, capacity: 28, newClients: 1, churned: 2 },
-      { month: 'Oct', activeClients: 17, capacity: 28, newClients: 2, churned: 1 },
-      { month: 'Nov', activeClients: 16, capacity: 28, newClients: 1, churned: 2 },
-      { month: 'Dec', activeClients: 18, capacity: 28, newClients: 3, churned: 1 },
+      { month: 'Jan', activeClients: 24, capacity: 28, newClients: 1, churned: 3 },
+      { month: 'Feb', activeClients: 22, capacity: 28, newClients: 1, churned: 3 },
+      { month: 'Mar', activeClients: 21, capacity: 28, newClients: 2, churned: 3 },
+      { month: 'Apr', activeClients: 20, capacity: 28, newClients: 1, churned: 2 },
+      { month: 'May', activeClients: 19, capacity: 28, newClients: 1, churned: 2 },
+      { month: 'Jun', activeClients: 18, capacity: 28, newClients: 1, churned: 2 },
+      { month: 'Jul', activeClients: 17, capacity: 28, newClients: 1, churned: 2 },
+      { month: 'Aug', activeClients: 17, capacity: 28, newClients: 2, churned: 2 },
+      { month: 'Sep', activeClients: 17, capacity: 28, newClients: 2, churned: 2 },
+      { month: 'Oct', activeClients: 17, capacity: 28, newClients: 2, churned: 2 },
+      { month: 'Nov', activeClients: 17, capacity: 28, newClients: 2, churned: 2 },
+      { month: 'Dec', activeClients: 18, capacity: 28, newClients: 3, churned: 2 },
     ],
     atRiskClients: 5,
-    practiceAvgUtilization: 85,
+    practiceAvgUtilization: 78,
   },
-  4: { // James Kim - Associate Therapist (ramping up)
+  4: { // James Kim - Associate Therapist (ramping up) - Great growth trajectory
     monthlyCaseload: [
-      { month: 'Jan', activeClients: 12, capacity: 25, newClients: 3, churned: 0 },
-      { month: 'Feb', activeClients: 14, capacity: 25, newClients: 3, churned: 1 },
-      { month: 'Mar', activeClients: 16, capacity: 25, newClients: 3, churned: 1 },
-      { month: 'Apr', activeClients: 18, capacity: 25, newClients: 3, churned: 1 },
-      { month: 'May', activeClients: 19, capacity: 25, newClients: 2, churned: 1 },
-      { month: 'Jun', activeClients: 18, capacity: 25, newClients: 1, churned: 2 },
-      { month: 'Jul', activeClients: 17, capacity: 25, newClients: 1, churned: 2 },
-      { month: 'Aug', activeClients: 19, capacity: 25, newClients: 3, churned: 1 },
-      { month: 'Sep', activeClients: 21, capacity: 25, newClients: 3, churned: 1 },
-      { month: 'Oct', activeClients: 20, capacity: 25, newClients: 1, churned: 2 },
-      { month: 'Nov', activeClients: 19, capacity: 25, newClients: 1, churned: 2 },
-      { month: 'Dec', activeClients: 18, capacity: 25, newClients: 1, churned: 2 },
+      { month: 'Jan', activeClients: 8, capacity: 25, newClients: 4, churned: 0 },
+      { month: 'Feb', activeClients: 11, capacity: 25, newClients: 4, churned: 1 },
+      { month: 'Mar', activeClients: 14, capacity: 25, newClients: 4, churned: 1 },
+      { month: 'Apr', activeClients: 16, capacity: 25, newClients: 3, churned: 1 },
+      { month: 'May', activeClients: 17, capacity: 25, newClients: 2, churned: 1 },
+      { month: 'Jun', activeClients: 18, capacity: 25, newClients: 2, churned: 1 },
+      { month: 'Jul', activeClients: 18, capacity: 25, newClients: 1, churned: 1 },
+      { month: 'Aug', activeClients: 19, capacity: 25, newClients: 2, churned: 1 },
+      { month: 'Sep', activeClients: 20, capacity: 25, newClients: 2, churned: 1 },
+      { month: 'Oct', activeClients: 21, capacity: 25, newClients: 2, churned: 1 },
+      { month: 'Nov', activeClients: 21, capacity: 25, newClients: 1, churned: 1 },
+      { month: 'Dec', activeClients: 20, capacity: 25, newClients: 1, churned: 2 },
     ],
     atRiskClients: 1,
-    practiceAvgUtilization: 85,
+    practiceAvgUtilization: 78,
   },
-  5: { // Michael Johnson - Associate Therapist (critical)
+  5: { // Michael Johnson - Associate Therapist (critical) - Hemorrhaging clients
     monthlyCaseload: [
-      { month: 'Jan', activeClients: 14, capacity: 25, newClients: 1, churned: 2 },
-      { month: 'Feb', activeClients: 13, capacity: 25, newClients: 1, churned: 2 },
-      { month: 'Mar', activeClients: 12, capacity: 25, newClients: 1, churned: 2 },
-      { month: 'Apr', activeClients: 11, capacity: 25, newClients: 1, churned: 2 },
-      { month: 'May', activeClients: 10, capacity: 25, newClients: 1, churned: 2 },
-      { month: 'Jun', activeClients: 9, capacity: 25, newClients: 1, churned: 2 },
-      { month: 'Jul', activeClients: 8, capacity: 25, newClients: 1, churned: 2 },
-      { month: 'Aug', activeClients: 9, capacity: 25, newClients: 2, churned: 1 },
-      { month: 'Sep', activeClients: 10, capacity: 25, newClients: 2, churned: 1 },
-      { month: 'Oct', activeClients: 9, capacity: 25, newClients: 1, churned: 2 },
-      { month: 'Nov', activeClients: 8, capacity: 25, newClients: 1, churned: 2 },
-      { month: 'Dec', activeClients: 6, capacity: 25, newClients: 0, churned: 2 },
+      { month: 'Jan', activeClients: 16, capacity: 25, newClients: 1, churned: 3 },
+      { month: 'Feb', activeClients: 14, capacity: 25, newClients: 1, churned: 3 },
+      { month: 'Mar', activeClients: 13, capacity: 25, newClients: 2, churned: 3 },
+      { month: 'Apr', activeClients: 12, capacity: 25, newClients: 1, churned: 2 },
+      { month: 'May', activeClients: 11, capacity: 25, newClients: 1, churned: 2 },
+      { month: 'Jun', activeClients: 10, capacity: 25, newClients: 1, churned: 2 },
+      { month: 'Jul', activeClients: 9, capacity: 25, newClients: 1, churned: 2 },
+      { month: 'Aug', activeClients: 9, capacity: 25, newClients: 2, churned: 2 },
+      { month: 'Sep', activeClients: 9, capacity: 25, newClients: 2, churned: 2 },
+      { month: 'Oct', activeClients: 8, capacity: 25, newClients: 1, churned: 2 },
+      { month: 'Nov', activeClients: 7, capacity: 25, newClients: 1, churned: 2 },
+      { month: 'Dec', activeClients: 6, capacity: 25, newClients: 1, churned: 2 },
     ],
     atRiskClients: 4,
-    practiceAvgUtilization: 85,
+    practiceAvgUtilization: 78,
   },
 };
 
@@ -1235,7 +1187,7 @@ export const ClinicianDetailsTab: React.FC = () => {
         <div className="relative px-6 sm:px-8 lg:px-12 py-8 lg:py-10" style={{ zIndex: 1 }}>
 
           {/* =====================================================
-              DEFAULT MODE - Standard header with selectors on right
+              DEFAULT MODE - Simple header (clinician selector moved to main content)
               ===================================================== */}
           {!isSpotlightMode && (
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
@@ -1251,99 +1203,8 @@ export const ClinicianDetailsTab: React.FC = () => {
                 </h1>
               </div>
 
-              {/* Selectors */}
+              {/* Time Period Selector only in pre-selection mode */}
               <div className="flex items-center gap-3 flex-wrap">
-                {/* Clinician Selector */}
-                <div className="relative" ref={clinicianDropdownRef}>
-                  <button
-                    onClick={() => {
-                      setIsClinicianDropdownOpen(!isClinicianDropdownOpen);
-                      setIsTimeDropdownOpen(false);
-                    }}
-                    className="group flex items-center gap-3 px-5 py-3 rounded-2xl transition-all duration-300"
-                    style={{
-                      background: 'rgba(255, 255, 255, 0.08)',
-                      border: '1px solid rgba(255, 255, 255, 0.12)',
-                      boxShadow: isClinicianDropdownOpen
-                        ? '0 0 0 2px rgba(251, 191, 36, 0.3), 0 8px 32px rgba(0, 0, 0, 0.3)'
-                        : '0 2px 8px rgba(0, 0, 0, 0.15)',
-                    }}
-                  >
-                    <Users size={18} className="text-amber-400/80" strokeWidth={1.5} />
-                    <span
-                      className="text-white text-[15px] font-semibold tracking-[-0.01em]"
-                      style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-                    >
-                      Select Clinician
-                    </span>
-                    <ChevronDown
-                      size={16}
-                      className={`text-stone-400 transition-transform duration-300 ${isClinicianDropdownOpen ? 'rotate-180' : ''}`}
-                      strokeWidth={2}
-                    />
-                  </button>
-
-                  {/* Clinician Dropdown - Default Mode */}
-                  {isClinicianDropdownOpen && (
-                    <div
-                      className="absolute top-full right-0 mt-2 z-[100000] overflow-hidden"
-                      style={{
-                        minWidth: '300px',
-                        background: 'linear-gradient(135deg, #292524 0%, #1c1917 100%)',
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                        borderRadius: '20px',
-                        boxShadow: '0 25px 60px -12px rgba(0, 0, 0, 0.6)',
-                        animation: 'dropdownReveal 0.25s ease-out',
-                      }}
-                    >
-                      {/* Decorative top glow */}
-                      <div
-                        className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-16 opacity-30 pointer-events-none"
-                        style={{
-                          background: 'radial-gradient(ellipse at center top, #f59e0b 0%, transparent 70%)',
-                        }}
-                      />
-                      <div className="relative p-2">
-                        <div className="px-4 py-2 text-xs font-semibold text-stone-500 uppercase tracking-wider">
-                          Select Clinician
-                        </div>
-                        {MOCK_CLINICIANS.map((clinician) => {
-                          const cHealth = HEALTH_CONFIG[clinician.healthStatus];
-                          return (
-                            <button
-                              key={clinician.id}
-                              onClick={() => handleClinicianSelect(clinician)}
-                              className="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 group/item hover:bg-white/5"
-                            >
-                              {/* Mini avatar */}
-                              <div
-                                className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
-                                style={{ background: clinician.color }}
-                              >
-                                {clinician.initials}
-                              </div>
-                              {/* Info */}
-                              <div className="flex-1 text-left">
-                                <div className="flex items-center gap-2">
-                                  <span className="font-semibold text-stone-300 group-hover/item:text-white">
-                                    {clinician.name}
-                                  </span>
-                                  {/* Health dot */}
-                                  <div
-                                    className="w-2 h-2 rounded-full"
-                                    style={{ background: cHealth.color }}
-                                  />
-                                </div>
-                                <span className="text-xs text-stone-500">{clinician.role}</span>
-                              </div>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
                 {/* Time Period Selector */}
                 <div className="relative" ref={timeDropdownRef}>
                   <button
@@ -1517,102 +1378,27 @@ export const ClinicianDetailsTab: React.FC = () => {
 
                   {/* Left: Avatar + Identity */}
                   <div className="flex items-end gap-5">
-                    {/* Large Avatar with glow ring */}
-                    <div className="relative" ref={clinicianDropdownRef}>
-                      <button
-                        onClick={() => {
-                          setIsClinicianDropdownOpen(!isClinicianDropdownOpen);
-                          setIsTimeDropdownOpen(false);
+                    {/* Large Avatar with glow ring (static, no dropdown) */}
+                    <div className="relative">
+                      {/* Glow ring */}
+                      <div
+                        className="absolute inset-0 rounded-2xl blur-xl"
+                        style={{
+                          background: selectedClinician.color,
+                          opacity: 0.4,
+                          transform: 'scale(1.1)',
                         }}
-                        className="relative group"
+                      />
+                      {/* Avatar */}
+                      <div
+                        className="relative w-20 h-20 lg:w-24 lg:h-24 rounded-2xl flex items-center justify-center text-2xl lg:text-3xl font-bold text-white shadow-2xl"
+                        style={{
+                          background: `linear-gradient(135deg, ${selectedClinician.color} 0%, ${selectedClinician.color}cc 100%)`,
+                          boxShadow: `0 8px 32px -8px ${selectedClinician.color}80`,
+                        }}
                       >
-                        {/* Glow ring */}
-                        <div
-                          className="absolute inset-0 rounded-2xl blur-xl transition-all duration-500 group-hover:blur-2xl"
-                          style={{
-                            background: selectedClinician.color,
-                            opacity: 0.4,
-                            transform: 'scale(1.1)',
-                          }}
-                        />
-                        {/* Avatar */}
-                        <div
-                          className="relative w-20 h-20 lg:w-24 lg:h-24 rounded-2xl flex items-center justify-center text-2xl lg:text-3xl font-bold text-white shadow-2xl transition-transform duration-300 group-hover:scale-105"
-                          style={{
-                            background: `linear-gradient(135deg, ${selectedClinician.color} 0%, ${selectedClinician.color}cc 100%)`,
-                            boxShadow: `0 8px 32px -8px ${selectedClinician.color}80`,
-                          }}
-                        >
-                          {selectedClinician.initials}
-                        </div>
-                        {/* Dropdown indicator */}
-                        <div
-                          className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-stone-800 border-2 border-stone-700 flex items-center justify-center transition-all duration-300 group-hover:bg-stone-700"
-                        >
-                          <ChevronDown
-                            size={12}
-                            className={`text-stone-400 transition-transform duration-300 ${isClinicianDropdownOpen ? 'rotate-180' : ''}`}
-                          />
-                        </div>
-                      </button>
-
-                      {/* Clinician Dropdown - Spotlight Mode */}
-                      {isClinicianDropdownOpen && (
-                        <div
-                          className="absolute top-full left-0 mt-3 z-[100000] overflow-hidden"
-                          style={{
-                            minWidth: '300px',
-                            background: 'linear-gradient(135deg, #292524 0%, #1c1917 100%)',
-                            border: '1px solid rgba(255, 255, 255, 0.1)',
-                            borderRadius: '20px',
-                            boxShadow: '0 25px 60px -12px rgba(0, 0, 0, 0.6)',
-                            animation: 'dropdownReveal 0.25s ease-out',
-                          }}
-                        >
-                          <div className="p-2">
-                            <div className="px-4 py-2 text-xs font-semibold text-stone-500 uppercase tracking-wider">
-                              Switch Clinician
-                            </div>
-                            {MOCK_CLINICIANS.map((clinician) => {
-                              const isSelectedClin = selectedClinician.id === clinician.id;
-                              const cHealth = HEALTH_CONFIG[clinician.healthStatus];
-                              return (
-                                <button
-                                  key={clinician.id}
-                                  onClick={() => handleClinicianSelect(clinician)}
-                                  className="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 group/item"
-                                  style={{
-                                    background: isSelectedClin ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
-                                  }}
-                                >
-                                  {/* Mini avatar */}
-                                  <div
-                                    className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
-                                    style={{ background: clinician.color }}
-                                  >
-                                    {clinician.initials}
-                                  </div>
-                                  {/* Info */}
-                                  <div className="flex-1 text-left">
-                                    <div className="flex items-center gap-2">
-                                      <span className={`font-semibold ${isSelectedClin ? 'text-white' : 'text-stone-300 group-hover/item:text-white'}`}>
-                                        {clinician.name}
-                                      </span>
-                                      {/* Health dot */}
-                                      <div
-                                        className="w-2 h-2 rounded-full"
-                                        style={{ background: cHealth.color }}
-                                      />
-                                    </div>
-                                    <span className="text-xs text-stone-500">{clinician.role}</span>
-                                  </div>
-                                  {isSelectedClin && <Check size={16} className="text-amber-400" />}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
+                        {selectedClinician.initials}
+                      </div>
                     </div>
 
                     {/* Name + Details */}
@@ -1665,9 +1451,112 @@ export const ClinicianDetailsTab: React.FC = () => {
                     </p>
                   </div>
 
-                  {/* Right: Time Period Selector - always at far right */}
-                  <div className="hidden lg:flex flex-shrink-0 self-end ml-auto" ref={timeDropdownRef}>
-                    <div className="relative">
+                  {/* Right: Clinician Switcher + Time Period Selector */}
+                  <div className="hidden lg:flex items-center gap-3 flex-shrink-0 self-end ml-auto">
+                    {/* Clinician Switcher Dropdown */}
+                    <div className="relative" ref={clinicianDropdownRef}>
+                      <button
+                        onClick={() => {
+                          setIsClinicianDropdownOpen(!isClinicianDropdownOpen);
+                          setIsTimeDropdownOpen(false);
+                          setShowCustomPicker(false);
+                        }}
+                        className="group flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-300"
+                        style={{
+                          background: 'rgba(255, 255, 255, 0.08)',
+                          border: '1px solid rgba(255, 255, 255, 0.12)',
+                          boxShadow: isClinicianDropdownOpen
+                            ? `0 0 0 2px ${selectedClinician.color}50, 0 8px 32px rgba(0, 0, 0, 0.3)`
+                            : '0 2px 8px rgba(0, 0, 0, 0.15)',
+                        }}
+                      >
+                        {/* Mini avatar */}
+                        <div
+                          className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold text-white"
+                          style={{ background: selectedClinician.color }}
+                        >
+                          {selectedClinician.initials}
+                        </div>
+                        <span
+                          className="text-white text-[15px] font-semibold tracking-[-0.01em] max-w-[120px] truncate"
+                          style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                        >
+                          {selectedClinician.name.split(' ')[0]}
+                        </span>
+                        <ChevronDown
+                          size={16}
+                          className={`text-stone-400 transition-transform duration-300 ${isClinicianDropdownOpen ? 'rotate-180' : ''}`}
+                          strokeWidth={2}
+                        />
+                      </button>
+
+                      {/* Clinician Dropdown */}
+                      {isClinicianDropdownOpen && (
+                        <div
+                          className="absolute top-full right-0 mt-2 z-[100000] overflow-hidden"
+                          style={{
+                            minWidth: '280px',
+                            background: 'linear-gradient(135deg, #292524 0%, #1c1917 100%)',
+                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                            borderRadius: '20px',
+                            boxShadow: '0 25px 60px -12px rgba(0, 0, 0, 0.6)',
+                            animation: 'dropdownReveal 0.25s ease-out',
+                          }}
+                        >
+                          <div
+                            className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-16 opacity-30 pointer-events-none"
+                            style={{
+                              background: `radial-gradient(ellipse at center top, ${selectedClinician.color} 0%, transparent 70%)`,
+                            }}
+                          />
+                          <div className="relative p-2">
+                            <div className="px-4 py-2 text-xs font-semibold text-stone-500 uppercase tracking-wider">
+                              Switch Clinician
+                            </div>
+                            {MOCK_CLINICIANS.map((clinician) => {
+                              const isSelectedClin = selectedClinician.id === clinician.id;
+                              const cHealth = HEALTH_CONFIG[clinician.healthStatus];
+                              return (
+                                <button
+                                  key={clinician.id}
+                                  onClick={() => handleClinicianSelect(clinician)}
+                                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group/item"
+                                  style={{
+                                    background: isSelectedClin ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
+                                  }}
+                                >
+                                  {/* Mini avatar */}
+                                  <div
+                                    className="w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
+                                    style={{ background: clinician.color }}
+                                  >
+                                    {clinician.initials}
+                                  </div>
+                                  {/* Info */}
+                                  <div className="flex-1 text-left min-w-0">
+                                    <div className="flex items-center gap-2">
+                                      <span className={`font-semibold truncate ${isSelectedClin ? 'text-white' : 'text-stone-300 group-hover/item:text-white'}`}>
+                                        {clinician.name}
+                                      </span>
+                                      {/* Health dot */}
+                                      <div
+                                        className="w-2 h-2 rounded-full flex-shrink-0"
+                                        style={{ background: cHealth.color }}
+                                      />
+                                    </div>
+                                    <span className="text-xs text-stone-500">{clinician.role}</span>
+                                  </div>
+                                  {isSelectedClin && <Check size={16} className="text-amber-400 flex-shrink-0" />}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Time Period Selector */}
+                    <div className="relative" ref={timeDropdownRef}>
                       <button
                         onClick={() => {
                           setIsTimeDropdownOpen(!isTimeDropdownOpen);
@@ -1831,28 +1720,130 @@ export const ClinicianDetailsTab: React.FC = () => {
         <div className="px-6 sm:px-8 lg:px-12 py-8 lg:py-10 space-y-6">
 
           {/* ---------------------------------------------------------
-              EMPTY STATE - No clinician selected
+              CLINICIAN SELECTOR - Interactive gallery for pre-selection
               --------------------------------------------------------- */}
           {!isSpotlightMode && (
-            <div className="flex flex-col items-center justify-center py-20 text-center">
-              <div
-                className="w-24 h-24 rounded-3xl flex items-center justify-center mb-6"
-                style={{
-                  background: 'linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%)',
-                  border: '1px solid rgba(251, 191, 36, 0.2)',
-                }}
-              >
-                <Users size={40} className="text-amber-500/60" strokeWidth={1.5} />
+            <div className="py-6">
+              {/* Section intro */}
+              <div className="text-center mb-12">
+                <h2
+                  className="text-4xl sm:text-5xl text-stone-800 mb-4"
+                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  Select a Clinician
+                </h2>
+                <p className="text-stone-500 text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed">
+                  Choose a team member to explore their detailed performance metrics, trends, and insights.
+                </p>
               </div>
-              <h2
-                className="text-2xl text-stone-700 mb-2"
-                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-              >
-                Select a Clinician
-              </h2>
-              <p className="text-stone-500 max-w-md">
-                Choose a clinician from the dropdown above to view their detailed performance metrics, trends, and actionable insights.
-              </p>
+
+              {/* Clinician Cards Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto">
+                {MOCK_CLINICIANS.map((clinician, index) => {
+                  const cHealth = HEALTH_CONFIG[clinician.healthStatus];
+                  return (
+                    <button
+                      key={clinician.id}
+                      onClick={() => handleClinicianSelect(clinician)}
+                      className="group relative text-left rounded-3xl transition-all duration-300 overflow-hidden hover:scale-[1.02] hover:-translate-y-1"
+                      style={{
+                        background: 'white',
+                        border: '1px solid rgba(0, 0, 0, 0.06)',
+                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.03)',
+                        animationDelay: `${index * 60}ms`,
+                      }}
+                    >
+                      {/* Hover glow effect */}
+                      <div
+                        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                        style={{
+                          background: `radial-gradient(ellipse at 30% 20%, ${clinician.color}12 0%, transparent 60%)`,
+                        }}
+                      />
+
+                      {/* Card content */}
+                      <div className="relative p-6 lg:p-7">
+                        {/* Top row: Avatar + Health badge */}
+                        <div className="flex items-start justify-between mb-5">
+                          {/* Avatar with color ring */}
+                          <div className="relative">
+                            <div
+                              className="absolute inset-0 rounded-2xl blur-lg opacity-40 group-hover:opacity-60 transition-opacity duration-300"
+                              style={{ background: clinician.color }}
+                            />
+                            <div
+                              className="relative w-16 h-16 lg:w-20 lg:h-20 rounded-2xl flex items-center justify-center text-xl lg:text-2xl font-bold text-white shadow-lg transition-transform duration-300 group-hover:scale-105"
+                              style={{
+                                background: `linear-gradient(135deg, ${clinician.color} 0%, ${clinician.color}dd 100%)`,
+                              }}
+                            >
+                              {clinician.initials}
+                            </div>
+                          </div>
+
+                          {/* Health status badge */}
+                          <div
+                            className="flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold"
+                            style={{
+                              background: cHealth.bg,
+                              color: cHealth.color,
+                            }}
+                          >
+                            <span className="text-xs">{cHealth.icon}</span>
+                            <span>{cHealth.label}</span>
+                          </div>
+                        </div>
+
+                        {/* Name and title */}
+                        <div className="mb-5">
+                          <h3
+                            className="text-2xl lg:text-[1.75rem] text-stone-800 mb-1 group-hover:text-stone-900 transition-colors leading-tight"
+                            style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                          >
+                            {clinician.name}
+                          </h3>
+                          <p className="text-base text-stone-500">{clinician.role}</p>
+                        </div>
+
+                        {/* Quick metrics row */}
+                        <div className="flex items-center gap-5 pt-4 border-t border-stone-200/60">
+                          <div className="flex-1">
+                            <p className="text-xs uppercase tracking-wider text-stone-400 mb-1">Last Month</p>
+                            <p className="text-lg font-semibold text-stone-800">
+                              ${(CLINICIAN_FINANCIAL_DATA[clinician.id]?.monthlyRevenue[CLINICIAN_FINANCIAL_DATA[clinician.id]?.monthlyRevenue.length - 1]?.value / 1000).toFixed(1)}k
+                            </p>
+                          </div>
+                          <div className="w-px h-10 bg-stone-200/60" />
+                          <div className="flex-1">
+                            <p className="text-xs uppercase tracking-wider text-stone-400 mb-1">Clients</p>
+                            <p className="text-lg font-semibold text-stone-800">
+                              {CLINICIAN_CASELOAD_DATA[clinician.id]?.monthlyCaseload[CLINICIAN_CASELOAD_DATA[clinician.id]?.monthlyCaseload.length - 1]?.activeClients || 0}
+                            </p>
+                          </div>
+                          <div className="w-px h-10 bg-stone-200/60" />
+                          <div className="flex-1">
+                            <p className="text-xs uppercase tracking-wider text-stone-400 mb-1">Sessions</p>
+                            <p className="text-lg font-semibold text-stone-800">
+                              {CLINICIAN_SESSION_DATA[clinician.id]?.monthlySessions[CLINICIAN_SESSION_DATA[clinician.id]?.monthlySessions.length - 1]?.completed || 0}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Hover arrow indicator */}
+                        <div className="absolute bottom-6 right-6 opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all duration-300">
+                          <ArrowRight size={22} className="text-stone-400" strokeWidth={1.5} />
+                        </div>
+                      </div>
+
+                      {/* Bottom accent line on hover */}
+                      <div
+                        className="absolute bottom-0 left-0 right-0 h-1 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"
+                        style={{ background: clinician.color }}
+                      />
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           )}
 

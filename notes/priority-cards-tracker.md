@@ -11,25 +11,13 @@
 > **Note:** App has `anonymizeClinicianNames` setting. Use demo names for card examples.
 > **Demographics:** ~60% White, ~18% Hispanic, ~12% Black, ~6% Asian (US Census)
 
-| Real Name | Demo Name | Demographic | Use In Examples |
-|-----------|-----------|-------------|-----------------|
-| Gaya K | Sarah M | White | ✓ Primary |
-| Rudhdi K | Emma T | White | ✓ Secondary |
-| Alaina M | Rachel K | White | ✓ |
-| Aditi R | Lauren C | White | |
-| Tamanna A | Katie R | White | |
-| Gajan G | Brian H | White | |
-| Shivon R | Jennifer L | White | |
-| Tanisha S | Maria G | Hispanic | ✓ |
-| Mehar A | Sofia M | Hispanic | |
-| Deepa S | Carlos R | Hispanic | |
-| Rebecca S | Jasmine W | Black | ✓ |
-| Apeksha M | Marcus J | Black | |
-| Riddhi C | Priya S | Asian | |
-| Ranya P | David K | Asian | |
-| Vikramjit B | Michael B | White | |
-| Paulomi M | Chris P | White | |
-| Preeti R | Amanda H | White | |
+| Synthetic Name | Short Name | Role | Use In Examples |
+|----------------|------------|------|-----------------|
+| Sarah Chen | Sarah C | Clinical Director | ✓ Primary |
+| Maria Rodriguez | Maria R | Senior Therapist | ✓ Secondary |
+| Priya Patel | Priya P | Therapist | ✓ |
+| James Kim | James K | Associate Therapist | |
+| Michael Johnson | Michael J | Associate Therapist | |
 
 ---
 

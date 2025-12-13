@@ -2,25 +2,13 @@
 
 Use these prompts to generate images for each card. Save each image in this folder with the filename indicated.
 
-## Demo Names Reference
-These are the anonymized names used for demos (matching SettingsContext.tsx):
-- Gaya K → Maya P
-- Rudhdi K → Priya S
-- Alaina M → Emma T
-- Aditi R → Anika M
-- Tamanna A → Tara B
-- Gajan G → Arjun K
-- Shivon R → Simone L
-- Tanisha S → Tanya R
-- Mehar A → Mira D
-- Deepa S → Diana N
-- Rebecca S → Rachel M
-- Apeksha M → Asha P
-- Riddhi C → Riya T
-- Ranya P → Rita S
-- Vikramjit B → Vivek R
-- Paulomi M → Pooja K
-- Preeti R → Priti M
+## Synthetic Clinician Names Reference
+These are the synthetic names used throughout the app (from data/clinicians.ts):
+- Sarah Chen (Sarah C) - Clinical Director
+- Maria Rodriguez (Maria R) - Senior Therapist
+- Priya Patel (Priya P) - Therapist
+- James Kim (James K) - Associate Therapist
+- Michael Johnson (Michael J) - Associate Therapist
 
 ---
 

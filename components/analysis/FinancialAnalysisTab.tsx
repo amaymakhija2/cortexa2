@@ -63,6 +63,8 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
   // LOCAL STATE & SETTINGS
   // =========================================================================
   const { settings } = useSettings();
+  const revenueGoal = settings.practiceGoals.monthlyRevenue;
+  const revenueGoalDisplay = `$${Math.round(revenueGoal / 1000)}k`; // e.g., "$150k"
   const [showClinicianBreakdown, setShowClinicianBreakdown] = useState(false);
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const [hoveredClinicianBar, setHoveredClinicianBar] = useState<HoverInfo | null>(null);
@@ -105,10 +107,10 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
     return totalGross > 0 ? (totalNetRevenue / totalGross) * 100 : 0;
   }, [revenueBreakdownData, totalNetRevenue]);
 
-  // Months that hit the $150k goal
+  // Months that hit the revenue goal
   const monthsAtGoal = useMemo(
-    () => revenueData.filter((item) => item.value >= 150000).length,
-    [revenueData]
+    () => revenueData.filter((item) => item.value >= revenueGoal).length,
+    [revenueData, revenueGoal]
   );
 
   // Average monthly revenue
@@ -382,7 +384,7 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
         <Section spacing="md">
           <ExecutiveSummary
             headline="Strong Revenue, Watch Your Margins"
-            summary={`Revenue is **${momChange >= 0 ? 'up' : 'down'} ${Math.abs(momChange).toFixed(1)}%** this month, with **${monthsAtGoal} of ${revenueData.length} months** exceeding the **$150k target**. Your net margin stands at **${avgMargin.toFixed(1)}%**, ${avgMargin >= 18 ? 'meeting' : 'slightly below'} the industry average of 18%. Clinician compensation costs represent **${avgClinicianPct.toFixed(0)}%** of gross revenue—consider reviewing if margins need improvement.`}
+            summary={`Revenue is **${momChange >= 0 ? 'up' : 'down'} ${Math.abs(momChange).toFixed(1)}%** this month, with **${monthsAtGoal} of ${revenueData.length} months** exceeding the **${revenueGoalDisplay} target**. Your net margin stands at **${avgMargin.toFixed(1)}%**, ${avgMargin >= 18 ? 'meeting' : 'slightly below'} the industry average of 18%. Clinician compensation costs represent **${avgClinicianPct.toFixed(0)}%** of gross revenue—consider reviewing if margins need improvement.`}
             accent="amber"
           />
         </Section>
@@ -405,7 +407,7 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
             <StatCard
               title="Goal Achievement"
               value={`${monthsAtGoal}/${revenueData.length}`}
-              subtitle="months hit $150k goal"
+              subtitle={`months hit ${revenueGoalDisplay} goal`}
             />
             <StatCard
               title="Avg Revenue Per Session"
@@ -433,7 +435,7 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
                     hidden={!!hoveredClinicianBar}
                   />
                   <GoalIndicator
-                    value="$150k"
+                    value={revenueGoalDisplay}
                     label="Goal"
                     color="amber"
                     hidden={showClinicianBreakdown || !!hoveredClinicianBar}
@@ -490,9 +492,9 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
                 <BarChart
                   data={barChartData}
                   mode="single"
-                  goal={{ value: 150000 }}
+                  goal={{ value: revenueGoal }}
                   getBarColor={(value) =>
-                    value >= 150000
+                    value >= revenueGoal
                       ? {
                           gradient: 'linear-gradient(180deg, #34d399 0%, #059669 100%)',
                           shadow: '0 4px 12px -2px rgba(16, 185, 129, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
@@ -752,7 +754,7 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
         isOpen={expandedCard === 'revenue-performance'}
         onClose={() => setExpandedCard(null)}
         title="Revenue Performance"
-        subtitle={showClinicianBreakdown ? 'Revenue by clinician breakdown' : 'Monthly revenue with $150k goal'}
+        subtitle={showClinicianBreakdown ? 'Revenue by clinician breakdown' : `Monthly revenue with ${revenueGoalDisplay} goal`}
         headerControls={
           <>
             <ToggleButton
@@ -762,7 +764,7 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
               icon={<Users size={16} />}
             />
             <GoalIndicator
-              value="$150k"
+              value={revenueGoalDisplay}
               label="Goal"
               color="amber"
               hidden={showClinicianBreakdown}
@@ -792,9 +794,9 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
             data={barChartData}
             mode="single"
             size="lg"
-            goal={{ value: 150000 }}
+            goal={{ value: revenueGoal }}
             getBarColor={(value) =>
-              value >= 150000
+              value >= revenueGoal
                 ? {
                     gradient: 'linear-gradient(180deg, #34d399 0%, #059669 100%)',
                     shadow: '0 6px 16px -2px rgba(16, 185, 129, 0.4), inset 0 1px 0 rgba(255,255,255,0.2)',

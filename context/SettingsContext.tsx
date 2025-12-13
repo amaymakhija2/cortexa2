@@ -1,41 +1,52 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
+// Practice-wide goal settings
+export interface PracticeGoals {
+  monthlyRevenue: number;
+  monthlySessions: number;
+  targetRebookRate: number;
+  noteDeadlineHours: number;
+}
+
+// Metric threshold settings
+export interface MetricThresholds {
+  // Client status definition
+  clientDefinitionType: 'status-based' | 'activity-based';
+  activityThresholdDays: number;
+  // At-risk thresholds
+  atRiskLow: number;
+  atRiskMedium: number;
+  atRiskHigh: number;
+  // Churn definition
+  churnDays: number;
+  // Churn timing (by session count)
+  earlyChurnSessions: number;
+  lateChurnSessions: number;
+  // Late cancel window
+  lateCancelHours: number;
+  // Note deadline
+  noteDeadlineDays: number;
+  // Performance thresholds
+  revenueHealthy: number;
+  revenueCritical: number;
+  rebookHealthy: number;
+  rebookCritical: number;
+}
+
 interface AppSettings {
   showNetRevenueData: boolean;
   anonymizeClinicianNames: boolean;
+  practiceGoals: PracticeGoals;
+  thresholds: MetricThresholds;
 }
 
-// Mapping of real clinician names to demo names
-// Demographics: ~60% White, ~18% Hispanic, ~12% Black, ~6% Asian (US Census)
-export const DEMO_NAMES: Record<string, string> = {
-  // White/European American (~10)
-  'Gaya K': 'Sarah M',
-  'Rudhdi K': 'Emma T',
-  'Alaina M': 'Rachel K',
-  'Aditi R': 'Lauren C',
-  'Tamanna A': 'Katie R',
-  'Gajan G': 'Brian H',
-  'Shivon R': 'Jennifer L',
-  // Hispanic/Latino (~3)
-  'Tanisha S': 'Maria G',
-  'Mehar A': 'Sofia M',
-  'Deepa S': 'Carlos R',
-  // Black/African American (~2)
-  'Rebecca S': 'Jasmine W',
-  'Apeksha M': 'Marcus J',
-  // Asian (~2)
-  'Riddhi C': 'Priya S',
-  'Ranya P': 'David K',
-  // Additional White/European American
-  'Vikramjit B': 'Michael B',
-  'Paulomi M': 'Chris P',
-  'Preeti R': 'Amanda H',
-};
+// NOTE: Data now uses synthetic clinician names directly from data/clinicians.ts
+// The anonymizeClinicianNames setting is kept for backward compatibility but
+// the getDisplayName function just returns the name as-is since all data is synthetic.
 
-// Helper function to get display name based on settings
-export const getDisplayName = (realName: string, anonymize: boolean): string => {
-  if (!anonymize) return realName;
-  return DEMO_NAMES[realName] || realName;
+// Helper function to get display name (no-op since data is already synthetic)
+export const getDisplayName = (name: string, _anonymize: boolean): string => {
+  return name;
 };
 
 interface SettingsContextType {
@@ -47,9 +58,42 @@ const SettingsContext = createContext<SettingsContextType | null>(null);
 
 const SETTINGS_KEY = 'cortexa_settings';
 
+const DEFAULT_PRACTICE_GOALS: PracticeGoals = {
+  monthlyRevenue: 150000,
+  monthlySessions: 700,
+  targetRebookRate: 85,
+  noteDeadlineHours: 72,
+};
+
+const DEFAULT_THRESHOLDS: MetricThresholds = {
+  // Client status definition
+  clientDefinitionType: 'status-based',
+  activityThresholdDays: 30,
+  // At-risk thresholds
+  atRiskLow: 7,
+  atRiskMedium: 14,
+  atRiskHigh: 21,
+  // Churn definition
+  churnDays: 30,
+  // Churn timing (by session count)
+  earlyChurnSessions: 5,
+  lateChurnSessions: 15,
+  // Late cancel window
+  lateCancelHours: 24,
+  // Note deadline
+  noteDeadlineDays: 3,
+  // Performance thresholds
+  revenueHealthy: 95,
+  revenueCritical: 80,
+  rebookHealthy: 85,
+  rebookCritical: 75,
+};
+
 const DEFAULT_SETTINGS: AppSettings = {
   showNetRevenueData: true,
   anonymizeClinicianNames: false,
+  practiceGoals: DEFAULT_PRACTICE_GOALS,
+  thresholds: DEFAULT_THRESHOLDS,
 };
 
 export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {

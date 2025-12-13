@@ -26,6 +26,8 @@ import {
   WifiOff,
 } from 'lucide-react';
 import { PageHeader, PageContent, Grid, AnimatedSection } from './design-system';
+import { CLINICIANS as MASTER_CLINICIANS } from '../data/clinicians';
+import { useSettings, PracticeGoals, MetricThresholds } from '../context/SettingsContext';
 
 // =============================================================================
 // PRACTICE CONFIGURATION PAGE
@@ -33,6 +35,7 @@ import { PageHeader, PageContent, Grid, AnimatedSection } from './design-system'
 // Full-page configuration experience for practice owners.
 // Manages locations, team structure, clinician settings, goals, thresholds, and EHR.
 // Follows the same structure as Practice Analysis with tabbed navigation.
+// Uses master clinician list from data/clinicians.ts
 // =============================================================================
 
 // Types
@@ -43,14 +46,38 @@ interface Location {
   isPrimary: boolean;
 }
 
+// License types for mental health professionals
+type LicenseType =
+  | 'LCSW'      // Licensed Clinical Social Worker
+  | 'LMSW'      // Licensed Master Social Worker
+  | 'LMHC'      // Licensed Mental Health Counselor
+  | 'MHC-LP'    // Mental Health Counselor - Limited Permit
+  | 'LPC'       // Licensed Professional Counselor
+  | 'LMFT'      // Licensed Marriage & Family Therapist
+  | 'PhD'       // Doctor of Philosophy (Psychology)
+  | 'PsyD'      // Doctor of Psychology
+  | 'MD'        // Medical Doctor (Psychiatrist)
+  | 'NP'        // Nurse Practitioner
+  | 'Other';
+
+// Role types within the practice
+type ClinicianRole =
+  | 'Clinical Director'
+  | 'Supervisor'
+  | 'Senior Therapist'
+  | 'Therapist'
+  | 'Associate';
+
 interface Clinician {
   id: string;
   name: string;
   initials: string;
   color: string;
-  role: string;
-  licenseType: string;
+  role: ClinicianRole;
+  licenseType: LicenseType;
+  licenseTitle: string;  // Full license name for display
   supervisorId: string | null;
+  requiresSupervision: boolean;
   isActive: boolean;
   startDate: string;
   sessionGoal: number;
@@ -58,36 +85,7 @@ interface Clinician {
   takeRate: number;
 }
 
-interface PracticeGoals {
-  monthlyRevenue: number;
-  monthlySessions: number;
-  targetRebookRate: number;
-  noteDeadlineHours: number;
-}
-
-interface MetricThresholds {
-  // Client status definition
-  clientDefinitionType: 'status-based' | 'activity-based';
-  activityThresholdDays: number;
-  // At-risk thresholds
-  atRiskLow: number;
-  atRiskMedium: number;
-  atRiskHigh: number;
-  // Churn definition
-  churnDays: number;
-  // Churn timing (by session count)
-  earlyChurnSessions: number;
-  lateChurnSessions: number;
-  // Late cancel window
-  lateCancelHours: number;
-  // Note deadline
-  noteDeadlineDays: number;
-  // Performance thresholds
-  revenueHealthy: number;
-  revenueCritical: number;
-  rebookHealthy: number;
-  rebookCritical: number;
-}
+// PracticeGoals and MetricThresholds are imported from SettingsContext
 
 interface EHRConnection {
   provider: string;
@@ -99,15 +97,43 @@ interface EHRConnection {
 }
 
 // Tab types matching URL params
-type ConfigTab = 'locations' | 'team' | 'clinicians' | 'goals' | 'thresholds' | 'ehr';
+type ConfigTab = 'locations' | 'members' | 'team' | 'clinician-goals' | 'goals' | 'thresholds' | 'ehr';
 
 const CONFIG_TABS: { id: ConfigTab; label: string }[] = [
   { id: 'locations', label: 'Locations' },
+  { id: 'members', label: 'Team Members' },
   { id: 'team', label: 'Team Structure' },
-  { id: 'clinicians', label: 'Clinicians' },
+  { id: 'clinician-goals', label: 'Clinician Goals' },
   { id: 'goals', label: 'Practice Goals' },
   { id: 'thresholds', label: 'Thresholds' },
   { id: 'ehr', label: 'EHR Connection' },
+];
+
+// License type display names
+const LICENSE_TYPE_NAMES: Record<LicenseType, string> = {
+  'LCSW': 'Licensed Clinical Social Worker',
+  'LMSW': 'Licensed Master Social Worker',
+  'LMHC': 'Licensed Mental Health Counselor',
+  'MHC-LP': 'Mental Health Counselor - Limited Permit',
+  'LPC': 'Licensed Professional Counselor',
+  'LMFT': 'Licensed Marriage & Family Therapist',
+  'PhD': 'Doctor of Philosophy (Psychology)',
+  'PsyD': 'Doctor of Psychology',
+  'MD': 'Medical Doctor (Psychiatrist)',
+  'NP': 'Nurse Practitioner',
+  'Other': 'Other',
+};
+
+// License types that typically require supervision
+const LICENSES_REQUIRING_SUPERVISION: LicenseType[] = ['LMSW', 'MHC-LP'];
+
+// Role options for dropdown
+const ROLE_OPTIONS: ClinicianRole[] = [
+  'Clinical Director',
+  'Supervisor',
+  'Senior Therapist',
+  'Therapist',
+  'Associate',
 ];
 
 // Mock data
@@ -116,44 +142,53 @@ const MOCK_LOCATIONS: Location[] = [
   { id: '2', name: 'Chapel Hill', address: '456 Therapy Lane, Chapel Hill, NC 27514', isPrimary: false },
 ];
 
-const MOCK_CLINICIANS: Clinician[] = [
-  { id: '1', name: 'Sarah Chen', initials: 'SC', color: '#a855f7', role: 'Clinical Director', licenseType: 'PhD, Licensed Psychologist', supervisorId: null, isActive: true, startDate: '2021-03-15', sessionGoal: 40, clientGoal: 30, takeRate: 45 },
-  { id: '2', name: 'Maria Rodriguez', initials: 'MR', color: '#06b6d4', role: 'Senior Therapist', licenseType: 'LCSW', supervisorId: '1', isActive: true, startDate: '2022-01-10', sessionGoal: 35, clientGoal: 28, takeRate: 55 },
-  { id: '3', name: 'Priya Patel', initials: 'PP', color: '#f59e0b', role: 'Therapist', licenseType: 'LPC', supervisorId: '1', isActive: true, startDate: '2023-02-20', sessionGoal: 32, clientGoal: 25, takeRate: 50 },
-  { id: '4', name: 'James Kim', initials: 'JK', color: '#ec4899', role: 'Associate Therapist', licenseType: 'LMFT', supervisorId: '2', isActive: true, startDate: '2024-01-08', sessionGoal: 28, clientGoal: 22, takeRate: 45 },
-  { id: '5', name: 'Michael Johnson', initials: 'MJ', color: '#10b981', role: 'Associate Therapist', licenseType: 'APC', supervisorId: '3', isActive: true, startDate: '2024-05-01', sessionGoal: 25, clientGoal: 20, takeRate: 40 },
-];
-
-const MOCK_PRACTICE_GOALS: PracticeGoals = {
-  monthlyRevenue: 150000,
-  monthlySessions: 700,
-  targetRebookRate: 85,
-  noteDeadlineHours: 72,
+// Helper to infer license type from title string
+const inferLicenseType = (title: string): LicenseType => {
+  if (title.includes('Clinical Social Worker')) return 'LCSW';
+  if (title.includes('Master Social Worker')) return 'LMSW';
+  if (title.includes('Mental Health Counselor')) return 'LMHC';
+  if (title.includes('Professional Counselor')) return 'LPC';
+  if (title.includes('Marriage & Family')) return 'LMFT';
+  if (title.includes('Psychologist') || title.includes('PhD')) return 'PhD';
+  if (title.includes('PsyD')) return 'PsyD';
+  return 'Other';
 };
 
-const MOCK_THRESHOLDS: MetricThresholds = {
-  // Client status definition
-  clientDefinitionType: 'status-based',
-  activityThresholdDays: 30,
-  // At-risk thresholds
-  atRiskLow: 7,
-  atRiskMedium: 14,
-  atRiskHigh: 21,
-  // Churn definition
-  churnDays: 30,
-  // Churn timing (by session count)
-  earlyChurnSessions: 5,
-  lateChurnSessions: 15,
-  // Late cancel window
-  lateCancelHours: 24,
-  // Note deadline
-  noteDeadlineDays: 3,
-  // Performance thresholds
-  revenueHealthy: 95,
-  revenueCritical: 80,
-  rebookHealthy: 85,
-  rebookCritical: 75,
+// Helper to infer role from role string
+const inferRole = (role: string): ClinicianRole => {
+  if (role.includes('Director')) return 'Clinical Director';
+  if (role.includes('Supervisor')) return 'Supervisor';
+  if (role.includes('Senior')) return 'Senior Therapist';
+  if (role.includes('Associate')) return 'Associate';
+  return 'Therapist';
 };
+
+// Map master clinicians to the local interface with additional fields
+const MOCK_CLINICIANS: Clinician[] = MASTER_CLINICIANS.map(c => {
+  const licenseType = inferLicenseType(c.title);
+  const role = inferRole(c.role);
+  // Only require supervision if license type requires it OR role is Associate
+  const needsSupervision = LICENSES_REQUIRING_SUPERVISION.includes(licenseType) || role === 'Associate';
+  return {
+    id: c.id,
+    name: c.name,
+    initials: c.initials,
+    color: c.color,
+    role: role,
+    licenseType: licenseType,
+    licenseTitle: c.title,
+    // Only keep supervisorId if they actually need supervision
+    supervisorId: needsSupervision ? c.supervisorId : null,
+    requiresSupervision: needsSupervision,
+    isActive: c.isActive,
+    startDate: c.startDate,
+    sessionGoal: c.sessionGoal,
+    clientGoal: c.clientGoal,
+    takeRate: c.takeRate,
+  };
+});
+
+// Practice goals and thresholds are now managed via SettingsContext
 
 const MOCK_EHR: EHRConnection = {
   provider: 'SimplePractice',
@@ -523,19 +558,178 @@ const LocationsTab: React.FC<{
   );
 };
 
-// Team Structure Tab
+// Team Members Tab - Configure WHO each person is
+const TeamMembersTab: React.FC<{
+  clinicians: Clinician[];
+  onUpdate: (clinicians: Clinician[]) => void;
+}> = ({ clinicians, onUpdate }) => {
+  const handleUpdateClinician = (id: string, updates: Partial<Clinician>) => {
+    onUpdate(clinicians.map(c => c.id === id ? { ...c, ...updates } : c));
+  };
+
+  const handleLicenseChange = (id: string, licenseType: LicenseType) => {
+    const requiresSupervision = LICENSES_REQUIRING_SUPERVISION.includes(licenseType);
+    handleUpdateClinician(id, {
+      licenseType,
+      licenseTitle: LICENSE_TYPE_NAMES[licenseType],
+      requiresSupervision,
+    });
+  };
+
+  return (
+    <PageContent>
+      <AnimatedSection delay={0}>
+        <div className="mb-8">
+          <h2
+            className="text-3xl font-bold text-stone-800"
+            style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+          >
+            Team Members
+          </h2>
+          <p className="text-stone-500 text-lg mt-1">Configure credentials and roles for each clinician</p>
+        </div>
+      </AnimatedSection>
+
+      {/* Table Header */}
+      <AnimatedSection delay={0.05}>
+        <div className="grid grid-cols-12 gap-4 px-5 py-3 text-xs font-bold text-stone-400 uppercase tracking-wide border-b border-stone-200">
+          <div className="col-span-4">Clinician</div>
+          <div className="col-span-2">License</div>
+          <div className="col-span-2">Role</div>
+          <div className="col-span-2 text-center">Needs Supervision</div>
+          <div className="col-span-2 text-center">Status</div>
+        </div>
+      </AnimatedSection>
+
+      <div className="divide-y divide-stone-100">
+        {clinicians.map((clinician, index) => (
+          <AnimatedSection key={clinician.id} delay={index * 0.03 + 0.1}>
+            <div
+              className={`grid grid-cols-12 gap-4 px-5 py-4 items-center hover:bg-stone-50 transition-colors ${
+                !clinician.isActive ? 'opacity-50' : ''
+              }`}
+            >
+              {/* Clinician Info */}
+              <div className="col-span-4 flex items-center gap-4">
+                <div
+                  className="w-11 h-11 rounded-xl flex items-center justify-center text-white font-bold"
+                  style={{
+                    background: `linear-gradient(135deg, ${clinician.color} 0%, ${clinician.color}dd 100%)`,
+                  }}
+                >
+                  {clinician.initials}
+                </div>
+                <div>
+                  <p
+                    className="font-semibold text-stone-800"
+                    style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                  >
+                    {clinician.name}
+                  </p>
+                  <p className="text-xs text-stone-400">
+                    Since {new Date(clinician.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                  </p>
+                </div>
+              </div>
+
+              {/* License */}
+              <div className="col-span-2">
+                <select
+                  value={clinician.licenseType}
+                  onChange={(e) => handleLicenseChange(clinician.id, e.target.value as LicenseType)}
+                  className="w-full px-3 py-2 rounded-lg bg-stone-100 text-stone-700 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-300 cursor-pointer hover:bg-stone-200 transition-colors"
+                >
+                  {(Object.keys(LICENSE_TYPE_NAMES) as LicenseType[]).map(license => (
+                    <option key={license} value={license}>{license}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Role */}
+              <div className="col-span-2">
+                <select
+                  value={clinician.role}
+                  onChange={(e) => handleUpdateClinician(clinician.id, { role: e.target.value as ClinicianRole })}
+                  className="w-full px-3 py-2 rounded-lg bg-stone-100 text-stone-700 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-300 cursor-pointer hover:bg-stone-200 transition-colors"
+                >
+                  {ROLE_OPTIONS.map(role => (
+                    <option key={role} value={role}>{role}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Needs Supervision Toggle */}
+              <div className="col-span-2 flex justify-center">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    // If turning off supervision, also clear their supervisor
+                    if (clinician.requiresSupervision) {
+                      handleUpdateClinician(clinician.id, { requiresSupervision: false, supervisorId: null });
+                    } else {
+                      handleUpdateClinician(clinician.id, { requiresSupervision: true });
+                    }
+                  }}
+                  className={`
+                    w-14 h-8 rounded-full transition-all relative
+                    ${clinician.requiresSupervision
+                      ? 'bg-violet-500'
+                      : 'bg-stone-200'}
+                  `}
+                >
+                  <motion.div
+                    className="absolute top-1 w-6 h-6 rounded-full bg-white shadow-sm"
+                    animate={{ left: clinician.requiresSupervision ? 'calc(100% - 28px)' : '4px' }}
+                    transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                  />
+                </motion.button>
+              </div>
+
+              {/* Active Status Toggle */}
+              <div className="col-span-2 flex justify-center">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => handleUpdateClinician(clinician.id, { isActive: !clinician.isActive })}
+                  className={`
+                    px-4 py-1.5 rounded-full text-sm font-medium transition-all
+                    ${clinician.isActive
+                      ? 'bg-emerald-100 text-emerald-700'
+                      : 'bg-stone-100 text-stone-400'}
+                  `}
+                >
+                  {clinician.isActive ? 'Active' : 'Inactive'}
+                </motion.button>
+              </div>
+            </div>
+          </AnimatedSection>
+        ))}
+      </div>
+    </PageContent>
+  );
+};
+
+// Team Structure Tab - Simple supervisor assignment
 const TeamStructureTab: React.FC<{
   clinicians: Clinician[];
   onUpdate: (clinicians: Clinician[]) => void;
 }> = ({ clinicians, onUpdate }) => {
-  const supervisors = clinicians.filter(c => !c.supervisorId);
-  const getSuperviseesOf = (id: string) => clinicians.filter(c => c.supervisorId === id);
+  // Clinicians who CAN supervise (don't need supervision themselves)
+  const canSupervise = clinicians.filter(c => c.isActive && !c.requiresSupervision);
+
+  // Clinicians who NEED a supervisor assigned
+  const needsSupervision = clinicians.filter(c => c.isActive && c.requiresSupervision);
 
   const handleUpdateSupervisor = (clinicianId: string, newSupervisorId: string | null) => {
     onUpdate(clinicians.map(c =>
       c.id === clinicianId ? { ...c, supervisorId: newSupervisorId } : c
     ));
   };
+
+  // Count assigned vs unassigned
+  const assignedCount = needsSupervision.filter(c => c.supervisorId).length;
+  const unassignedCount = needsSupervision.length - assignedCount;
 
   return (
     <PageContent>
@@ -547,135 +741,178 @@ const TeamStructureTab: React.FC<{
           >
             Team Structure
           </h2>
-          <p className="text-stone-500 text-lg mt-1">Manage supervisor relationships and clinical hierarchy</p>
+          <p className="text-stone-500 text-lg mt-1">Assign supervisors to clinicians who need supervision</p>
         </div>
       </AnimatedSection>
 
-      <div className="space-y-6">
-        {supervisors.map((supervisor, sIdx) => (
-          <AnimatedSection key={supervisor.id} delay={sIdx * 0.1}>
-            <ConfigCard>
-              {/* Supervisor Header */}
-              <div
-                className="p-6 border-b border-stone-100"
-                style={{
-                  background: `linear-gradient(135deg, ${supervisor.color}08 0%, transparent 100%)`,
-                }}
-              >
-                <div className="flex items-center gap-5">
-                  <div
-                    className="w-16 h-16 rounded-2xl flex items-center justify-center text-white font-bold text-xl"
-                    style={{
-                      background: `linear-gradient(135deg, ${supervisor.color} 0%, ${supervisor.color}cc 100%)`,
-                      boxShadow: `0 4px 16px ${supervisor.color}40`,
-                    }}
-                  >
-                    {supervisor.initials}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3">
-                      <h3
-                        className="text-2xl font-bold text-stone-800"
-                        style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-                      >
-                        {supervisor.name}
-                      </h3>
-                      <span
-                        className="px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wide"
-                        style={{
-                          backgroundColor: `${supervisor.color}15`,
-                          color: supervisor.color,
-                        }}
-                      >
-                        Supervisor
-                      </span>
-                    </div>
-                    <p className="text-stone-500 mt-1">{supervisor.role} · {supervisor.licenseType}</p>
-                  </div>
-                  <div className="text-right">
-                    <p
-                      className="text-4xl font-bold text-stone-800"
-                      style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-                    >
-                      {getSuperviseesOf(supervisor.id).length}
-                    </p>
-                    <p className="text-sm text-stone-400 font-medium uppercase tracking-wide">Supervisees</p>
-                  </div>
+      {/* Status Summary */}
+      {needsSupervision.length > 0 && (
+        <AnimatedSection delay={0.05}>
+          <div className="mb-6 flex items-center gap-4">
+            <div className={`flex-1 p-4 rounded-xl ${unassignedCount > 0 ? 'bg-amber-50 border-2 border-amber-200' : 'bg-emerald-50 border-2 border-emerald-200'}`}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  {unassignedCount > 0 ? (
+                    <AlertTriangle size={20} className="text-amber-600" />
+                  ) : (
+                    <Check size={20} className="text-emerald-600" />
+                  )}
+                  <span className={`font-semibold ${unassignedCount > 0 ? 'text-amber-800' : 'text-emerald-800'}`}>
+                    {unassignedCount > 0
+                      ? `${unassignedCount} clinician${unassignedCount > 1 ? 's' : ''} need${unassignedCount === 1 ? 's' : ''} a supervisor`
+                      : 'All clinicians have supervisors assigned'}
+                  </span>
                 </div>
+                <span className="text-sm text-stone-500">
+                  {assignedCount} of {needsSupervision.length} assigned
+                </span>
               </div>
+            </div>
+          </div>
+        </AnimatedSection>
+      )}
 
-              {/* Supervisees */}
-              <div className="divide-y divide-stone-50">
-                {getSuperviseesOf(supervisor.id).map((supervisee) => (
+      {/* Simple table for those needing supervision */}
+      {needsSupervision.length > 0 ? (
+        <>
+          {/* Table Header */}
+          <AnimatedSection delay={0.1}>
+            <div className="grid grid-cols-12 gap-4 px-5 py-3 text-xs font-bold text-stone-400 uppercase tracking-wide border-b border-stone-200">
+              <div className="col-span-5">Clinician</div>
+              <div className="col-span-3">License & Role</div>
+              <div className="col-span-4">Supervisor</div>
+            </div>
+          </AnimatedSection>
+
+          <div className="divide-y divide-stone-100">
+            {needsSupervision.map((clinician, index) => {
+              const currentSupervisor = canSupervise.find(s => s.id === clinician.supervisorId);
+              const isUnassigned = !clinician.supervisorId;
+
+              return (
+                <AnimatedSection key={clinician.id} delay={index * 0.03 + 0.15}>
                   <div
-                    key={supervisee.id}
-                    className="p-5 pl-10 flex items-center gap-5 hover:bg-stone-50/50 transition-colors"
+                    className={`grid grid-cols-12 gap-4 px-5 py-4 items-center transition-colors ${
+                      isUnassigned ? 'bg-amber-50/50' : 'hover:bg-stone-50'
+                    }`}
                   >
-                    <div className="relative">
-                      <div className="absolute -left-5 top-1/2 w-4 h-px bg-stone-200" />
+                    {/* Clinician */}
+                    <div className="col-span-5 flex items-center gap-4">
                       <div
-                        className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-semibold"
+                        className="w-11 h-11 rounded-xl flex items-center justify-center text-white font-bold"
                         style={{
-                          background: `linear-gradient(135deg, ${supervisee.color} 0%, ${supervisee.color}cc 100%)`,
+                          background: `linear-gradient(135deg, ${clinician.color} 0%, ${clinician.color}dd 100%)`,
                         }}
                       >
-                        {supervisee.initials}
+                        {clinician.initials}
+                      </div>
+                      <div>
+                        <p
+                          className="font-semibold text-stone-800"
+                          style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                        >
+                          {clinician.name}
+                        </p>
+                        {isUnassigned && (
+                          <p className="text-xs text-amber-600 font-medium">Needs supervisor</p>
+                        )}
                       </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-stone-700 text-lg">{supervisee.name}</p>
-                      <p className="text-stone-400">{supervisee.role}</p>
+
+                    {/* License & Role */}
+                    <div className="col-span-3">
+                      <p className="text-stone-600 text-sm font-medium">{clinician.licenseType}</p>
+                      <p className="text-stone-400 text-xs">{clinician.role}</p>
                     </div>
-                    <select
-                      value={supervisee.supervisorId || ''}
-                      onChange={(e) => handleUpdateSupervisor(supervisee.id, e.target.value || null)}
-                      className="px-4 py-2.5 rounded-xl bg-stone-50 border-0 text-stone-600 font-medium focus:outline-none focus:ring-2 focus:ring-amber-300"
+
+                    {/* Supervisor Dropdown */}
+                    <div className="col-span-4">
+                      <select
+                        value={clinician.supervisorId || ''}
+                        onChange={(e) => handleUpdateSupervisor(clinician.id, e.target.value || null)}
+                        className={`w-full px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-300 cursor-pointer transition-colors ${
+                          isUnassigned
+                            ? 'bg-white border-2 border-amber-300 text-amber-700'
+                            : 'bg-stone-100 border-0 text-stone-700 hover:bg-stone-200'
+                        }`}
+                      >
+                        <option value="">{isUnassigned ? 'Select supervisor...' : 'No supervisor'}</option>
+                        {canSupervise.map(s => (
+                          <option key={s.id} value={s.id}>{s.name} ({s.licenseType})</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </AnimatedSection>
+              );
+            })}
+          </div>
+
+          {/* Available Supervisors Reference */}
+          <AnimatedSection delay={needsSupervision.length * 0.03 + 0.2}>
+            <div className="mt-8 p-5 rounded-xl bg-stone-100">
+              <p className="text-xs font-bold text-stone-500 uppercase tracking-wide mb-3">Available Supervisors</p>
+              <div className="flex flex-wrap gap-2">
+                {canSupervise.map(s => (
+                  <div
+                    key={s.id}
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white"
+                  >
+                    <div
+                      className="w-6 h-6 rounded-md flex items-center justify-center text-white text-xs font-bold"
+                      style={{ background: s.color }}
                     >
-                      <option value="">No Supervisor</option>
-                      {clinicians.filter(c => c.id !== supervisee.id && !c.supervisorId).map(c => (
-                        <option key={c.id} value={c.id}>{c.name}</option>
-                      ))}
-                    </select>
+                      {s.initials}
+                    </div>
+                    <span className="text-sm text-stone-700 font-medium">{s.name}</span>
+                    <span className="text-xs text-stone-400">{s.licenseType}</span>
                   </div>
                 ))}
-                {getSuperviseesOf(supervisor.id).length === 0 && (
-                  <div className="p-8 text-center text-stone-400">
-                    No supervisees assigned
-                  </div>
-                )}
               </div>
-            </ConfigCard>
+            </div>
           </AnimatedSection>
-        ))}
-      </div>
+        </>
+      ) : (
+        /* Empty State */
+        <AnimatedSection delay={0.1}>
+          <div className="text-center py-20">
+            <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-emerald-100 flex items-center justify-center">
+              <Check size={36} className="text-emerald-500" />
+            </div>
+            <h3
+              className="text-xl font-bold text-stone-700 mb-2"
+              style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+            >
+              No supervision assignments needed
+            </h3>
+            <p className="text-stone-400">
+              All active clinicians are marked as independent in Team Members
+            </p>
+          </div>
+        </AnimatedSection>
+      )}
     </PageContent>
   );
 };
 
-// Clinicians Tab
-const CliniciansTab: React.FC<{
+// Clinician Goals Tab - Session goals, client goals, and compensation
+const ClinicianGoalsTab: React.FC<{
   clinicians: Clinician[];
   onUpdate: (clinicians: Clinician[]) => void;
 }> = ({ clinicians, onUpdate }) => {
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState<Partial<Clinician>>({});
-
-  const handleStartEdit = (clinician: Clinician) => {
-    setEditingId(clinician.id);
-    setEditForm(clinician);
+  const handleUpdateClinician = (id: string, updates: Partial<Clinician>) => {
+    onUpdate(clinicians.map(c => c.id === id ? { ...c, ...updates } : c));
   };
 
-  const handleSaveEdit = () => {
-    if (editingId && editForm) {
-      onUpdate(clinicians.map(c => c.id === editingId ? { ...c, ...editForm } : c));
-      setEditingId(null);
-      setEditForm({});
-    }
-  };
+  // Only show active clinicians
+  const activeClinicians = clinicians.filter(c => c.isActive);
 
-  const handleToggleActive = (id: string) => {
-    onUpdate(clinicians.map(c => c.id === id ? { ...c, isActive: !c.isActive } : c));
-  };
+  // Calculate practice totals
+  const totalSessionGoal = activeClinicians.reduce((sum, c) => sum + c.sessionGoal, 0);
+  const totalClientGoal = activeClinicians.reduce((sum, c) => sum + c.clientGoal, 0);
+  const avgTakeRate = activeClinicians.length > 0
+    ? Math.round(activeClinicians.reduce((sum, c) => sum + c.takeRate, 0) / activeClinicians.length)
+    : 0;
 
   return (
     <PageContent>
@@ -685,219 +922,135 @@ const CliniciansTab: React.FC<{
             className="text-3xl font-bold text-stone-800"
             style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
           >
-            Clinician Configuration
+            Clinician Goals
           </h2>
-          <p className="text-stone-500 text-lg mt-1">Set individual goals, compensation rates, and credentials</p>
+          <p className="text-stone-500 text-lg mt-1">Set individual performance targets and compensation</p>
         </div>
       </AnimatedSection>
 
-      <div className="space-y-4">
-        {clinicians.map((clinician, index) => (
-          <AnimatedSection key={clinician.id} delay={index * 0.05}>
-            <ConfigCard>
-              <AnimatePresence mode="wait">
-                {editingId === clinician.id ? (
-                  <motion.div
-                    key="edit"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="p-6"
-                  >
-                    <div className="flex items-center gap-4 mb-6">
-                      <div
-                        className="w-14 h-14 rounded-xl flex items-center justify-center text-white font-bold text-lg"
-                        style={{ background: clinician.color }}
+      {/* Summary Bar */}
+      {activeClinicians.length > 0 && (
+        <AnimatedSection delay={0.05}>
+          <div className="mb-6 p-4 rounded-xl bg-stone-800 text-white flex items-center justify-between">
+            <span className="font-medium text-stone-300">Practice Totals</span>
+            <div className="flex items-center gap-8">
+              <div className="flex items-center gap-2">
+                <Calendar size={16} className="text-blue-400" />
+                <span className="font-bold">{totalSessionGoal}</span>
+                <span className="text-stone-400 text-sm">sessions/wk</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Users size={16} className="text-emerald-400" />
+                <span className="font-bold">{totalClientGoal}</span>
+                <span className="text-stone-400 text-sm">clients</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <DollarSign size={16} className="text-amber-400" />
+                <span className="font-bold">{avgTakeRate}%</span>
+                <span className="text-stone-400 text-sm">avg take</span>
+              </div>
+            </div>
+          </div>
+        </AnimatedSection>
+      )}
+
+      {/* Clinician List */}
+      <div className="space-y-3">
+        {activeClinicians.map((clinician, index) => (
+          <AnimatedSection key={clinician.id} delay={index * 0.04 + 0.1}>
+            <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
+              <ConfigCard>
+                <div className="p-5">
+                  <div className="flex items-center gap-5">
+                    {/* Avatar */}
+                    <div
+                      className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold flex-shrink-0"
+                      style={{
+                        background: `linear-gradient(135deg, ${clinician.color} 0%, ${clinician.color}dd 100%)`,
+                        boxShadow: `0 3px 10px ${clinician.color}30`,
+                      }}
+                    >
+                      {clinician.initials}
+                    </div>
+
+                    {/* Name & Role */}
+                    <div className="flex-1 min-w-0">
+                      <h3
+                        className="text-lg font-bold text-stone-800"
+                        style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                       >
-                        {clinician.initials}
-                      </div>
-                      <div>
-                        <h3
-                          className="text-xl font-bold text-stone-800"
+                        {clinician.name}
+                      </h3>
+                      <p className="text-stone-400 text-sm">{clinician.role}</p>
+                    </div>
+
+                    {/* Inline Goal Inputs */}
+                    <div className="flex items-center gap-4">
+                      {/* Session Goal */}
+                      <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-blue-50">
+                        <Calendar size={16} className="text-blue-500" />
+                        <input
+                          type="number"
+                          value={clinician.sessionGoal}
+                          onChange={(e) => handleUpdateClinician(clinician.id, { sessionGoal: Math.max(0, Number(e.target.value)) })}
+                          className="w-12 bg-transparent text-blue-700 font-bold text-lg text-center focus:outline-none"
                           style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-                        >
-                          Editing {clinician.name}
-                        </h3>
-                        <p className="text-stone-500">{clinician.role}</p>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
-                      <InputField
-                        label="Weekly Session Goal"
-                        type="number"
-                        value={editForm.sessionGoal || 0}
-                        onChange={(v) => setEditForm(prev => ({ ...prev, sessionGoal: Number(v) }))}
-                        suffix="sessions"
-                      />
-                      <InputField
-                        label="Client Goal"
-                        type="number"
-                        value={editForm.clientGoal || 0}
-                        onChange={(v) => setEditForm(prev => ({ ...prev, clientGoal: Number(v) }))}
-                        suffix="clients"
-                      />
-                      <InputField
-                        label="Take Rate"
-                        type="number"
-                        value={editForm.takeRate || 0}
-                        onChange={(v) => setEditForm(prev => ({ ...prev, takeRate: Number(v) }))}
-                        suffix="%"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
-                      <InputField
-                        label="Role"
-                        value={editForm.role || ''}
-                        onChange={(v) => setEditForm(prev => ({ ...prev, role: v }))}
-                        placeholder="e.g., Senior Therapist"
-                      />
-                      <InputField
-                        label="License Type"
-                        value={editForm.licenseType || ''}
-                        onChange={(v) => setEditForm(prev => ({ ...prev, licenseType: v }))}
-                        placeholder="e.g., LCSW, LPC, PhD"
-                      />
-                    </div>
-
-                    <div className="flex justify-end gap-3">
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => { setEditingId(null); setEditForm({}); }}
-                        className="px-5 py-3 rounded-xl font-semibold text-stone-600 bg-stone-100 hover:bg-stone-200 transition-colors"
-                      >
-                        Cancel
-                      </motion.button>
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={handleSaveEdit}
-                        className="px-5 py-3 rounded-xl font-semibold text-white flex items-center gap-2"
-                        style={{
-                          background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                          boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
-                        }}
-                      >
-                        <Check size={18} />
-                        Save Changes
-                      </motion.button>
-                    </div>
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="view"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="p-6"
-                  >
-                    <div className="flex items-center gap-6">
-                      {/* Avatar */}
-                      <div className="relative">
-                        <div
-                          className={`
-                            w-16 h-16 rounded-2xl flex items-center justify-center text-white font-bold text-xl
-                            ${!clinician.isActive ? 'opacity-50 grayscale' : ''}
-                          `}
-                          style={{
-                            background: `linear-gradient(135deg, ${clinician.color} 0%, ${clinician.color}cc 100%)`,
-                            boxShadow: clinician.isActive ? `0 4px 16px ${clinician.color}40` : 'none',
-                          }}
-                        >
-                          {clinician.initials}
-                        </div>
-                        {!clinician.isActive && (
-                          <div className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-stone-400 flex items-center justify-center">
-                            <X size={14} className="text-white" />
-                          </div>
-                        )}
+                        />
+                        <span className="text-blue-400 text-xs font-medium">/wk</span>
                       </div>
 
-                      {/* Info */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-3">
-                          <h3
-                            className={`text-xl font-bold ${clinician.isActive ? 'text-stone-800' : 'text-stone-400'}`}
-                            style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-                          >
-                            {clinician.name}
-                          </h3>
-                          {!clinician.isActive && (
-                            <span className="px-2.5 py-1 rounded-lg bg-stone-100 text-stone-400 text-xs font-semibold">
-                              Inactive
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-stone-500">{clinician.role} · {clinician.licenseType}</p>
+                      {/* Client Goal */}
+                      <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-50">
+                        <Users size={16} className="text-emerald-500" />
+                        <input
+                          type="number"
+                          value={clinician.clientGoal}
+                          onChange={(e) => handleUpdateClinician(clinician.id, { clientGoal: Math.max(0, Number(e.target.value)) })}
+                          className="w-12 bg-transparent text-emerald-700 font-bold text-lg text-center focus:outline-none"
+                          style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                        />
+                        <span className="text-emerald-400 text-xs font-medium">clients</span>
                       </div>
 
-                      {/* Stats */}
-                      <div className="hidden lg:flex items-center gap-8">
-                        <div className="text-center">
-                          <p
-                            className="text-2xl font-bold text-stone-800"
-                            style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-                          >
-                            {clinician.sessionGoal}
-                          </p>
-                          <p className="text-xs text-stone-400 font-medium uppercase tracking-wide">Sessions/wk</p>
-                        </div>
-                        <div className="w-px h-12 bg-stone-100" />
-                        <div className="text-center">
-                          <p
-                            className="text-2xl font-bold text-stone-800"
-                            style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-                          >
-                            {clinician.clientGoal}
-                          </p>
-                          <p className="text-xs text-stone-400 font-medium uppercase tracking-wide">Clients</p>
-                        </div>
-                        <div className="w-px h-12 bg-stone-100" />
-                        <div className="text-center">
-                          <p
-                            className="text-2xl font-bold text-amber-600"
-                            style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-                          >
-                            {clinician.takeRate}%
-                          </p>
-                          <p className="text-xs text-stone-400 font-medium uppercase tracking-wide">Take Rate</p>
-                        </div>
-                      </div>
-
-                      {/* Actions */}
-                      <div className="flex items-center gap-2">
-                        <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          onClick={() => handleToggleActive(clinician.id)}
-                          className={`
-                            p-3 rounded-xl transition-colors
-                            ${clinician.isActive
-                              ? 'bg-stone-50 text-stone-400 hover:bg-red-50 hover:text-red-500'
-                              : 'bg-emerald-50 text-emerald-500 hover:bg-emerald-100'}
-                          `}
-                          title={clinician.isActive ? 'Deactivate' : 'Activate'}
-                        >
-                          {clinician.isActive ? <X size={20} /> : <Check size={20} />}
-                        </motion.button>
-                        <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          onClick={() => handleStartEdit(clinician)}
-                          className="p-3 rounded-xl bg-stone-50 text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition-colors"
-                        >
-                          <Pencil size={20} />
-                        </motion.button>
+                      {/* Take Rate */}
+                      <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-50">
+                        <DollarSign size={16} className="text-amber-500" />
+                        <input
+                          type="number"
+                          value={clinician.takeRate}
+                          onChange={(e) => handleUpdateClinician(clinician.id, { takeRate: Math.max(0, Math.min(100, Number(e.target.value))) })}
+                          className="w-12 bg-transparent text-amber-700 font-bold text-lg text-center focus:outline-none"
+                          style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                        />
+                        <span className="text-amber-400 text-xs font-medium">%</span>
                       </div>
                     </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </ConfigCard>
+                  </div>
+                </div>
+              </ConfigCard>
+            </motion.div>
           </AnimatedSection>
         ))}
+
+        {/* Empty state for no active clinicians */}
+        {activeClinicians.length === 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center py-20"
+          >
+            <div className="w-24 h-24 mx-auto mb-6 rounded-2xl bg-stone-100 flex items-center justify-center">
+              <Users size={40} className="text-stone-300" />
+            </div>
+            <h3
+              className="text-2xl font-bold text-stone-600 mb-2"
+              style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+            >
+              No active clinicians
+            </h3>
+            <p className="text-stone-400 text-lg">Activate team members in the Team Members tab first</p>
+          </motion.div>
+        )}
       </div>
     </PageContent>
   );
@@ -1696,12 +1849,24 @@ export const PracticeConfigurationPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = (searchParams.get('tab') as ConfigTab) || 'locations';
 
-  // State
+  // Get settings from context (persisted to localStorage)
+  const { settings, updateSettings } = useSettings();
+  const { practiceGoals, thresholds } = settings;
+
+  // Local state for non-persisted data
   const [locations, setLocations] = useState<Location[]>(MOCK_LOCATIONS);
   const [clinicians, setClinicians] = useState<Clinician[]>(MOCK_CLINICIANS);
-  const [practiceGoals, setPracticeGoals] = useState<PracticeGoals>(MOCK_PRACTICE_GOALS);
-  const [thresholds, setThresholds] = useState<MetricThresholds>(MOCK_THRESHOLDS);
   const [ehr, setEHR] = useState<EHRConnection>(MOCK_EHR);
+
+  // Update practice goals in context (persists to localStorage)
+  const handleUpdatePracticeGoals = (newGoals: PracticeGoals) => {
+    updateSettings({ practiceGoals: newGoals });
+  };
+
+  // Update thresholds in context (persists to localStorage)
+  const handleUpdateThresholds = (newThresholds: MetricThresholds) => {
+    updateSettings({ thresholds: newThresholds });
+  };
 
   const handleTabChange = (tabId: string) => {
     const newParams = new URLSearchParams(searchParams);
@@ -1737,24 +1902,29 @@ export const PracticeConfigurationPage: React.FC = () => {
             <LocationsTab locations={locations} onUpdate={setLocations} />
           </motion.div>
         )}
+        {activeTab === 'members' && (
+          <motion.div key="members" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <TeamMembersTab clinicians={clinicians} onUpdate={setClinicians} />
+          </motion.div>
+        )}
         {activeTab === 'team' && (
           <motion.div key="team" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             <TeamStructureTab clinicians={clinicians} onUpdate={setClinicians} />
           </motion.div>
         )}
-        {activeTab === 'clinicians' && (
-          <motion.div key="clinicians" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <CliniciansTab clinicians={clinicians} onUpdate={setClinicians} />
+        {activeTab === 'clinician-goals' && (
+          <motion.div key="clinician-goals" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <ClinicianGoalsTab clinicians={clinicians} onUpdate={setClinicians} />
           </motion.div>
         )}
         {activeTab === 'goals' && (
           <motion.div key="goals" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <PracticeGoalsTab goals={practiceGoals} onUpdate={setPracticeGoals} />
+            <PracticeGoalsTab goals={practiceGoals} onUpdate={handleUpdatePracticeGoals} />
           </motion.div>
         )}
         {activeTab === 'thresholds' && (
           <motion.div key="thresholds" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <ThresholdsTab thresholds={thresholds} onUpdate={setThresholds} />
+            <ThresholdsTab thresholds={thresholds} onUpdate={handleUpdateThresholds} />
           </motion.div>
         )}
         {activeTab === 'ehr' && (

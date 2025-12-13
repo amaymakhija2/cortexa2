@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Calendar, Check } from 'lucide-react';
 import { PageHeader } from './design-system';
+import { CLINICIANS as MASTER_CLINICIANS } from '../data/clinicians';
 
 // =============================================================================
 // CLIENT ROSTER COMPONENT
@@ -8,6 +9,7 @@ import { PageHeader } from './design-system';
 // A client health dashboard showing all clients organized by lifecycle stage.
 // Segments: All, Healthy, At-Risk, New Clients, Milestone Approaching, Recently Churned
 // Design follows the same patterns as Clinician Overview/Rankings page.
+// Uses master clinician list from data/clinicians.ts
 // =============================================================================
 
 // Client lifecycle segment IDs
@@ -59,13 +61,11 @@ const STATUS_COLORS: Record<ClientStatus, { bg: string; text: string; dot: strin
 // Helper to generate healthy clients
 const FIRST_NAMES = ['Emma', 'Michael', 'Jessica', 'David', 'Sarah', 'Christopher', 'Amanda', 'Daniel', 'Jennifer', 'Robert', 'Ashley', 'Matthew', 'Emily', 'Andrew', 'Megan', 'Joshua', 'Lauren', 'Brandon', 'Rachel', 'Justin', 'Samantha', 'Ryan', 'Nicole', 'Tyler', 'Stephanie', 'Kevin', 'Heather', 'Jason', 'Michelle', 'Aaron', 'Amber', 'Adam', 'Brittany', 'Nathan', 'Danielle', 'Zachary', 'Rebecca', 'Kyle', 'Laura', 'Jeremy', 'Kayla', 'Eric', 'Christina', 'Brian', 'Melissa', 'Mark', 'Amy', 'Steven', 'Angela', 'Thomas', 'Kimberly', 'Timothy', 'Mary', 'Sean', 'Lisa', 'Patrick', 'Elizabeth', 'Gregory', 'Anna', 'Jonathan', 'Victoria', 'Kenneth', 'Allison', 'Benjamin', 'Julia', 'Scott', 'Katherine', 'Paul', 'Alexandra', 'Peter', 'Catherine', 'Raymond', 'Sophia', 'Douglas', 'Hannah', 'George', 'Natalie', 'Edward', 'Grace', 'Henry', 'Olivia', 'Walter', 'Chloe', 'Arthur', 'Madison', 'Lawrence', 'Abigail', 'Albert', 'Ella', 'Joe', 'Lily', 'Louis', 'Zoe', 'Carl', 'Mia', 'Harry', 'Ava', 'Samuel', 'Charlotte', 'Jack', 'Harper', 'Dennis', 'Aria', 'Jerry', 'Riley', 'Alexander', 'Layla', 'Philip', 'Luna', 'Russell', 'Nora', 'Randy', 'Hazel', 'Howard', 'Violet', 'Eugene', 'Aurora', 'Carlos', 'Savannah', 'Bruce', 'Brooklyn', 'Jordan', 'Leah', 'Wayne', 'Stella', 'Roy', 'Bella', 'Vincent', 'Claire'];
 const LAST_NAMES = ['Thompson', 'Brown', 'Davis', 'Wilson', 'Miller', 'Lee', 'Garcia', 'Martinez', 'Anderson', 'Taylor', 'Thomas', 'Jackson', 'White', 'Harris', 'Martin', 'Robinson', 'Clark', 'Lewis', 'Walker', 'Hall', 'Young', 'Allen', 'King', 'Wright', 'Scott', 'Green', 'Baker', 'Adams', 'Nelson', 'Hill', 'Moore', 'Campbell', 'Mitchell', 'Roberts', 'Carter', 'Phillips', 'Evans', 'Turner', 'Torres', 'Parker', 'Collins', 'Edwards', 'Stewart', 'Flores', 'Morris', 'Nguyen', 'Murphy', 'Rivera', 'Cook', 'Rogers', 'Morgan', 'Peterson', 'Cooper', 'Reed', 'Bailey', 'Bell', 'Gomez', 'Kelly', 'Howard', 'Ward', 'Cox', 'Diaz', 'Richardson', 'Wood', 'Watson', 'Brooks', 'Bennett', 'Gray', 'James', 'Reyes', 'Cruz', 'Hughes', 'Price', 'Myers', 'Long', 'Foster', 'Sanders', 'Ross', 'Morales', 'Powell', 'Sullivan', 'Russell', 'Ortiz', 'Jenkins', 'Gutierrez', 'Perry', 'Butler', 'Barnes', 'Fisher', 'Henderson', 'Coleman', 'Simmons', 'Patterson', 'Jordan', 'Reynolds', 'Hamilton', 'Graham', 'Kim', 'Gonzalez', 'Alexander', 'Ramos', 'Wallace', 'Griffin', 'West', 'Cole', 'Hayes', 'Chavez', 'Gibson', 'Bryant', 'Ellis', 'Stevens', 'Murray', 'Ford', 'Marshall', 'Owens', 'McDonald', 'Harrison', 'Ruiz', 'Kennedy', 'Wells', 'Alvarez', 'Woods', 'Mendoza', 'Castillo', 'Olson', 'Webb', 'Washington', 'Tucker', 'Freeman', 'Burns', 'Henry', 'Vasquez'];
-const CLINICIANS = [
-  { full: 'Dr. Sarah Chen', short: 'S. Chen' },
-  { full: 'Dr. Maria Rodriguez', short: 'M. Rodriguez' },
-  { full: 'Dr. Aisha Patel', short: 'A. Patel' },
-  { full: 'Dr. James Kim', short: 'J. Kim' },
-  { full: 'Dr. Michelle Johnson', short: 'M. Johnson' },
-];
+// Map master clinicians to display format for this component
+const CLINICIANS = MASTER_CLINICIANS.map(c => ({
+  full: `Dr. ${c.name}`,
+  short: `${c.name.split(' ')[0][0]}. ${c.lastName}`,
+}));
 const APPOINTMENTS = ['Dec 8', 'Dec 9', 'Dec 10', 'Dec 11', 'Dec 12', 'Dec 13', 'Dec 14', 'Dec 15', 'Dec 16', 'Dec 17', 'Dec 18', 'Dec 19', 'Dec 20'];
 
 // Generate 128 healthy clients
@@ -97,38 +97,38 @@ const MOCK_CLIENTS: Client[] = [
 
   // At-risk clients (8)
   { id: 'r1', name: 'Sarah Mitchell', initials: 'SM', clinician: 'Dr. Sarah Chen', clinicianShort: 'S. Chen', totalSessions: 12, lastSeenDays: 28, nextAppointment: null, status: 'at-risk' },
-  { id: 'r2', name: 'James Rodriguez', initials: 'JR', clinician: 'Dr. Aisha Patel', clinicianShort: 'A. Patel', totalSessions: 8, lastSeenDays: 24, nextAppointment: null, status: 'at-risk' },
+  { id: 'r2', name: 'James Rodriguez', initials: 'JR', clinician: 'Dr. Priya Patel', clinicianShort: 'P. Patel', totalSessions: 8, lastSeenDays: 24, nextAppointment: null, status: 'at-risk' },
   { id: 'r3', name: 'Emily Watson', initials: 'EW', clinician: 'Dr. James Kim', clinicianShort: 'J. Kim', totalSessions: 15, lastSeenDays: 21, nextAppointment: null, status: 'at-risk' },
   { id: 'r4', name: 'Michael Chen', initials: 'MC', clinician: 'Dr. Maria Rodriguez', clinicianShort: 'M. Rodriguez', totalSessions: 6, lastSeenDays: 18, nextAppointment: null, status: 'at-risk' },
-  { id: 'r5', name: 'Lisa Thompson', initials: 'LT', clinician: 'Dr. Michelle Johnson', clinicianShort: 'M. Johnson', totalSessions: 4, lastSeenDays: 16, nextAppointment: null, status: 'at-risk' },
+  { id: 'r5', name: 'Lisa Thompson', initials: 'LT', clinician: 'Dr. Michael Johnson', clinicianShort: 'M. Johnson', totalSessions: 4, lastSeenDays: 16, nextAppointment: null, status: 'at-risk' },
   { id: 'r6', name: 'David Park', initials: 'DP', clinician: 'Dr. Sarah Chen', clinicianShort: 'S. Chen', totalSessions: 22, lastSeenDays: 15, nextAppointment: null, status: 'at-risk' },
-  { id: 'r7', name: 'Jennifer Lee', initials: 'JL', clinician: 'Dr. Aisha Patel', clinicianShort: 'A. Patel', totalSessions: 9, lastSeenDays: 12, nextAppointment: null, status: 'at-risk' },
+  { id: 'r7', name: 'Jennifer Lee', initials: 'JL', clinician: 'Dr. Priya Patel', clinicianShort: 'P. Patel', totalSessions: 9, lastSeenDays: 12, nextAppointment: null, status: 'at-risk' },
   { id: 'r8', name: 'Robert Garcia', initials: 'RG', clinician: 'Dr. James Kim', clinicianShort: 'J. Kim', totalSessions: 3, lastSeenDays: 10, nextAppointment: null, status: 'at-risk' },
 
   // New clients (12) - first 3 sessions
   { id: 'n1', name: 'Amanda Foster', initials: 'AF', clinician: 'Dr. Sarah Chen', clinicianShort: 'S. Chen', totalSessions: 2, lastSeenDays: 5, nextAppointment: 'Dec 12', status: 'new' },
-  { id: 'n2', name: 'Brian Martinez', initials: 'BM', clinician: 'Dr. Aisha Patel', clinicianShort: 'A. Patel', totalSessions: 1, lastSeenDays: 3, nextAppointment: 'Dec 10', status: 'new' },
+  { id: 'n2', name: 'Brian Martinez', initials: 'BM', clinician: 'Dr. Priya Patel', clinicianShort: 'P. Patel', totalSessions: 1, lastSeenDays: 3, nextAppointment: 'Dec 10', status: 'new' },
   { id: 'n3', name: 'Christina Liu', initials: 'CL', clinician: 'Dr. James Kim', clinicianShort: 'J. Kim', totalSessions: 2, lastSeenDays: 7, nextAppointment: 'Dec 14', status: 'new' },
   { id: 'n4', name: 'Daniel Williams', initials: 'DW', clinician: 'Dr. Maria Rodriguez', clinicianShort: 'M. Rodriguez', totalSessions: 1, lastSeenDays: 2, nextAppointment: 'Dec 9', status: 'new' },
-  { id: 'n5', name: 'Elena Petrova', initials: 'EP', clinician: 'Dr. Michelle Johnson', clinicianShort: 'M. Johnson', totalSessions: 3, lastSeenDays: 4, nextAppointment: 'Dec 11', status: 'new' },
+  { id: 'n5', name: 'Elena Petrova', initials: 'EP', clinician: 'Dr. Michael Johnson', clinicianShort: 'M. Johnson', totalSessions: 3, lastSeenDays: 4, nextAppointment: 'Dec 11', status: 'new' },
   { id: 'n6', name: 'Frank Nakamura', initials: 'FN', clinician: 'Dr. Sarah Chen', clinicianShort: 'S. Chen', totalSessions: 2, lastSeenDays: 6, nextAppointment: 'Dec 13', status: 'new' },
-  { id: 'n7', name: 'Grace O\'Brien', initials: 'GO', clinician: 'Dr. Aisha Patel', clinicianShort: 'A. Patel', totalSessions: 1, lastSeenDays: 1, nextAppointment: 'Dec 8', status: 'new' },
+  { id: 'n7', name: 'Grace O\'Brien', initials: 'GO', clinician: 'Dr. Priya Patel', clinicianShort: 'P. Patel', totalSessions: 1, lastSeenDays: 1, nextAppointment: 'Dec 8', status: 'new' },
   { id: 'n8', name: 'Henry Kim', initials: 'HK', clinician: 'Dr. James Kim', clinicianShort: 'J. Kim', totalSessions: 2, lastSeenDays: 5, nextAppointment: 'Dec 12', status: 'new' },
   { id: 'n9', name: 'Isabella Santos', initials: 'IS', clinician: 'Dr. Maria Rodriguez', clinicianShort: 'M. Rodriguez', totalSessions: 1, lastSeenDays: 3, nextAppointment: 'Dec 10', status: 'new' },
-  { id: 'n10', name: 'Jack Thompson', initials: 'JT', clinician: 'Dr. Michelle Johnson', clinicianShort: 'M. Johnson', totalSessions: 3, lastSeenDays: 7, nextAppointment: 'Dec 15', status: 'new' },
+  { id: 'n10', name: 'Jack Thompson', initials: 'JT', clinician: 'Dr. Michael Johnson', clinicianShort: 'M. Johnson', totalSessions: 3, lastSeenDays: 7, nextAppointment: 'Dec 15', status: 'new' },
   { id: 'n11', name: 'Karen White', initials: 'KW', clinician: 'Dr. Sarah Chen', clinicianShort: 'S. Chen', totalSessions: 2, lastSeenDays: 4, nextAppointment: 'Dec 11', status: 'new' },
-  { id: 'n12', name: 'Leo Hernandez', initials: 'LH', clinician: 'Dr. Aisha Patel', clinicianShort: 'A. Patel', totalSessions: 1, lastSeenDays: 2, nextAppointment: 'Dec 9', status: 'new' },
+  { id: 'n12', name: 'Leo Hernandez', initials: 'LH', clinician: 'Dr. Priya Patel', clinicianShort: 'P. Patel', totalSessions: 1, lastSeenDays: 2, nextAppointment: 'Dec 9', status: 'new' },
 
   // Milestone approaching (5) - about to hit session 3, 5, or 12
   { id: 'm1', name: 'Nicole Adams', initials: 'NA', clinician: 'Dr. Sarah Chen', clinicianShort: 'S. Chen', totalSessions: 2, lastSeenDays: 5, nextAppointment: 'Dec 12', status: 'milestone', milestone: 3 },
   { id: 'm2', name: 'Oliver Scott', initials: 'OS', clinician: 'Dr. Maria Rodriguez', clinicianShort: 'M. Rodriguez', totalSessions: 4, lastSeenDays: 3, nextAppointment: 'Dec 10', status: 'milestone', milestone: 5 },
-  { id: 'm3', name: 'Patricia Moore', initials: 'PM', clinician: 'Dr. Aisha Patel', clinicianShort: 'A. Patel', totalSessions: 4, lastSeenDays: 6, nextAppointment: 'Dec 13', status: 'milestone', milestone: 5 },
+  { id: 'm3', name: 'Patricia Moore', initials: 'PM', clinician: 'Dr. Priya Patel', clinicianShort: 'P. Patel', totalSessions: 4, lastSeenDays: 6, nextAppointment: 'Dec 13', status: 'milestone', milestone: 5 },
   { id: 'm4', name: 'Quinn Johnson', initials: 'QJ', clinician: 'Dr. James Kim', clinicianShort: 'J. Kim', totalSessions: 11, lastSeenDays: 4, nextAppointment: 'Dec 11', status: 'milestone', milestone: 12 },
-  { id: 'm5', name: 'Rachel Green', initials: 'RG', clinician: 'Dr. Michelle Johnson', clinicianShort: 'M. Johnson', totalSessions: 11, lastSeenDays: 7, nextAppointment: 'Dec 14', status: 'milestone', milestone: 12 },
+  { id: 'm5', name: 'Rachel Green', initials: 'RG', clinician: 'Dr. Michael Johnson', clinicianShort: 'M. Johnson', totalSessions: 11, lastSeenDays: 7, nextAppointment: 'Dec 14', status: 'milestone', milestone: 12 },
 
   // Recently churned (3) - left in last 90 days
   { id: 'c1', name: 'Steven Clark', initials: 'SC', clinician: 'Dr. Sarah Chen', clinicianShort: 'S. Chen', totalSessions: 8, lastSeenDays: 45, nextAppointment: null, status: 'churned', churnedDate: 'Oct 25' },
-  { id: 'c2', name: 'Tiffany Wright', initials: 'TW', clinician: 'Dr. Aisha Patel', clinicianShort: 'A. Patel', totalSessions: 3, lastSeenDays: 62, nextAppointment: null, status: 'churned', churnedDate: 'Oct 8' },
+  { id: 'c2', name: 'Tiffany Wright', initials: 'TW', clinician: 'Dr. Priya Patel', clinicianShort: 'P. Patel', totalSessions: 3, lastSeenDays: 62, nextAppointment: null, status: 'churned', churnedDate: 'Oct 8' },
   { id: 'c3', name: 'Victor Nguyen', initials: 'VN', clinician: 'Dr. James Kim', clinicianShort: 'J. Kim', totalSessions: 15, lastSeenDays: 78, nextAppointment: null, status: 'churned', churnedDate: 'Sep 22' },
 ];
 

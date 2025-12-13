@@ -7,6 +7,8 @@ import { useIsMobile } from '../hooks/useIsMobile';
 import { ToggleButton, GoalIndicator, ActionButton } from './design-system';
 import { FinancialAnalysisTab, SessionsAnalysisTab, CapacityClientTab, RetentionTab, InsuranceTab, AdminTab } from './analysis';
 import { ClientRoster } from './ClientRoster';
+// Note: Clinician last names in chart data (Chen, Rodriguez, Patel, Kim, Johnson)
+// match master list in data/clinicians.ts
 
 type TabType = 'clients' | 'financial' | 'sessions' | 'capacity-client' | 'retention' | 'insurance' | 'admin';
 

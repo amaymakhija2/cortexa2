@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Users, Loader2 } from 'lucide-react';
+import { Users, Loader2, Info } from 'lucide-react';
 import {
   useClinicianMetricsForPeriod,
   useClinicianMetricsForMonth,
@@ -11,18 +11,82 @@ import { MonthPicker } from './MonthPicker';
 import { useSettings, getDisplayName } from '../context/SettingsContext';
 import { ClinicianDetailsTab } from './ClinicianDetailsTab';
 import { PageHeader } from './design-system';
+import { CLINICIAN_SYNTHETIC_METRICS, getSyntheticMetricsByName } from '../data/clinicians';
 
-// Practice settings - kept here since hooks can't provide these synchronously
-// These are static configuration values that don't change
-const PRACTICE_SETTINGS = {
-  attendance: {
-    showRate: 0.71,
-    clientCancelled: 0.24,
-    lateCancelled: 0.03,
-    clinicianCancelled: 0.03,
-    rebookRate: 0.83,
-  },
-  outstandingNotesPercent: 0.22,
+// =============================================================================
+// INFO TOOLTIP COMPONENT
+// =============================================================================
+// Small inline tooltip for metric column headers
+
+const InfoTooltip: React.FC<{ text: string }> = ({ text }) => {
+  const [isVisible, setIsVisible] = useState(false);
+  const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const tooltipRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isVisible && triggerRef.current) {
+      // Use requestAnimationFrame to ensure DOM is ready
+      requestAnimationFrame(() => {
+        if (!triggerRef.current || !tooltipRef.current) return;
+
+        const triggerRect = triggerRef.current.getBoundingClientRect();
+        const tooltipRect = tooltipRef.current.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+
+        let top = triggerRect.bottom + 8;
+        let left = triggerRect.left + triggerRect.width / 2 - tooltipRect.width / 2;
+
+        // Keep tooltip within viewport horizontally
+        if (left + tooltipRect.width > viewportWidth - 16) {
+          left = viewportWidth - tooltipRect.width - 16;
+        }
+        if (left < 16) {
+          left = 16;
+        }
+
+        // If tooltip would go below viewport, show above instead
+        if (top + tooltipRect.height > viewportHeight - 16) {
+          top = triggerRect.top - tooltipRect.height - 8;
+        }
+
+        setPosition({ top, left });
+      });
+    } else {
+      setPosition(null);
+    }
+  }, [isVisible]);
+
+  return (
+    <span className="relative inline-flex items-center ml-1.5">
+      <button
+        ref={triggerRef}
+        type="button"
+        className="text-stone-400 hover:text-stone-600 transition-colors cursor-help"
+        onMouseEnter={() => setIsVisible(true)}
+        onMouseLeave={() => setIsVisible(false)}
+        onClick={(e) => e.preventDefault()}
+        aria-label="More information"
+      >
+        <Info size={14} />
+      </button>
+      {isVisible && (
+        <div
+          ref={tooltipRef}
+          className={`fixed z-[100000] w-72 transition-opacity duration-150 ${position ? 'opacity-100' : 'opacity-0'}`}
+          style={{
+            top: position?.top ?? -9999,
+            left: position?.left ?? -9999,
+          }}
+        >
+          <div className="bg-stone-900 text-white rounded-xl px-4 py-3 shadow-2xl text-sm font-normal normal-case tracking-normal leading-relaxed text-left">
+            {text}
+          </div>
+        </div>
+      )}
+    </span>
+  );
 };
 
 // =============================================================================
@@ -45,6 +109,7 @@ interface MetricConfig {
   shortLabel: string;
   format: (value: number) => string;
   higherIsBetter: boolean;
+  tooltip?: string; // Simple tooltip text explaining the metric
 }
 
 interface MetricGroupConfig {
@@ -70,6 +135,7 @@ const METRIC_GROUPS: MetricGroupConfig[] = [
       shortLabel: 'Revenue',
       format: (v) => `$${(v / 1000).toFixed(1)}K`,
       higherIsBetter: true,
+      tooltip: 'Total payments collected for the selected time period.',
     },
     supporting: [
       {
@@ -78,6 +144,7 @@ const METRIC_GROUPS: MetricGroupConfig[] = [
         shortLabel: 'Sessions',
         format: (v) => v.toLocaleString(),
         higherIsBetter: true,
+        tooltip: 'Number of sessions completed in the selected time period.',
       },
       {
         key: 'revenuePerSession',
@@ -85,6 +152,7 @@ const METRIC_GROUPS: MetricGroupConfig[] = [
         shortLabel: 'Avg $/Sess',
         format: (v) => `$${v.toFixed(0)}`,
         higherIsBetter: true,
+        tooltip: 'Average revenue collected per completed session.',
       },
     ],
   },
@@ -94,10 +162,11 @@ const METRIC_GROUPS: MetricGroupConfig[] = [
     description: 'Who has capacity for new clients?',
     primary: {
       key: 'caseloadPercent',
-      label: 'Caseload %',
+      label: 'Caseload Capacity',
       shortLabel: 'Caseload %',
       format: (v) => `${v.toFixed(0)}%`,
       higherIsBetter: true,
+      tooltip: 'Percentage of client capacity currently filled. Active Clients ÷ Client Goal.',
     },
     supporting: [
       {
@@ -106,6 +175,7 @@ const METRIC_GROUPS: MetricGroupConfig[] = [
         shortLabel: 'Active',
         format: (v) => v.toLocaleString(),
         higherIsBetter: true,
+        tooltip: 'Clients with active status (not discharged).',
       },
       {
         key: 'caseloadCapacity',
@@ -113,6 +183,7 @@ const METRIC_GROUPS: MetricGroupConfig[] = [
         shortLabel: 'Goal',
         format: (v) => v.toLocaleString(),
         higherIsBetter: true,
+        tooltip: 'Target number of active clients for this clinician.',
       },
     ],
   },
@@ -126,6 +197,7 @@ const METRIC_GROUPS: MetricGroupConfig[] = [
       shortLabel: 'New Clients',
       format: (v) => v.toLocaleString(),
       higherIsBetter: true,
+      tooltip: 'Clients who had their first session during this time period.',
     },
     supporting: [],
   },
@@ -139,6 +211,7 @@ const METRIC_GROUPS: MetricGroupConfig[] = [
       shortLabel: 'Goal %',
       format: (v) => `${v.toFixed(0)}%`,
       higherIsBetter: true,
+      tooltip: 'Completed sessions as a percentage of session goal.',
     },
     supporting: [
       {
@@ -147,6 +220,7 @@ const METRIC_GROUPS: MetricGroupConfig[] = [
         shortLabel: 'Sessions',
         format: (v) => v.toLocaleString(),
         higherIsBetter: true,
+        tooltip: 'Number of sessions completed in the selected time period.',
       },
       {
         key: 'weeklySessionGoal',
@@ -154,41 +228,46 @@ const METRIC_GROUPS: MetricGroupConfig[] = [
         shortLabel: 'Goal',
         format: (v) => v.toLocaleString(),
         higherIsBetter: true,
+        tooltip: 'Target number of sessions for this clinician.',
       },
     ],
   },
   {
     id: 'attendance',
     label: 'Attendance',
-    description: 'Who\'s losing appointments?',
+    description: 'Who has the most cancellations?',
     primary: {
       key: 'nonBillableCancelRate',
       label: 'Non-Billable Cancel Rate',
       shortLabel: 'Cancel Rate',
       format: (v) => `${v.toFixed(0)}%`,
       higherIsBetter: false,
+      tooltip: 'Client cancellations + late cancellations + no-shows as a percentage of all bookings.',
     },
     supporting: [
       {
         key: 'clientCancelRate',
-        label: 'Client Cancels',
+        label: 'Client Cancel Rate',
         shortLabel: 'Client',
         format: (v) => `${v.toFixed(0)}%`,
         higherIsBetter: false,
+        tooltip: 'Percentage of booked sessions cancelled by the client.',
       },
       {
         key: 'clinicianCancelRate',
-        label: 'Clinician Cancels',
+        label: 'Clinician Cancel Rate',
         shortLabel: 'Clinician',
         format: (v) => `${v.toFixed(0)}%`,
         higherIsBetter: false,
+        tooltip: 'Percentage of booked sessions cancelled by the clinician.',
       },
       {
         key: 'noShowRate',
-        label: 'No-Shows',
+        label: 'No-Show Rate',
         shortLabel: 'No-Show',
         format: (v) => `${v.toFixed(0)}%`,
         higherIsBetter: false,
+        tooltip: 'Percentage of booked sessions where the client did not attend without canceling.',
       },
     ],
   },
@@ -202,14 +281,16 @@ const METRIC_GROUPS: MetricGroupConfig[] = [
       shortLabel: 'Rebook',
       format: (v) => `${v.toFixed(0)}%`,
       higherIsBetter: true,
+      tooltip: 'Percentage of active clients who have their next appointment scheduled.',
     },
     supporting: [
       {
         key: 'avgSessionsPerClient',
-        label: 'Avg Sessions Per Client Per Month',
-        shortLabel: 'Avg/Client/Mo',
+        label: 'Avg Sessions/Client',
+        shortLabel: 'Avg/Client',
         format: (v) => Math.round(v).toString(),
         higherIsBetter: true,
+        tooltip: 'Average number of sessions per active client in this period.',
       },
     ],
   },
@@ -223,28 +304,32 @@ const METRIC_GROUPS: MetricGroupConfig[] = [
       shortLabel: 'Churn',
       format: (v) => `${v.toFixed(0)}%`,
       higherIsBetter: false,
+      tooltip: 'Percentage of clients who churned (no appointment in 30+ days and none scheduled).',
     },
     supporting: [
       {
         key: 'clientsChurned',
-        label: 'Clients Lost',
-        shortLabel: 'Lost',
+        label: 'Clients Churned',
+        shortLabel: 'Churned',
         format: (v) => v.toString(),
         higherIsBetter: false,
+        tooltip: 'Number of clients who have churned (no appointment in 30+ days and none scheduled).',
       },
       {
         key: 'atRiskClients',
-        label: 'Clients at Churn Risk',
+        label: 'At-Risk Clients',
         shortLabel: 'At Risk',
         format: (v) => v.toString(),
         higherIsBetter: false,
+        tooltip: 'Clients without upcoming appointments who may churn soon.',
       },
       {
         key: 'session1to2Retention',
-        label: 'Session 1→2 Retention',
+        label: 'Session 2 Return Rate',
         shortLabel: '1→2 Ret.',
         format: (v) => `${v.toFixed(0)}%`,
         higherIsBetter: true,
+        tooltip: 'Percentage of new clients who return for their second session.',
       },
       {
         key: 'session5Retention',
@@ -252,6 +337,7 @@ const METRIC_GROUPS: MetricGroupConfig[] = [
         shortLabel: 'Sess 5',
         format: (v) => `${v.toFixed(0)}%`,
         higherIsBetter: true,
+        tooltip: 'Percentage of clients who reach their 5th session.',
       },
       {
         key: 'session12Retention',
@@ -259,6 +345,7 @@ const METRIC_GROUPS: MetricGroupConfig[] = [
         shortLabel: 'Sess 12',
         format: (v) => `${v.toFixed(0)}%`,
         higherIsBetter: true,
+        tooltip: 'Percentage of clients who reach their 12th session.',
       },
     ],
   },
@@ -272,6 +359,7 @@ const METRIC_GROUPS: MetricGroupConfig[] = [
       shortLabel: 'Notes Due',
       format: (v) => v.toString(),
       higherIsBetter: false,
+      tooltip: 'Number of sessions with overdue notes based on your practice\'s deadline.',
     },
     supporting: [],
   },
@@ -362,35 +450,43 @@ function buildClinicianData(calculated: ClinicianMetricsCalculated[], periodId: 
     const biweeklyClients = Math.round(activeClients * 0.25);
     const monthlyClients = Math.round(activeClients * 0.15);
 
-    // Use practice-wide attendance settings (can't calculate per-clinician from payment data)
-    const showRate = PRACTICE_SETTINGS.attendance.showRate * 100;
-    const clientCancelRate = PRACTICE_SETTINGS.attendance.clientCancelled * 100;
-    const clinicianCancelRate = PRACTICE_SETTINGS.attendance.clinicianCancelled * 100;
-    const lateCancelRate = PRACTICE_SETTINGS.attendance.lateCancelled * 100;
-    const noShowRate = 100 - showRate - clientCancelRate - clinicianCancelRate - lateCancelRate;
+    // Get per-clinician synthetic metrics (falls back to defaults if not found)
+    const syntheticMetrics = getSyntheticMetricsByName(calc.clinicianName);
+
+    // Use per-clinician metrics for attendance, engagement, and retention
+    const showRate = syntheticMetrics?.showRate ?? 71;
+    const clientCancelRate = syntheticMetrics?.clientCancelRate ?? 24;
+    const clinicianCancelRate = syntheticMetrics?.clinicianCancelRate ?? 3;
+    const lateCancelRate = syntheticMetrics?.lateCancelRate ?? 3;
+    const noShowRate = syntheticMetrics?.noShowRate ?? (100 - showRate - clientCancelRate - clinicianCancelRate - lateCancelRate);
     const nonBillableCancelRate = clientCancelRate + lateCancelRate + noShowRate;
-    const rebookRate = PRACTICE_SETTINGS.attendance.rebookRate * 100;
+    const rebookRate = syntheticMetrics?.rebookRate ?? 83;
 
     // Utilization based on sessions vs capacity
     const utilizationRate = Math.min(100, (sessionsPerWeek / weeklySessionGoal) * 100);
 
-    // At-risk clients (estimate based on churn rate)
-    const atRiskClients = Math.round(activeClients * (calc.churnRate / 100) * 0.5);
+    // Use per-clinician at-risk clients and churn data
+    const atRiskClients = syntheticMetrics?.atRiskClients ?? Math.round(activeClients * (calc.churnRate / 100) * 0.5);
+    const churnRate = syntheticMetrics?.churnRate ?? calc.churnRate;
+    const clientsChurned = syntheticMetrics ? Math.round(activeClients * (churnRate / 100)) : calc.clientsChurned;
 
     // New client revenue (estimate based on proportion of new clients)
+    const newClients = syntheticMetrics?.newClientsThisMonth ?? calc.newClients;
     const newClientRevenue = activeClients > 0
-      ? (calc.newClients / activeClients) * calc.revenue
+      ? (newClients / activeClients) * calc.revenue
       : 0;
 
-    // Retention estimates (decreasing funnel)
-    const baseRetention = 100 - calc.churnRate;
-    const session1to2Retention = Math.min(95, baseRetention + 10);
-    const session5Retention = Math.min(85, baseRetention);
-    const session12Retention = Math.min(70, baseRetention - 15);
-    const earlyChurnPercent = Math.max(15, calc.churnRate * 1.5);
+    // Use per-clinician retention metrics
+    const session1to2Retention = syntheticMetrics?.session1to2Retention ?? Math.min(95, 100 - churnRate + 10);
+    const session5Retention = syntheticMetrics?.session5Retention ?? Math.min(85, 100 - churnRate);
+    const session12Retention = syntheticMetrics?.session12Retention ?? Math.min(70, 100 - churnRate - 15);
+    const earlyChurnPercent = Math.max(15, churnRate * 1.5);
 
-    // Outstanding notes (estimate based on sessions and practice-wide rate)
-    const outstandingNotes = Math.round(sessions * PRACTICE_SETTINGS.outstandingNotesPercent * 0.1);
+    // Use per-clinician outstanding notes
+    const outstandingNotes = syntheticMetrics?.outstandingNotes ?? Math.round(sessions * 0.022);
+
+    // Use per-clinician avg sessions per client
+    const avgSessionsPerClient = syntheticMetrics?.avgSessionsPerClient ?? calc.avgSessionsPerClient;
 
     return {
       id: index + 1,
@@ -416,13 +512,13 @@ function buildClinicianData(calculated: ClinicianMetricsCalculated[], periodId: 
         noShowRate: Math.round(noShowRate * 10) / 10,
         utilizationRate: Math.round(utilizationRate),
         activeClients,
-        newClients: calc.newClients,
+        newClients,
         rebookRate: Math.round(rebookRate),
         atRiskClients,
         newClientRevenue: Math.round(newClientRevenue),
-        avgSessionsPerClient: Math.round(calc.avgSessionsPerClient * 10) / 10,
-        churnRate: Math.round(calc.churnRate * 10) / 10,
-        clientsChurned: calc.clientsChurned,
+        avgSessionsPerClient: Math.round(avgSessionsPerClient * 10) / 10,
+        churnRate: Math.round(churnRate * 10) / 10,
+        clientsChurned,
         session1to2Retention: Math.round(session1to2Retention),
         session5Retention: Math.round(session5Retention),
         session12Retention: Math.round(session12Retention),
@@ -777,10 +873,14 @@ export const ClinicianOverview: React.FC = () => {
           >
             <div>Rank</div>
             <div>Clinician</div>
-            <div className="text-right">{metric.label}</div>
+            <div className="text-right flex items-center justify-end">
+              {metric.label}
+              {metric.tooltip && <InfoTooltip text={metric.tooltip} />}
+            </div>
             {displayGroup.supporting.map((s) => (
-              <div key={s.key} className="text-right text-stone-500">
+              <div key={s.key} className="text-right text-stone-500 flex items-center justify-end">
                 {s.label}
+                {s.tooltip && <InfoTooltip text={s.tooltip} />}
               </div>
             ))}
           </div>

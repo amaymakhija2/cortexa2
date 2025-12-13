@@ -11,18 +11,16 @@ import { ReferralBadge, ReferralModal } from './referral';
 import { PracticeMetrics } from '../types';
 import { useMetrics, useDataDateRange, DashboardMetrics } from '../hooks';
 import { allPriorityCards } from '../data/priorityCardsData';
+import { useSettings, PracticeGoals as PracticeGoalsSettings } from '../context/SettingsContext';
 
 const FULL_MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December'
 ];
 
-// Goals based on practice performance patterns
-const GOALS = {
-  revenue: 100000,      // $100k monthly target
-  sessions: 475,        // ~475 sessions/month target
-  rebookRate: 0.85,     // 85% rebook rate target
-  notesOverdue: 0.10,   // <10% overdue notes target
+// Default goals (used as fallback, main goals come from SettingsContext)
+const DEFAULT_GOALS = {
+  notesOverdue: 0.10,   // <10% overdue notes target (not in practice goals config)
 };
 
 // Get progress through the month (0-1) for pro-rating goals
@@ -40,16 +38,21 @@ const getMonthProgress = (month: number, year: number): number => {
 };
 
 // Convert API metrics to PracticeMetrics format for display
-const buildPracticeMetrics = (calc: DashboardMetrics, month: number, year: number): PracticeMetrics => {
+const buildPracticeMetrics = (calc: DashboardMetrics, month: number, year: number, practiceGoals: PracticeGoalsSettings): PracticeMetrics => {
   const monthProgress = getMonthProgress(month, year);
 
+  // Use practice goals from settings
+  const revenueGoal = practiceGoals.monthlyRevenue;
+  const sessionsGoal = practiceGoals.monthlySessions;
+  const rebookRateGoal = practiceGoals.targetRebookRate / 100; // Convert from percentage to decimal
+
   // Pro-rated goals for current month
-  const proRatedRevenueGoal = GOALS.revenue * monthProgress;
-  const proRatedSessionsGoal = GOALS.sessions * monthProgress;
+  const proRatedRevenueGoal = revenueGoal * monthProgress;
+  const proRatedSessionsGoal = sessionsGoal * monthProgress;
 
   // Revenue calculations - compare to pro-rated goal for current month
   const revenueVsProRated = calc.revenue.value / proRatedRevenueGoal;
-  const revenuePercent = Math.round((calc.revenue.value / GOALS.revenue) * 100);
+  const revenuePercent = Math.round((calc.revenue.value / revenueGoal) * 100);
   const getRevenueStatus = (): "Healthy" | "Needs attention" | "Critical" => {
     if (revenueVsProRated >= 0.95) return "Healthy";
     if (revenueVsProRated >= 0.80) return "Needs attention";
@@ -58,7 +61,7 @@ const buildPracticeMetrics = (calc: DashboardMetrics, month: number, year: numbe
 
   // Sessions calculations - compare to pro-rated goal
   const sessionsVsProRated = calc.sessions.completed / proRatedSessionsGoal;
-  const sessionsPercent = Math.round((calc.sessions.completed / GOALS.sessions) * 100);
+  const sessionsPercent = Math.round((calc.sessions.completed / sessionsGoal) * 100);
   const getSessionsStatus = (): "Healthy" | "Needs attention" | "Critical" => {
     if (sessionsVsProRated >= 0.95) return "Healthy";
     if (sessionsVsProRated >= 0.80) return "Needs attention";
@@ -75,34 +78,34 @@ const buildPracticeMetrics = (calc: DashboardMetrics, month: number, year: numbe
 
   // Attendance calculations (not pro-rated - it's a rate)
   const rebookPercent = Math.round(calc.attendance.rebookRate * 100);
-  const rebookGoalPercent = Math.round(GOALS.rebookRate * 100);
+  const rebookGoalPercent = Math.round(rebookRateGoal * 100);
   const getAttendanceStatus = (): "Healthy" | "Needs attention" | "Critical" => {
-    if (calc.attendance.rebookRate >= GOALS.rebookRate) return "Healthy";
-    if (calc.attendance.rebookRate >= GOALS.rebookRate - 0.05) return "Needs attention";
+    if (calc.attendance.rebookRate >= rebookRateGoal) return "Healthy";
+    if (calc.attendance.rebookRate >= rebookRateGoal - 0.05) return "Needs attention";
     return "Critical";
   };
 
   // Notes compliance calculations (not pro-rated - it's a rate)
   const notesPercent = Math.round(calc.notes.outstandingPercent * 100);
   const getNotesStatus = (): "Healthy" | "Needs attention" | "Critical" => {
-    if (calc.notes.outstandingPercent <= GOALS.notesOverdue) return "Healthy";
-    if (calc.notes.outstandingPercent <= GOALS.notesOverdue * 1.5) return "Needs attention";
+    if (calc.notes.outstandingPercent <= DEFAULT_GOALS.notesOverdue) return "Healthy";
+    if (calc.notes.outstandingPercent <= DEFAULT_GOALS.notesOverdue * 1.5) return "Needs attention";
     return "Critical";
   };
 
   // Build subtext - keep original format
-  const revenueGap = GOALS.revenue - calc.revenue.value;
+  const revenueGap = revenueGoal - calc.revenue.value;
   const revenueSubtext = revenueGap > 0
-    ? `Goal: $${GOALS.revenue / 1000}k · $${(revenueGap / 1000).toFixed(1)}k left to reach target`
-    : `Goal: $${GOALS.revenue / 1000}k · Target achieved!`;
+    ? `Goal: $${revenueGoal / 1000}k · $${(revenueGap / 1000).toFixed(1)}k left to reach target`
+    : `Goal: $${revenueGoal / 1000}k · Target achieved!`;
 
-  const sessionsSubtext = `Goal: ${GOALS.sessions} · ${sessionsPercent}% of monthly goal`;
+  const sessionsSubtext = `Goal: ${sessionsGoal} · ${sessionsPercent}% of monthly goal`;
 
   const clientSubtext = `${calc.clients.new} new, ${calc.clients.churned} churned · ${calc.clients.openings} openings`;
 
   const attendanceSubtext = `${Math.round(calc.attendance.clientCancelRate * 100)}% client cancel rate`;
 
-  const notesSubtext = `Goal: <${Math.round(GOALS.notesOverdue * 100)}% · ${notesPercent}% currently overdue`;
+  const notesSubtext = `Goal: <${Math.round(DEFAULT_GOALS.notesOverdue * 100)}% · ${notesPercent}% currently overdue`;
 
   return {
     revenue: {
@@ -155,6 +158,10 @@ export const Dashboard: React.FC = () => {
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth()); // 0-11
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
 
+  // Get practice goals from settings context
+  const { settings } = useSettings();
+  const { practiceGoals } = settings;
+
   const totalCards = 1 + allPriorityCards.length; // MonthlyReviewCard + priority cards
 
   // Get data date range from API
@@ -170,8 +177,8 @@ export const Dashboard: React.FC = () => {
   // Build display metrics when API data is available
   const metrics = useMemo(() => {
     if (!apiMetrics) return null;
-    return buildPracticeMetrics(apiMetrics, activeMonth, activeYear);
-  }, [apiMetrics, activeMonth, activeYear]);
+    return buildPracticeMetrics(apiMetrics, activeMonth, activeYear, practiceGoals);
+  }, [apiMetrics, activeMonth, activeYear, practiceGoals]);
 
   const isLoading = metricsLoading || rangeLoading;
 

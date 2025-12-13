@@ -14,7 +14,7 @@ Replaced placeholder/hardcoded data in Dashboard.tsx with real data calculated f
 ### New Files
 1. **`scripts/parsePaymentData.cjs`** - Parses CSV and generates TypeScript data file
    - Extracts unique client ID from invoice URL (not initials - multiple clients have same initials)
-   - Obscures clinician names: "Gaya Kodiyalam, LCSW" → "G. Kod"
+   - Obscures clinician names: "Sarah Chen, LCSW" → "Sarah C"
    - Removes invoice # and URL columns
 
 2. **`data/paymentData.ts`** - Generated data file containing:
@@ -136,7 +136,7 @@ Replaced placeholder/hardcoded clinician data in ClinicianOverview.tsx with real
 - Replaced hardcoded fake clinicians with real data from CSV
 
 ### `scripts/parsePaymentData.cjs` - Updated name format:
-- Changed from "G. Kod" to "Gaya K" (FirstName LastInitial)
+- Changed from "G. Kod" to "Sarah C" (FirstName LastInitial)
 
 ## Clinician Metrics Interface
 ```typescript
