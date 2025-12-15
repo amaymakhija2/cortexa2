@@ -181,52 +181,45 @@ const ALL_CHURN_TIMING_DATA = [
   { month: 'Dec', earlyChurn: 1, mediumChurn: 1, lateChurn: 1 }
 ];
 
-// Retention cohort options - for cohort-first analysis
-// Summary data: clientsAcquired, clientsChurned, activeClients, avgSessionsPerClient (ALL clients)
+// Retention cohort options - simplified for practice owners
+// Just 3 clear choices: All Time, This Year, Last Year
 const RETENTION_COHORTS = [
   {
     id: 'all-time',
     label: 'All Time',
-    sublabel: 'Since practice opened',
+    sublabel: 'Every client since you opened',
     clientCount: 847,
     maturity: 'mature' as const,
     recommended: true,
     summary: { clientsAcquired: 847, clientsChurned: 691, activeClients: 156, avgSessionsPerClient: 14.3 }
   },
   {
-    id: 'ytd-2025',
-    label: '2025 YTD',
-    sublabel: 'Jan - Nov 2025',
+    id: 'this-year',
+    label: 'This Year',
+    sublabel: 'Clients who started in 2025',
     clientCount: 312,
     maturity: 'mature' as const,
     summary: { clientsAcquired: 312, clientsChurned: 198, activeClients: 114, avgSessionsPerClient: 11.8 }
   },
   {
-    id: 'q3-2025',
-    label: 'Q3 2025',
-    sublabel: 'Jul - Sep',
-    clientCount: 142,
+    id: 'last-year',
+    label: 'Last Year',
+    sublabel: 'Clients who started in 2024',
+    clientCount: 289,
     maturity: 'mature' as const,
-    summary: { clientsAcquired: 142, clientsChurned: 67, activeClients: 75, avgSessionsPerClient: 9.2 }
-  },
-  {
-    id: 'q4-2025',
-    label: 'Q4 2025',
-    sublabel: 'Oct - Dec',
-    clientCount: 89,
-    maturity: 'partial' as const,
-    summary: { clientsAcquired: 89, clientsChurned: 18, activeClients: 71, avgSessionsPerClient: 5.4 }
-  },
-  {
-    id: 'nov-2025',
-    label: 'Nov 2025',
-    sublabel: '23 clients',
-    clientCount: 23,
-    maturity: 'immature' as const,
-    availableDate: 'Jan 15, 2026',
-    summary: { clientsAcquired: 23, clientsChurned: 2, activeClients: 21, avgSessionsPerClient: 2.8 }
+    summary: { clientsAcquired: 289, clientsChurned: 247, activeClients: 42, avgSessionsPerClient: 16.1 }
   },
 ];
+
+// Helper to get a natural sentence phrase for each cohort
+const getCohortPhrase = (cohortId: string): string => {
+  switch (cohortId) {
+    case 'all-time': return 'since you opened';
+    case 'this-year': return 'in 2025';
+    case 'last-year': return 'in 2024';
+    default: return '';
+  }
+};
 
 // Retention funnel data - client journey visualization
 const RETENTION_FUNNEL_DATA = {
