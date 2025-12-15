@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { PracticeMetrics, MetricDetail } from '../types';
 import { Info, ChevronRight, TrendingUp, TrendingDown, Minus, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 
@@ -737,10 +738,15 @@ const ClientsMetricCard: React.FC<ClientsMetricCardProps> = ({ data, index }) =>
 interface SupportingMetricCardProps {
   data: MetricDetail;
   index: number;
+  navigateTo?: {
+    path: string;
+    label: string;
+  };
 }
 
-const SupportingMetricCard: React.FC<SupportingMetricCardProps> = ({ data, index }) => {
+const SupportingMetricCard: React.FC<SupportingMetricCardProps> = ({ data, index, navigateTo }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const navigate = useNavigate();
   const tooltip = getMetricTooltip(data.label);
   const statusConfig = STATUS_CONFIG[data.status];
 
@@ -810,12 +816,31 @@ const SupportingMetricCard: React.FC<SupportingMetricCardProps> = ({ data, index
             {data.subtext}
           </p>
 
-          {/* Status */}
+          {/* Footer with Status and optional Navigation Button */}
           <div
-            className="pt-4 border-t"
+            className="pt-4 border-t flex items-center justify-between"
             style={{ borderColor: 'rgba(0, 0, 0, 0.05)' }}
           >
             <StatusIndicator status={data.status} />
+
+            {navigateTo && (
+              <button
+                onClick={() => navigate(navigateTo.path)}
+                className="group flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-300"
+                style={{
+                  background: 'linear-gradient(135deg, #f5f5f4 0%, #e7e5e4 100%)',
+                  boxShadow: '0 2px 6px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
+                }}
+              >
+                <span className="text-xs font-semibold text-stone-600 transition-colors duration-300 group-hover:text-stone-900">
+                  {navigateTo.label}
+                </span>
+                <ChevronRight
+                  size={14}
+                  className="text-stone-500 transition-all duration-300 group-hover:text-stone-700 group-hover:translate-x-0.5"
+                />
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -883,10 +908,24 @@ export const KeyMetrics: React.FC<KeyMetricsProps> = ({ metrics, isLive = true }
           <ClientsMetricCard data={metrics.clientGrowth} index={0} />
         </div>
         <div className="snap-start flex-shrink-0 w-[280px] sm:w-[300px]">
-          <SupportingMetricCard data={metrics.attendance} index={1} />
+          <SupportingMetricCard
+            data={metrics.attendance}
+            index={1}
+            navigateTo={{
+              path: '/clinician-overview?tab=ranking&metric=attendance',
+              label: 'By Clinician',
+            }}
+          />
         </div>
         <div className="snap-start flex-shrink-0 w-[280px] sm:w-[300px]">
-          <SupportingMetricCard data={metrics.compliance} index={2} />
+          <SupportingMetricCard
+            data={metrics.compliance}
+            index={2}
+            navigateTo={{
+              path: '/clinician-overview?tab=ranking&metric=documentation',
+              label: 'By Clinician',
+            }}
+          />
         </div>
       </div>
 
@@ -912,8 +951,22 @@ export const KeyMetrics: React.FC<KeyMetricsProps> = ({ metrics, isLive = true }
         <div className="col-span-3 xl:col-span-4 flex flex-col gap-4 xl:gap-5">
           <ClientsMetricCard data={metrics.clientGrowth} index={0} />
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 xl:gap-5">
-            <SupportingMetricCard data={metrics.attendance} index={1} />
-            <SupportingMetricCard data={metrics.compliance} index={2} />
+            <SupportingMetricCard
+              data={metrics.attendance}
+              index={1}
+              navigateTo={{
+                path: '/clinician-overview?tab=ranking&metric=attendance',
+                label: 'By Clinician',
+              }}
+            />
+            <SupportingMetricCard
+              data={metrics.compliance}
+              index={2}
+              navigateTo={{
+                path: '/clinician-overview?tab=ranking&metric=documentation',
+                label: 'By Clinician',
+              }}
+            />
           </div>
         </div>
       </div>

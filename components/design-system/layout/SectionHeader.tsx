@@ -141,13 +141,9 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
                 }}
               />
               <span
-                className="text-2xl xl:text-3xl font-bold relative z-10"
+                className={`text-2xl xl:text-3xl font-bold relative z-10 ${colors.number}`}
                 style={{
                   fontFamily: "'DM Serif Display', Georgia, serif",
-                  background: colors.numberGradient,
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
                 }}
               >
                 {number}

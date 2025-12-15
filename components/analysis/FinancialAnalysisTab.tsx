@@ -251,10 +251,10 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
       textColor: 'text-emerald-600',
     },
     {
-      value: `${momChange >= 0 ? '+' : ''}${momChange.toFixed(1)}%`,
-      label: 'MoM Trend',
-      bgColor: momChange >= 0 ? 'bg-emerald-50' : 'bg-rose-50',
-      textColor: momChange >= 0 ? 'text-emerald-600' : 'text-rose-600',
+      value: `${monthsAtGoal}/${revenueData.length}`,
+      label: 'Goal Achievement',
+      bgColor: monthsAtGoal >= revenueData.length / 2 ? 'bg-emerald-50' : 'bg-amber-50',
+      textColor: monthsAtGoal >= revenueData.length / 2 ? 'text-emerald-600' : 'text-amber-600',
     },
     {
       value: `${formatCurrencyShort(revenueRange.min)}–${formatCurrencyShort(revenueRange.max)}`,
@@ -262,7 +262,7 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
       bgColor: 'bg-stone-100',
       textColor: 'text-stone-700',
     },
-  ], [bestMonth, momChange, revenueRange]);
+  ], [bestMonth, monthsAtGoal, revenueData.length, revenueRange]);
 
   const clinicianInsights = useMemo(() => {
     // Find top clinician by total revenue
@@ -391,7 +391,7 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
 
         {/* Hero Stats Row */}
         <Section spacing="md">
-          <AnimatedGrid cols={settings.showNetRevenueData ? 4 : 3} gap="md" staggerDelay={60}>
+          <AnimatedGrid cols={settings.showNetRevenueData ? 3 : 2} gap="md" staggerDelay={60}>
             <StatCard
               title="Total Gross Revenue"
               value={formatCurrency(totalGrossRevenue)}
@@ -404,11 +404,6 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
                 subtitle={`${avgMargin.toFixed(1)}% avg margin`}
               />
             )}
-            <StatCard
-              title="Goal Achievement"
-              value={`${monthsAtGoal}/${revenueData.length}`}
-              subtitle={`months hit ${revenueGoalDisplay} goal`}
-            />
             <StatCard
               title="Avg Revenue Per Session"
               value={`$${Math.round(avgRevenuePerSession)}`}

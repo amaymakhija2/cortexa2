@@ -217,10 +217,10 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
       textColor: 'text-emerald-600',
     },
     {
-      value: `${momChange >= 0 ? '+' : ''}${momChange.toFixed(1)}%`,
-      label: 'MoM Trend',
-      bgColor: momChange >= 0 ? 'bg-emerald-50' : 'bg-rose-50',
-      textColor: momChange >= 0 ? 'text-emerald-600' : 'text-rose-600',
+      value: `${monthsAtGoal}/${sessionsData.length}`,
+      label: 'Goal Achievement',
+      bgColor: monthsAtGoal >= sessionsData.length / 2 ? 'bg-emerald-50' : 'bg-amber-50',
+      textColor: monthsAtGoal >= sessionsData.length / 2 ? 'text-emerald-600' : 'text-amber-600',
     },
     {
       value: `${sessionsRange.min}–${sessionsRange.max}`,
@@ -228,7 +228,7 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
       bgColor: 'bg-stone-100',
       textColor: 'text-stone-700',
     },
-  ], [bestMonth, momChange, sessionsRange]);
+  ], [bestMonth, monthsAtGoal, sessionsData.length, sessionsRange]);
 
   const clinicianInsights = useMemo(() => {
     // Calculate totals per clinician
@@ -331,9 +331,9 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
               subtitle={`across ${sessionsData.length} months`}
             />
             <StatCard
-              title="Goal Achievement"
-              value={`${monthsAtGoal}/${sessionsData.length}`}
-              subtitle={`months hit ${sessionsGoal} goal`}
+              title="Avg Completed Sessions"
+              value={`${avgWeeklyCompleted}/week`}
+              subtitle="across all clinicians"
             />
             <StatCard
               title="Client Cancel Rate"
@@ -445,16 +445,11 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
         {/* Secondary Metrics Row */}
         <AnimatedSection delay={380}>
           <Section spacing="md">
-            <AnimatedGrid cols={3} gap="md" staggerDelay={60}>
+            <AnimatedGrid cols={2} gap="md" staggerDelay={60}>
               <StatCard
                 title="Avg Sessions per Client per Month"
                 value={avgSessionsPerClient.toFixed(1)}
                 subtitle="sessions per active client per month"
-              />
-              <StatCard
-                title="Avg Completed Sessions"
-                value={`${avgWeeklyCompleted}/week`}
-                subtitle="across all clinicians"
               />
               <SplitBarCard
                 title="Session Modality"

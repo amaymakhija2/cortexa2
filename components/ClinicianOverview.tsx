@@ -237,22 +237,14 @@ const METRIC_GROUPS: MetricGroupConfig[] = [
     label: 'Attendance',
     description: 'Who has the most cancellations?',
     primary: {
-      key: 'nonBillableCancelRate',
-      label: 'Non-Billable Cancel Rate',
-      shortLabel: 'Cancel Rate',
+      key: 'clientCancelRate',
+      label: 'Client Cancel Rate',
+      shortLabel: 'Client Cancel',
       format: (v) => `${v.toFixed(0)}%`,
       higherIsBetter: false,
-      tooltip: 'Client cancellations + late cancellations + no-shows as a percentage of all bookings.',
+      tooltip: 'Percentage of booked sessions cancelled by the client.',
     },
     supporting: [
-      {
-        key: 'clientCancelRate',
-        label: 'Client Cancel Rate',
-        shortLabel: 'Client',
-        format: (v) => `${v.toFixed(0)}%`,
-        higherIsBetter: false,
-        tooltip: 'Percentage of booked sessions cancelled by the client.',
-      },
       {
         key: 'clinicianCancelRate',
         label: 'Clinician Cancel Rate',
@@ -356,12 +348,29 @@ const METRIC_GROUPS: MetricGroupConfig[] = [
     primary: {
       key: 'outstandingNotes',
       label: 'Outstanding Notes',
-      shortLabel: 'Notes Due',
+      shortLabel: 'Outstanding',
       format: (v) => v.toString(),
       higherIsBetter: false,
-      tooltip: 'Number of sessions with overdue notes based on your practice\'s deadline.',
+      tooltip: 'Total notes not yet completed.',
     },
-    supporting: [],
+    supporting: [
+      {
+        key: 'overdueNotes',
+        label: 'Overdue',
+        shortLabel: 'Overdue',
+        format: (v) => v.toString(),
+        higherIsBetter: false,
+        tooltip: 'Notes past the practice\'s deadline.',
+      },
+      {
+        key: 'dueWithin48hNotes',
+        label: 'Due Within 48h',
+        shortLabel: 'Due 48h',
+        format: (v) => v.toString(),
+        higherIsBetter: false,
+        tooltip: 'Notes due within the next 48 hours.',
+      },
+    ],
   },
 ];
 
@@ -396,6 +405,8 @@ interface ClinicianMetrics {
   session12Retention: number;
   earlyChurnPercent: number;
   outstandingNotes: number;
+  overdueNotes: number;
+  dueWithin48hNotes: number;
   [key: string]: number;
 }
 
@@ -482,8 +493,10 @@ function buildClinicianData(calculated: ClinicianMetricsCalculated[], periodId: 
     const session12Retention = syntheticMetrics?.session12Retention ?? Math.min(70, 100 - churnRate - 15);
     const earlyChurnPercent = Math.max(15, churnRate * 1.5);
 
-    // Use per-clinician outstanding notes
+    // Use per-clinician notes metrics
     const outstandingNotes = syntheticMetrics?.outstandingNotes ?? Math.round(sessions * 0.022);
+    const overdueNotes = syntheticMetrics?.overdueNotes ?? Math.round(outstandingNotes * 0.3);
+    const dueWithin48hNotes = syntheticMetrics?.dueWithin48hNotes ?? Math.round(outstandingNotes * 0.4);
 
     // Use per-clinician avg sessions per client
     const avgSessionsPerClient = syntheticMetrics?.avgSessionsPerClient ?? calc.avgSessionsPerClient;
@@ -524,6 +537,8 @@ function buildClinicianData(calculated: ClinicianMetricsCalculated[], periodId: 
         session12Retention: Math.round(session12Retention),
         earlyChurnPercent: Math.round(earlyChurnPercent),
         outstandingNotes,
+        overdueNotes,
+        dueWithin48hNotes,
       },
     };
   });
@@ -534,10 +549,20 @@ type SessionGoalView = 'weekly' | 'monthly';
 type ClinicianTabType = 'ranking' | 'details';
 
 export const ClinicianOverview: React.FC = () => {
-  const [searchParams] = useSearchParams();
-  const [selectedGroupId, setSelectedGroupId] = useState<MetricGroupId>('revenue');
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Get metric from URL search params (allows deep linking from other pages)
+  const metricFromUrl = searchParams.get('metric') as MetricGroupId | null;
+  const [selectedGroupId, setSelectedGroupId] = useState<MetricGroupId>(metricFromUrl || 'revenue');
   const [viewMode, setViewMode] = useState<ViewMode>('live');
   const [sessionGoalView, setSessionGoalView] = useState<SessionGoalView>('weekly');
+
+  // Sync selectedGroupId with URL param when it changes externally
+  useEffect(() => {
+    if (metricFromUrl && metricFromUrl !== selectedGroupId && METRIC_GROUPS.some(g => g.id === metricFromUrl)) {
+      setSelectedGroupId(metricFromUrl);
+    }
+  }, [metricFromUrl]);
 
   // Get active tab from URL search params (managed by UnifiedNavigation)
   const activeTab = (searchParams.get('tab') || 'ranking') as ClinicianTabType;
@@ -586,6 +611,10 @@ export const ClinicianOverview: React.FC = () => {
   // Switch tabs - keep same view mode except Notes which is always current month
   const handleGroupChange = (groupId: MetricGroupId) => {
     setSelectedGroupId(groupId);
+    // Update URL param so deep links work correctly
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set('metric', groupId);
+    setSearchParams(newParams, { replace: true });
     // Only force live mode for Notes/Documentation (point-in-time metric)
     if (groupId === 'documentation') {
       setViewMode('live');

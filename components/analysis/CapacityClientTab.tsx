@@ -1,17 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { ArrowRight } from 'lucide-react';
 import {
-  ResponsiveContainer,
-  ComposedChart,
-  Bar,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  LabelList,
-} from 'recharts';
-import {
   PageHeader,
   PageContent,
   Grid,
@@ -21,7 +10,9 @@ import {
   SimpleChartCard,
   StackedBarCard,
   ActionButton,
+  ToggleButton,
   DivergingBarChart,
+  BarChart,
   LineChart,
   ExpandedChartModal,
   AnimatedGrid,
@@ -53,6 +44,7 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
   // =========================================================================
 
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
+  const [showCapacityPercentage, setShowCapacityPercentage] = useState(false);
 
   // =========================================================================
   // COMPUTED VALUES
@@ -111,14 +103,37 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
     return values.reduce((sum, v) => sum + v, 0) / values.length;
   }, [clientGrowthData]);
 
-  // Peak utilization
-  const peakUtilization = useMemo(() => {
+  // Peak caseload capacity
+  const peakCaseloadCapacity = useMemo(() => {
     if (clientGrowthData.length === 0) return { month: '', value: 0 };
     const values = clientGrowthData.map(item => ({
       month: item.month,
       value: (item.activeClients / item.capacity) * 100,
     }));
     return values.reduce((best, item) => item.value > best.value ? item : best, { month: '', value: 0 });
+  }, [clientGrowthData]);
+
+  // Best month for active clients
+  const bestActiveClientsMonth = useMemo(() => {
+    if (clientGrowthData.length === 0) return { month: '', value: 0 };
+    return clientGrowthData.reduce((best, item) =>
+      item.activeClients > best.value ? { month: item.month, value: item.activeClients } : best,
+      { month: '', value: 0 }
+    );
+  }, [clientGrowthData]);
+
+  // Active clients range
+  const activeClientsRange = useMemo(() => {
+    if (clientGrowthData.length === 0) return { min: 0, max: 0 };
+    const values = clientGrowthData.map(item => item.activeClients);
+    return { min: Math.min(...values), max: Math.max(...values) };
+  }, [clientGrowthData]);
+
+  // Caseload capacity range
+  const caseloadCapacityRange = useMemo(() => {
+    if (clientGrowthData.length === 0) return { min: 0, max: 0 };
+    const values = clientGrowthData.map(item => (item.activeClients / item.capacity) * 100);
+    return { min: Math.min(...values), max: Math.max(...values) };
   }, [clientGrowthData]);
 
   // Monthly averages for client movement
@@ -152,6 +167,22 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
     }));
   }, [clientGrowthData]);
 
+  // Active clients bar chart data
+  const activeClientsBarData = useMemo(() => {
+    return clientGrowthData.map(item => ({
+      label: item.month,
+      value: item.activeClients,
+    }));
+  }, [clientGrowthData]);
+
+  // Capacity percentage bar chart data
+  const capacityPercentageBarData = useMemo(() => {
+    return clientGrowthData.map(item => ({
+      label: item.month,
+      value: parseFloat(((item.activeClients / item.capacity) * 100).toFixed(1)),
+    }));
+  }, [clientGrowthData]);
+
   // Client movement data for DivergingBarChart
   const clientMovementData = useMemo(() => {
     return clientGrowthData.map(item => ({
@@ -181,26 +212,49 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
   // INSIGHTS
   // =========================================================================
 
-  const clientUtilizationInsights = useMemo(() => [
+  // Insights for Active Clients view
+  const activeClientsInsights = useMemo(() => [
     {
-      value: avgActiveClients.toFixed(0),
-      label: 'Avg Clients',
-      bgColor: 'bg-amber-50',
-      textColor: 'text-amber-600',
-    },
-    {
-      value: `${avgUtilization.toFixed(0)}%`,
-      label: 'Avg Capacity',
+      value: bestActiveClientsMonth.month,
+      label: `Best (${bestActiveClientsMonth.value})`,
       bgColor: 'bg-emerald-50',
       textColor: 'text-emerald-600',
     },
     {
-      value: peakUtilization.month,
-      label: `Peak (${peakUtilization.value.toFixed(0)}%)`,
+      value: avgActiveClients.toFixed(0),
+      label: 'Average',
+      bgColor: 'bg-amber-50',
+      textColor: 'text-amber-600',
+    },
+    {
+      value: `${activeClientsRange.min}–${activeClientsRange.max}`,
+      label: 'Range',
       bgColor: 'bg-stone-100',
       textColor: 'text-stone-700',
     },
-  ], [avgActiveClients, avgUtilization, peakUtilization]);
+  ], [bestActiveClientsMonth, avgActiveClients, activeClientsRange]);
+
+  // Insights for Caseload Capacity view
+  const caseloadCapacityInsights = useMemo(() => [
+    {
+      value: peakCaseloadCapacity.month,
+      label: `Peak (${peakCaseloadCapacity.value.toFixed(0)}%)`,
+      bgColor: 'bg-emerald-50',
+      textColor: 'text-emerald-600',
+    },
+    {
+      value: `${avgUtilization.toFixed(0)}%`,
+      label: 'Average',
+      bgColor: 'bg-amber-50',
+      textColor: 'text-amber-600',
+    },
+    {
+      value: `${caseloadCapacityRange.min.toFixed(0)}%–${caseloadCapacityRange.max.toFixed(0)}%`,
+      label: 'Range',
+      bgColor: 'bg-stone-100',
+      textColor: 'text-stone-700',
+    },
+  ], [peakCaseloadCapacity, avgUtilization, caseloadCapacityRange]);
 
   const clientMovementInsights = useMemo(() => [
     {
@@ -281,23 +335,17 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
         <AnimatedSection delay={280}>
           <Section spacing="md">
             <Grid cols={2} gap="lg">
-            {/* Caseload Capacity - Combo Chart */}
+            {/* Caseload Capacity - Toggle between Active Clients and Capacity % */}
             <ChartCard
-              title="Caseload Capacity"
-              subtitle="Active clients & capacity rate over time"
+              title={showCapacityPercentage ? "Caseload Capacity" : "Active Clients"}
+              subtitle={showCapacityPercentage ? "Caseload capacity over time" : "Active clients over time"}
               headerControls={
                 <>
-                  <div className="flex items-center gap-6 bg-stone-50 rounded-xl px-5 py-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-5 h-5 rounded-md bg-gradient-to-b from-amber-400 to-amber-500 shadow-sm"></div>
-                      <span className="text-stone-700 text-base font-semibold">Active Clients</span>
-                    </div>
-                    <div className="w-px h-6 bg-stone-200" />
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-1 bg-emerald-500 rounded-full"></div>
-                      <span className="text-stone-700 text-base font-semibold">Capacity %</span>
-                    </div>
-                  </div>
+                  <ToggleButton
+                    label="Caseload Capacity"
+                    active={showCapacityPercentage}
+                    onToggle={() => setShowCapacityPercentage(!showCapacityPercentage)}
+                  />
 {/* Report button hidden for now
                   <ActionButton label="View Report" icon={<ArrowRight size={16} />} />
 */}
@@ -305,105 +353,47 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
               }
               expandable
               onExpand={() => setExpandedCard('client-utilization')}
-              insights={clientUtilizationInsights}
+              insights={showCapacityPercentage ? caseloadCapacityInsights : activeClientsInsights}
               minHeight="520px"
             >
-              <div style={{ width: '100%', height: '350px' }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <ComposedChart
-                    data={clientUtilizationChartData}
-                    margin={{ top: 30, right: 80, bottom: 10, left: 20 }}
-                  >
-                    <defs>
-                      <linearGradient id="activeClientsBarGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#fbbf24" stopOpacity={1}/>
-                        <stop offset="100%" stopColor="#f59e0b" stopOpacity={1}/>
-                      </linearGradient>
-                      <filter id="barShadow" x="-20%" y="-20%" width="140%" height="140%">
-                        <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.15"/>
-                      </filter>
-                    </defs>
-                    <CartesianGrid strokeDasharray="4 4" stroke="#e7e5e4" vertical={false} />
-                    <XAxis
-                      dataKey="month"
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fill: '#57534e', fontSize: 15, fontWeight: 600 }}
-                      dy={8}
-                      height={30}
-                    />
-                    <YAxis
-                      yAxisId="left"
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fill: '#78716c', fontSize: 14, fontWeight: 600 }}
-                      domain={[0, 200]}
-                      width={50}
-                      tickCount={5}
-                    />
-                    <YAxis
-                      yAxisId="right"
-                      orientation="right"
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fill: '#059669', fontSize: 14, fontWeight: 700 }}
-                      domain={[0, 100]}
-                      tickFormatter={(value) => `${value}%`}
-                      width={60}
-                      tickCount={5}
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: '#1c1917',
-                        border: 'none',
-                        borderRadius: '16px',
-                        padding: '16px 20px',
-                        boxShadow: '0 20px 40px -10px rgba(0, 0, 0, 0.4)'
-                      }}
-                      labelStyle={{ color: '#a8a29e', fontSize: '14px', fontWeight: 600, marginBottom: '8px' }}
-                      itemStyle={{ color: '#fff', fontSize: '18px', fontWeight: 700, padding: '4px 0' }}
-                      formatter={(value: number, name: string) => {
-                        if (name === 'utilizationRate') return [`${value}%`, 'Capacity Rate'];
-                        return [value, 'Active Clients'];
-                      }}
-                    />
-                    <Bar
-                      yAxisId="left"
-                      dataKey="activeClients"
-                      fill="url(#activeClientsBarGradient)"
-                      radius={[8, 8, 0, 0]}
-                      name="Active Clients"
-                      maxBarSize={56}
-                      style={{ filter: 'url(#barShadow)' }}
-                      isAnimationActive={true}
-                      animationDuration={800}
-                      animationBegin={0}
-                      animationEasing="ease-out"
-                    >
-                      <LabelList
-                        dataKey="activeClients"
-                        position="insideTop"
-                        style={{ fill: '#ffffff', fontSize: '15px', fontWeight: 800, textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}
-                        offset={8}
-                      />
-                    </Bar>
-                    <Line
-                      yAxisId="right"
-                      type="monotone"
-                      dataKey="utilizationRate"
-                      stroke="#059669"
-                      strokeWidth={4}
-                      dot={{ fill: '#059669', strokeWidth: 4, stroke: '#fff', r: 7 }}
-                      activeDot={{ r: 10, strokeWidth: 4, stroke: '#fff', fill: '#059669' }}
-                      name="Capacity Rate"
-                      isAnimationActive={true}
-                      animationDuration={800}
-                      animationBegin={0}
-                      animationEasing="ease-out"
-                    />
-                  </ComposedChart>
-                </ResponsiveContainer>
-              </div>
+              {showCapacityPercentage ? (
+                <BarChart
+                  data={capacityPercentageBarData}
+                  mode="single"
+                  getBarColor={(value) => ({
+                    gradient: value >= 90
+                      ? 'linear-gradient(180deg, #34d399 0%, #059669 100%)'
+                      : value >= 75
+                        ? 'linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%)'
+                        : 'linear-gradient(180deg, #fb7185 0%, #f43f5e 100%)',
+                    shadow: value >= 90
+                      ? '0 4px 12px -2px rgba(16, 185, 129, 0.35)'
+                      : value >= 75
+                        ? '0 4px 12px -2px rgba(245, 158, 11, 0.35)'
+                        : '0 4px 12px -2px rgba(244, 63, 94, 0.35)',
+                    textColor: value >= 90
+                      ? 'text-emerald-600'
+                      : value >= 75
+                        ? 'text-amber-600'
+                        : 'text-rose-600',
+                  })}
+                  formatValue={(v) => `${v}%`}
+                  maxValue={100}
+                  height="380px"
+                />
+              ) : (
+                <BarChart
+                  data={activeClientsBarData}
+                  mode="single"
+                  getBarColor={() => ({
+                    gradient: 'linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%)',
+                    shadow: '0 4px 12px -2px rgba(245, 158, 11, 0.35)',
+                    textColor: 'text-amber-600',
+                  })}
+                  formatValue={(v) => v.toString()}
+                  height="380px"
+                />
+              )}
             </ChartCard>
 
             {/* New and Churned Clients - Diverging Bar Chart */}
@@ -571,112 +561,62 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
       <ExpandedChartModal
         isOpen={expandedCard === 'client-utilization'}
         onClose={() => setExpandedCard(null)}
-        title="Caseload Capacity"
-        subtitle="Active clients & capacity rate over time"
+        title={showCapacityPercentage ? "Caseload Capacity" : "Active Clients"}
+        subtitle={showCapacityPercentage ? "Caseload capacity over time" : "Active clients over time"}
         headerControls={
           <>
-            <div className="flex items-center gap-6 bg-stone-50 rounded-xl px-5 py-3">
-              <div className="flex items-center gap-3">
-                <div className="w-5 h-5 rounded-md bg-gradient-to-b from-amber-400 to-amber-500 shadow-sm"></div>
-                <span className="text-stone-700 text-base font-semibold">Active Clients</span>
-              </div>
-              <div className="w-px h-6 bg-stone-200" />
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-1 bg-emerald-500 rounded-full"></div>
-                <span className="text-stone-700 text-base font-semibold">Capacity %</span>
-              </div>
-            </div>
+            <ToggleButton
+              label="Caseload Capacity"
+              active={showCapacityPercentage}
+              onToggle={() => setShowCapacityPercentage(!showCapacityPercentage)}
+            />
 {/* Report button hidden for now
             <ActionButton label="View Report" icon={<ArrowRight size={16} />} />
 */}
           </>
         }
-        insights={clientUtilizationInsights}
+        insights={showCapacityPercentage ? caseloadCapacityInsights : activeClientsInsights}
       >
-        <div style={{ width: '100%', height: '100%' }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart
-              data={clientUtilizationChartData}
-              margin={{ top: 30, right: 80, bottom: 30, left: 40 }}
-            >
-              <defs>
-                <linearGradient id="activeClientsBarGradientExp" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#fbbf24" stopOpacity={1}/>
-                  <stop offset="100%" stopColor="#f59e0b" stopOpacity={1}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="4 4" stroke="#e7e5e4" vertical={false} />
-              <XAxis
-                dataKey="month"
-                axisLine={false}
-                tickLine={false}
-                tick={{ fill: '#57534e', fontSize: 18, fontWeight: 600 }}
-                dy={12}
-                height={50}
-              />
-              <YAxis
-                yAxisId="left"
-                axisLine={false}
-                tickLine={false}
-                tick={{ fill: '#78716c', fontSize: 16, fontWeight: 600 }}
-                domain={[0, 200]}
-                width={60}
-                tickCount={5}
-              />
-              <YAxis
-                yAxisId="right"
-                orientation="right"
-                axisLine={false}
-                tickLine={false}
-                tick={{ fill: '#059669', fontSize: 16, fontWeight: 700 }}
-                domain={[0, 100]}
-                tickFormatter={(value) => `${value}%`}
-                width={70}
-                tickCount={5}
-              />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: '#1c1917',
-                  border: 'none',
-                  borderRadius: '20px',
-                  padding: '20px 28px',
-                  boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
-                }}
-                labelStyle={{ color: '#a8a29e', fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}
-                itemStyle={{ color: '#fff', fontSize: '22px', fontWeight: 700 }}
-                formatter={(value: number, name: string) => {
-                  if (name === 'utilizationRate') return [`${value}%`, 'Capacity Rate'];
-                  return [value, 'Active Clients'];
-                }}
-              />
-              <Bar
-                yAxisId="left"
-                dataKey="activeClients"
-                fill="url(#activeClientsBarGradientExp)"
-                radius={[10, 10, 0, 0]}
-                name="Active Clients"
-                maxBarSize={80}
-              >
-                <LabelList
-                  dataKey="activeClients"
-                  position="insideTop"
-                  style={{ fill: '#ffffff', fontSize: '18px', fontWeight: 800, textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}
-                  offset={10}
-                />
-              </Bar>
-              <Line
-                yAxisId="right"
-                type="monotone"
-                dataKey="utilizationRate"
-                stroke="#059669"
-                strokeWidth={5}
-                dot={{ fill: '#059669', strokeWidth: 5, stroke: '#fff', r: 10 }}
-                activeDot={{ r: 14, strokeWidth: 5, stroke: '#fff', fill: '#059669' }}
-                name="Capacity Rate"
-              />
-            </ComposedChart>
-          </ResponsiveContainer>
-        </div>
+        {showCapacityPercentage ? (
+          <BarChart
+            data={capacityPercentageBarData}
+            mode="single"
+            size="lg"
+            getBarColor={(value) => ({
+              gradient: value >= 90
+                ? 'linear-gradient(180deg, #34d399 0%, #059669 100%)'
+                : value >= 75
+                  ? 'linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%)'
+                  : 'linear-gradient(180deg, #fb7185 0%, #f43f5e 100%)',
+              shadow: value >= 90
+                ? '0 4px 12px -2px rgba(16, 185, 129, 0.35)'
+                : value >= 75
+                  ? '0 4px 12px -2px rgba(245, 158, 11, 0.35)'
+                  : '0 4px 12px -2px rgba(244, 63, 94, 0.35)',
+              textColor: value >= 90
+                ? 'text-emerald-600'
+                : value >= 75
+                  ? 'text-amber-600'
+                  : 'text-rose-600',
+            })}
+            formatValue={(v) => `${v}%`}
+            maxValue={100}
+            height="100%"
+          />
+        ) : (
+          <BarChart
+            data={activeClientsBarData}
+            mode="single"
+            size="lg"
+            getBarColor={() => ({
+              gradient: 'linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%)',
+              shadow: '0 4px 12px -2px rgba(245, 158, 11, 0.35)',
+              textColor: 'text-amber-600',
+            })}
+            formatValue={(v) => v.toString()}
+            height="100%"
+          />
+        )}
       </ExpandedChartModal>
 
       {/* New and Churned Clients Expanded */}

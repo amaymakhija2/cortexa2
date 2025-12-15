@@ -217,7 +217,9 @@ export interface ClinicianSyntheticMetrics {
   session12Retention: number;  // % who reach session 12
 
   // Notes
-  outstandingNotes: number;   // Number of notes overdue
+  outstandingNotes: number;   // Total notes not yet completed
+  overdueNotes: number;       // Notes past the practice's deadline
+  dueWithin48hNotes: number;  // Notes due within 48 hours (not yet overdue)
 
   // Growth
   newClientsThisMonth: number; // New clients added this month
@@ -239,6 +241,8 @@ export const CLINICIAN_SYNTHETIC_METRICS: Record<string, ClinicianSyntheticMetri
     session5Retention: 88,
     session12Retention: 74,
     outstandingNotes: 2,
+    overdueNotes: 0,
+    dueWithin48hNotes: 2,
     newClientsThisMonth: 3,
   },
   '2': { // Maria Rodriguez - Strong performer, consistent
@@ -255,6 +259,8 @@ export const CLINICIAN_SYNTHETIC_METRICS: Record<string, ClinicianSyntheticMetri
     session5Retention: 82,
     session12Retention: 68,
     outstandingNotes: 4,
+    overdueNotes: 1,
+    dueWithin48hNotes: 3,
     newClientsThisMonth: 2,
   },
   '3': { // Priya Patel - Needs attention, high cancellations
@@ -271,6 +277,8 @@ export const CLINICIAN_SYNTHETIC_METRICS: Record<string, ClinicianSyntheticMetri
     session5Retention: 62,
     session12Retention: 45,
     outstandingNotes: 12,
+    overdueNotes: 5,
+    dueWithin48hNotes: 7,
     newClientsThisMonth: 1,
   },
   '4': { // James Kim - Growing, great potential
@@ -287,6 +295,8 @@ export const CLINICIAN_SYNTHETIC_METRICS: Record<string, ClinicianSyntheticMetri
     session5Retention: 78,
     session12Retention: 62,
     outstandingNotes: 3,
+    overdueNotes: 0,
+    dueWithin48hNotes: 3,
     newClientsThisMonth: 4,
   },
   '5': { // Michael Johnson - Critical, needs intervention
@@ -303,6 +313,8 @@ export const CLINICIAN_SYNTHETIC_METRICS: Record<string, ClinicianSyntheticMetri
     session5Retention: 48,
     session12Retention: 32,
     outstandingNotes: 18,
+    overdueNotes: 8,
+    dueWithin48hNotes: 10,
     newClientsThisMonth: 1,
   },
 };

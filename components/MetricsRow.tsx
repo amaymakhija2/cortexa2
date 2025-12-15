@@ -194,6 +194,11 @@ export const MetricsRow: React.FC<MetricsRowProps> = ({ metrics, isLive = true }
       subtext={metrics.attendance.subtext}
       status={metrics.attendance.status}
       tooltip={METRIC_TOOLTIPS['Attendance']}
+      navigateTo={{
+        path: '/clinician-overview?tab=ranking&metric=attendance',
+        label: 'By Clinician',
+        labelMobile: 'Clinicians',
+      }}
     />,
     <MetricCard
       key="compliance"
@@ -203,6 +208,11 @@ export const MetricsRow: React.FC<MetricsRowProps> = ({ metrics, isLive = true }
       subtext={metrics.compliance.subtext}
       status={metrics.compliance.status}
       tooltip={METRIC_TOOLTIPS['Outstanding Notes']}
+      navigateTo={{
+        path: '/clinician-overview?tab=ranking&metric=documentation',
+        label: 'By Clinician',
+        labelMobile: 'Clinicians',
+      }}
     />,
   ];
 

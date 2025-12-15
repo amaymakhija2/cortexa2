@@ -16,6 +16,7 @@ import {
   ToggleButton,
   ClientRosterCard,
   DataTableCard,
+  StackedBarCard,
 } from './design-system';
 import type { ClientData } from './design-system';
 
@@ -219,24 +220,24 @@ const CLINICIAN_SESSION_DATA: Record<number, {
   }[];
   sessionGoal: number;
 }> = {
-  1: { // Sarah Chen - Clinical Director (high performer) - Excellent attendance
+  1: { // Sarah Chen - Clinical Director (high performer) - Excellent attendance, takes time off in July/Dec
     monthlySessions: [
-      { month: 'Jan', completed: 42, booked: 46, clientCancelled: 2, clinicianCancelled: 0, lateCancelled: 1, noShow: 1 },
-      { month: 'Feb', completed: 44, booked: 48, clientCancelled: 2, clinicianCancelled: 1, lateCancelled: 1, noShow: 0 },
-      { month: 'Mar', completed: 40, booked: 44, clientCancelled: 2, clinicianCancelled: 0, lateCancelled: 1, noShow: 1 },
+      { month: 'Jan', completed: 42, booked: 46, clientCancelled: 2, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+      { month: 'Feb', completed: 44, booked: 48, clientCancelled: 2, clinicianCancelled: 0, lateCancelled: 1, noShow: 0 },
+      { month: 'Mar', completed: 40, booked: 44, clientCancelled: 2, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
       { month: 'Apr', completed: 45, booked: 49, clientCancelled: 2, clinicianCancelled: 0, lateCancelled: 1, noShow: 1 },
       { month: 'May', completed: 43, booked: 47, clientCancelled: 2, clinicianCancelled: 1, lateCancelled: 0, noShow: 1 },
       { month: 'Jun', completed: 41, booked: 45, clientCancelled: 2, clinicianCancelled: 0, lateCancelled: 1, noShow: 1 },
-      { month: 'Jul', completed: 38, booked: 42, clientCancelled: 2, clinicianCancelled: 1, lateCancelled: 0, noShow: 1 },
-      { month: 'Aug', completed: 42, booked: 46, clientCancelled: 2, clinicianCancelled: 0, lateCancelled: 1, noShow: 1 },
+      { month: 'Jul', completed: 38, booked: 46, clientCancelled: 2, clinicianCancelled: 5, lateCancelled: 0, noShow: 1 },
+      { month: 'Aug', completed: 42, booked: 46, clientCancelled: 2, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
       { month: 'Sep', completed: 46, booked: 50, clientCancelled: 2, clinicianCancelled: 0, lateCancelled: 1, noShow: 1 },
       { month: 'Oct', completed: 44, booked: 48, clientCancelled: 2, clinicianCancelled: 1, lateCancelled: 1, noShow: 0 },
       { month: 'Nov', completed: 39, booked: 43, clientCancelled: 2, clinicianCancelled: 0, lateCancelled: 1, noShow: 1 },
-      { month: 'Dec', completed: 33, booked: 37, clientCancelled: 2, clinicianCancelled: 1, lateCancelled: 0, noShow: 1 },
+      { month: 'Dec', completed: 33, booked: 44, clientCancelled: 2, clinicianCancelled: 8, lateCancelled: 0, noShow: 1 },
     ],
     sessionGoal: 40,
   },
-  2: { // Maria Rodriguez - Senior Therapist - Good attendance, occasional issues
+  2: { // Maria Rodriguez - Senior Therapist - Takes time off in Aug and around holidays
     monthlySessions: [
       { month: 'Jan', completed: 36, booked: 42, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
       { month: 'Feb', completed: 38, booked: 45, clientCancelled: 4, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
@@ -245,32 +246,32 @@ const CLINICIAN_SESSION_DATA: Record<number, {
       { month: 'May', completed: 36, booked: 43, clientCancelled: 4, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
       { month: 'Jun', completed: 34, booked: 40, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
       { month: 'Jul', completed: 32, booked: 38, clientCancelled: 3, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
-      { month: 'Aug', completed: 35, booked: 42, clientCancelled: 4, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+      { month: 'Aug', completed: 28, booked: 42, clientCancelled: 4, clinicianCancelled: 8, lateCancelled: 1, noShow: 1 },
       { month: 'Sep', completed: 37, booked: 44, clientCancelled: 4, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
       { month: 'Oct', completed: 36, booked: 43, clientCancelled: 4, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
-      { month: 'Nov', completed: 33, booked: 40, clientCancelled: 4, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
-      { month: 'Dec', completed: 31, booked: 38, clientCancelled: 4, clinicianCancelled: 1, lateCancelled: 1, noShow: 1 },
+      { month: 'Nov', completed: 30, booked: 40, clientCancelled: 4, clinicianCancelled: 4, lateCancelled: 1, noShow: 1 },
+      { month: 'Dec', completed: 28, booked: 42, clientCancelled: 4, clinicianCancelled: 8, lateCancelled: 1, noShow: 1 },
     ],
     sessionGoal: 35,
   },
-  3: { // Priya Patel - Therapist (needs attention) - High cancellation rate
+  3: { // Priya Patel - Therapist (needs attention) - Frequent cancellations, peaks in spring and winter
     monthlySessions: [
       { month: 'Jan', completed: 32, booked: 44, clientCancelled: 6, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
       { month: 'Feb', completed: 33, booked: 46, clientCancelled: 7, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
-      { month: 'Mar', completed: 30, booked: 43, clientCancelled: 7, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
-      { month: 'Apr', completed: 31, booked: 45, clientCancelled: 8, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
+      { month: 'Mar', completed: 26, booked: 43, clientCancelled: 7, clinicianCancelled: 6, lateCancelled: 2, noShow: 2 },
+      { month: 'Apr', completed: 25, booked: 45, clientCancelled: 8, clinicianCancelled: 8, lateCancelled: 2, noShow: 2 },
       { month: 'May', completed: 29, booked: 43, clientCancelled: 8, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
       { month: 'Jun', completed: 27, booked: 41, clientCancelled: 8, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
       { month: 'Jul', completed: 25, booked: 39, clientCancelled: 8, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
       { month: 'Aug', completed: 28, booked: 42, clientCancelled: 8, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
       { month: 'Sep', completed: 26, booked: 40, clientCancelled: 8, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
       { month: 'Oct', completed: 27, booked: 41, clientCancelled: 8, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
-      { month: 'Nov', completed: 25, booked: 39, clientCancelled: 8, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
-      { month: 'Dec', completed: 29, booked: 43, clientCancelled: 8, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
+      { month: 'Nov', completed: 22, booked: 39, clientCancelled: 8, clinicianCancelled: 5, lateCancelled: 2, noShow: 2 },
+      { month: 'Dec', completed: 20, booked: 43, clientCancelled: 8, clinicianCancelled: 11, lateCancelled: 2, noShow: 2 },
     ],
     sessionGoal: 35,
   },
-  4: { // James Kim - Associate Therapist (ramping up) - Great attendance, building caseload
+  4: { // James Kim - Associate Therapist (ramping up) - Very reliable, minimal cancellations
     monthlySessions: [
       { month: 'Jan', completed: 22, booked: 24, clientCancelled: 1, clinicianCancelled: 0, lateCancelled: 1, noShow: 0 },
       { month: 'Feb', completed: 24, booked: 26, clientCancelled: 1, clinicianCancelled: 0, lateCancelled: 1, noShow: 0 },
@@ -283,24 +284,24 @@ const CLINICIAN_SESSION_DATA: Record<number, {
       { month: 'Sep', completed: 28, booked: 30, clientCancelled: 1, clinicianCancelled: 0, lateCancelled: 1, noShow: 0 },
       { month: 'Oct', completed: 26, booked: 28, clientCancelled: 1, clinicianCancelled: 0, lateCancelled: 1, noShow: 0 },
       { month: 'Nov', completed: 24, booked: 26, clientCancelled: 1, clinicianCancelled: 0, lateCancelled: 1, noShow: 0 },
-      { month: 'Dec', completed: 21, booked: 23, clientCancelled: 1, clinicianCancelled: 0, lateCancelled: 1, noShow: 0 },
+      { month: 'Dec', completed: 20, booked: 26, clientCancelled: 1, clinicianCancelled: 4, lateCancelled: 1, noShow: 0 },
     ],
     sessionGoal: 25,
   },
-  5: { // Michael Johnson - Associate Therapist (critical) - Very high no-shows and cancellations
+  5: { // Michael Johnson - Associate Therapist (critical) - High cancellations throughout, spikes in summer
     monthlySessions: [
       { month: 'Jan', completed: 18, booked: 28, clientCancelled: 4, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
       { month: 'Feb', completed: 19, booked: 30, clientCancelled: 5, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
       { month: 'Mar', completed: 17, booked: 28, clientCancelled: 5, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
       { month: 'Apr', completed: 16, booked: 28, clientCancelled: 6, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
       { month: 'May', completed: 15, booked: 27, clientCancelled: 6, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
-      { month: 'Jun', completed: 14, booked: 26, clientCancelled: 6, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
-      { month: 'Jul', completed: 13, booked: 25, clientCancelled: 6, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
-      { month: 'Aug', completed: 14, booked: 26, clientCancelled: 6, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
+      { month: 'Jun', completed: 12, booked: 28, clientCancelled: 6, clinicianCancelled: 6, lateCancelled: 2, noShow: 2 },
+      { month: 'Jul', completed: 10, booked: 28, clientCancelled: 6, clinicianCancelled: 8, lateCancelled: 2, noShow: 2 },
+      { month: 'Aug', completed: 11, booked: 29, clientCancelled: 6, clinicianCancelled: 8, lateCancelled: 2, noShow: 2 },
       { month: 'Sep', completed: 16, booked: 28, clientCancelled: 6, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
       { month: 'Oct', completed: 14, booked: 26, clientCancelled: 6, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
       { month: 'Nov', completed: 13, booked: 25, clientCancelled: 6, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
-      { month: 'Dec', completed: 7, booked: 19, clientCancelled: 6, clinicianCancelled: 2, lateCancelled: 2, noShow: 2 },
+      { month: 'Dec', completed: 5, booked: 25, clientCancelled: 6, clinicianCancelled: 10, lateCancelled: 2, noShow: 2 },
     ],
     sessionGoal: 25,
   },
@@ -317,6 +318,13 @@ const CLINICIAN_CASELOAD_DATA: Record<number, {
   }[];
   atRiskClients: number;
   practiceAvgUtilization: number;
+  // Session frequency breakdown of current active clients
+  sessionFrequency: {
+    weekly: number;      // 4+ sessions/month
+    biweekly: number;    // 2-3 sessions/month
+    monthly: number;     // 1 session/month
+    inconsistent: number; // <1 session/month or irregular
+  };
 }> = {
   1: { // Sarah Chen - Clinical Director (high performer) - Strong growth, low churn
     monthlyCaseload: [
@@ -335,6 +343,12 @@ const CLINICIAN_CASELOAD_DATA: Record<number, {
     ],
     atRiskClients: 2,
     practiceAvgUtilization: 78,
+    sessionFrequency: {
+      weekly: 18,      // Most clients are engaged weekly - excellent clinician
+      biweekly: 7,
+      monthly: 2,
+      inconsistent: 1,
+    },
   },
   2: { // Maria Rodriguez - Senior Therapist - Steady state, balanced
     monthlyCaseload: [
@@ -353,6 +367,12 @@ const CLINICIAN_CASELOAD_DATA: Record<number, {
     ],
     atRiskClients: 3,
     practiceAvgUtilization: 78,
+    sessionFrequency: {
+      weekly: 12,
+      biweekly: 8,
+      monthly: 3,
+      inconsistent: 1,
+    },
   },
   3: { // Priya Patel - Therapist (needs attention) - Declining caseload, high churn
     monthlyCaseload: [
@@ -371,6 +391,12 @@ const CLINICIAN_CASELOAD_DATA: Record<number, {
     ],
     atRiskClients: 5,
     practiceAvgUtilization: 78,
+    sessionFrequency: {
+      weekly: 6,       // Low weekly engagement - concerning
+      biweekly: 5,
+      monthly: 4,
+      inconsistent: 3, // High inconsistent - needs attention
+    },
   },
   4: { // James Kim - Associate Therapist (ramping up) - Great growth trajectory
     monthlyCaseload: [
@@ -389,6 +415,12 @@ const CLINICIAN_CASELOAD_DATA: Record<number, {
     ],
     atRiskClients: 1,
     practiceAvgUtilization: 78,
+    sessionFrequency: {
+      weekly: 14,      // Good weekly engagement for ramping clinician
+      biweekly: 4,
+      monthly: 2,
+      inconsistent: 0,
+    },
   },
   5: { // Michael Johnson - Associate Therapist (critical) - Hemorrhaging clients
     monthlyCaseload: [
@@ -407,6 +439,12 @@ const CLINICIAN_CASELOAD_DATA: Record<number, {
     ],
     atRiskClients: 4,
     practiceAvgUtilization: 78,
+    sessionFrequency: {
+      weekly: 2,       // Very low weekly - critical issue
+      biweekly: 1,
+      monthly: 1,
+      inconsistent: 2, // High inconsistent ratio for small caseload
+    },
   },
 };
 
@@ -481,10 +519,15 @@ const CLINICIAN_RETENTION_DATA: Record<number, {
   practiceAvgRebookRate: number;
   avgSessionsBeforeChurn: number;
   practiceAvgSessionsBeforeChurn: number;
-  clientRetention3Month: number;
-  practiceAvgRetention3Month: number;
-  clientRetention6Month: number;
-  practiceAvgRetention6Month: number;
+  // Return Rates - % of clients still active at each time milestone
+  month3ReturnRate: number;          // % still active at 3 months
+  practiceAvgMonth3Return: number;
+  month6ReturnRate: number;          // % still active at 6 months
+  practiceAvgMonth6Return: number;
+  oneYearReturnRate: number;         // % still active at 1 year
+  practiceAvgOneYearReturn: number;
+  beyondOneYearReturnRate: number;   // % still active beyond 1 year
+  practiceAvgBeyondOneYearReturn: number;
   churnTiming: { early: number; medium: number; late: number }; // <5, 5-15, >15 sessions
 }> = {
   1: { // Sarah Chen - Clinical Director (high performer)
@@ -506,10 +549,14 @@ const CLINICIAN_RETENTION_DATA: Record<number, {
     practiceAvgRebookRate: 78,
     avgSessionsBeforeChurn: 18.5,
     practiceAvgSessionsBeforeChurn: 12.3,
-    clientRetention3Month: 94,
-    practiceAvgRetention3Month: 82,
-    clientRetention6Month: 87,
-    practiceAvgRetention6Month: 68,
+    month3ReturnRate: 92,
+    practiceAvgMonth3Return: 75,
+    month6ReturnRate: 88,
+    practiceAvgMonth6Return: 62,
+    oneYearReturnRate: 74,
+    practiceAvgOneYearReturn: 45,
+    beyondOneYearReturnRate: 58,
+    practiceAvgBeyondOneYearReturn: 32,
     churnTiming: { early: 3, medium: 5, late: 8 }, // Most churn late = good retention
   },
   2: { // Maria Rodriguez - Senior Therapist
@@ -531,10 +578,14 @@ const CLINICIAN_RETENTION_DATA: Record<number, {
     practiceAvgRebookRate: 78,
     avgSessionsBeforeChurn: 15.2,
     practiceAvgSessionsBeforeChurn: 12.3,
-    clientRetention3Month: 89,
-    practiceAvgRetention3Month: 82,
-    clientRetention6Month: 78,
-    practiceAvgRetention6Month: 68,
+    month3ReturnRate: 85,
+    practiceAvgMonth3Return: 75,
+    month6ReturnRate: 78,
+    practiceAvgMonth6Return: 62,
+    oneYearReturnRate: 52,
+    practiceAvgOneYearReturn: 45,
+    beyondOneYearReturnRate: 38,
+    practiceAvgBeyondOneYearReturn: 32,
     churnTiming: { early: 4, medium: 7, late: 6 }, // Balanced churn distribution
   },
   3: { // Priya Patel - Therapist (needs attention)
@@ -556,10 +607,14 @@ const CLINICIAN_RETENTION_DATA: Record<number, {
     practiceAvgRebookRate: 78,
     avgSessionsBeforeChurn: 8.4,
     practiceAvgSessionsBeforeChurn: 12.3,
-    clientRetention3Month: 72,
-    practiceAvgRetention3Month: 82,
-    clientRetention6Month: 54,
-    practiceAvgRetention6Month: 68,
+    month3ReturnRate: 62,
+    practiceAvgMonth3Return: 75,
+    month6ReturnRate: 45,
+    practiceAvgMonth6Return: 62,
+    oneYearReturnRate: 22,
+    practiceAvgOneYearReturn: 45,
+    beyondOneYearReturnRate: 12,
+    practiceAvgBeyondOneYearReturn: 32,
     churnTiming: { early: 12, medium: 6, late: 2 }, // High early churn = concerning
   },
   4: { // James Kim - Associate Therapist (ramping up)
@@ -581,10 +636,14 @@ const CLINICIAN_RETENTION_DATA: Record<number, {
     practiceAvgRebookRate: 78,
     avgSessionsBeforeChurn: 11.8,
     practiceAvgSessionsBeforeChurn: 12.3,
-    clientRetention3Month: 85,
-    practiceAvgRetention3Month: 82,
-    clientRetention6Month: 71,
-    practiceAvgRetention6Month: 68,
+    month3ReturnRate: 80,
+    practiceAvgMonth3Return: 75,
+    month6ReturnRate: 68,
+    practiceAvgMonth6Return: 62,
+    oneYearReturnRate: 42,
+    practiceAvgOneYearReturn: 45,
+    beyondOneYearReturnRate: 28,
+    practiceAvgBeyondOneYearReturn: 32,
     churnTiming: { early: 5, medium: 4, late: 3 }, // Improving, fewer early churns
   },
   5: { // Michael Johnson - Associate Therapist (critical)
@@ -606,11 +665,135 @@ const CLINICIAN_RETENTION_DATA: Record<number, {
     practiceAvgRebookRate: 78,
     avgSessionsBeforeChurn: 6.2,
     practiceAvgSessionsBeforeChurn: 12.3,
-    clientRetention3Month: 58,
-    practiceAvgRetention3Month: 82,
-    clientRetention6Month: 38,
-    practiceAvgRetention6Month: 68,
+    month3ReturnRate: 48,
+    practiceAvgMonth3Return: 75,
+    month6ReturnRate: 32,
+    practiceAvgMonth6Return: 62,
+    oneYearReturnRate: 15,
+    practiceAvgOneYearReturn: 45,
+    beyondOneYearReturnRate: 8,
+    practiceAvgBeyondOneYearReturn: 32,
     churnTiming: { early: 18, medium: 8, late: 2 }, // Very high early churn = critical
+  },
+};
+
+// Mock compliance/notes data for each clinician
+interface OverdueNote {
+  id: string;
+  clientName: string;
+  clientInitials: string;
+  sessionDate: string;
+  daysOverdue: number;
+  sessionType: string;
+}
+
+interface ComplianceData {
+  outstandingNotes: number;      // Total notes not yet completed
+  overdueNotes: number;          // Notes past the deadline
+  dueWithin48h: number;          // Notes due soon (not yet overdue)
+  practiceAvgOutstanding: number;
+  avgCompletionTime: number;     // Hours to complete notes
+  practiceAvgCompletionTime: number;
+  overdueNotesList: OverdueNote[];
+}
+
+const CLINICIAN_COMPLIANCE_DATA: Record<number, ComplianceData> = {
+  1: { // Sarah Chen - Excellent, minimal overdue
+    outstandingNotes: 2,
+    overdueNotes: 0,
+    dueWithin48h: 2,
+    practiceAvgOutstanding: 8,
+    avgCompletionTime: 4,
+    practiceAvgCompletionTime: 18,
+    overdueNotesList: [],
+  },
+  2: { // Maria Rodriguez - Good, few overdue
+    outstandingNotes: 4,
+    overdueNotes: 1,
+    dueWithin48h: 3,
+    practiceAvgOutstanding: 8,
+    avgCompletionTime: 12,
+    practiceAvgCompletionTime: 18,
+    overdueNotesList: [
+      { id: 'n2-1', clientName: 'David Park', clientInitials: 'DP', sessionDate: 'Dec 8', daysOverdue: 3, sessionType: 'Individual' },
+    ],
+  },
+  3: { // Priya Patel - Needs attention, several overdue
+    outstandingNotes: 12,
+    overdueNotes: 5,
+    dueWithin48h: 7,
+    practiceAvgOutstanding: 8,
+    avgCompletionTime: 36,
+    practiceAvgCompletionTime: 18,
+    overdueNotesList: [
+      { id: 'n3-1', clientName: 'Emily Watson', clientInitials: 'EW', sessionDate: 'Dec 2', daysOverdue: 9, sessionType: 'Individual' },
+      { id: 'n3-2', clientName: 'Marcus Chen', clientInitials: 'MC', sessionDate: 'Dec 4', daysOverdue: 7, sessionType: 'Individual' },
+      { id: 'n3-3', clientName: 'Sarah Miller', clientInitials: 'SM', sessionDate: 'Dec 6', daysOverdue: 5, sessionType: 'Couples' },
+      { id: 'n3-4', clientName: 'James Liu', clientInitials: 'JL', sessionDate: 'Dec 8', daysOverdue: 3, sessionType: 'Individual' },
+      { id: 'n3-5', clientName: 'Anna Brooks', clientInitials: 'AB', sessionDate: 'Dec 9', daysOverdue: 2, sessionType: 'Individual' },
+    ],
+  },
+  4: { // James Kim - Good, few overdue
+    outstandingNotes: 3,
+    overdueNotes: 0,
+    dueWithin48h: 3,
+    practiceAvgOutstanding: 8,
+    avgCompletionTime: 8,
+    practiceAvgCompletionTime: 18,
+    overdueNotesList: [],
+  },
+  5: { // Michael Johnson - Critical, many overdue
+    outstandingNotes: 18,
+    overdueNotes: 8,
+    dueWithin48h: 10,
+    practiceAvgOutstanding: 8,
+    avgCompletionTime: 72,
+    practiceAvgCompletionTime: 18,
+    overdueNotesList: [
+      { id: 'n5-1', clientName: 'Robert Kim', clientInitials: 'RK', sessionDate: 'Nov 25', daysOverdue: 16, sessionType: 'Individual' },
+      { id: 'n5-2', clientName: 'Lisa Thompson', clientInitials: 'LT', sessionDate: 'Nov 28', daysOverdue: 13, sessionType: 'Individual' },
+      { id: 'n5-3', clientName: 'Kevin Patel', clientInitials: 'KP', sessionDate: 'Dec 1', daysOverdue: 10, sessionType: 'Individual' },
+      { id: 'n5-4', clientName: 'Maria Santos', clientInitials: 'MS', sessionDate: 'Dec 3', daysOverdue: 8, sessionType: 'Couples' },
+      { id: 'n5-5', clientName: 'Thomas Anderson', clientInitials: 'TA', sessionDate: 'Dec 5', daysOverdue: 6, sessionType: 'Individual' },
+      { id: 'n5-6', clientName: 'Jennifer Wu', clientInitials: 'JW', sessionDate: 'Dec 7', daysOverdue: 4, sessionType: 'Individual' },
+      { id: 'n5-7', clientName: 'David Lee', clientInitials: 'DL', sessionDate: 'Dec 8', daysOverdue: 3, sessionType: 'Individual' },
+      { id: 'n5-8', clientName: 'Emma Garcia', clientInitials: 'EG', sessionDate: 'Dec 9', daysOverdue: 2, sessionType: 'Individual' },
+    ],
+  },
+};
+
+// Mock client demographics data for each clinician
+interface ClientDemographics {
+  gender: { male: number; female: number; other: number };
+  modality: { inPerson: number; telehealth: number };
+  age: { age18to30: number; age31to45: number; age46to60: number; age60plus: number };
+}
+
+const CLINICIAN_DEMOGRAPHICS: Record<number, ClientDemographics> = {
+  1: { // Sarah Chen - Balanced, slightly more female, mix of modalities
+    gender: { male: 12, female: 15, other: 3 },
+    modality: { inPerson: 18, telehealth: 12 },
+    age: { age18to30: 8, age31to45: 12, age46to60: 7, age60plus: 3 },
+  },
+  2: { // Maria Rodriguez - More female clients, mostly in-person
+    gender: { male: 8, female: 18, other: 2 },
+    modality: { inPerson: 22, telehealth: 6 },
+    age: { age18to30: 5, age31to45: 14, age46to60: 6, age60plus: 3 },
+  },
+  3: { // Priya Patel - Younger demographic, more telehealth
+    gender: { male: 10, female: 12, other: 3 },
+    modality: { inPerson: 10, telehealth: 15 },
+    age: { age18to30: 12, age31to45: 8, age46to60: 4, age60plus: 1 },
+  },
+  4: { // James Kim - Couples focus (balanced gender), remote only
+    gender: { male: 11, female: 10, other: 1 },
+    modality: { inPerson: 0, telehealth: 22 },
+    age: { age18to30: 6, age31to45: 10, age46to60: 5, age60plus: 1 },
+  },
+  5: { // Michael Johnson - Newer, smaller caseload
+    gender: { male: 7, female: 11, other: 2 },
+    modality: { inPerson: 12, telehealth: 8 },
+    age: { age18to30: 9, age31to45: 6, age46to60: 4, age60plus: 1 },
   },
 };
 
@@ -941,6 +1124,44 @@ export const ClinicianDetailsTab: React.FC = () => {
     { label: 'No Show', value: totalNoShow, color: '#6b7280' },
   ], [totalCompleted, totalClientCancelled, totalClinicianCancelled, totalLateCancelled, totalNoShow]);
 
+  // Clinician cancellations by month (bar chart data)
+  const clinicianCancellationsBarData = useMemo(() => {
+    if (!sessionData) return [];
+    return sessionData.monthlySessions.map((item) => ({
+      label: item.month,
+      value: item.clinicianCancelled,
+    }));
+  }, [sessionData]);
+
+  // Find the month with highest clinician cancellations
+  const peakCancellationMonth = useMemo(() => {
+    if (!sessionData || sessionData.monthlySessions.length === 0) return { month: '-', value: 0 };
+    return sessionData.monthlySessions.reduce((peak, item) =>
+      item.clinicianCancelled > peak.value ? { month: item.month, value: item.clinicianCancelled } : peak,
+      { month: sessionData.monthlySessions[0].month, value: sessionData.monthlySessions[0].clinicianCancelled }
+    );
+  }, [sessionData]);
+
+  // Clinician cancellation insights
+  const clinicianCancellationInsights = useMemo(() => {
+    if (!sessionData) return [];
+    const avgCancellations = totalClinicianCancelled / sessionData.monthlySessions.length;
+    return [
+      {
+        icon: Calendar,
+        label: 'Peak Month',
+        value: peakCancellationMonth.month,
+        detail: `${peakCancellationMonth.value} cancellations`,
+      },
+      {
+        icon: Activity,
+        label: 'Monthly Avg',
+        value: avgCancellations.toFixed(1),
+        detail: `${totalClinicianCancelled} total this year`,
+      },
+    ];
+  }, [sessionData, totalClinicianCancelled, peakCancellationMonth]);
+
   // Average weekly sessions
   const avgWeeklySessions = useMemo(() => {
     if (!sessionData) return 0;
@@ -1049,12 +1270,43 @@ export const ClinicianDetailsTab: React.FC = () => {
     ];
   }, [caseloadData, netClientGrowth, totalNewClients, totalChurnedClients]);
 
+  // Session frequency segments for donut chart
+  const sessionFrequencySegments = useMemo(() => {
+    if (!caseloadData?.sessionFrequency) return [];
+    const { weekly, biweekly, monthly, inconsistent } = caseloadData.sessionFrequency;
+    return [
+      { label: 'Weekly', value: weekly, color: '#10b981' },      // Emerald - healthy
+      { label: 'Bi-weekly', value: biweekly, color: '#3b82f6' }, // Blue - stable
+      { label: 'Monthly', value: monthly, color: '#f59e0b' },    // Amber - lower engagement
+      { label: 'Inconsistent', value: inconsistent, color: '#6b7280' }, // Gray - at risk
+    ];
+  }, [caseloadData]);
+
+  // Total active clients from session frequency
+  const totalSessionFrequencyClients = useMemo(() => {
+    if (!caseloadData?.sessionFrequency) return 0;
+    const { weekly, biweekly, monthly, inconsistent } = caseloadData.sessionFrequency;
+    return weekly + biweekly + monthly + inconsistent;
+  }, [caseloadData]);
+
+  // Weekly engagement percentage
+  const weeklyEngagementPercent = useMemo(() => {
+    if (!caseloadData?.sessionFrequency || totalSessionFrequencyClients === 0) return 0;
+    return Math.round((caseloadData.sessionFrequency.weekly / totalSessionFrequencyClients) * 100);
+  }, [caseloadData, totalSessionFrequencyClients]);
+
   // ==========================================================================
   // RETENTION COMPUTED VALUES
   // ==========================================================================
 
   // Get retention data for selected clinician
   const retentionData = selectedClinician ? CLINICIAN_RETENTION_DATA[selectedClinician.id] : null;
+
+  // Get compliance data for selected clinician
+  const complianceData = selectedClinician ? CLINICIAN_COMPLIANCE_DATA[selectedClinician.id] : null;
+
+  // Get demographics data for selected clinician
+  const demographicsData = selectedClinician ? CLINICIAN_DEMOGRAPHICS[selectedClinician.id] : null;
 
   // Calculate churn timing totals for donut chart
   const churnTimingTotals = useMemo(() => {
@@ -1074,8 +1326,10 @@ export const ClinicianDetailsTab: React.FC = () => {
     if (!retentionData) return [];
     const rebookDiff = retentionData.currentRebookRate - retentionData.practiceAvgRebookRate;
     const sessionsDiff = retentionData.avgSessionsBeforeChurn - retentionData.practiceAvgSessionsBeforeChurn;
-    const retention3Diff = retentionData.clientRetention3Month - retentionData.practiceAvgRetention3Month;
-    const retention6Diff = retentionData.clientRetention6Month - retentionData.practiceAvgRetention6Month;
+    const month3Diff = retentionData.month3ReturnRate - retentionData.practiceAvgMonth3Return;
+    const month6Diff = retentionData.month6ReturnRate - retentionData.practiceAvgMonth6Return;
+    const oneYearDiff = retentionData.oneYearReturnRate - retentionData.practiceAvgOneYearReturn;
+    const beyondOneYearDiff = retentionData.beyondOneYearReturnRate - retentionData.practiceAvgBeyondOneYearReturn;
 
     return [
       {
@@ -1101,26 +1355,48 @@ export const ClinicianDetailsTab: React.FC = () => {
         indicator: { color: sessionsDiff >= 0 ? '#10b981' : '#f43f5e' },
       },
       {
-        id: 'retention3',
-        label: '3-Month Retention',
+        id: 'month3',
+        label: 'Month 3 Return Rate',
         values: {
-          clinician: `${retentionData.clientRetention3Month}%`,
-          practice: `${retentionData.practiceAvgRetention3Month}%`,
-          diff: retention3Diff >= 0 ? `+${retention3Diff}%` : `${retention3Diff}%`,
+          clinician: `${retentionData.month3ReturnRate}%`,
+          practice: `${retentionData.practiceAvgMonth3Return}%`,
+          diff: month3Diff >= 0 ? `+${month3Diff}%` : `${month3Diff}%`,
         },
-        valueColor: retention3Diff >= 0 ? 'text-emerald-600' : 'text-rose-600',
-        indicator: { color: retention3Diff >= 0 ? '#10b981' : '#f43f5e' },
+        valueColor: month3Diff >= 0 ? 'text-emerald-600' : 'text-rose-600',
+        indicator: { color: month3Diff >= 0 ? '#10b981' : '#f43f5e' },
       },
       {
-        id: 'retention6',
-        label: '6-Month Retention',
+        id: 'month6',
+        label: 'Month 6 Return Rate',
         values: {
-          clinician: `${retentionData.clientRetention6Month}%`,
-          practice: `${retentionData.practiceAvgRetention6Month}%`,
-          diff: retention6Diff >= 0 ? `+${retention6Diff}%` : `${retention6Diff}%`,
+          clinician: `${retentionData.month6ReturnRate}%`,
+          practice: `${retentionData.practiceAvgMonth6Return}%`,
+          diff: month6Diff >= 0 ? `+${month6Diff}%` : `${month6Diff}%`,
         },
-        valueColor: retention6Diff >= 0 ? 'text-emerald-600' : 'text-rose-600',
-        indicator: { color: retention6Diff >= 0 ? '#10b981' : '#f43f5e' },
+        valueColor: month6Diff >= 0 ? 'text-emerald-600' : 'text-rose-600',
+        indicator: { color: month6Diff >= 0 ? '#10b981' : '#f43f5e' },
+      },
+      {
+        id: 'oneYear',
+        label: '1-Year Return Rate',
+        values: {
+          clinician: `${retentionData.oneYearReturnRate}%`,
+          practice: `${retentionData.practiceAvgOneYearReturn}%`,
+          diff: oneYearDiff >= 0 ? `+${oneYearDiff}%` : `${oneYearDiff}%`,
+        },
+        valueColor: oneYearDiff >= 0 ? 'text-emerald-600' : 'text-rose-600',
+        indicator: { color: oneYearDiff >= 0 ? '#10b981' : '#f43f5e' },
+      },
+      {
+        id: 'beyondOneYear',
+        label: 'Beyond 1-Year Return Rate',
+        values: {
+          clinician: `${retentionData.beyondOneYearReturnRate}%`,
+          practice: `${retentionData.practiceAvgBeyondOneYearReturn}%`,
+          diff: beyondOneYearDiff >= 0 ? `+${beyondOneYearDiff}%` : `${beyondOneYearDiff}%`,
+        },
+        valueColor: beyondOneYearDiff >= 0 ? 'text-emerald-600' : 'text-rose-600',
+        indicator: { color: beyondOneYearDiff >= 0 ? '#10b981' : '#f43f5e' },
       },
     ];
   }, [retentionData, selectedClinician]);
@@ -1929,33 +2205,12 @@ export const ClinicianDetailsTab: React.FC = () => {
           )}
 
           {/* ---------------------------------------------------------
-              SECTION 1: Priority Alerts (Only show if there are issues)
-              --------------------------------------------------------- */}
-          {isSpotlightMode && selectedClinician && selectedClinician.healthStatus !== 'healthy' && (
-            <SectionContainer accent="rose" index={0} isFirst>
-              <SectionHeader
-                number={1}
-                question="What needs attention?"
-                description="Actionable alerts and issues requiring follow-up"
-                accent="rose"
-                showAccentLine={false}
-                compact
-              />
-              <Grid cols={2}>
-                <div className="col-span-2 h-24 bg-stone-100 rounded-2xl flex items-center justify-center text-stone-400">
-                  Priority Alert Cards
-                </div>
-              </Grid>
-            </SectionContainer>
-          )}
-
-          {/* ---------------------------------------------------------
-              SECTION 2: Financial Performance
+              SECTION 1: Financial Performance
               --------------------------------------------------------- */}
           {isSpotlightMode && selectedClinician && financialData && (
-          <SectionContainer accent="emerald" index={selectedClinician.healthStatus !== 'healthy' ? 1 : 0} isFirst={selectedClinician.healthStatus === 'healthy'}>
+          <SectionContainer accent="emerald" index={0} isFirst>
             <SectionHeader
-              number={selectedClinician.healthStatus !== 'healthy' ? 2 : 1}
+              number={1}
               question="How is their financial performance?"
               description="Revenue trends, averages, and contribution to practice"
               accent="emerald"
@@ -2001,12 +2256,12 @@ export const ClinicianDetailsTab: React.FC = () => {
           )}
 
           {/* ---------------------------------------------------------
-              SECTION 3: Session Performance
+              SECTION 2: Session Performance
               --------------------------------------------------------- */}
           {isSpotlightMode && selectedClinician && sessionData && (
-          <SectionContainer accent="cyan" index={selectedClinician.healthStatus !== 'healthy' ? 2 : 1}>
+          <SectionContainer accent="cyan" index={1}>
             <SectionHeader
-              number={selectedClinician.healthStatus !== 'healthy' ? 3 : 2}
+              number={2}
               question="How are their sessions performing?"
               description="Session volume, attendance breakdown, and show rates"
               accent="cyan"
@@ -2068,17 +2323,56 @@ export const ClinicianDetailsTab: React.FC = () => {
                 centerValueColor={showRate >= 87.5 ? 'text-emerald-600' : 'text-rose-600'}
                 valueFormat="number"
               />
+
+              {/* Clinician Cancellations Chart */}
+              <ChartCard
+                title="Clinician Cancellations"
+                subtitle="Sessions cancelled by clinician each month"
+                insights={clinicianCancellationInsights}
+                minHeight="320px"
+              >
+                <BarChart
+                  data={clinicianCancellationsBarData}
+                  mode="single"
+                  getBarColor={(value) => {
+                    const avg = totalClinicianCancelled / 12;
+                    return value > avg * 1.5
+                      ? {
+                          gradient: 'linear-gradient(180deg, #f87171 0%, #dc2626 100%)',
+                          shadow: '0 4px 12px -2px rgba(220, 38, 38, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
+                          textColor: 'text-red-600',
+                        }
+                      : {
+                          gradient: 'linear-gradient(180deg, #60a5fa 0%, #2563eb 100%)',
+                          shadow: '0 4px 12px -2px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
+                          textColor: 'text-blue-600',
+                        };
+                  }}
+                  formatValue={(v) => Math.round(v).toString()}
+                  yAxisLabels={(maxVal) => {
+                    const max = Math.ceil(maxVal);
+                    return [
+                      max.toString(),
+                      Math.round(max * 0.75).toString(),
+                      Math.round(max * 0.5).toString(),
+                      Math.round(max * 0.25).toString(),
+                      '0',
+                    ];
+                  }}
+                  height="220px"
+                />
+              </ChartCard>
             </Grid>
           </SectionContainer>
           )}
 
           {/* ---------------------------------------------------------
-              SECTION 4: Client & Caseload
+              SECTION 3: Client & Caseload
               --------------------------------------------------------- */}
           {isSpotlightMode && selectedClinician && caseloadData && (
-          <SectionContainer accent="amber" index={selectedClinician.healthStatus !== 'healthy' ? 3 : 2}>
+          <SectionContainer accent="amber" index={2}>
             <SectionHeader
-              number={selectedClinician.healthStatus !== 'healthy' ? 4 : 3}
+              number={3}
               question="How is their caseload?"
               description="Client movement and current roster"
               accent="amber"
@@ -2127,17 +2421,58 @@ export const ClinicianDetailsTab: React.FC = () => {
                 subtitle={`${clinicianClients.length} active clients`}
                 clients={clinicianClients}
               />
+
+              {/* Caseload by Session Frequency */}
+              <DonutChartCard
+                title="Caseload by Session Frequency"
+                subtitle={`${weeklyEngagementPercent}% weekly engagement`}
+                segments={sessionFrequencySegments}
+                centerLabel="Active"
+                centerValue={totalSessionFrequencyClients.toString()}
+                centerValueColor={weeklyEngagementPercent >= 50 ? 'text-emerald-600' : 'text-amber-600'}
+                valueFormat="number"
+              />
+
+              {/* Client Demographics - 3 stacked bar cards */}
+              {demographicsData && (
+                <div className="flex flex-col gap-4">
+                  <StackedBarCard
+                    title="Gender"
+                    segments={[
+                      { label: 'Male', value: demographicsData.gender.male, color: 'bg-blue-500' },
+                      { label: 'Female', value: demographicsData.gender.female, color: 'bg-pink-500' },
+                      { label: 'Other', value: demographicsData.gender.other, color: 'bg-purple-500' },
+                    ]}
+                  />
+                  <StackedBarCard
+                    title="Modality"
+                    segments={[
+                      { label: 'In-Person', value: demographicsData.modality.inPerson, color: 'bg-amber-500' },
+                      { label: 'Telehealth', value: demographicsData.modality.telehealth, color: 'bg-cyan-500' },
+                    ]}
+                  />
+                  <StackedBarCard
+                    title="Age"
+                    segments={[
+                      { label: '18-30', value: demographicsData.age.age18to30, color: 'bg-emerald-500' },
+                      { label: '31-45', value: demographicsData.age.age31to45, color: 'bg-blue-500' },
+                      { label: '46-60', value: demographicsData.age.age46to60, color: 'bg-amber-500' },
+                      { label: '60+', value: demographicsData.age.age60plus, color: 'bg-rose-500' },
+                    ]}
+                  />
+                </div>
+              )}
             </Grid>
           </SectionContainer>
           )}
 
           {/* ---------------------------------------------------------
-              SECTION 5: Retention
+              SECTION 4: Retention
               --------------------------------------------------------- */}
           {isSpotlightMode && selectedClinician && retentionData && (
-          <SectionContainer accent="rose" index={selectedClinician.healthStatus !== 'healthy' ? 4 : 3}>
+          <SectionContainer accent="rose" index={3}>
             <SectionHeader
-              number={selectedClinician.healthStatus !== 'healthy' ? 5 : 4}
+              number={4}
               question="How well do they retain clients?"
               description="Rebook rates, churn patterns, and retention comparison"
               accent="rose"
@@ -2172,12 +2507,12 @@ export const ClinicianDetailsTab: React.FC = () => {
           )}
 
           {/* ---------------------------------------------------------
-              SECTION 6: Compliance
+              SECTION 5: Compliance
               --------------------------------------------------------- */}
-          {isSpotlightMode && selectedClinician && (
-          <SectionContainer accent="stone" index={selectedClinician.healthStatus !== 'healthy' ? 5 : 4}>
+          {isSpotlightMode && selectedClinician && complianceData && (
+          <SectionContainer accent="stone" index={4} isLast>
             <SectionHeader
-              number={selectedClinician.healthStatus !== 'healthy' ? 6 : 5}
+              number={5}
               question="Are they staying compliant?"
               description="Documentation status and overdue notes"
               accent="stone"
@@ -2185,35 +2520,125 @@ export const ClinicianDetailsTab: React.FC = () => {
               compact
             />
             <Grid cols={2}>
-              <div className="h-48 bg-stone-100 rounded-2xl flex items-center justify-center text-stone-400">
-                Notes Status Card
-              </div>
-              <div className="h-48 bg-stone-100 rounded-2xl flex items-center justify-center text-stone-400">
-                Overdue Notes List
-              </div>
-            </Grid>
-          </SectionContainer>
-          )}
+              {/* Outstanding Notes Donut Chart */}
+              <DonutChartCard
+                title="Outstanding Notes"
+                subtitle={`Practice avg: ${complianceData.practiceAvgOutstanding}`}
+                segments={[
+                  { label: 'Overdue', value: complianceData.overdueNotes, color: '#ef4444' },
+                  { label: 'Due within 48h', value: complianceData.dueWithin48h, color: '#f59e0b' },
+                ]}
+                centerLabel="Total"
+                centerValue={complianceData.outstandingNotes.toString()}
+                centerValueColor={
+                  complianceData.overdueNotes === 0
+                    ? 'text-emerald-600'
+                    : complianceData.overdueNotes <= 3
+                      ? 'text-amber-600'
+                      : 'text-rose-600'
+                }
+                valueFormat="number"
+                size="md"
+              />
 
-          {/* ---------------------------------------------------------
-              SECTION 7: Trends & Team Comparison
-              --------------------------------------------------------- */}
-          {isSpotlightMode && selectedClinician && (
-          <SectionContainer accent="indigo" index={selectedClinician.healthStatus !== 'healthy' ? 6 : 5} isLast>
-            <SectionHeader
-              number={selectedClinician.healthStatus !== 'healthy' ? 7 : 6}
-              question="How do they compare to the team?"
-              description="Performance trends and peer comparison"
-              accent="indigo"
-              showAccentLine={false}
-              compact
-            />
-            <Grid cols={2}>
-              <div className="h-64 bg-stone-100 rounded-2xl flex items-center justify-center text-stone-400">
-                Multi-Metric Sparklines
-              </div>
-              <div className="h-64 bg-stone-100 rounded-2xl flex items-center justify-center text-stone-400">
-                Team Ranking Comparison
+              {/* Overdue Notes List - Using design system patterns */}
+              <div
+                className="rounded-2xl xl:rounded-3xl overflow-hidden"
+                style={{
+                  background: 'linear-gradient(145deg, #ffffff 0%, #fafaf9 100%)',
+                  boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)',
+                }}
+              >
+                {/* Header - matches ActionableClientListCard pattern */}
+                <div className="p-6 sm:p-8 xl:p-10 border-b border-stone-100">
+                  <div className="flex items-start justify-between gap-6">
+                    <div className="flex-1 min-w-0">
+                      <h3
+                        className="text-2xl sm:text-3xl xl:text-4xl text-stone-900 font-bold tracking-tight"
+                        style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                      >
+                        Overdue Notes
+                      </h3>
+                      <p className="text-stone-500 text-base sm:text-lg xl:text-xl mt-2">
+                        Notes past deadline
+                      </p>
+                    </div>
+
+                    {/* Summary stat */}
+                    <div className="text-right flex-shrink-0">
+                      <div
+                        className={`text-4xl sm:text-5xl xl:text-6xl font-bold ${
+                          complianceData.overdueNotes === 0
+                            ? 'text-emerald-600'
+                            : complianceData.overdueNotes <= 3
+                              ? 'text-amber-600'
+                              : 'text-rose-600'
+                        }`}
+                        style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                      >
+                        {complianceData.overdueNotes}
+                      </div>
+                      <div className="text-stone-500 text-base mt-1">overdue</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Notes List */}
+                {complianceData.overdueNotesList.length === 0 ? (
+                  <div className="px-6 xl:px-8 py-12 text-center">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-50 mb-4">
+                      <Check size={32} className="text-emerald-600" />
+                    </div>
+                    <h4 className="text-lg font-semibold text-stone-900 mb-1">
+                      All caught up!
+                    </h4>
+                    <p className="text-stone-500 text-sm">No overdue notes</p>
+                  </div>
+                ) : (
+                  <div className="divide-y divide-stone-100">
+                    {complianceData.overdueNotesList.slice(0, 5).map((note, index) => (
+                      <div
+                        key={note.id}
+                        className="px-6 sm:px-8 xl:px-10 py-4 flex items-center gap-4 hover:bg-stone-50 transition-colors"
+                      >
+                        {/* Client Avatar */}
+                        <div
+                          className="w-11 h-11 rounded-xl flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
+                          style={{ background: 'linear-gradient(135deg, #78716c 0%, #57534e 100%)' }}
+                        >
+                          {note.clientInitials}
+                        </div>
+
+                        {/* Client Info */}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-stone-900 font-semibold text-base truncate">{note.clientName}</p>
+                          <p className="text-stone-500 text-sm">{note.sessionDate} · {note.sessionType}</p>
+                        </div>
+
+                        {/* Days Overdue Badge */}
+                        <div
+                          className={`px-3 py-1.5 rounded-lg text-sm font-semibold flex-shrink-0 ${
+                            note.daysOverdue >= 7
+                              ? 'bg-rose-50 text-rose-600 border border-rose-200'
+                              : 'bg-amber-50 text-amber-600 border border-amber-200'
+                          }`}
+                        >
+                          {note.daysOverdue}d overdue
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* View all footer */}
+                {complianceData.overdueNotesList.length > 5 && (
+                  <button
+                    className="w-full px-6 xl:px-8 py-4 flex items-center justify-center gap-2 text-stone-600 font-semibold hover:bg-stone-50 transition-colors border-t border-stone-100"
+                  >
+                    <span>View all {complianceData.overdueNotesList.length} overdue notes</span>
+                    <ArrowRight size={18} />
+                  </button>
+                )}
               </div>
             </Grid>
           </SectionContainer>

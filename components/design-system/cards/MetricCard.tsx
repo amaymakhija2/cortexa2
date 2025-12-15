@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Info, ChevronRight } from 'lucide-react';
 
 // =============================================================================
@@ -32,6 +33,12 @@ export interface MetricCardProps {
   expandButtonLabel?: string;
   /** Shortened label for mobile */
   expandButtonLabelMobile?: string;
+  /** Navigation link (alternative to expandable content) */
+  navigateTo?: {
+    path: string;
+    label: string;
+    labelMobile?: string;
+  };
   /** Additional className */
   className?: string;
 }
@@ -168,10 +175,14 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   expandableContent,
   expandButtonLabel = 'Details',
   expandButtonLabelMobile = 'Details',
+  navigateTo,
   className = '',
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const navigate = useNavigate();
   const hasExpandable = Boolean(expandableContent);
+  const hasNavigation = Boolean(navigateTo);
+  const hasButton = hasExpandable || hasNavigation;
 
   const statusColor = STATUS_CONFIG[status].color;
 
@@ -217,7 +228,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
           </p>
 
           {/* Footer */}
-          <div className={`pt-3 xl:pt-4 border-t border-stone-100 mt-auto ${hasExpandable ? 'flex items-center justify-between' : ''}`}>
+          <div className={`pt-3 xl:pt-4 border-t border-stone-100 mt-auto ${hasButton ? 'flex items-center justify-between' : ''}`}>
             <StatusIndicator status={status} />
             {hasExpandable && (
               <button
@@ -234,6 +245,16 @@ export const MetricCard: React.FC<MetricCardProps> = ({
                   size={14}
                   className={`transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`}
                 />
+              </button>
+            )}
+            {hasNavigation && !hasExpandable && (
+              <button
+                onClick={() => navigate(navigateTo!.path)}
+                className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 bg-stone-100 text-stone-600 hover:bg-stone-200"
+              >
+                <span className="hidden sm:inline">{navigateTo!.label}</span>
+                <span className="sm:hidden">{navigateTo!.labelMobile || navigateTo!.label}</span>
+                <ChevronRight size={14} />
               </button>
             )}
           </div>
