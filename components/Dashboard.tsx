@@ -12,6 +12,7 @@ import { PracticeMetrics } from '../types';
 import { useMetrics, useDataDateRange, DashboardMetrics } from '../hooks';
 import { allPriorityCards } from '../data/priorityCardsData';
 import { useSettings, PracticeGoals as PracticeGoalsSettings } from '../context/SettingsContext';
+import { CLINICIANS, CLINICIAN_SYNTHETIC_METRICS } from '../data/clinicians';
 
 const FULL_MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -85,11 +86,20 @@ const buildPracticeMetrics = (calc: DashboardMetrics, month: number, year: numbe
     return "Critical";
   };
 
-  // Notes compliance calculations (not pro-rated - it's a rate)
-  const notesPercent = Math.round(calc.notes.outstandingPercent * 100);
+  // Notes compliance calculations - use actual count from clinician data
+  const activeClinicians = CLINICIANS.filter(c => c.isActive);
+  const totalOutstandingNotes = activeClinicians.reduce((sum, c) => {
+    const metrics = CLINICIAN_SYNTHETIC_METRICS[c.id];
+    return sum + (metrics?.outstandingNotes ?? 0);
+  }, 0);
+  const cliniciansWithNotes = activeClinicians.filter(c => {
+    const metrics = CLINICIAN_SYNTHETIC_METRICS[c.id];
+    return metrics && metrics.outstandingNotes > 0;
+  }).length;
+
   const getNotesStatus = (): "Healthy" | "Needs attention" | "Critical" => {
-    if (calc.notes.outstandingPercent <= DEFAULT_GOALS.notesOverdue) return "Healthy";
-    if (calc.notes.outstandingPercent <= DEFAULT_GOALS.notesOverdue * 1.5) return "Needs attention";
+    if (totalOutstandingNotes <= 10) return "Healthy";
+    if (totalOutstandingNotes <= 25) return "Needs attention";
     return "Critical";
   };
 
@@ -105,7 +115,7 @@ const buildPracticeMetrics = (calc: DashboardMetrics, month: number, year: numbe
 
   const attendanceSubtext = `${Math.round(calc.attendance.clientCancelRate * 100)}% client cancel rate`;
 
-  const notesSubtext = `Goal: <${Math.round(DEFAULT_GOALS.notesOverdue * 100)}% · ${notesPercent}% currently overdue`;
+  const notesSubtext = `${calc.clients.active} clients · ${cliniciansWithNotes} clinicians`;
 
   return {
     revenue: {
@@ -138,8 +148,8 @@ const buildPracticeMetrics = (calc: DashboardMetrics, month: number, year: numbe
     },
     compliance: {
       label: "Outstanding Notes",
-      value: `${notesPercent}%`,
-      valueLabel: "overdue",
+      value: `${totalOutstandingNotes}`,
+      valueLabel: "notes overdue",
       subtext: notesSubtext,
       status: getNotesStatus()
     }
