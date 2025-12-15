@@ -5,6 +5,12 @@
 // Do NOT define clinician names elsewhere.
 // =============================================================================
 
+// Credential types for license categorization
+export type CredentialType = 'PhD' | 'LCSW' | 'LPC' | 'LMFT' | 'APC';
+
+// Location types for practice locations
+export type LocationType = 'Manhattan' | 'Brooklyn' | 'Remote';
+
 export interface Clinician {
   id: string;
   name: string;           // Full name: "Sarah Chen"
@@ -20,6 +26,8 @@ export interface Clinician {
   clientGoal: number;     // Target active client count
   startDate: string;      // When they joined the practice
   isActive: boolean;      // Currently practicing
+  location: LocationType; // Primary practice location
+  credentialType: CredentialType; // License credential type
 }
 
 // The 5 clinicians used throughout the app
@@ -39,6 +47,8 @@ export const CLINICIANS: Clinician[] = [
     clientGoal: 30,
     startDate: '2021-03-15',
     isActive: true,
+    location: 'Manhattan',
+    credentialType: 'PhD',
   },
   {
     id: '2',
@@ -49,12 +59,14 @@ export const CLINICIANS: Clinician[] = [
     color: '#06b6d4',
     title: 'Licensed Clinical Social Worker',
     role: 'Senior Therapist',
-    supervisorId: '1',
+    supervisorId: null,
     takeRate: 55,
     sessionGoal: 35,
     clientGoal: 28,
     startDate: '2022-01-10',
     isActive: true,
+    location: 'Manhattan',
+    credentialType: 'LCSW',
   },
   {
     id: '3',
@@ -71,6 +83,8 @@ export const CLINICIANS: Clinician[] = [
     clientGoal: 25,
     startDate: '2023-02-20',
     isActive: true,
+    location: 'Brooklyn',
+    credentialType: 'LPC',
   },
   {
     id: '4',
@@ -81,12 +95,14 @@ export const CLINICIANS: Clinician[] = [
     color: '#ec4899',
     title: 'Licensed Marriage & Family Therapist',
     role: 'Associate Therapist',
-    supervisorId: '2',
+    supervisorId: '1',
     takeRate: 45,
     sessionGoal: 28,
     clientGoal: 22,
     startDate: '2024-01-08',
     isActive: true,
+    location: 'Remote',
+    credentialType: 'LMFT',
   },
   {
     id: '5',
@@ -97,14 +113,44 @@ export const CLINICIANS: Clinician[] = [
     color: '#10b981',
     title: 'Associate Professional Counselor',
     role: 'Associate Therapist',
-    supervisorId: '3',
+    supervisorId: '2',
     takeRate: 40,
     sessionGoal: 25,
     clientGoal: 20,
     startDate: '2024-05-01',
     isActive: true,
+    location: 'Brooklyn',
+    credentialType: 'APC',
   },
 ];
+
+// =============================================================================
+// LOCATION & CREDENTIAL HELPERS
+// =============================================================================
+
+export const LOCATIONS: LocationType[] = ['Manhattan', 'Brooklyn', 'Remote'];
+export const CREDENTIAL_TYPES: CredentialType[] = ['PhD', 'LCSW', 'LPC', 'LMFT', 'APC'];
+
+// Human-readable credential labels
+export const CREDENTIAL_LABELS: Record<CredentialType, string> = {
+  'PhD': 'Psychologist (PhD)',
+  'LCSW': 'Social Worker (LCSW)',
+  'LPC': 'Counselor (LPC)',
+  'LMFT': 'Family Therapist (LMFT)',
+  'APC': 'Associate Counselor (APC)',
+};
+
+export const getCliniciansByLocation = (location: LocationType): Clinician[] =>
+  CLINICIANS.filter(c => c.isActive && c.location === location);
+
+export const getCliniciansBySupervisor = (supervisorId: string): Clinician[] =>
+  CLINICIANS.filter(c => c.isActive && c.supervisorId === supervisorId);
+
+export const getCliniciansByCredential = (credentialType: CredentialType): Clinician[] =>
+  CLINICIANS.filter(c => c.isActive && c.credentialType === credentialType);
+
+export const getSupervisors = (): Clinician[] =>
+  CLINICIANS.filter(c => c.isActive && CLINICIANS.some(other => other.supervisorId === c.id));
 
 // =============================================================================
 // HELPER FUNCTIONS

@@ -40,7 +40,11 @@ const NAVIGATION = {
       path: '/dashboard',
       label: 'Overview',
       icon: LayoutGrid,
-      description: 'Key metrics & insights'
+      description: 'Key metrics & insights',
+      subItems: [
+        { id: 'summary', label: 'Summary' },
+        { id: 'compare', label: 'Compare' },
+      ]
     },
     {
       path: '/clinician-overview',

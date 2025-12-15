@@ -138,8 +138,8 @@ const ROLE_OPTIONS: ClinicianRole[] = [
 
 // Mock data
 const MOCK_LOCATIONS: Location[] = [
-  { id: '1', name: 'Main Office', address: '123 Wellness Way, Durham, NC 27701', isPrimary: true },
-  { id: '2', name: 'Chapel Hill', address: '456 Therapy Lane, Chapel Hill, NC 27514', isPrimary: false },
+  { id: '1', name: 'Manhattan', address: '350 Fifth Avenue, Suite 4200, New York, NY 10118', isPrimary: true },
+  { id: '2', name: 'Brooklyn', address: '180 Montague Street, Brooklyn, NY 11201', isPrimary: false },
 ];
 
 // Helper to infer license type from title string

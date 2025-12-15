@@ -1,5 +1,5 @@
-import React from 'react';
-import { Maximize2 } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Maximize2, Info } from 'lucide-react';
 
 // =============================================================================
 // DATA TABLE CARD COMPONENT
@@ -17,7 +17,87 @@ export interface TableColumn {
   align?: 'left' | 'right' | 'center';
   /** Style as totals column (bolder text) */
   isTotals?: boolean;
+  /** Tooltip text explaining the metric */
+  tooltip?: string;
 }
+
+// =============================================================================
+// HEADER TOOLTIP COMPONENT
+// =============================================================================
+
+interface HeaderTooltipProps {
+  text: string;
+}
+
+const HeaderTooltip: React.FC<HeaderTooltipProps> = ({ text }) => {
+  const [isVisible, setIsVisible] = useState(false);
+  const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const tooltipRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isVisible && triggerRef.current) {
+      requestAnimationFrame(() => {
+        if (!triggerRef.current || !tooltipRef.current) return;
+
+        const triggerRect = triggerRef.current.getBoundingClientRect();
+        const tooltipRect = tooltipRef.current.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+
+        let top = triggerRect.bottom + 8;
+        let left = triggerRect.left + triggerRect.width / 2 - tooltipRect.width / 2;
+
+        // Keep tooltip within viewport horizontally
+        if (left + tooltipRect.width > viewportWidth - 16) {
+          left = viewportWidth - tooltipRect.width - 16;
+        }
+        if (left < 16) {
+          left = 16;
+        }
+
+        // If tooltip would go below viewport, show above instead
+        if (top + tooltipRect.height > viewportHeight - 16) {
+          top = triggerRect.top - tooltipRect.height - 8;
+        }
+
+        setPosition({ top, left });
+      });
+    } else {
+      setPosition(null);
+    }
+  }, [isVisible]);
+
+  return (
+    <span className="relative inline-flex items-center ml-1.5">
+      <button
+        ref={triggerRef}
+        type="button"
+        className="text-stone-400 hover:text-stone-600 transition-colors cursor-help"
+        onMouseEnter={() => setIsVisible(true)}
+        onMouseLeave={() => setIsVisible(false)}
+        onClick={(e) => e.preventDefault()}
+        aria-label="More information"
+      >
+        <Info size={14} />
+      </button>
+      {isVisible && (
+        <div
+          ref={tooltipRef}
+          className={`fixed z-[100000] w-72 transition-opacity duration-150 ${position ? 'opacity-100' : 'opacity-0'}`}
+          style={{
+            top: position?.top ?? -9999,
+            left: position?.left ?? -9999,
+          }}
+        >
+          <div className="bg-stone-900 text-white rounded-xl px-4 py-3 shadow-2xl text-sm font-normal normal-case tracking-normal leading-relaxed text-left">
+            {text}
+          </div>
+        </div>
+      )}
+    </span>
+  );
+};
 
 export interface TableRow {
   /** Unique identifier */
@@ -224,7 +304,10 @@ export const DataTableCard: React.FC<DataTableCardProps> = ({
                       }),
                     }}
                   >
-                    {col.header}
+                    <span className="inline-flex items-center">
+                      {col.header}
+                      {col.tooltip && <HeaderTooltip text={col.tooltip} />}
+                    </span>
                   </th>
                 ))}
               </tr>
@@ -341,8 +424,9 @@ export const DataTableCard: React.FC<DataTableCardProps> = ({
                     key={col.key}
                     className={`flex flex-col ${col.isTotals ? 'bg-stone-50 rounded-xl p-3 -m-1' : ''}`}
                   >
-                    <span className="text-stone-400 text-sm font-semibold uppercase tracking-wide mb-1">
+                    <span className="text-stone-400 text-sm font-semibold uppercase tracking-wide mb-1 inline-flex items-center">
                       {col.header}
+                      {col.tooltip && <HeaderTooltip text={col.tooltip} />}
                     </span>
                     <span
                       className={`text-lg tabular-nums ${

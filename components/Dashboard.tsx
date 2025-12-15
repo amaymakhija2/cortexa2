@@ -1,11 +1,13 @@
 
 import React, { useState, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { MetricsRow } from './MetricsRow';
 import { SimpleAlertCard } from './SimpleAlertCard';
 import { MonthlyReviewCard } from './MonthlyReviewCard';
 import { MonthPicker } from './MonthPicker';
+import { CompareTab } from './CompareTab';
 import { PageHeader, SectionHeader } from './design-system';
 import { ReferralBadge, ReferralModal } from './referral';
 import { PracticeMetrics } from '../types';
@@ -156,7 +158,10 @@ const buildPracticeMetrics = (calc: DashboardMetrics, month: number, year: numbe
   };
 };
 
+type DashboardTabType = 'summary' | 'compare';
+
 export const Dashboard: React.FC = () => {
+  const [searchParams] = useSearchParams();
   const [scrollProgress, setScrollProgress] = useState(0); // 0 to 1
   const [needsNavigation, setNeedsNavigation] = useState(false);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -167,6 +172,9 @@ export const Dashboard: React.FC = () => {
   const now = new Date();
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth()); // 0-11
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
+
+  // Get active tab from URL search params
+  const activeTab = (searchParams.get('tab') || 'summary') as DashboardTabType;
 
   // Get practice goals from settings context
   const { settings } = useSettings();
@@ -284,6 +292,12 @@ export const Dashboard: React.FC = () => {
     ))
   ];
 
+  // If compare tab is selected, render the compare component
+  if (activeTab === 'compare') {
+    return <CompareTab />;
+  }
+
+  // Default: render the summary tab
   return (
     <div className="flex-1 flex flex-col h-[calc(100vh-80px)] overflow-y-auto bg-gradient-to-b from-stone-100 to-stone-50">
       <div className="min-h-full flex flex-col">

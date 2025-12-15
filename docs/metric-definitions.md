@@ -3,7 +3,22 @@
 ## Client Metrics
 
 ### Active Client
-A client whose status is active in SimplePractice (not discharged).
+
+**Status-Based Mode (SimplePractice)**
+A client whose status is set to "Active" in SimplePractice (not discharged or inactive).
+
+**Activity-Based Mode (Time)**
+A client who has completed a session in the last 30 days.
+
+*Mode is configurable in Settings → Configure Practice*
+
+### Churned Client
+
+**Status-Based Mode (SimplePractice)**
+A client whose status has changed from "Active" to "Discharged" or "Inactive" in SimplePractice.
+
+**Activity-Based Mode (Time)**
+A client who was active last month (session 31-60 days ago) but is not active this month (no session in last 30 days).
 
 ### Discharged Client
 A client that has been discharged in SimplePractice.
@@ -67,16 +82,19 @@ Client did not attend the session without canceling.
 
 ## Retention Metrics
 
-### Churned Client
-A client with no appointment in the last 30+ days AND no future appointment scheduled.
-
-### Retained Client
-A client who is active or has an appointment scheduled within the next 30 days.
-
 ### Churn Rate
-The percentage of clients who churned out of total clients in a cohort.
+The percentage of clients who churned out of clients who were active in the prior period.
 
-**Formula:** Clients Churned ÷ Clients Acquired × 100
+**Formula:** Clients Churned ÷ Active Clients (Prior Period) × 100
+
+**Example:** Last month you had 100 active clients. This month, 15 of them have churned → Churn Rate = 15/100 = 15%
+
+### Retention Rate
+The percentage of clients who remained active from the prior period. This is the inverse of Churn Rate.
+
+**Formula:** Active Clients (Current) ÷ Active Clients (Prior Period) × 100, or 100% - Churn Rate
+
+**Example:** Last month you had 100 active clients. This month, 85 are still active → Retention Rate = 85/100 = 85%
 
 ### At-Risk Clients
 Clients without upcoming appointments, categorized by days since their last session:
@@ -87,17 +105,6 @@ Clients without upcoming appointments, categorized by days since their last sess
 | **Medium Risk** | 14-21 days |
 | **Low Risk** | 7-14 days |
 
-### Clients Acquired
-The total number of clients who started (had their first session) during a specific cohort period.
-
-### Clients Churned
-The number of clients from a cohort who have churned (no appointment in 30+ days and none scheduled).
-
-### Avg Sessions Completed
-The average number of sessions across ALL clients in a cohort. This measures overall client engagement depth.
-
-**Note:** This includes both active and churned clients to provide an accurate view of typical client journey length.
-
 ### Churn Timing
 Categorizes when clients leave based on how many sessions they completed before churning:
 
@@ -107,45 +114,30 @@ Categorizes when clients leave based on how many sessions they completed before 
 | **Medium Churn** | 5-15 sessions | May indicate treatment plateau or life changes |
 | **Late Churn** | >15 sessions | Natural completion or external factors |
 
-### Session 1→2 Drop-off
-The percentage of clients who don't return after their first session. This is often the steepest cliff in client retention and a critical metric to monitor.
+---
 
-**Formula:** (Clients with 1 session only ÷ Total clients who started) × 100
+## Return Rate Metrics
+
+Return Rate measures early client engagement — whether clients come back for subsequent sessions. This is different from Retention Rate, which measures ongoing month-to-month loyalty.
 
 ### Session 2 Return Rate
-The percentage of new clients who return for their second session. This is the inverse of Session 1→2 Drop-off and provides a positive framing for early engagement tracking. Can be calculated at the practice level or per clinician.
+The percentage of new clients who return for their second session.
 
-**Formula:** (Clients who completed session 2 ÷ Clients who completed session 1) × 100
+**Formula:** Clients who completed session 2 ÷ Clients who completed session 1 × 100
 
-**Example:** A clinician had 10 new clients start this quarter. 7 of them returned for session 2 → Session 2 Return Rate = 7/10 = 70%
+**Example:** 10 new clients started this quarter. 7 returned for session 2 → Session 2 Return Rate = 70%
 
 ### Session 3 Return Rate
-The percentage of new clients who return for their third session. This is a deeper signal of early engagement — clients who reach session 3 are significantly more likely to become long-term clients.
+The percentage of new clients who return for their third session. Clients who reach session 3 are significantly more likely to become long-term clients.
 
-**Formula:** (Clients who completed session 3 ÷ Clients who completed session 1) × 100
+**Formula:** Clients who completed session 3 ÷ Clients who completed session 1 × 100
 
-**Example:** A clinician had 10 new clients start this quarter. 6 of them reached session 3 → Session 3 Return Rate = 6/10 = 60%
+**Example:** 10 new clients started this quarter. 6 reached session 3 → Session 3 Return Rate = 60%
 
-### Retention Rate
-The percentage of clients from a cohort who are still active (not churned). This is the positive framing of Churn Rate.
+### Session 5 Return Rate
+The percentage of new clients who reach their fifth session.
 
-**Formula:** 100% - Churn Rate, or (Clients Retained ÷ Clients Acquired) × 100
-
-**Example:** A cohort of 50 clients had 8 churn → Retention Rate = 42/50 = 84%
-
-### Retention by Sessions
-A funnel showing what percentage of clients reach key session milestones:
-- Started (100%)
-- Session 5
-- Session 12
-- Session 24
-
-### Retention by Time
-A funnel showing what percentage of clients stay with the practice for key time milestones:
-- Started (100%)
-- 1 Month
-- 3 Months
-- 6 Months
+**Formula:** Clients who completed session 5 ÷ Clients who completed session 1 × 100
 
 ---
 
