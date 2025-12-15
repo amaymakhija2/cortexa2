@@ -14,6 +14,8 @@ export interface StatCardProps {
   title: string;
   /** Main value to display */
   value: string | number;
+  /** Label displayed next to the value (e.g., "right now") */
+  valueLabel?: string;
   /** Subtitle/description below value */
   subtitle?: string;
   /** Visual variant affecting value color */
@@ -41,6 +43,10 @@ const VALUE_COLORS: Record<StatVariant, string> = {
  * <StatCard title="Active Clients" value={156} subtitle="of 180 capacity" />
  *
  * @example
+ * // Stat with value label
+ * <StatCard title="Active Clients" value={156} valueLabel="right now" subtitle="+14 in Jan–Dec 2024" />
+ *
+ * @example
  * // Positive growth stat
  * <StatCard title="Net Growth" value="+14" variant="positive" subtitle="+62 new, -48 churned" />
  *
@@ -51,6 +57,7 @@ const VALUE_COLORS: Record<StatVariant, string> = {
 export const StatCard: React.FC<StatCardProps> = ({
   title,
   value,
+  valueLabel,
   subtitle,
   variant = 'default',
   valueColor,
@@ -81,12 +88,19 @@ export const StatCard: React.FC<StatCardProps> = ({
         {title}
       </h3>
 
-      <span
-        className={`${colorClass} font-bold block text-4xl sm:text-5xl xl:text-6xl`}
-        style={{ lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
-      >
-        {value}
-      </span>
+      <div className="flex items-baseline gap-2 sm:gap-3">
+        <span
+          className={`${colorClass} font-bold text-4xl sm:text-5xl xl:text-6xl`}
+          style={{ lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
+        >
+          {value}
+        </span>
+        {valueLabel && (
+          <span className="text-stone-400 text-lg sm:text-xl xl:text-2xl font-medium">
+            {valueLabel}
+          </span>
+        )}
+      </div>
 
       {subtitle && (
         <p className="text-stone-500 text-base sm:text-lg xl:text-xl mt-3 xl:mt-4 font-medium">

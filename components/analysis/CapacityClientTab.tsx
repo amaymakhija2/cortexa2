@@ -46,6 +46,12 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const [showCapacityPercentage, setShowCapacityPercentage] = useState(false);
 
+  // Get user-friendly period label (e.g., "last 12 months" instead of "Jan–Dec 2024")
+  const periodLabel = useMemo(() => {
+    const period = timePeriods.find(p => p.id === timePeriod);
+    return period?.label.toLowerCase() || 'this period';
+  }, [timePeriod, timePeriods]);
+
   // =========================================================================
   // COMPUTED VALUES
   // =========================================================================
@@ -54,6 +60,18 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
   const currentActiveClients = useMemo(
     () => clientGrowthData[clientGrowthData.length - 1]?.activeClients || 0,
     [clientGrowthData]
+  );
+
+  // Active clients at start of period (for trend comparison)
+  const startingActiveClients = useMemo(
+    () => clientGrowthData[0]?.activeClients || 0,
+    [clientGrowthData]
+  );
+
+  // Change in active clients over the period
+  const activeClientsChange = useMemo(
+    () => currentActiveClients - startingActiveClients,
+    [currentActiveClients, startingActiveClients]
   );
 
   const currentCapacity = useMemo(
@@ -311,22 +329,26 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
             <StatCard
               title="Active Clients"
               value={currentActiveClients.toLocaleString()}
-              subtitle={`of ${currentCapacity} capacity`}
+              valueLabel="right now"
+              subtitle={periodLabel}
             />
             <StatCard
               title="Net Growth"
               value={netGrowth >= 0 ? `+${netGrowth}` : `${netGrowth}`}
-              subtitle={`+${totalNew} new, -${totalChurned} churned`}
+              valueLabel="total"
+              subtitle={periodLabel}
             />
             <StatCard
               title="Caseload Capacity"
-              value={`${clientUtilization.toFixed(0)}%`}
-              subtitle="of client capacity filled"
+              value={`${avgUtilization.toFixed(0)}%`}
+              valueLabel="average"
+              subtitle={periodLabel}
             />
             <StatCard
               title="Session Goal %"
               value={`${avgSessionUtilization.toFixed(0)}%`}
-              subtitle={`avg across ${hoursUtilizationData.length} months`}
+              valueLabel="average"
+              subtitle={periodLabel}
             />
           </AnimatedGrid>
         </Section>
@@ -337,8 +359,8 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
             <Grid cols={2} gap="lg">
             {/* Caseload Capacity - Toggle between Active Clients and Capacity % */}
             <ChartCard
-              title={showCapacityPercentage ? "Caseload Capacity" : "Active Clients"}
-              subtitle={showCapacityPercentage ? "Caseload capacity over time" : "Active clients over time"}
+              title="Active Clients & Caseload Capacity"
+              subtitle="How full your practice is each month"
               headerControls={
                 <>
                   <ToggleButton
@@ -399,7 +421,7 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
             {/* New and Churned Clients - Diverging Bar Chart */}
             <ChartCard
               title="New and Churned Clients Per Month"
-              subtitle="Net client growth over time"
+              subtitle="How your client base is changing"
               headerControls={
                 <>
                   <div className="flex items-center gap-6 bg-stone-50 rounded-xl px-5 py-3">
@@ -449,6 +471,7 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
             {/* Client Gender */}
             <StackedBarCard
               title="Client Gender"
+              subtitle="current active clients"
               segments={[
                 {
                   label: 'Male',
@@ -471,6 +494,7 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
             {/* Session Frequency */}
             <StackedBarCard
               title="Client Session Frequency"
+              subtitle="current active clients"
               segments={[
                 {
                   label: 'Weekly',
@@ -561,8 +585,8 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
       <ExpandedChartModal
         isOpen={expandedCard === 'client-utilization'}
         onClose={() => setExpandedCard(null)}
-        title={showCapacityPercentage ? "Caseload Capacity" : "Active Clients"}
-        subtitle={showCapacityPercentage ? "Caseload capacity over time" : "Active clients over time"}
+        title="Active Clients & Caseload Capacity"
+        subtitle="How full your practice is each month"
         headerControls={
           <>
             <ToggleButton
@@ -624,7 +648,7 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
         isOpen={expandedCard === 'client-movement'}
         onClose={() => setExpandedCard(null)}
         title="New and Churned Clients Per Month"
-        subtitle="Net client growth over time"
+        subtitle="How your client base is changing"
         headerControls={
           <>
             <div className="flex items-center gap-6 bg-stone-50 rounded-xl px-5 py-3">

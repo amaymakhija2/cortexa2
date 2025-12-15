@@ -147,11 +147,11 @@ export const AnimatedGrid: React.FC<AnimatedGridProps> = ({
   const childArray = React.Children.toArray(children);
 
   return (
-    <div className={`grid ${COLS_CLASSES[cols]} ${GAP_CLASSES[gap]} ${className}`}>
+    <div className={`grid ${COLS_CLASSES[cols]} ${GAP_CLASSES[gap]} items-stretch ${className}`}>
       {childArray.map((child, index) => (
         <div
           key={index}
-          className="animate-grid-item"
+          className="animate-grid-item h-full [&>*]:h-full"
           style={{
             animationDelay: `${baseDelay + index * staggerDelay}ms`,
             animationDuration: `${duration}ms`,

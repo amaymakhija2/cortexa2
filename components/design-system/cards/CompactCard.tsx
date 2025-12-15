@@ -65,6 +65,8 @@ export interface StackedBarSegment {
 export interface StackedBarCardProps {
   /** Card title */
   title: string;
+  /** Subtitle displayed below title */
+  subtitle?: string;
   /** Bar segments */
   segments: StackedBarSegment[];
   /** Total value for percentage calculation (optional, defaults to sum) */
@@ -101,6 +103,7 @@ export interface StackedBarCardProps {
  */
 export const StackedBarCard: React.FC<StackedBarCardProps> = ({
   title,
+  subtitle,
   segments,
   total: customTotal,
   displayAs = 'percentage',
@@ -117,11 +120,16 @@ export const StackedBarCard: React.FC<StackedBarCardProps> = ({
       }}
     >
       <h3
-        className="text-stone-900 text-2xl sm:text-3xl xl:text-4xl font-bold mb-2 tracking-tight"
+        className="text-stone-900 text-2xl sm:text-3xl xl:text-4xl font-bold mb-1 tracking-tight"
         style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
       >
         {title}
       </h3>
+      {subtitle && (
+        <p className="text-stone-500 text-base sm:text-lg mb-3 font-medium">
+          {subtitle}
+        </p>
+      )}
 
       {/* Stacked bar */}
       <div className="flex items-center gap-4 mb-4">

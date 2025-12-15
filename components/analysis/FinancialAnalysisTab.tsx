@@ -69,6 +69,12 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const [hoveredClinicianBar, setHoveredClinicianBar] = useState<HoverInfo | null>(null);
 
+  // Get user-friendly period label (e.g., "last 12 months" instead of "Jan–Dec 2024")
+  const periodLabel = useMemo(() => {
+    const period = timePeriods.find(p => p.id === timePeriod);
+    return period?.label.toLowerCase() || 'this period';
+  }, [timePeriod, timePeriods]);
+
   // =========================================================================
   // COMPUTED VALUES
   // =========================================================================
@@ -393,21 +399,24 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
         <Section spacing="md">
           <AnimatedGrid cols={settings.showNetRevenueData ? 3 : 2} gap="md" staggerDelay={60}>
             <StatCard
-              title="Total Gross Revenue"
+              title="Gross Revenue"
               value={formatCurrency(totalGrossRevenue)}
-              subtitle={`across ${revenueData.length} months`}
+              valueLabel="total"
+              subtitle={periodLabel}
             />
             {settings.showNetRevenueData && (
               <StatCard
-                title="Total Net Revenue"
+                title="Net Revenue"
                 value={formatCurrency(totalNetRevenue)}
-                subtitle={`${avgMargin.toFixed(1)}% avg margin`}
+                valueLabel="total"
+                subtitle={periodLabel}
               />
             )}
             <StatCard
-              title="Avg Revenue Per Session"
+              title="Revenue Per Completed Session"
               value={`$${Math.round(avgRevenuePerSession)}`}
-              subtitle="across all completed sessions"
+              valueLabel="average"
+              subtitle={periodLabel}
             />
           </AnimatedGrid>
         </Section>
@@ -416,10 +425,10 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
         <AnimatedSection delay={280}>
           <Section spacing="md">
             <Grid cols={2} gap="lg">
-            {/* Revenue Performance Chart */}
+            {/* Monthly Gross Revenue Chart */}
             <ChartCard
-              title="Revenue Performance"
-              subtitle="Monthly breakdown"
+              title="Monthly Gross Revenue"
+              subtitle="How much you're collecting each month"
               headerControls={
                 <>
                   <ToggleButton
@@ -533,7 +542,7 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
             {!settings.showNetRevenueData && (
               <SimpleChartCard
                 title="Client Lifetime Value"
-                subtitle="Average revenue per client by months since first session"
+                subtitle="What an average client brings in gross revenue over time"
                 metrics={[
                   {
                     value: '$3.6k',
@@ -680,7 +689,7 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
             <Grid cols={2} gap="lg">
               <SimpleChartCard
                 title="Client Lifetime Value"
-                subtitle="Average revenue per client by months since first session"
+                subtitle="What an average client brings in gross revenue over time"
                 metrics={[
                   {
                     value: '$3.6k',
@@ -750,8 +759,8 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
       <ExpandedChartModal
         isOpen={expandedCard === 'revenue-performance'}
         onClose={() => setExpandedCard(null)}
-        title="Revenue Performance"
-        subtitle={showClinicianBreakdown ? 'Revenue by clinician breakdown' : `Monthly revenue with ${revenueGoalDisplay} goal`}
+        title="Monthly Gross Revenue"
+        subtitle="How much you're collecting each month"
         headerControls={
           <>
             <ToggleButton

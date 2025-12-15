@@ -63,6 +63,18 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const [hoveredClinicianBar, setHoveredClinicianBar] = useState<HoverInfo | null>(null);
 
+  // Get user-friendly period label (e.g., "last 12 months" instead of "Jan–Dec 2024")
+  const periodLabel = useMemo(() => {
+    const period = timePeriods.find(p => p.id === timePeriod);
+    return period?.label.toLowerCase() || 'this period';
+  }, [timePeriod, timePeriods]);
+
+  // Capitalized period label for subtitles (e.g., "Last 12 Months")
+  const periodLabelCapitalized = useMemo(() => {
+    const period = timePeriods.find(p => p.id === timePeriod);
+    return period?.label || 'This Period';
+  }, [timePeriod, timePeriods]);
+
   // =========================================================================
   // COMPUTED VALUES
   // =========================================================================
@@ -321,24 +333,28 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
         <Section spacing="md">
           <AnimatedGrid cols={4} gap="md" staggerDelay={60}>
             <StatCard
-              title="Total Completed"
+              title="Completed Sessions"
               value={totalCompleted.toLocaleString()}
-              subtitle={`across ${sessionsData.length} months`}
+              valueLabel="total"
+              subtitle={periodLabel}
             />
             <StatCard
-              title="Total Booked"
+              title="Booked Sessions"
               value={totalBooked.toLocaleString()}
-              subtitle={`across ${sessionsData.length} months`}
+              valueLabel="total"
+              subtitle={periodLabel}
             />
             <StatCard
-              title="Avg Completed Sessions"
-              value={`${avgWeeklyCompleted}/week`}
-              subtitle="across all clinicians"
+              title="Weekly Completed Sessions"
+              value={avgWeeklyCompleted.toString()}
+              valueLabel="average"
+              subtitle={periodLabel}
             />
             <StatCard
               title="Client Cancel Rate"
               value={`${clientCancelRate.toFixed(1)}%`}
-              subtitle="of all scheduled sessions"
+              valueLabel="average"
+              subtitle={periodLabel}
             />
           </AnimatedGrid>
         </Section>
@@ -349,8 +365,8 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
             <Grid cols={2} gap="lg">
             {/* Completed Sessions Chart */}
             <ChartCard
-              title="Completed Sessions"
-              subtitle="Monthly performance"
+              title="Completed Sessions Per Month"
+              subtitle="How many sessions you're completing each month"
               headerControls={
                 <>
                   <ToggleButton
@@ -430,7 +446,7 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
             {/* Attendance Breakdown Donut */}
             <DonutChartCard
               title="Attendance Breakdown"
-              subtitle="Session outcomes"
+              subtitle={`What happens to your booked sessions (${periodLabelCapitalized})`}
               segments={attendanceSegments}
               centerLabel="Show Rate"
               centerValue={`${showRate.toFixed(1)}%`}
@@ -447,12 +463,14 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
           <Section spacing="md">
             <AnimatedGrid cols={2} gap="md" staggerDelay={60}>
               <StatCard
-                title="Avg Sessions per Client per Month"
+                title="Sessions per Client per Month"
                 value={avgSessionsPerClient.toFixed(1)}
-                subtitle="sessions per active client per month"
+                valueLabel="average"
+                subtitle={periodLabel}
               />
               <SplitBarCard
                 title="Session Modality"
+                subtitle={periodLabel}
                 leftSegment={{
                   label: 'Telehealth',
                   value: totalTelehealth,
@@ -495,8 +513,8 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
       <ExpandedChartModal
         isOpen={expandedCard === 'session-performance'}
         onClose={() => setExpandedCard(null)}
-        title="Completed Sessions"
-        subtitle={showClinicianBreakdown ? 'Sessions by clinician breakdown' : `Monthly performance with ${sessionsGoal} goal`}
+        title="Completed Sessions Per Month"
+        subtitle="How many sessions you're completing each month"
         headerControls={
           <>
             <ToggleButton
@@ -558,7 +576,7 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
         isOpen={expandedCard === 'attendance-breakdown'}
         onClose={() => setExpandedCard(null)}
         title="Attendance Breakdown"
-        subtitle="Session outcomes distribution"
+        subtitle={`What happens to your booked sessions (${periodLabelCapitalized})`}
       >
         <DonutChartCard
           title=""
@@ -575,7 +593,7 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
         isOpen={expandedCard === 'session-modality'}
         onClose={() => setExpandedCard(null)}
         title="Session Modality"
-        subtitle="Telehealth vs In-Person distribution"
+        subtitle={periodLabel}
       >
         <SplitBarCard
           title=""
