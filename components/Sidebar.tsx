@@ -65,7 +65,7 @@ const NAVIGATION = {
         { id: 'clients', label: 'Client Roster' },
         { id: 'financial', label: 'Financial' },
         { id: 'sessions', label: 'Sessions' },
-        { id: 'capacity-client', label: 'Capacity' },
+        { id: 'capacity-client', label: 'Clients' },
         { id: 'retention', label: 'Retention' },
         { id: 'insurance', label: 'Insurance' },
         { id: 'admin', label: 'Admin' },

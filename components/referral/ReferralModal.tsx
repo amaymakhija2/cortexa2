@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Copy, Check, Mail, DollarSign, Send } from 'lucide-react';
+import { X, Check, DollarSign, Send, ArrowRight } from 'lucide-react';
 import { useReferral } from './ReferralContext';
 
 // =============================================================================
 // REFERRAL MODAL COMPONENT
 // =============================================================================
 // A sophisticated, minimal two-tab modal for the referral experience.
-// Tab 1: Invite - focused on sharing
-// Tab 2: Earnings - focused on rewards
+// Tab 1: Invite - enter email, send introduction (CC's founder)
+// Tab 2: Earnings - track your rewards
 // =============================================================================
 
 interface ReferralModalProps {
@@ -20,48 +20,77 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({ isOpen, onClose })
   const {
     invitesRemaining,
     totalInvites,
-    referralCode,
     pendingEarnings,
     confirmedEarnings,
     rewardPerReferral,
     isPayoutSetup,
     setPayoutSetup,
     referrals,
+    useInvite,
   } = useReferral();
 
   const [activeTab, setActiveTab] = useState<'invite' | 'earnings'>('invite');
-  const [copied, setCopied] = useState(false);
+  const [email, setEmail] = useState('');
+  const [sending, setSending] = useState(false);
+  const [justSent, setJustSent] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Reset state when modal opens
   useEffect(() => {
     if (isOpen) {
       setActiveTab('invite');
-      setCopied(false);
+      setEmail('');
+      setSending(false);
+      setJustSent(false);
+      // Focus input after animation
+      setTimeout(() => inputRef.current?.focus(), 300);
     }
   }, [isOpen]);
 
-  // Reset copied state after delay
+  // Reset justSent after showing success
   useEffect(() => {
-    if (copied) {
-      const timer = setTimeout(() => setCopied(false), 2000);
+    if (justSent) {
+      const timer = setTimeout(() => {
+        setJustSent(false);
+        setEmail('');
+      }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [copied]);
+  }, [justSent]);
 
-  const handleCopyCode = () => {
-    navigator.clipboard.writeText(referralCode);
-    setCopied(true);
+  const isValidEmail = email.includes('@') && email.includes('.');
+  const canSend = email.trim() && isValidEmail && invitesRemaining > 0 && !sending;
+
+  const handleSendInvite = async () => {
+    if (!canSend) return;
+
+    setSending(true);
+
+    // Brief pause for feel
+    await new Promise(r => setTimeout(r, 600));
+
+    // Build mailto with CC to founder
+    const founderEmail = 'amay@cortexa.com';
+    const recipientName = email.split('@')[0]; // Use email prefix as fallback name
+    const subject = encodeURIComponent(`You're invited to Cortexa`);
+    const body = encodeURIComponent(
+      `Hi,\n\n` +
+      `I've been using Cortexa to manage my practice and thought you'd find it valuable.\n\n` +
+      `I've CC'd Amay (the founder) on this email—he can set up a personalized walkthrough for you if you're interested.\n\n` +
+      `Best`
+    );
+
+    window.open(`mailto:${email}?cc=${founderEmail}&subject=${subject}&body=${body}`);
+
+    useInvite(email);
+    setSending(false);
+    setJustSent(true);
   };
 
-  const handleEmailShare = () => {
-    const subject = encodeURIComponent("You're invited to Cortexa");
-    const body = encodeURIComponent(
-      `I've been using Cortexa to manage my practice and thought you might find it valuable.\n\n` +
-      `Use my invite code: ${referralCode}\n\n` +
-      `Or join directly: https://cortexa.com/join?ref=${referralCode}\n\n` +
-      `– Sent from Cortexa`
-    );
-    window.open(`mailto:?subject=${subject}&body=${body}`);
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && canSend) {
+      handleSendInvite();
+    }
   };
 
   const usedInvites = totalInvites - invitesRemaining;
@@ -152,7 +181,7 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({ isOpen, onClose })
                 </div>
               </div>
 
-              {/* Tab Content - Single container with both tabs, toggle visibility */}
+              {/* Tab Content */}
               <div className="relative px-8 pb-10 pt-8">
                 <div className="grid">
                   {/* Invite Tab */}
@@ -213,66 +242,80 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({ isOpen, onClose })
                       </div>
                     </div>
 
-                    {/* Referral Code */}
-                    <div className="mb-8">
-                      <p className="text-stone-400 text-sm font-semibold tracking-widest uppercase mb-4 text-center">
-                        Your Code
+                    {/* Email Input + Send */}
+                    <div className="mb-6">
+                      <p className="text-stone-400 text-sm font-semibold tracking-widest uppercase mb-3 text-center">
+                        Send Invite
                       </p>
                       <div
-                        className="flex items-center justify-between rounded-2xl px-6 py-5"
+                        className="flex items-center gap-3 rounded-2xl px-5 py-2 transition-all duration-200"
                         style={{
-                          background: 'rgba(255, 255, 255, 0.08)',
-                          border: '1px solid rgba(255, 255, 255, 0.1)',
+                          background: email ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.12)',
+                          border: `1px solid ${email && isValidEmail ? 'rgba(251, 191, 36, 0.4)' : 'rgba(255, 255, 255, 0.15)'}`,
                         }}
                       >
-                        <span
-                          className="text-3xl text-white font-bold tracking-[0.2em]"
-                          style={{ fontFamily: "'DM Mono', 'SF Mono', monospace" }}
-                        >
-                          {referralCode}
-                        </span>
+                        <input
+                          ref={inputRef}
+                          type="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          onKeyDown={handleKeyDown}
+                          placeholder="Enter their email address"
+                          disabled={invitesRemaining <= 0}
+                          className="flex-1 bg-transparent text-white text-lg py-3 placeholder:text-stone-400 focus:outline-none disabled:opacity-50"
+                          style={{ fontFamily: "'DM Sans', sans-serif" }}
+                        />
                         <button
-                          onClick={handleCopyCode}
-                          className="flex items-center gap-2.5 px-5 py-3 rounded-xl font-semibold transition-all duration-200"
+                          onClick={handleSendInvite}
+                          disabled={!canSend}
+                          className="flex items-center justify-center w-12 h-12 rounded-xl transition-all duration-300 disabled:cursor-not-allowed hover:scale-105 active:scale-95"
                           style={{
-                            background: copied
-                              ? 'rgba(34, 197, 94, 0.2)'
-                              : 'rgba(255, 255, 255, 0.1)',
-                            border: copied
-                              ? '1px solid rgba(34, 197, 94, 0.3)'
-                              : '1px solid rgba(255, 255, 255, 0.1)',
+                            background: canSend
+                              ? 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)'
+                              : 'rgba(255, 255, 255, 0.08)',
+                            boxShadow: canSend ? '0 4px 16px rgba(251, 191, 36, 0.4)' : 'none',
+                            opacity: canSend ? 1 : 0.5,
                           }}
                         >
-                          {copied ? (
-                            <Check size={18} className="text-green-400" />
+                          {sending ? (
+                            <motion.div
+                              className="w-5 h-5 border-2 border-stone-800/30 border-t-stone-800 rounded-full"
+                              animate={{ rotate: 360 }}
+                              transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
+                            />
+                          ) : justSent ? (
+                            <Check size={20} className="text-stone-900" />
                           ) : (
-                            <Copy size={18} className="text-white" />
+                            <ArrowRight size={20} className={canSend ? 'text-stone-900' : 'text-stone-400'} />
                           )}
-                          <span className={`text-base ${copied ? 'text-green-400' : 'text-white'}`}>
-                            {copied ? 'Copied!' : 'Copy'}
-                          </span>
                         </button>
                       </div>
                     </div>
 
-                    {/* Primary Action */}
-                    <button
-                      onClick={handleEmailShare}
-                      className="w-full flex items-center justify-center gap-3 py-5 rounded-2xl font-bold text-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
-                      style={{
-                        background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 50%, #fcd34d 100%)',
-                        color: '#1c1917',
-                        boxShadow: '0 8px 32px rgba(251, 191, 36, 0.35)',
-                      }}
-                    >
-                      <Mail size={22} />
-                      Share via Email
-                    </button>
-
-                    {/* Footer note */}
-                    <p className="text-center text-stone-500 text-sm mt-6">
-                      Earn ${rewardPerReferral} when they complete their first month
-                    </p>
+                    {/* Success message or helper text */}
+                    <AnimatePresence mode="wait">
+                      {justSent ? (
+                        <motion.p
+                          key="success"
+                          initial={{ opacity: 0, y: -5 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 5 }}
+                          className="text-center text-green-400 text-sm font-medium"
+                        >
+                          Invite sent! We'll let you know when they join.
+                        </motion.p>
+                      ) : (
+                        <motion.p
+                          key="helper"
+                          initial={{ opacity: 0, y: -5 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 5 }}
+                          className="text-center text-stone-500 text-sm"
+                        >
+                          Earn ${rewardPerReferral} when they complete their first month
+                        </motion.p>
+                      )}
+                    </AnimatePresence>
                   </div>
 
                   {/* Earnings Tab */}
@@ -361,7 +404,7 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({ isOpen, onClose })
                           No referrals yet
                         </p>
                         <p className="text-stone-500 text-base mt-2">
-                          Share your code to start earning
+                          Invite someone to start earning
                         </p>
                       </div>
                     )}
