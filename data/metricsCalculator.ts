@@ -310,6 +310,9 @@ export interface ClinicianMetricsCalculated {
   completedSessions: number;
   revenuePerSession: number;
   activeClients: number;
+  avgActiveClients: number; // Average monthly active clients (for aggregate periods)
+  activeClientsStart: number; // Active clients at start of period (first month)
+  activeClientsEnd: number; // Active clients at end of period (last month)
   newClients: number;
   clientsChurned: number;
   avgSessionsPerClient: number;
@@ -392,6 +395,39 @@ function getClinicianChurnedClients(clinicianId: string, startDate: Date, endDat
   return churned;
 }
 
+// Calculate average monthly active clients for a clinician over a date range
+function getClinicianAvgActiveClients(clinicianId: string, startDate: Date, endDate: Date): number {
+  // Get all months in the range
+  const months: { month: number; year: number }[] = [];
+  const current = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+  const end = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
+
+  while (current <= end) {
+    months.push({ month: current.getMonth(), year: current.getFullYear() });
+    current.setMonth(current.getMonth() + 1);
+  }
+
+  if (months.length === 0) return 0;
+
+  // Calculate active clients for each month
+  const monthlyActiveClients = months.map(({ month, year }) => {
+    const { start, end: monthEnd } = getMonthRange(month, year);
+    const monthRecords = filterByDateRange(PAYMENT_DATA, start, monthEnd);
+    return getClinicianActiveClients(clinicianId, monthRecords).length;
+  });
+
+  // Return average
+  const total = monthlyActiveClients.reduce((sum, count) => sum + count, 0);
+  return Math.round(total / monthlyActiveClients.length);
+}
+
+// Get active clients for a clinician in a specific month
+function getClinicianActiveClientsForMonth(clinicianId: string, month: number, year: number): number {
+  const { start, end } = getMonthRange(month, year);
+  const monthRecords = filterByDateRange(PAYMENT_DATA, start, end);
+  return getClinicianActiveClients(clinicianId, monthRecords).length;
+}
+
 // Calculate metrics for all clinicians for a given time period
 export function calculateClinicianMetrics(
   startDate: Date,
@@ -402,11 +438,20 @@ export function calculateClinicianMetrics(
   // Get unique clinicians from the data
   const clinicianIds = [...new Set(periodRecords.map(r => r.clinicianId))];
 
+  // Get start and end months for period
+  const startMonth = startDate.getMonth();
+  const startYear = startDate.getFullYear();
+  const endMonth = endDate.getMonth();
+  const endYear = endDate.getFullYear();
+
   return clinicianIds.map(clinicianId => {
     const clinicianRecords = getClinicianRecords(clinicianId, periodRecords);
     const revenue = calculateRevenue(clinicianRecords);
     const sessions = calculateSessions(clinicianRecords);
     const activeClients = getClinicianActiveClients(clinicianId, periodRecords);
+    const avgActiveClients = getClinicianAvgActiveClients(clinicianId, startDate, endDate);
+    const activeClientsStart = getClinicianActiveClientsForMonth(clinicianId, startMonth, startYear);
+    const activeClientsEnd = getClinicianActiveClientsForMonth(clinicianId, endMonth, endYear);
     const churnedClients = getClinicianChurnedClients(clinicianId, startDate, endDate);
 
     // Find clinician name from CLINICIANS array
@@ -420,10 +465,13 @@ export function calculateClinicianMetrics(
       completedSessions: sessions,
       revenuePerSession: sessions > 0 ? revenue / sessions : 0,
       activeClients: activeClients.length,
+      avgActiveClients,
+      activeClientsStart,
+      activeClientsEnd,
       newClients: 0, // Will be calculated separately for specific month
       clientsChurned: churnedClients.length,
       avgSessionsPerClient: activeClients.length > 0 ? sessions / activeClients.length : 0,
-      churnRate: activeClients.length > 0 ? (churnedClients.length / activeClients.length) * 100 : 0,
+      churnRate: activeClientsStart > 0 ? (churnedClients.length / activeClientsStart) * 100 : 0,
     };
   });
 }

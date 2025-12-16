@@ -110,6 +110,8 @@ interface MetricConfig {
   format: (value: number) => string;
   higherIsBetter: boolean;
   tooltip?: string; // Simple tooltip text explaining the metric
+  isPrimary?: boolean; // Flag to highlight this column as the primary ranking metric
+  hidden?: boolean; // Flag to hide this column (when primary appears in supporting array)
 }
 
 interface MetricGroupConfig {
@@ -140,8 +142,8 @@ const METRIC_GROUPS: MetricGroupConfig[] = [
     supporting: [
       {
         key: 'completedSessions',
-        label: 'Sessions',
-        shortLabel: 'Sessions',
+        label: 'Completed Sessions',
+        shortLabel: 'Completed',
         format: (v) => v.toLocaleString(),
         higherIsBetter: true,
         tooltip: 'Number of sessions completed in the selected time period.',
@@ -277,12 +279,28 @@ const METRIC_GROUPS: MetricGroupConfig[] = [
     },
     supporting: [
       {
-        key: 'avgSessionsPerClient',
-        label: 'Avg Sessions/Client',
-        shortLabel: 'Avg/Client',
-        format: (v) => Math.round(v).toString(),
+        key: 'session1to2Retention',
+        label: 'Session 2 Return',
+        shortLabel: '1→2',
+        format: (v) => `${v.toFixed(0)}%`,
         higherIsBetter: true,
-        tooltip: 'Average number of sessions per active client in this period.',
+        tooltip: 'Percentage of new clients who return for their second session.',
+      },
+      {
+        key: 'session5Retention',
+        label: 'Session 5 Return',
+        shortLabel: '→5',
+        format: (v) => `${v.toFixed(0)}%`,
+        higherIsBetter: true,
+        tooltip: 'Percentage of clients who reach their 5th session.',
+      },
+      {
+        key: 'session12Retention',
+        label: 'Session 12 Return',
+        shortLabel: '→12',
+        format: (v) => `${v.toFixed(0)}%`,
+        higherIsBetter: true,
+        tooltip: 'Percentage of clients who reach their 12th session.',
       },
     ],
   },
@@ -300,6 +318,22 @@ const METRIC_GROUPS: MetricGroupConfig[] = [
     },
     supporting: [
       {
+        key: 'activeClientsStart',
+        label: 'Clients (Start)',
+        shortLabel: 'Start',
+        format: (v) => v.toString(),
+        higherIsBetter: true,
+        tooltip: 'Active clients at the start of the period.',
+      },
+      {
+        key: 'activeClientsEnd',
+        label: 'Clients (End)',
+        shortLabel: 'End',
+        format: (v) => v.toString(),
+        higherIsBetter: true,
+        tooltip: 'Active clients at the end of the period.',
+      },
+      {
         key: 'clientsChurned',
         label: 'Clients Churned',
         shortLabel: 'Churned',
@@ -314,30 +348,6 @@ const METRIC_GROUPS: MetricGroupConfig[] = [
         format: (v) => v.toString(),
         higherIsBetter: false,
         tooltip: 'Clients without upcoming appointments who may churn soon.',
-      },
-      {
-        key: 'session1to2Retention',
-        label: 'Session 2 Return Rate',
-        shortLabel: '1→2 Ret.',
-        format: (v) => `${v.toFixed(0)}%`,
-        higherIsBetter: true,
-        tooltip: 'Percentage of new clients who return for their second session.',
-      },
-      {
-        key: 'session5Retention',
-        label: 'Session 5 Retention',
-        shortLabel: 'Sess 5',
-        format: (v) => `${v.toFixed(0)}%`,
-        higherIsBetter: true,
-        tooltip: 'Percentage of clients who reach their 5th session.',
-      },
-      {
-        key: 'session12Retention',
-        label: 'Session 12 Retention',
-        shortLabel: 'Sess 12',
-        format: (v) => `${v.toFixed(0)}%`,
-        higherIsBetter: true,
-        tooltip: 'Percentage of clients who reach their 12th session.',
       },
     ],
   },
@@ -400,9 +410,12 @@ interface ClinicianMetrics {
   avgSessionsPerClient: number;
   churnRate: number;
   clientsChurned: number;
+  activeClientsStart: number; // Active clients at start of period
+  activeClientsEnd: number; // Active clients at end of period
   session1to2Retention: number;
   session5Retention: number;
   session12Retention: number;
+  avgSessionRetention: number; // Average of session 2, 5, 12 retention rates
   earlyChurnPercent: number;
   outstandingNotes: number;
   overdueNotes: number;
@@ -440,7 +453,12 @@ function buildClinicianData(calculated: ClinicianMetricsCalculated[], periodId: 
 
     // Calculate derived metrics
     const sessions = calc.completedSessions;
-    const activeClients = calc.activeClients;
+
+    // For aggregate periods (last-12-months, this-year, quarters), use average active clients
+    // For point-in-time periods (this-month, last-month), use current active clients
+    const isAggregatePeriod = periodId === 'last-12-months' || periodId === 'this-year' ||
+      periodId === 'this-quarter' || periodId === 'last-quarter';
+    const activeClients = isAggregatePeriod ? calc.avgActiveClients : calc.activeClients;
 
     // Estimate weekly values based on period (assume 4 weeks in month, 12 in quarter, 52 in year)
     const weeksInPeriod = periodId === 'this-month' || periodId === 'last-month' ? 4
@@ -476,10 +494,15 @@ function buildClinicianData(calculated: ClinicianMetricsCalculated[], periodId: 
     // Utilization based on sessions vs capacity
     const utilizationRate = Math.min(100, (sessionsPerWeek / weeklySessionGoal) * 100);
 
-    // Use per-clinician at-risk clients and churn data
-    const atRiskClients = syntheticMetrics?.atRiskClients ?? Math.round(activeClients * (calc.churnRate / 100) * 0.5);
-    const churnRate = syntheticMetrics?.churnRate ?? calc.churnRate;
-    const clientsChurned = syntheticMetrics ? Math.round(activeClients * (churnRate / 100)) : calc.clientsChurned;
+    // Calculate churn as simple formula: Start - End = Churned
+    // Churn Rate = Churned / Start
+    const clientsChurned = Math.max(0, calc.activeClientsStart - calc.activeClientsEnd);
+    const churnRate = calc.activeClientsStart > 0
+      ? (clientsChurned / calc.activeClientsStart) * 100
+      : 0;
+
+    // Use per-clinician at-risk clients data
+    const atRiskClients = syntheticMetrics?.atRiskClients ?? Math.max(1, Math.round(activeClients * 0.08));
 
     // New client revenue (estimate based on proportion of new clients)
     const newClients = syntheticMetrics?.newClientsThisMonth ?? calc.newClients;
@@ -532,9 +555,12 @@ function buildClinicianData(calculated: ClinicianMetricsCalculated[], periodId: 
         avgSessionsPerClient: Math.round(avgSessionsPerClient * 10) / 10,
         churnRate: Math.round(churnRate * 10) / 10,
         clientsChurned,
+        activeClientsStart: calc.activeClientsStart,
+        activeClientsEnd: calc.activeClientsEnd,
         session1to2Retention: Math.round(session1to2Retention),
         session5Retention: Math.round(session5Retention),
         session12Retention: Math.round(session12Retention),
+        avgSessionRetention: Math.round((session1to2Retention + session5Retention + session12Retention) / 3),
         earlyChurnPercent: Math.round(earlyChurnPercent),
         outstandingNotes,
         overdueNotes,
@@ -608,16 +634,20 @@ export const ClinicianOverview: React.FC = () => {
     return buildClinicianData(calculatedMetrics, periodId, settings.anonymizeClinicianNames);
   }, [clinicianApiData, viewMode, settings.anonymizeClinicianNames]);
 
-  // Switch tabs - keep same view mode except Notes which is always current month
+  // Switch tabs - keep same view mode except Notes (always live) and Retention (default to last-12-months)
   const handleGroupChange = (groupId: MetricGroupId) => {
     setSelectedGroupId(groupId);
     // Update URL param so deep links work correctly
     const newParams = new URLSearchParams(searchParams);
     newParams.set('metric', groupId);
     setSearchParams(newParams, { replace: true });
-    // Only force live mode for Notes/Documentation (point-in-time metric)
+    // Force live mode for Notes/Documentation (point-in-time metric)
     if (groupId === 'documentation') {
       setViewMode('live');
+    }
+    // Default to last-12-months for Retention (churn is a historical metric)
+    if (groupId === 'retention' && viewMode === 'live') {
+      setViewMode('last-12-months');
     }
   };
 
@@ -691,7 +721,234 @@ export const ClinicianOverview: React.FC = () => {
     };
   };
 
-  const displayGroup = getSessionsGroup();
+  // For caseload tab, dynamically adjust labels based on time period
+  // Point-in-time for live/historical, average for aggregate periods
+  const getCaseloadGroup = (): MetricGroupConfig => {
+    if (selectedGroupId !== 'caseload') return selectedGroup;
+
+    const isAggregatePeriod = viewMode === 'last-12-months';
+
+    if (isAggregatePeriod) {
+      return {
+        ...selectedGroup,
+        description: 'Average caseload over the period',
+        primary: {
+          ...selectedGroup.primary,
+          label: 'Avg Caseload Capacity',
+          shortLabel: 'Avg Caseload %',
+          tooltip: 'Average percentage of client capacity filled over the 12-month period.',
+        },
+        supporting: [
+          {
+            ...selectedGroup.supporting[0],
+            label: 'Avg Active Clients',
+            shortLabel: 'Avg Active',
+            tooltip: 'Average number of active clients per month over the period.',
+          },
+          {
+            ...selectedGroup.supporting[1],
+            label: 'Client Goal',
+            shortLabel: 'Goal',
+            tooltip: 'Target number of active clients for this clinician.',
+          },
+        ],
+      };
+    }
+
+    // For live/historical, use current point-in-time labels
+    return selectedGroup;
+  };
+
+  // For engagement tab, dynamically adjust based on time period
+  // Live: Rebook Rate (primary) + Session milestones (trailing 12mo)
+  // Last 12 Months: Avg Session Retention (primary) + Session milestone breakdown
+  const getEngagementGroup = (): MetricGroupConfig => {
+    if (selectedGroupId !== 'engagement') return selectedGroup;
+
+    const isAggregatePeriod = viewMode === 'last-12-months';
+
+    if (isAggregatePeriod) {
+      // For aggregate periods, use Avg Session Retention as primary, hide Rebook Rate
+      return {
+        ...selectedGroup,
+        description: 'Who\'s keeping clients engaged over time?',
+        primary: {
+          key: 'avgSessionRetention',
+          label: 'Avg Session Retention',
+          shortLabel: 'Avg Retention',
+          format: (v) => `${v.toFixed(0)}%`,
+          higherIsBetter: true,
+          tooltip: 'Average of session 2, 5, and 12 return rates over the period.',
+        },
+        supporting: [
+          {
+            key: 'session1to2Retention',
+            label: 'Session 2 Return',
+            shortLabel: '1→2',
+            format: (v) => `${v.toFixed(0)}%`,
+            higherIsBetter: true,
+            tooltip: 'Percentage of new clients who return for their second session.',
+          },
+          {
+            key: 'session5Retention',
+            label: 'Session 5 Return',
+            shortLabel: '→5',
+            format: (v) => `${v.toFixed(0)}%`,
+            higherIsBetter: true,
+            tooltip: 'Percentage of clients who reach their 5th session.',
+          },
+          {
+            key: 'session12Retention',
+            label: 'Session 12 Return',
+            shortLabel: '→12',
+            format: (v) => `${v.toFixed(0)}%`,
+            higherIsBetter: true,
+            tooltip: 'Percentage of clients who reach their 12th session.',
+          },
+        ],
+      };
+    }
+
+    // For live/historical (single month), use Rebook Rate as primary
+    // Session milestones show trailing 12-month data
+    return {
+      ...selectedGroup,
+      description: 'Who\'s keeping clients engaged?',
+      supporting: [
+        {
+          key: 'session1to2Retention',
+          label: 'Session 2 Return (12mo)',
+          shortLabel: '1→2',
+          format: (v) => `${v.toFixed(0)}%`,
+          higherIsBetter: true,
+          tooltip: 'Percentage of new clients who return for their second session (trailing 12 months).',
+        },
+        {
+          key: 'session5Retention',
+          label: 'Session 5 Return (12mo)',
+          shortLabel: '→5',
+          format: (v) => `${v.toFixed(0)}%`,
+          higherIsBetter: true,
+          tooltip: 'Percentage of clients who reach their 5th session (trailing 12 months).',
+        },
+        {
+          key: 'session12Retention',
+          label: 'Session 12 Return (12mo)',
+          shortLabel: '→12',
+          format: (v) => `${v.toFixed(0)}%`,
+          higherIsBetter: true,
+          tooltip: 'Percentage of clients who reach their 12th session (trailing 12 months).',
+        },
+      ],
+    };
+  };
+
+  // For retention tab, dynamically adjust based on time period
+  // Live: At-Risk Clients (primary) - churn metrics don't make sense for point-in-time
+  // Last 12 Months: Shows retention flow: Start → End → Churned → Churn Rate → At-Risk
+  const getRetentionGroup = (): MetricGroupConfig => {
+    if (selectedGroupId !== 'retention') return selectedGroup;
+
+    const isAggregatePeriod = viewMode === 'last-12-months';
+
+    if (isAggregatePeriod) {
+      // For aggregate periods, show full retention story
+      // Primary: Clients Churned (for ranking, marked with isPrimary in supporting)
+      // Column order: Start → End → Churned → Churn Rate → At-Risk
+      // Note: primary.key is used for ranking, isPrimary flag highlights the column
+      return {
+        ...selectedGroup,
+        description: 'Who\'s losing clients over time?',
+        primary: {
+          key: 'clientsChurned', // Used for ranking/sorting
+          label: '', // Empty - we'll show it in supporting array instead
+          shortLabel: '',
+          format: (v) => v.toString(),
+          higherIsBetter: false,
+          tooltip: '',
+          hidden: true, // Flag to hide this column since it appears in supporting
+        },
+        supporting: [
+          {
+            key: 'activeClientsStart',
+            label: 'Clients (Start)',
+            shortLabel: 'Start',
+            format: (v) => v.toString(),
+            higherIsBetter: true,
+            tooltip: 'Active clients at the start of the 12-month period.',
+          },
+          {
+            key: 'activeClientsEnd',
+            label: 'Clients (End)',
+            shortLabel: 'End',
+            format: (v) => v.toString(),
+            higherIsBetter: true,
+            tooltip: 'Active clients at the end of the 12-month period.',
+          },
+          {
+            key: 'clientsChurned',
+            label: 'Clients Churned',
+            shortLabel: 'Churned',
+            format: (v) => v.toString(),
+            higherIsBetter: false,
+            tooltip: 'Clients who stopped seeing this clinician during the period.',
+            isPrimary: true, // This is the ranking metric - highlight it
+          },
+          {
+            key: 'churnRate',
+            label: 'Churn Rate',
+            shortLabel: 'Churn %',
+            format: (v) => `${v.toFixed(0)}%`,
+            higherIsBetter: false,
+            tooltip: 'Percentage of starting clients who churned.',
+          },
+          {
+            key: 'atRiskClients',
+            label: 'At-Risk (Current)',
+            shortLabel: 'At Risk',
+            format: (v) => v.toString(),
+            higherIsBetter: false,
+            tooltip: 'Clients currently without upcoming appointments who may churn soon.',
+          },
+        ],
+      };
+    }
+
+    // For live/historical (single month), At-Risk is the only meaningful metric
+    return {
+      ...selectedGroup,
+      description: 'Who has clients at risk of churning?',
+      primary: {
+        key: 'atRiskClients',
+        label: 'At-Risk Clients',
+        shortLabel: 'At Risk',
+        format: (v) => v.toString(),
+        higherIsBetter: false,
+        tooltip: 'Clients without upcoming appointments who may churn soon.',
+      },
+      supporting: [
+        {
+          key: 'activeClients',
+          label: 'Active Clients',
+          shortLabel: 'Active',
+          format: (v) => v.toString(),
+          higherIsBetter: true,
+          tooltip: 'Current active clients for this clinician.',
+        },
+      ],
+    };
+  };
+
+  // Apply dynamic group transformations based on selected metric
+  const getDisplayGroup = (): MetricGroupConfig => {
+    if (selectedGroupId === 'sessions') return getSessionsGroup();
+    if (selectedGroupId === 'caseload') return getCaseloadGroup();
+    if (selectedGroupId === 'engagement') return getEngagementGroup();
+    if (selectedGroupId === 'retention') return getRetentionGroup();
+    return selectedGroup;
+  };
+
+  const displayGroup = getDisplayGroup();
   const metric = displayGroup.primary;
 
   // Calculate team average
@@ -885,29 +1142,26 @@ export const ClinicianOverview: React.FC = () => {
           {/* Column headers */}
           <div className="hidden lg:grid gap-4 py-4 text-sm font-bold text-stone-700 uppercase tracking-wide border-b-2 border-stone-300 mb-3"
             style={{
-              gridTemplateColumns: displayGroup.supporting.length === 6
-                ? '60px 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr'
-                : displayGroup.supporting.length === 5
-                  ? '60px 1fr 1fr 1fr 1fr 1fr 1fr 1fr'
-                  : displayGroup.supporting.length === 4
-                    ? '60px 1fr 1fr 1fr 1fr 1fr 1fr'
-                    : displayGroup.supporting.length === 3
-                      ? '60px 1fr 1fr 1fr 1fr 1fr'
-                      : displayGroup.supporting.length === 2
-                        ? '60px 1fr 1fr 1fr 1fr'
-                        : displayGroup.supporting.length === 1
-                          ? '60px 1.5fr 1fr 1fr'
-                          : '60px 2fr 1fr'
+              // Calculate columns: Rank + Clinician + (Primary if not hidden) + Supporting
+              gridTemplateColumns: (() => {
+                const supportingCount = displayGroup.supporting.length;
+                const showPrimary = !metric.hidden;
+                const dataColumns = supportingCount + (showPrimary ? 1 : 0);
+                // Rank (60px) + Clinician (1fr) + data columns (1fr each)
+                return `60px 1fr ${Array(dataColumns).fill('1fr').join(' ')}`;
+              })()
             }}
           >
             <div>Rank</div>
             <div>Clinician</div>
-            <div className="text-right flex items-center justify-end">
-              {metric.label}
-              {metric.tooltip && <InfoTooltip text={metric.tooltip} />}
-            </div>
+            {!metric.hidden && (
+              <div className="text-right flex items-center justify-end">
+                {metric.label}
+                {metric.tooltip && <InfoTooltip text={metric.tooltip} />}
+              </div>
+            )}
             {displayGroup.supporting.map((s) => (
-              <div key={s.key} className="text-right text-stone-500 flex items-center justify-end">
+              <div key={s.key} className={`text-right flex items-center justify-end ${s.isPrimary ? 'text-stone-900' : 'text-stone-500'}`}>
                 {s.label}
                 {s.tooltip && <InfoTooltip text={s.tooltip} />}
               </div>
@@ -968,19 +1222,12 @@ export const ClinicianOverview: React.FC = () => {
                     {/* Desktop layout */}
                     <div className="hidden lg:grid gap-4 items-center"
                       style={{
-                        gridTemplateColumns: displayGroup.supporting.length === 6
-                          ? '60px 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr'
-                          : displayGroup.supporting.length === 5
-                            ? '60px 1fr 1fr 1fr 1fr 1fr 1fr 1fr'
-                            : displayGroup.supporting.length === 4
-                              ? '60px 1fr 1fr 1fr 1fr 1fr 1fr'
-                              : displayGroup.supporting.length === 3
-                                ? '60px 1fr 1fr 1fr 1fr 1fr'
-                                : displayGroup.supporting.length === 2
-                                  ? '60px 1fr 1fr 1fr 1fr'
-                                  : displayGroup.supporting.length === 1
-                                    ? '60px 1.5fr 1fr 1fr'
-                                    : '60px 2fr 1fr'
+                        gridTemplateColumns: (() => {
+                          const supportingCount = displayGroup.supporting.length;
+                          const showPrimary = !metric.hidden;
+                          const dataColumns = supportingCount + (showPrimary ? 1 : 0);
+                          return `60px 1fr ${Array(dataColumns).fill('1fr').join(' ')}`;
+                        })()
                       }}
                     >
                       {/* Icon instead of rank */}
@@ -999,18 +1246,23 @@ export const ClinicianOverview: React.FC = () => {
                       </div>
 
                       {/* Primary Value */}
-                      <div className="text-right">
-                        <span className="text-xl font-black text-stone-600" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
-                          {metric.format(Math.round(teamAvg))}
-                        </span>
-                      </div>
+                      {!metric.hidden && (
+                        <div className="text-right">
+                          <span className="text-xl font-black text-stone-600" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                            {metric.format(Math.round(teamAvg))}
+                          </span>
+                        </div>
+                      )}
 
                       {/* Supporting metrics - each in own column */}
                       {displayGroup.supporting.map((s) => {
                         const avg = CLINICIANS_DATA.reduce((sum, c) => sum + c.metrics[s.key], 0) / CLINICIANS_DATA.length;
                         return (
                           <div key={s.key} className="text-right">
-                            <span className="text-lg font-semibold text-stone-500">
+                            <span
+                              className={`font-semibold ${s.isPrimary ? 'text-xl font-black text-stone-600' : 'text-lg text-stone-500'}`}
+                              style={s.isPrimary ? { fontFamily: "'DM Serif Display', Georgia, serif" } : undefined}
+                            >
                               {s.format(avg)}
                             </span>
                           </div>
@@ -1096,7 +1348,7 @@ export const ClinicianOverview: React.FC = () => {
                         {displayGroup.supporting.length > 0 && (
                           <div className="mt-2 flex gap-4 text-xs text-stone-500">
                             {displayGroup.supporting.map((s) => (
-                              <span key={s.key}>
+                              <span key={s.key} className={s.isPrimary ? 'font-bold text-stone-700' : ''}>
                                 {s.label}: {s.format(clinician.metrics[s.key])}
                               </span>
                             ))}
@@ -1107,19 +1359,12 @@ export const ClinicianOverview: React.FC = () => {
                       {/* Desktop layout */}
                       <div className="hidden lg:grid gap-4 items-center"
                         style={{
-                          gridTemplateColumns: displayGroup.supporting.length === 6
-                            ? '60px 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr'
-                            : displayGroup.supporting.length === 5
-                              ? '60px 1fr 1fr 1fr 1fr 1fr 1fr 1fr'
-                              : displayGroup.supporting.length === 4
-                                ? '60px 1fr 1fr 1fr 1fr 1fr 1fr'
-                                : displayGroup.supporting.length === 3
-                                  ? '60px 1fr 1fr 1fr 1fr 1fr'
-                                  : displayGroup.supporting.length === 2
-                                    ? '60px 1fr 1fr 1fr 1fr'
-                                    : displayGroup.supporting.length === 1
-                                      ? '60px 1.5fr 1fr 1fr'
-                                      : '60px 2fr 1fr'
+                          gridTemplateColumns: (() => {
+                            const supportingCount = displayGroup.supporting.length;
+                            const showPrimary = !metric.hidden;
+                            const dataColumns = supportingCount + (showPrimary ? 1 : 0);
+                            return `60px 1fr ${Array(dataColumns).fill('1fr').join(' ')}`;
+                          })()
                         }}
                       >
                         {/* RANK */}
@@ -1163,22 +1408,27 @@ export const ClinicianOverview: React.FC = () => {
                         </div>
 
                         {/* PRIMARY VALUE */}
-                        <div className="text-right">
-                          <span
-                            className="text-xl font-black"
-                            style={{
-                              fontFamily: "'DM Serif Display', Georgia, serif",
-                              color: theme.text
-                            }}
-                          >
-                            {metric.format(value)}
-                          </span>
-                        </div>
+                        {!metric.hidden && (
+                          <div className="text-right">
+                            <span
+                              className="text-xl font-black"
+                              style={{
+                                fontFamily: "'DM Serif Display', Georgia, serif",
+                                color: theme.text
+                              }}
+                            >
+                              {metric.format(value)}
+                            </span>
+                          </div>
+                        )}
 
                         {/* SUPPORTING METRICS - each in own column */}
                         {displayGroup.supporting.map((s) => (
                           <div key={s.key} className="text-right">
-                            <span className="text-lg font-semibold text-stone-600">
+                            <span
+                              className={`text-lg font-semibold ${s.isPrimary ? '' : 'text-stone-600'}`}
+                              style={s.isPrimary ? { fontFamily: "'DM Serif Display', Georgia, serif", color: theme.text } : undefined}
+                            >
                               {s.format(clinician.metrics[s.key])}
                             </span>
                           </div>

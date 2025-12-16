@@ -2255,7 +2255,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                           </div>
                           <div className="w-px h-10 bg-stone-200/60" />
                           <div className="flex-1">
-                            <p className="text-xs uppercase tracking-wider text-stone-400 mb-1">Sessions</p>
+                            <p className="text-xs uppercase tracking-wider text-stone-400 mb-1">Completed Sessions</p>
                             <p className="text-lg font-semibold text-stone-800">
                               {CLINICIAN_SESSION_DATA[clinician.id]?.monthlySessions[CLINICIAN_SESSION_DATA[clinician.id]?.monthlySessions.length - 1]?.completed || 0}
                             </p>
@@ -2292,7 +2292,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                 variant={selectedClinician.metrics.revenueVsGoal >= 100 ? 'positive' : 'negative'}
               />
               <StatCard
-                title="Sessions"
+                title="Completed Sessions"
                 value={sessionData ? `${Math.round(totalCompleted / sessionData.monthlySessions.length)}/mo` : '-'}
                 subtitle={sessionData ? `~${Math.round(totalCompleted / sessionData.monthlySessions.length / 4.33)}/week · ${totalCompleted} total` : '-'}
                 variant={selectedClinician.metrics.sessionsVsGoal >= 100 ? 'positive' : 'negative'}
