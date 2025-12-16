@@ -2325,10 +2325,10 @@ export const ClinicianDetailsTab: React.FC = () => {
               showAccentLine={false}
               compact
             />
-            {/* Revenue Over Time Chart - Full Width */}
+            {/* Monthly Gross Revenue Chart - Full Width */}
             <ChartCard
-              title="Revenue Over Time"
-              subtitle="Monthly revenue with goal tracking"
+              title="Monthly Gross Revenue"
+              subtitle="How much they're collecting each month"
               headerControls={
                 <GoalIndicator
                   value={formatCurrencyShort(financialData.revenueGoal)}
@@ -2377,10 +2377,10 @@ export const ClinicianDetailsTab: React.FC = () => {
               compact
             />
             <Grid cols={2}>
-              {/* Completed Sessions Chart */}
+              {/* Completed Sessions Per Month Chart */}
               <ChartCard
-                title="Completed Sessions"
-                subtitle={showWeeklyAvg ? "Average sessions per week" : "Monthly session volume"}
+                title="Completed Sessions Per Month"
+                subtitle={showWeeklyAvg ? "Average sessions per week" : "How many sessions they're completing each month"}
                 headerControls={
                   <>
                     <ToggleButton
@@ -2550,9 +2550,9 @@ export const ClinicianDetailsTab: React.FC = () => {
                 clients={clinicianClients}
               />
 
-              {/* Caseload by Session Frequency */}
+              {/* Client Session Frequency */}
               <DonutChartCard
-                title="Caseload by Session Frequency"
+                title="Client Session Frequency"
                 subtitle={`${weeklyEngagementPercent}% weekly engagement`}
                 segments={sessionFrequencySegments}
                 centerLabel="Active"
@@ -2565,7 +2565,7 @@ export const ClinicianDetailsTab: React.FC = () => {
               {demographicsData && (
                 <div className="flex flex-col gap-4">
                   <StackedBarCard
-                    title="Gender"
+                    title="Client Gender"
                     segments={[
                       { label: 'Male', value: demographicsData.gender.male, color: 'bg-blue-500' },
                       { label: 'Female', value: demographicsData.gender.female, color: 'bg-pink-500' },
@@ -2573,14 +2573,14 @@ export const ClinicianDetailsTab: React.FC = () => {
                     ]}
                   />
                   <StackedBarCard
-                    title="Modality"
+                    title="Client Modality"
                     segments={[
                       { label: 'In-Person', value: demographicsData.modality.inPerson, color: 'bg-amber-500' },
                       { label: 'Telehealth', value: demographicsData.modality.telehealth, color: 'bg-cyan-500' },
                     ]}
                   />
                   <StackedBarCard
-                    title="Age"
+                    title="Client Age"
                     segments={[
                       { label: '18-30', value: demographicsData.age.age18to30, color: 'bg-emerald-500' },
                       { label: '31-45', value: demographicsData.age.age31to45, color: 'bg-blue-500' },
