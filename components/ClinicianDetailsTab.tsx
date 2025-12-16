@@ -2328,7 +2328,7 @@ export const ClinicianDetailsTab: React.FC = () => {
             {/* Monthly Gross Revenue Chart - Full Width */}
             <ChartCard
               title="Monthly Gross Revenue"
-              subtitle="How much they're collecting each month"
+              subtitle={`How much ${selectedClinician.name.split(' ')[0]} is collecting each month`}
               headerControls={
                 <GoalIndicator
                   value={formatCurrencyShort(financialData.revenueGoal)}
@@ -2380,7 +2380,7 @@ export const ClinicianDetailsTab: React.FC = () => {
               {/* Completed Sessions Per Month Chart */}
               <ChartCard
                 title="Completed Sessions Per Month"
-                subtitle={showWeeklyAvg ? "Average sessions per week" : "How many sessions they're completing each month"}
+                subtitle={showWeeklyAvg ? `${selectedClinician.name.split(' ')[0]}'s average sessions per week` : `How many sessions ${selectedClinician.name.split(' ')[0]} is completing each month`}
                 headerControls={
                   <>
                     <ToggleButton
@@ -2424,7 +2424,7 @@ export const ClinicianDetailsTab: React.FC = () => {
               {/* Attendance Breakdown Donut */}
               <DonutChartCard
                 title="Attendance Breakdown"
-                subtitle={`${showRate >= 87.5 ? '+' : ''}${(showRate - 87.5).toFixed(1)}% vs 87.5% practice avg`}
+                subtitle={`What happens to ${selectedClinician.name.split(' ')[0]}'s booked sessions`}
                 segments={attendanceSegments}
                 centerLabel="Show Rate"
                 centerValue={`${showRate.toFixed(1)}%`}
@@ -2435,7 +2435,7 @@ export const ClinicianDetailsTab: React.FC = () => {
               {/* Clinician Cancellations Chart */}
               <ChartCard
                 title="Clinician Cancellations"
-                subtitle="Sessions cancelled by clinician each month"
+                subtitle={`How often ${selectedClinician.name.split(' ')[0]} cancels sessions`}
                 insights={clinicianCancellationInsights}
                 minHeight="320px"
               >
@@ -2491,7 +2491,7 @@ export const ClinicianDetailsTab: React.FC = () => {
               {/* Active Clients & Caseload Capacity */}
               <ChartCard
                 title="Active Clients & Caseload Capacity"
-                subtitle="How full their caseload is each month"
+                subtitle={`How full ${selectedClinician.name.split(' ')[0]}'s caseload is each month`}
                 headerControls={
                   <ToggleButton
                     label="Capacity %"
@@ -2546,14 +2546,14 @@ export const ClinicianDetailsTab: React.FC = () => {
               {/* Client Roster */}
               <ClientRosterCard
                 title="Client Roster"
-                subtitle={`${clinicianClients.length} active clients`}
+                subtitle={`${selectedClinician.name.split(' ')[0]}'s ${clinicianClients.length} current active clients`}
                 clients={clinicianClients}
               />
 
               {/* Client Session Frequency */}
               <DonutChartCard
                 title="Client Session Frequency"
-                subtitle={`${weeklyEngagementPercent}% weekly engagement`}
+                subtitle={`How often ${selectedClinician.name.split(' ')[0]}'s clients come in`}
                 segments={sessionFrequencySegments}
                 centerLabel="Active"
                 centerValue={totalSessionFrequencyClients.toString()}
@@ -2566,6 +2566,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                 <div className="flex flex-col gap-4">
                   <StackedBarCard
                     title="Client Gender"
+                    subtitle={`${selectedClinician.name.split(' ')[0]}'s current active clients`}
                     segments={[
                       { label: 'Male', value: demographicsData.gender.male, color: 'bg-blue-500' },
                       { label: 'Female', value: demographicsData.gender.female, color: 'bg-pink-500' },
@@ -2574,6 +2575,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                   />
                   <StackedBarCard
                     title="Client Modality"
+                    subtitle={`${selectedClinician.name.split(' ')[0]}'s current active clients`}
                     segments={[
                       { label: 'In-Person', value: demographicsData.modality.inPerson, color: 'bg-amber-500' },
                       { label: 'Telehealth', value: demographicsData.modality.telehealth, color: 'bg-cyan-500' },
@@ -2581,6 +2583,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                   />
                   <StackedBarCard
                     title="Client Age"
+                    subtitle={`${selectedClinician.name.split(' ')[0]}'s current active clients`}
                     segments={[
                       { label: '18-30', value: demographicsData.age.age18to30, color: 'bg-emerald-500' },
                       { label: '31-45', value: demographicsData.age.age31to45, color: 'bg-blue-500' },
@@ -2611,7 +2614,7 @@ export const ClinicianDetailsTab: React.FC = () => {
               {/* New and Churned Clients Chart */}
               <ChartCard
                 title="New and Churned Clients Per Month"
-                subtitle="Net client growth over time"
+                subtitle={`How ${selectedClinician.name.split(' ')[0]}'s client base is changing`}
                 headerControls={
                   <div className="flex items-center gap-5 bg-stone-50 rounded-xl px-5 py-2.5">
                     <div className="flex items-center gap-2">
@@ -2646,7 +2649,7 @@ export const ClinicianDetailsTab: React.FC = () => {
               {/* Churn Timing - Donut Chart */}
               <DonutChartCard
                 title="Churn Timing"
-                subtitle="When clients leave by session count"
+                subtitle={`How far ${selectedClinician.name.split(' ')[0]}'s clients get before leaving`}
                 segments={[
                   { label: 'Early (<5 sessions)', value: churnTimingTotals.early, color: '#ef4444' },
                   { label: 'Medium (5-15)', value: churnTimingTotals.medium, color: '#f59e0b' },
@@ -2661,7 +2664,7 @@ export const ClinicianDetailsTab: React.FC = () => {
               {/* Retention Comparison Table */}
               <DataTableCard
                 title="Retention Comparison"
-                subtitle="vs practice average"
+                subtitle={`How ${selectedClinician.name.split(' ')[0]}'s retention compares to the practice`}
                 columns={retentionTableColumns}
                 rows={retentionTableRows}
               />
@@ -2686,7 +2689,7 @@ export const ClinicianDetailsTab: React.FC = () => {
               {/* Outstanding Notes Donut Chart */}
               <DonutChartCard
                 title="Outstanding Notes"
-                subtitle={`Practice avg: ${complianceData.practiceAvgOutstanding}`}
+                subtitle={`How many notes ${selectedClinician.name.split(' ')[0]} needs to complete`}
                 segments={[
                   { label: 'Overdue', value: complianceData.overdueNotes, color: '#ef4444' },
                   { label: 'Due within 48h', value: complianceData.dueWithin48h, color: '#f59e0b' },
@@ -2723,7 +2726,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                         Overdue Notes
                       </h3>
                       <p className="text-stone-500 text-base sm:text-lg xl:text-xl mt-2">
-                        Notes past deadline
+                        {`Notes ${selectedClinician.name.split(' ')[0]} needs to catch up on`}
                       </p>
                     </div>
 
