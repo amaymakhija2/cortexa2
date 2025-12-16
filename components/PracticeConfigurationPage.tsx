@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 import { PageHeader, PageContent, Grid, AnimatedSection } from './design-system';
 import { CLINICIANS as MASTER_CLINICIANS } from '../data/clinicians';
-import { useSettings, PracticeGoals, MetricThresholds } from '../context/SettingsContext';
+import { useSettings, PracticeGoals, MetricThresholds, ClinicianGoalOverrides } from '../context/SettingsContext';
 
 // =============================================================================
 // PRACTICE CONFIGURATION PAGE
@@ -900,12 +900,22 @@ const ClinicianGoalsTab: React.FC<{
   clinicians: Clinician[];
   onUpdate: (clinicians: Clinician[]) => void;
 }> = ({ clinicians, onUpdate }) => {
+  // Local state for editing - only save when user clicks Save
+  const [localClinicians, setLocalClinicians] = useState(clinicians);
+  const [hasChanges, setHasChanges] = useState(false);
+
   const handleUpdateClinician = (id: string, updates: Partial<Clinician>) => {
-    onUpdate(clinicians.map(c => c.id === id ? { ...c, ...updates } : c));
+    setLocalClinicians(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
+    setHasChanges(true);
+  };
+
+  const handleSave = () => {
+    onUpdate(localClinicians);
+    setHasChanges(false);
   };
 
   // Only show active clinicians
-  const activeClinicians = clinicians.filter(c => c.isActive);
+  const activeClinicians = localClinicians.filter(c => c.isActive);
 
   // Calculate practice totals
   const totalSessionGoal = activeClinicians.reduce((sum, c) => sum + c.sessionGoal, 0);
@@ -917,14 +927,36 @@ const ClinicianGoalsTab: React.FC<{
   return (
     <PageContent>
       <AnimatedSection delay={0}>
-        <div className="mb-8">
-          <h2
-            className="text-3xl font-bold text-stone-800"
-            style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-          >
-            Clinician Goals
-          </h2>
-          <p className="text-stone-500 text-lg mt-1">Set individual performance targets and compensation</p>
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h2
+              className="text-3xl font-bold text-stone-800"
+              style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+            >
+              Clinician Goals
+            </h2>
+            <p className="text-stone-500 text-lg mt-1">Set individual performance targets and compensation</p>
+          </div>
+          <AnimatePresence>
+            {hasChanges && (
+              <motion.button
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={handleSave}
+                className="px-6 py-3.5 rounded-xl font-semibold text-white text-lg flex items-center gap-2"
+                style={{
+                  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                  boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+                }}
+              >
+                <Check size={20} />
+                Save Changes
+              </motion.button>
+            )}
+          </AnimatePresence>
         </div>
       </AnimatedSection>
 
@@ -990,9 +1022,14 @@ const ClinicianGoalsTab: React.FC<{
                       <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-blue-50">
                         <Calendar size={16} className="text-blue-500" />
                         <input
-                          type="number"
-                          value={clinician.sessionGoal}
-                          onChange={(e) => handleUpdateClinician(clinician.id, { sessionGoal: Math.max(0, Number(e.target.value)) })}
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          value={clinician.sessionGoal || ''}
+                          onChange={(e) => {
+                            const val = e.target.value.replace(/[^0-9]/g, '');
+                            handleUpdateClinician(clinician.id, { sessionGoal: val === '' ? 0 : parseInt(val, 10) });
+                          }}
                           className="w-12 bg-transparent text-blue-700 font-bold text-lg text-center focus:outline-none"
                           style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                         />
@@ -1003,9 +1040,14 @@ const ClinicianGoalsTab: React.FC<{
                       <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-50">
                         <Users size={16} className="text-emerald-500" />
                         <input
-                          type="number"
-                          value={clinician.clientGoal}
-                          onChange={(e) => handleUpdateClinician(clinician.id, { clientGoal: Math.max(0, Number(e.target.value)) })}
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          value={clinician.clientGoal || ''}
+                          onChange={(e) => {
+                            const val = e.target.value.replace(/[^0-9]/g, '');
+                            handleUpdateClinician(clinician.id, { clientGoal: val === '' ? 0 : parseInt(val, 10) });
+                          }}
                           className="w-12 bg-transparent text-emerald-700 font-bold text-lg text-center focus:outline-none"
                           style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                         />
@@ -1016,9 +1058,15 @@ const ClinicianGoalsTab: React.FC<{
                       <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-50">
                         <DollarSign size={16} className="text-amber-500" />
                         <input
-                          type="number"
-                          value={clinician.takeRate}
-                          onChange={(e) => handleUpdateClinician(clinician.id, { takeRate: Math.max(0, Math.min(100, Number(e.target.value))) })}
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          value={clinician.takeRate || ''}
+                          onChange={(e) => {
+                            const val = e.target.value.replace(/[^0-9]/g, '');
+                            const num = val === '' ? 0 : Math.min(100, parseInt(val, 10));
+                            handleUpdateClinician(clinician.id, { takeRate: num });
+                          }}
                           className="w-12 bg-transparent text-amber-700 font-bold text-lg text-center focus:outline-none"
                           style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                         />
@@ -1127,9 +1175,14 @@ const PracticeGoalsTab: React.FC<{
               <div className="relative">
                 <span className="absolute left-5 top-1/2 -translate-y-1/2 text-stone-400 text-2xl font-medium">$</span>
                 <input
-                  type="number"
-                  value={localGoals.monthlyRevenue}
-                  onChange={(e) => handleChange('monthlyRevenue', Number(e.target.value))}
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={localGoals.monthlyRevenue || ''}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/[^0-9]/g, '');
+                    handleChange('monthlyRevenue', val === '' ? 0 : parseInt(val, 10));
+                  }}
                   className="w-full pl-12 pr-5 py-5 rounded-xl bg-stone-50 border-2 border-transparent text-4xl font-bold text-stone-800 focus:outline-none focus:border-emerald-300 focus:bg-white transition-all"
                   style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                 />
@@ -1155,9 +1208,14 @@ const PracticeGoalsTab: React.FC<{
                 </div>
               </div>
               <input
-                type="number"
-                value={localGoals.monthlySessions}
-                onChange={(e) => handleChange('monthlySessions', Number(e.target.value))}
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={localGoals.monthlySessions || ''}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/[^0-9]/g, '');
+                  handleChange('monthlySessions', val === '' ? 0 : parseInt(val, 10));
+                }}
                 className="w-full px-5 py-5 rounded-xl bg-stone-50 border-2 border-transparent text-4xl font-bold text-stone-800 focus:outline-none focus:border-blue-300 focus:bg-white transition-all"
                 style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
               />
@@ -1851,12 +1909,20 @@ export const PracticeConfigurationPage: React.FC = () => {
 
   // Get settings from context (persisted to localStorage)
   const { settings, updateSettings } = useSettings();
-  const { practiceGoals, thresholds } = settings;
+  const { practiceGoals, thresholds, clinicianGoals } = settings;
 
   // Local state for non-persisted data
   const [locations, setLocations] = useState<Location[]>(MOCK_LOCATIONS);
-  const [clinicians, setClinicians] = useState<Clinician[]>(MOCK_CLINICIANS);
   const [ehr, setEHR] = useState<EHRConnection>(MOCK_EHR);
+
+  // Merge clinician data from master list with saved overrides from context
+  const cliniciansWithOverrides: Clinician[] = MOCK_CLINICIANS.map(c => ({
+    ...c,
+    sessionGoal: clinicianGoals?.[c.id]?.sessionGoal ?? c.sessionGoal,
+    clientGoal: clinicianGoals?.[c.id]?.clientGoal ?? c.clientGoal,
+    takeRate: clinicianGoals?.[c.id]?.takeRate ?? c.takeRate,
+  }));
+  const [clinicians, setClinicians] = useState<Clinician[]>(cliniciansWithOverrides);
 
   // Update practice goals in context (persists to localStorage)
   const handleUpdatePracticeGoals = (newGoals: PracticeGoals) => {
@@ -1866,6 +1932,27 @@ export const PracticeConfigurationPage: React.FC = () => {
   // Update thresholds in context (persists to localStorage)
   const handleUpdateThresholds = (newThresholds: MetricThresholds) => {
     updateSettings({ thresholds: newThresholds });
+  };
+
+  // Update clinician goals in context (persists to localStorage)
+  const handleUpdateClinicianGoals = (updatedClinicians: Clinician[]) => {
+    setClinicians(updatedClinicians);
+    // Extract only the goal overrides to save to context
+    const newOverrides: ClinicianGoalOverrides = {};
+    updatedClinicians.forEach(c => {
+      const master = MOCK_CLINICIANS.find(m => m.id === c.id);
+      if (master) {
+        // Only save if different from master defaults
+        const override: { sessionGoal?: number; clientGoal?: number; takeRate?: number } = {};
+        if (c.sessionGoal !== master.sessionGoal) override.sessionGoal = c.sessionGoal;
+        if (c.clientGoal !== master.clientGoal) override.clientGoal = c.clientGoal;
+        if (c.takeRate !== master.takeRate) override.takeRate = c.takeRate;
+        if (Object.keys(override).length > 0) {
+          newOverrides[c.id] = override;
+        }
+      }
+    });
+    updateSettings({ clinicianGoals: newOverrides });
   };
 
   const handleTabChange = (tabId: string) => {
@@ -1914,7 +2001,7 @@ export const PracticeConfigurationPage: React.FC = () => {
         )}
         {activeTab === 'clinician-goals' && (
           <motion.div key="clinician-goals" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <ClinicianGoalsTab clinicians={clinicians} onUpdate={setClinicians} />
+            <ClinicianGoalsTab clinicians={clinicians} onUpdate={handleUpdateClinicianGoals} />
           </motion.div>
         )}
         {activeTab === 'goals' && (

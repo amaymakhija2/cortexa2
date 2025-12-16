@@ -27,8 +27,8 @@ export interface ClientRosterCardProps {
   subtitle?: string;
   /** List of clients to display */
   clients: ClientData[];
-  /** Minimum height for the card */
-  minHeight?: string;
+  /** Max number of clients visible at once (scrollable if more). Defaults to 5 */
+  maxVisible?: number;
   /** Additional className */
   className?: string;
 }
@@ -78,14 +78,16 @@ const formatLastSeen = (days: number): string => {
  *   title="Client Roster"
  *   subtitle="8 active clients"
  *   clients={clientList}
- *   minHeight="480px"
  * />
  */
+// Each client row is approximately 76px (py-5 = 40px + content ~36px)
+const CLIENT_ROW_HEIGHT = 76;
+
 export const ClientRosterCard: React.FC<ClientRosterCardProps> = ({
   title,
   subtitle,
   clients,
-  minHeight = '480px',
+  maxVisible = 4.5,
   className = '',
 }) => {
   const [selectedSegment, setSelectedSegment] = useState<SegmentId>('all');
@@ -107,11 +109,10 @@ export const ClientRosterCard: React.FC<ClientRosterCardProps> = ({
 
   return (
     <div
-      className={`rounded-2xl xl:rounded-3xl relative flex flex-col overflow-hidden h-full ${className}`}
+      className={`rounded-2xl xl:rounded-3xl relative flex flex-col overflow-hidden ${className}`}
       style={{
         background: 'linear-gradient(145deg, #ffffff 0%, #fafaf9 100%)',
         boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)',
-        minHeight,
       }}
     >
       {/* Header Section */}
@@ -168,8 +169,11 @@ export const ClientRosterCard: React.FC<ClientRosterCardProps> = ({
         </div>
       </div>
 
-      {/* Client list */}
-      <div className="flex-1 overflow-y-auto border-t border-stone-100">
+      {/* Client list - limited to maxVisible rows with scroll */}
+      <div
+        className="overflow-y-auto border-t border-stone-100"
+        style={{ maxHeight: `${maxVisible * CLIENT_ROW_HEIGHT}px` }}
+      >
         {filteredClients.length === 0 ? (
           <div className="px-6 sm:px-8 xl:px-10 py-16 text-center">
             <p className="text-stone-400 text-lg">

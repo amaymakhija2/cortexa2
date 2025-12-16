@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { ChevronDown, Check, Calendar, ChevronLeft, ChevronRight, X, TrendingUp, TrendingDown, Users, DollarSign, Activity, FileText, ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ChevronDown, Check, Calendar, ChevronLeft, ChevronRight, X, TrendingUp, TrendingDown, Users, DollarSign, Activity, FileText, ArrowRight, Settings } from 'lucide-react';
 import {
   SectionHeader,
   SectionContainer,
@@ -32,6 +33,7 @@ import type { ClientData } from './design-system';
 // =============================================================================
 
 import { CLINICIANS as MASTER_CLINICIANS } from '../data/clinicians';
+import { useSettings, getClinicianGoals } from '../context/SettingsContext';
 
 // Health status type
 type HealthStatus = 'healthy' | 'attention' | 'critical';
@@ -834,6 +836,10 @@ const HEALTH_CONFIG: Record<HealthStatus, { label: string; color: string; bg: st
 };
 
 export const ClinicianDetailsTab: React.FC = () => {
+  const navigate = useNavigate();
+  const { settings } = useSettings();
+  const { clinicianGoals } = settings;
+
   // State for selectors - null means no clinician selected yet
   const [selectedClinician, setSelectedClinician] = useState<typeof MOCK_CLINICIANS[0] | null>(null);
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('last-12-months');
@@ -1039,6 +1045,20 @@ export const ClinicianDetailsTab: React.FC = () => {
   // Get session data for selected clinician
   const sessionData = selectedClinician ? CLINICIAN_SESSION_DATA[selectedClinician.id] : null;
 
+  // Get master clinician data for goals (sessionGoal = weekly, clientGoal = caseload target)
+  // Merge with any overrides from settings context
+  const masterClinicianData = useMemo(() => {
+    if (!selectedClinician) return null;
+    const master = MASTER_CLINICIANS.find(c => c.id === String(selectedClinician.id));
+    if (!master) return null;
+    const goals = getClinicianGoals(
+      master.id,
+      { sessionGoal: master.sessionGoal, clientGoal: master.clientGoal, takeRate: master.takeRate },
+      clinicianGoals
+    );
+    return { ...master, ...goals };
+  }, [selectedClinician, clinicianGoals]);
+
   // Session bar chart data (monthly totals)
   const sessionBarData = useMemo(() => {
     if (!sessionData) return [];
@@ -1058,10 +1078,11 @@ export const ClinicianDetailsTab: React.FC = () => {
   }, [sessionData]);
 
   // Weekly goal (monthly goal / 4.33 weeks)
+  // Weekly session goal - use context override if available, otherwise fall back to sessionData
+  const monthlySessionGoal = masterClinicianData?.sessionGoal ?? sessionData?.sessionGoal ?? 0;
   const weeklySessionGoal = useMemo(() => {
-    if (!sessionData) return 0;
-    return Math.round(sessionData.sessionGoal / 4.33);
-  }, [sessionData]);
+    return Math.round(monthlySessionGoal / 4.33);
+  }, [monthlySessionGoal]);
 
   // Session totals
   const totalCompleted = useMemo(() => {
@@ -1103,8 +1124,8 @@ export const ClinicianDetailsTab: React.FC = () => {
   // Months hitting session goal
   const sessionMonthsAtGoal = useMemo(() => {
     if (!sessionData) return 0;
-    return sessionData.monthlySessions.filter((item) => item.completed >= sessionData.sessionGoal).length;
-  }, [sessionData]);
+    return sessionData.monthlySessions.filter((item) => item.completed >= monthlySessionGoal).length;
+  }, [sessionData, monthlySessionGoal]);
 
   // Best session month
   const bestSessionMonth = useMemo(() => {
@@ -1294,6 +1315,81 @@ export const ClinicianDetailsTab: React.FC = () => {
     if (!caseloadData?.sessionFrequency || totalSessionFrequencyClients === 0) return 0;
     return Math.round((caseloadData.sessionFrequency.weekly / totalSessionFrequencyClients) * 100);
   }, [caseloadData, totalSessionFrequencyClients]);
+
+  // Active clients bar chart data
+  const activeClientsBarData = useMemo(() => {
+    if (!caseloadData) return [];
+    return caseloadData.monthlyCaseload.map(item => ({
+      label: item.month,
+      value: item.activeClients,
+    }));
+  }, [caseloadData]);
+
+  // Capacity percentage bar chart data
+  const capacityPercentageBarData = useMemo(() => {
+    if (!caseloadData) return [];
+    return caseloadData.monthlyCaseload.map(item => ({
+      label: item.month,
+      value: item.capacity > 0 ? Math.round((item.activeClients / item.capacity) * 100) : 0,
+    }));
+  }, [caseloadData]);
+
+  // Toggle state for capacity chart view
+  const [showCapacityPercentage, setShowCapacityPercentage] = useState(false);
+
+  // Active clients insights
+  const activeClientsInsights = useMemo(() => {
+    if (!caseloadData) return [];
+    const latestMonth = caseloadData.monthlyCaseload[caseloadData.monthlyCaseload.length - 1];
+    const avgClients = Math.round(caseloadData.monthlyCaseload.reduce((sum, m) => sum + m.activeClients, 0) / caseloadData.monthlyCaseload.length);
+    return [
+      {
+        value: latestMonth?.activeClients.toString() || '0',
+        label: 'Current',
+        bgColor: 'bg-amber-50',
+        textColor: 'text-amber-600',
+      },
+      {
+        value: latestMonth?.capacity.toString() || '0',
+        label: 'Capacity',
+        bgColor: 'bg-stone-100',
+        textColor: 'text-stone-600',
+      },
+      {
+        value: avgClients.toString(),
+        label: 'Avg/Month',
+        bgColor: 'bg-blue-50',
+        textColor: 'text-blue-600',
+      },
+    ];
+  }, [caseloadData]);
+
+  // Capacity percentage insights
+  const capacityInsights = useMemo(() => {
+    if (!caseloadData) return [];
+    const avgCapacity = Math.round(caseloadData.monthlyCaseload.reduce((sum, m) =>
+      sum + (m.capacity > 0 ? (m.activeClients / m.capacity) * 100 : 0), 0) / caseloadData.monthlyCaseload.length);
+    return [
+      {
+        value: `${Math.round(caseloadUtilization)}%`,
+        label: 'Current',
+        bgColor: caseloadUtilization >= 90 ? 'bg-emerald-50' : caseloadUtilization >= 75 ? 'bg-amber-50' : 'bg-rose-50',
+        textColor: caseloadUtilization >= 90 ? 'text-emerald-600' : caseloadUtilization >= 75 ? 'text-amber-600' : 'text-rose-600',
+      },
+      {
+        value: `${avgCapacity}%`,
+        label: 'Avg',
+        bgColor: 'bg-stone-100',
+        textColor: 'text-stone-600',
+      },
+      {
+        value: `${caseloadData.practiceAvgUtilization}%`,
+        label: 'Practice Avg',
+        bgColor: 'bg-blue-50',
+        textColor: 'text-blue-600',
+      },
+    ];
+  }, [caseloadData, caseloadUtilization]);
 
   // ==========================================================================
   // RETENTION COMPUTED VALUES
@@ -1668,14 +1764,18 @@ export const ClinicianDetailsTab: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Name + Health Badge */}
+                    {/* Name + Role/License + Health Badge */}
                     <div>
                       <h1
-                        className="text-4xl sm:text-5xl lg:text-6xl text-white tracking-tight leading-none mb-3"
+                        className="text-4xl sm:text-5xl lg:text-6xl text-white tracking-tight leading-none mb-1"
                         style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                       >
                         {selectedClinician.name}
                       </h1>
+                      {/* Role & License subtitle */}
+                      <p className="text-stone-400 text-base lg:text-lg mb-3">
+                        {selectedClinician.role} · {selectedClinician.title}
+                      </p>
                       {/* Health Status Badge */}
                       <div
                         className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-semibold"
@@ -1951,20 +2051,8 @@ export const ClinicianDetailsTab: React.FC = () => {
                 {/* ROW 2: Metadata Cards + AI Insight */}
                 <div className="flex flex-col lg:flex-row items-stretch gap-6 lg:gap-8">
 
-                  {/* Metadata Cards - Clean grid layout */}
+                  {/* Metadata Cards - Clean grid layout (4 items) */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 lg:gap-4">
-                    {/* Role */}
-                    <div
-                      className="px-5 py-4 rounded-2xl"
-                      style={{
-                        background: 'rgba(255, 255, 255, 0.06)',
-                        border: '1px solid rgba(255, 255, 255, 0.08)',
-                      }}
-                    >
-                      <p className="text-stone-500 text-xs uppercase tracking-wider mb-1">Role</p>
-                      <p className="text-white text-base lg:text-lg font-medium">{selectedClinician.role}</p>
-                    </div>
-
                     {/* Tenure */}
                     <div
                       className="px-5 py-4 rounded-2xl"
@@ -1989,21 +2077,41 @@ export const ClinicianDetailsTab: React.FC = () => {
                       <p className="text-white text-base lg:text-lg font-medium">{selectedClinician.takeRate}%</p>
                     </div>
 
-                    {/* Supervisor or License */}
-                    <div
-                      className="px-5 py-4 rounded-2xl"
+                    {/* Session Goal - Clickable */}
+                    <button
+                      onClick={() => navigate('/configure?tab=clinician-goals')}
+                      className="px-5 py-4 rounded-2xl text-left transition-all duration-200 hover:scale-[1.02] group"
                       style={{
-                        background: 'rgba(255, 255, 255, 0.06)',
-                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        background: 'rgba(251, 191, 36, 0.1)',
+                        border: '1px solid rgba(251, 191, 36, 0.2)',
                       }}
                     >
-                      <p className="text-stone-500 text-xs uppercase tracking-wider mb-1">
-                        {selectedClinician.supervisor ? 'Supervisor' : 'License'}
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="text-amber-400/80 text-xs uppercase tracking-wider">Session Goal</p>
+                        <Settings size={12} className="text-amber-400/60 group-hover:text-amber-400 transition-colors" />
+                      </div>
+                      <p className="text-amber-100 text-base lg:text-lg font-medium">
+                        {masterClinicianData?.sessionGoal || '-'}/week
                       </p>
-                      <p className="text-white text-base lg:text-lg font-medium truncate">
-                        {selectedClinician.supervisor || selectedClinician.title}
+                    </button>
+
+                    {/* Caseload Goal - Clickable */}
+                    <button
+                      onClick={() => navigate('/configure?tab=clinician-goals')}
+                      className="px-5 py-4 rounded-2xl text-left transition-all duration-200 hover:scale-[1.02] group"
+                      style={{
+                        background: 'rgba(251, 191, 36, 0.1)',
+                        border: '1px solid rgba(251, 191, 36, 0.2)',
+                      }}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="text-amber-400/80 text-xs uppercase tracking-wider">Caseload Goal</p>
+                        <Settings size={12} className="text-amber-400/60 group-hover:text-amber-400 transition-colors" />
+                      </div>
+                      <p className="text-amber-100 text-base lg:text-lg font-medium">
+                        {masterClinicianData?.clientGoal || '-'} clients
                       </p>
-                    </div>
+                    </button>
                   </div>
 
                   {/* AI Insight - Editorial quote style */}
@@ -2281,7 +2389,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                       onToggle={() => setShowWeeklyAvg(!showWeeklyAvg)}
                     />
                     <GoalIndicator
-                      value={showWeeklyAvg ? weeklySessionGoal : sessionData.sessionGoal}
+                      value={showWeeklyAvg ? weeklySessionGoal : monthlySessionGoal}
                       label="Goal"
                       color="amber"
                     />
@@ -2293,9 +2401,9 @@ export const ClinicianDetailsTab: React.FC = () => {
                 <BarChart
                   data={showWeeklyAvg ? sessionWeeklyBarData : sessionBarData}
                   mode="single"
-                  goal={{ value: showWeeklyAvg ? weeklySessionGoal : sessionData.sessionGoal }}
+                  goal={{ value: showWeeklyAvg ? weeklySessionGoal : monthlySessionGoal }}
                   getBarColor={(value) => {
-                    const goal = showWeeklyAvg ? weeklySessionGoal : sessionData.sessionGoal;
+                    const goal = showWeeklyAvg ? weeklySessionGoal : monthlySessionGoal;
                     return value >= goal
                       ? {
                           gradient: 'linear-gradient(180deg, #34d399 0%, #059669 100%)',
@@ -2380,39 +2488,59 @@ export const ClinicianDetailsTab: React.FC = () => {
               compact
             />
             <Grid cols={2}>
-              {/* New and Churned Clients Chart */}
+              {/* Active Clients & Caseload Capacity */}
               <ChartCard
-                title="New and Churned Clients Per Month"
-                subtitle="Net client growth over time"
+                title="Active Clients & Caseload Capacity"
+                subtitle="How full their caseload is each month"
                 headerControls={
-                  <div className="flex items-center gap-5 bg-stone-50 rounded-xl px-5 py-2.5">
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 rounded-md bg-gradient-to-b from-emerald-400 to-emerald-500"></div>
-                      <span className="text-stone-700 text-base font-semibold">New</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 rounded-md bg-gradient-to-b from-rose-400 to-rose-500"></div>
-                      <span className="text-stone-700 text-base font-semibold">Churned</span>
-                    </div>
-                  </div>
+                  <ToggleButton
+                    label="Capacity %"
+                    active={showCapacityPercentage}
+                    onToggle={() => setShowCapacityPercentage(!showCapacityPercentage)}
+                  />
                 }
-                insights={clientMovementInsights}
+                insights={showCapacityPercentage ? capacityInsights : activeClientsInsights}
                 minHeight="420px"
               >
-                <DivergingBarChart
-                  data={clientMovementData}
-                  positiveConfig={{
-                    label: 'New Clients',
-                    color: '#34d399',
-                    colorEnd: '#10b981',
-                  }}
-                  negativeConfig={{
-                    label: 'Churned',
-                    color: '#fb7185',
-                    colorEnd: '#f43f5e',
-                  }}
-                  height="280px"
-                />
+                {showCapacityPercentage ? (
+                  <BarChart
+                    data={capacityPercentageBarData}
+                    mode="single"
+                    getBarColor={(value) => ({
+                      gradient: value >= 90
+                        ? 'linear-gradient(180deg, #34d399 0%, #059669 100%)'
+                        : value >= 75
+                          ? 'linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%)'
+                          : 'linear-gradient(180deg, #fb7185 0%, #f43f5e 100%)',
+                      shadow: value >= 90
+                        ? '0 4px 12px -2px rgba(16, 185, 129, 0.35)'
+                        : value >= 75
+                          ? '0 4px 12px -2px rgba(245, 158, 11, 0.35)'
+                          : '0 4px 12px -2px rgba(244, 63, 94, 0.35)',
+                      textColor: value >= 90
+                        ? 'text-emerald-600'
+                        : value >= 75
+                          ? 'text-amber-600'
+                          : 'text-rose-600',
+                    })}
+                    formatValue={(v) => `${v}%`}
+                    maxValue={100}
+                    height="280px"
+                  />
+                ) : (
+                  <BarChart
+                    data={activeClientsBarData}
+                    mode="single"
+                    goal={{ value: currentCapacity }}
+                    getBarColor={() => ({
+                      gradient: 'linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%)',
+                      shadow: '0 4px 12px -2px rgba(245, 158, 11, 0.35)',
+                      textColor: 'text-amber-600',
+                    })}
+                    formatValue={(v) => v.toString()}
+                    height="280px"
+                  />
+                )}
               </ChartCard>
 
               {/* Client Roster */}
@@ -2480,6 +2608,41 @@ export const ClinicianDetailsTab: React.FC = () => {
               compact
             />
             <Grid cols={2}>
+              {/* New and Churned Clients Chart */}
+              <ChartCard
+                title="New and Churned Clients Per Month"
+                subtitle="Net client growth over time"
+                headerControls={
+                  <div className="flex items-center gap-5 bg-stone-50 rounded-xl px-5 py-2.5">
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 rounded-md bg-gradient-to-b from-emerald-400 to-emerald-500"></div>
+                      <span className="text-stone-700 text-base font-semibold">New</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 rounded-md bg-gradient-to-b from-rose-400 to-rose-500"></div>
+                      <span className="text-stone-700 text-base font-semibold">Churned</span>
+                    </div>
+                  </div>
+                }
+                insights={clientMovementInsights}
+                minHeight="420px"
+              >
+                <DivergingBarChart
+                  data={clientMovementData}
+                  positiveConfig={{
+                    label: 'New Clients',
+                    color: '#34d399',
+                    colorEnd: '#10b981',
+                  }}
+                  negativeConfig={{
+                    label: 'Churned',
+                    color: '#fb7185',
+                    colorEnd: '#f43f5e',
+                  }}
+                  height="280px"
+                />
+              </ChartCard>
+
               {/* Churn Timing - Donut Chart */}
               <DonutChartCard
                 title="Churn Timing"

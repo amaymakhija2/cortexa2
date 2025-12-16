@@ -8,6 +8,15 @@ export interface PracticeGoals {
   noteDeadlineHours: number;
 }
 
+// Per-clinician goal overrides (keyed by clinician ID)
+export interface ClinicianGoalOverrides {
+  [clinicianId: string]: {
+    sessionGoal?: number;
+    clientGoal?: number;
+    takeRate?: number;
+  };
+}
+
 // Metric threshold settings
 export interface MetricThresholds {
   // Client status definition
@@ -38,6 +47,7 @@ interface AppSettings {
   anonymizeClinicianNames: boolean;
   practiceGoals: PracticeGoals;
   thresholds: MetricThresholds;
+  clinicianGoals: ClinicianGoalOverrides;
 }
 
 // NOTE: Data now uses synthetic clinician names directly from data/clinicians.ts
@@ -47,6 +57,20 @@ interface AppSettings {
 // Helper function to get display name (no-op since data is already synthetic)
 export const getDisplayName = (name: string, _anonymize: boolean): string => {
   return name;
+};
+
+// Helper to get clinician goals with overrides applied
+export const getClinicianGoals = (
+  clinicianId: string,
+  defaults: { sessionGoal: number; clientGoal: number; takeRate: number },
+  overrides?: ClinicianGoalOverrides
+): { sessionGoal: number; clientGoal: number; takeRate: number } => {
+  const override = overrides?.[clinicianId];
+  return {
+    sessionGoal: override?.sessionGoal ?? defaults.sessionGoal,
+    clientGoal: override?.clientGoal ?? defaults.clientGoal,
+    takeRate: override?.takeRate ?? defaults.takeRate,
+  };
 };
 
 interface SettingsContextType {
@@ -94,6 +118,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   anonymizeClinicianNames: false,
   practiceGoals: DEFAULT_PRACTICE_GOALS,
   thresholds: DEFAULT_THRESHOLDS,
+  clinicianGoals: {}, // Empty = use defaults from data/clinicians.ts
 };
 
 export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
