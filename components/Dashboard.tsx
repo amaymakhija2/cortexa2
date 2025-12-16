@@ -94,10 +94,11 @@ const buildPracticeMetrics = (calc: DashboardMetrics, month: number, year: numbe
     const metrics = CLINICIAN_SYNTHETIC_METRICS[c.id];
     return sum + (metrics?.outstandingNotes ?? 0);
   }, 0);
-  const cliniciansWithNotes = activeClinicians.filter(c => {
+  const totalOverdueNotes = activeClinicians.reduce((sum, c) => {
     const metrics = CLINICIAN_SYNTHETIC_METRICS[c.id];
-    return metrics && metrics.outstandingNotes > 0;
-  }).length;
+    return sum + (metrics?.overdueNotes ?? 0);
+  }, 0);
+  const totalDueSoonNotes = totalOutstandingNotes - totalOverdueNotes;
 
   const getNotesStatus = (): "Healthy" | "Needs attention" | "Critical" => {
     if (totalOutstandingNotes <= 10) return "Healthy";
@@ -117,7 +118,7 @@ const buildPracticeMetrics = (calc: DashboardMetrics, month: number, year: numbe
 
   const attendanceSubtext = `${Math.round(calc.attendance.clientCancelRate * 100)}% client cancel rate`;
 
-  const notesSubtext = `${calc.clients.active} clients · ${cliniciansWithNotes} clinicians`;
+  const notesSubtext = `${totalOverdueNotes} overdue · ${totalDueSoonNotes} due soon`;
 
   return {
     revenue: {
@@ -151,7 +152,7 @@ const buildPracticeMetrics = (calc: DashboardMetrics, month: number, year: numbe
     compliance: {
       label: "Outstanding Notes",
       value: `${totalOutstandingNotes}`,
-      valueLabel: "notes overdue",
+      valueLabel: "notes to complete",
       subtext: notesSubtext,
       status: getNotesStatus()
     }

@@ -87,7 +87,7 @@ const METRIC_TOOLTIPS: Record<string, { title: string; description: string }> = 
   },
   'Outstanding Notes': {
     title: 'Outstanding Notes',
-    description: 'Number of sessions with overdue notes based on your practice\'s note completion deadline.'
+    description: 'Total notes that need to be completed. Includes overdue notes (past deadline) and notes due soon (within 48 hours).'
   }
 };
 
