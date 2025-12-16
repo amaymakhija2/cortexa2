@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ChevronDown, Check, Calendar, ChevronLeft, ChevronRight, X, TrendingUp, TrendingDown, Users, DollarSign, Activity, FileText, ArrowRight, Settings } from 'lucide-react';
 import {
   SectionHeader,
@@ -837,12 +837,33 @@ const HEALTH_CONFIG: Record<HealthStatus, { label: string; color: string; bg: st
 
 export const ClinicianDetailsTab: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { settings } = useSettings();
   const { clinicianGoals } = settings;
 
+  // Get clinician from URL if provided (for back navigation from session history)
+  const clinicianIdFromUrl = searchParams.get('clinician');
+
   // State for selectors - null means no clinician selected yet
-  const [selectedClinician, setSelectedClinician] = useState<typeof MOCK_CLINICIANS[0] | null>(null);
+  const [selectedClinician, setSelectedClinician] = useState<typeof MOCK_CLINICIANS[0] | null>(() => {
+    // Initialize from URL param if available
+    if (clinicianIdFromUrl) {
+      const found = MOCK_CLINICIANS.find(c => c.id === parseInt(clinicianIdFromUrl));
+      return found || null;
+    }
+    return null;
+  });
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('last-12-months');
+
+  // Sync clinician selection with URL param when it changes
+  useEffect(() => {
+    if (clinicianIdFromUrl) {
+      const found = MOCK_CLINICIANS.find(c => c.id === parseInt(clinicianIdFromUrl));
+      if (found && (!selectedClinician || selectedClinician.id !== found.id)) {
+        setSelectedClinician(found);
+      }
+    }
+  }, [clinicianIdFromUrl]);
 
   // Dropdown states
   const [isClinicianDropdownOpen, setIsClinicianDropdownOpen] = useState(false);
@@ -2486,6 +2507,13 @@ export const ClinicianDetailsTab: React.FC = () => {
               accent="amber"
               showAccentLine={false}
               compact
+              actions={
+                <ActionButton
+                  label="View Full Session History"
+                  icon={<Calendar size={16} />}
+                  onClick={() => navigate(`/clinician/${selectedClinician.id}/session-history`)}
+                />
+              }
             />
             <Grid cols={2}>
               {/* Active Clients & Caseload Capacity */}

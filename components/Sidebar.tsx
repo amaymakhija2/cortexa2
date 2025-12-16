@@ -43,7 +43,7 @@ const NAVIGATION = {
       description: 'Key metrics & insights',
       subItems: [
         { id: 'summary', label: 'Summary' },
-        { id: 'compare', label: 'Compare' },
+        { id: 'compare', label: 'Quick Compare' },
       ]
     },
     {

@@ -12,3 +12,6 @@ export type { GoalIndicatorProps, GoalIndicatorColor } from './GoalIndicator';
 
 export { ActionButton } from './ActionButton';
 export type { ActionButtonProps, ActionButtonVariant } from './ActionButton';
+
+export { SegmentedControl } from './SegmentedControl';
+export type { SegmentedControlProps, SegmentedControlOption } from './SegmentedControl';

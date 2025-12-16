@@ -80,8 +80,8 @@ export { MetricCard, ExpandableBarChart } from './cards/MetricCard';
 export type { MetricCardProps, MetricStatus, ExpandableBarChartProps, BarChartItem } from './cards/MetricCard';
 
 // Control Components
-export { ToggleButton, GoalIndicator, ActionButton } from './controls';
-export type { ToggleButtonProps, GoalIndicatorProps, GoalIndicatorColor, ActionButtonProps, ActionButtonVariant } from './controls';
+export { ToggleButton, GoalIndicator, ActionButton, SegmentedControl } from './controls';
+export type { ToggleButtonProps, GoalIndicatorProps, GoalIndicatorColor, ActionButtonProps, ActionButtonVariant, SegmentedControlProps, SegmentedControlOption } from './controls';
 
 // Chart Components
 export { BarChart, LineChart, DivergingBarChart, RetentionFunnelChart, RetentionFunnelCard } from './charts';

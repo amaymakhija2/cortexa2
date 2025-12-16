@@ -13,6 +13,7 @@ import { ClinicianOverview } from './components/ClinicianOverview';
 import { ClinicianDetails } from './components/ClinicianDetails';
 import { SettingsPage } from './components/SettingsPage';
 import { PracticeConfigurationPage } from './components/PracticeConfigurationPage';
+import { SessionHistoryPage } from './components/SessionHistoryPage';
 import { Reference as Components } from './components/design-system';
 import { Menu } from 'lucide-react';
 
@@ -161,6 +162,7 @@ const ProtectedApp: React.FC = () => {
               <Route path="/practice-analysis" element={<PracticeAnalysis />} />
               <Route path="/clinician-overview" element={<ClinicianOverview />} />
               <Route path="/clinician-details" element={<ClinicianDetails />} />
+              <Route path="/clinician/:clinicianId/session-history" element={<SessionHistoryPage />} />
               <Route path="/configure" element={<PracticeConfigurationPage />} />
               <Route path="/components" element={<Components />} />
               <Route path="/settings" element={<SettingsPage />} />

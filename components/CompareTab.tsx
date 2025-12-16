@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Loader2, MapPin, Users, GraduationCap } from 'lucide-react';
-import { PageHeader, DataTableCard } from './design-system';
+import { PageHeader, DataTableCard, SegmentedControl } from './design-system';
+import type { SegmentedControlOption } from './design-system/controls/SegmentedControl';
 import { MonthPicker } from './MonthPicker';
 import {
   useCompareMetrics,
@@ -36,7 +37,7 @@ const DIMENSION_ICONS: Record<CompareDimension, React.ReactNode> = {
 };
 
 // =============================================================================
-// DIMENSION SELECTOR
+// DIMENSION SELECTOR - Uses design system SegmentedControl
 // =============================================================================
 
 interface DimensionSelectorProps {
@@ -45,30 +46,23 @@ interface DimensionSelectorProps {
 }
 
 const DimensionSelector: React.FC<DimensionSelectorProps> = ({ selected, onChange }) => {
-  const options = getDimensionOptions().filter(opt => opt.available);
+  const rawOptions = getDimensionOptions().filter(opt => opt.available);
+
+  // Transform to SegmentedControl options format with icons
+  const options: SegmentedControlOption<CompareDimension>[] = rawOptions.map((opt) => ({
+    id: opt.id,
+    label: opt.label,
+    icon: DIMENSION_ICONS[opt.id],
+  }));
 
   return (
-    <div className="flex items-center gap-1.5 bg-stone-100 rounded-xl p-1">
-      {options.map((option) => (
-        <button
-          key={option.id}
-          onClick={() => onChange(option.id)}
-          className={`
-            flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold
-            transition-all duration-200
-            ${selected === option.id
-              ? 'bg-white text-stone-900 shadow-sm'
-              : 'text-stone-500 hover:text-stone-700 hover:bg-white/50'
-            }
-          `}
-        >
-          <span className={selected === option.id ? 'text-stone-600' : 'text-stone-400'}>
-            {DIMENSION_ICONS[option.id]}
-          </span>
-          {option.label}
-        </button>
-      ))}
-    </div>
+    <SegmentedControl<CompareDimension>
+      options={options}
+      value={selected}
+      onChange={onChange}
+      size="md"
+      ariaLabel="Compare by dimension"
+    />
   );
 };
 
