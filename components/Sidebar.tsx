@@ -12,8 +12,8 @@ import {
   Lock,
   Settings,
   Sliders,
+  RefreshCw,
 } from 'lucide-react';
-import { DataFreshnessIndicator } from './DataFreshnessIndicator';
 
 // =============================================================================
 // SIDEBAR NAVIGATION
@@ -90,7 +90,7 @@ const NAVIGATION = {
 };
 
 // =============================================================================
-// NAV ITEM COMPONENT - Unified styling for all nav items
+// NAV ITEM COMPONENT - Refined styling matching reference design
 // =============================================================================
 
 interface NavItemProps {
@@ -100,7 +100,7 @@ interface NavItemProps {
   description?: string;
   isExpanded: boolean;
   hasSubItems?: boolean;
-  isSubActive?: boolean;
+  isActive?: boolean;
   onMobileClose?: () => void;
   size?: 'normal' | 'small';
 }
@@ -112,7 +112,7 @@ const NavItem: React.FC<NavItemProps> = ({
   description,
   isExpanded,
   hasSubItems,
-  isSubActive,
+  isActive: isActiveProp,
   onMobileClose,
   size = 'normal',
 }) => {
@@ -125,56 +125,71 @@ const NavItem: React.FC<NavItemProps> = ({
       className="group block"
       title={!isExpanded ? label : undefined}
     >
-      {({ isActive }) => (
-        <div
-          className={`
-            flex items-center h-12 rounded-xl mx-3
-            transition-colors duration-200
-            ${isActive ? 'bg-amber-500/15' : 'hover:bg-white/[0.06]'}
-          `}
-        >
-          {/* Icon - fixed position, never moves */}
-          <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
-            <Icon
-              size={iconSize}
-              strokeWidth={1.8}
-              className={`transition-colors duration-200 ${
-                isActive ? 'text-amber-400' : 'text-stone-400 group-hover:text-stone-200'
-              }`}
-            />
-          </div>
+      {({ isActive: isRouteActive }) => {
+        const isActive = isActiveProp !== undefined ? isActiveProp : isRouteActive;
 
-          {/* Expanded content - slides in with opacity */}
+        return (
           <div
-            className="flex-1 min-w-0 flex items-center pr-3 overflow-hidden"
+            className={`
+              relative mx-3 rounded-xl
+              transition-all duration-200
+              ${isActive
+                ? 'bg-[#1f1e1c]'
+                : 'hover:bg-white/[0.04]'
+              }
+            `}
             style={{
-              opacity: isExpanded ? 1 : 0,
-              transition: `opacity ${TRANSITION_DURATION} ${TRANSITION_EASING}`,
+              border: isActive ? '1px solid rgba(180, 140, 80, 0.5)' : '1px solid transparent',
+              boxShadow: isActive ? 'inset 0 1px 0 rgba(255,255,255,0.03)' : 'none',
             }}
           >
-            <div className="flex-1 min-w-0">
-              <div
-                className={`text-[15px] font-medium whitespace-nowrap transition-colors duration-200 ${
-                  isActive ? 'text-white' : 'text-stone-200 group-hover:text-white'
-                }`}
-              >
-                {label}
+            <div className={`flex items-center ${hasSubItems && isActive ? 'py-3' : 'h-12'}`}>
+              {/* Icon - fixed position, never moves */}
+              <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
+                <Icon
+                  size={iconSize}
+                  strokeWidth={1.8}
+                  className={`transition-colors duration-200 ${
+                    isActive ? 'text-amber-400' : 'text-stone-500 group-hover:text-stone-300'
+                  }`}
+                />
               </div>
-              {description && !isActive && (
-                <div className="text-[13px] text-stone-500 truncate">
-                  {description}
+
+              {/* Expanded content - slides in with opacity */}
+              <div
+                className="flex-1 min-w-0 flex items-center pr-4 overflow-hidden"
+                style={{
+                  opacity: isExpanded ? 1 : 0,
+                  transition: `opacity ${TRANSITION_DURATION} ${TRANSITION_EASING}`,
+                }}
+              >
+                <div className="flex-1 min-w-0">
+                  <div
+                    className={`text-[15px] font-medium whitespace-nowrap transition-colors duration-200 ${
+                      isActive ? 'text-stone-100' : 'text-stone-300 group-hover:text-white'
+                    }`}
+                  >
+                    {label}
+                  </div>
+                  {/* Show description for non-active items that have no sub-items */}
+                  {description && !isActive && isExpanded && (
+                    <div className="text-[13px] text-stone-600 truncate mt-0.5">
+                      {description}
+                    </div>
+                  )}
                 </div>
-              )}
+                {/* Dropdown chevron for active items with sub-items */}
+                {hasSubItems && isActive && (
+                  <ChevronRight
+                    size={18}
+                    className="text-stone-500 rotate-90 flex-shrink-0 ml-2"
+                  />
+                )}
+              </div>
             </div>
-            {hasSubItems && isActive && (
-              <ChevronRight
-                size={16}
-                className="text-amber-500/60 rotate-90 flex-shrink-0 ml-2"
-              />
-            )}
           </div>
-        </div>
-      )}
+        );
+      }}
     </NavLink>
   );
 };
@@ -312,39 +327,72 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
           </div>
 
-          {/* Data freshness indicator */}
-          <div className="mt-4 mx-3">
-            {/* Collapsed: just show dot centered */}
-            {!isExpanded && (
-              <div className="flex items-center justify-center h-10">
-                <DataFreshnessIndicator
-                  isCollapsed={true}
-                  lastSyncTime={lastSyncTime}
-                  isSyncing={isSyncing}
-                  onRefresh={handleRefresh}
-                  canRefresh={true}
-                  minutesUntilNextRefresh={0}
-                />
+          {/* Data freshness indicator - refined status badge */}
+          <div className="mt-4 mx-3 overflow-hidden">
+            <div
+              className="group flex items-center h-11 rounded-lg"
+              style={{
+                /* Fixed width prevents layout shift during transition */
+                width: `${EXPANDED_CONTENT_WIDTH + ICON_RAIL_WIDTH - 24}px`,
+                background: isExpanded
+                  ? 'linear-gradient(135deg, rgba(52, 211, 153, 0.06) 0%, rgba(52, 211, 153, 0.02) 100%)'
+                  : 'transparent',
+                border: isExpanded ? '1px solid rgba(52, 211, 153, 0.12)' : '1px solid transparent',
+                transition: `background ${TRANSITION_DURATION} ${TRANSITION_EASING}, border ${TRANSITION_DURATION} ${TRANSITION_EASING}`,
+              }}
+            >
+              {/* Dot - fixed in icon rail, never moves */}
+              <div className="w-12 h-11 flex items-center justify-center flex-shrink-0">
+                <div className="relative">
+                  {/* Soft glow */}
+                  <div
+                    className="absolute -inset-2 rounded-full opacity-60"
+                    style={{
+                      background: 'radial-gradient(circle, rgba(52, 211, 153, 0.4) 0%, transparent 70%)',
+                    }}
+                  />
+                  {/* Dot */}
+                  <div
+                    className="relative w-2 h-2 rounded-full"
+                    style={{
+                      backgroundColor: '#34d399',
+                      boxShadow: '0 0 8px rgba(52, 211, 153, 0.6)',
+                    }}
+                  />
+                </div>
               </div>
-            )}
-            {/* Expanded: show full indicator */}
-            {isExpanded && (
+
+              {/* Content - fixed width, fades in/out, clipped by parent */}
               <div
+                className="pr-3 whitespace-nowrap"
                 style={{
+                  width: `${EXPANDED_CONTENT_WIDTH - 24}px`,
                   opacity: isExpanded ? 1 : 0,
                   transition: `opacity ${TRANSITION_DURATION} ${TRANSITION_EASING}`,
                 }}
               >
-                <DataFreshnessIndicator
-                  isCollapsed={false}
-                  lastSyncTime={lastSyncTime}
-                  isSyncing={isSyncing}
-                  onRefresh={handleRefresh}
-                  canRefresh={true}
-                  minutesUntilNextRefresh={0}
-                />
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-[13px] font-medium text-stone-300">
+                      Data synced
+                    </span>
+                    <span className="text-[12px] text-stone-600 ml-2">
+                      2h ago
+                    </span>
+                  </div>
+                  {/* Subtle refresh hint on hover */}
+                  <div
+                    className="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                  >
+                    <RefreshCw
+                      size={13}
+                      className="text-stone-600 hover:text-emerald-400 cursor-pointer transition-colors"
+                      onClick={handleRefresh}
+                    />
+                  </div>
+                </div>
               </div>
-            )}
+            </div>
           </div>
         </div>
 
@@ -352,67 +400,139 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <nav className="flex-1 overflow-y-auto overflow-x-hidden py-2">
           {/* Section label */}
           <div
-            className="h-8 flex items-center mx-3 mb-2"
+            className="h-10 flex items-center mx-6 mb-3"
             style={{
               opacity: isExpanded ? 1 : 0,
               transition: `opacity ${TRANSITION_DURATION} ${TRANSITION_EASING}`,
             }}
           >
-            <div className="w-12 flex-shrink-0" />
-            <span className="text-[11px] font-bold uppercase tracking-[0.15em] text-amber-500/80">
+            <span
+              className="text-[12px] font-semibold uppercase tracking-[0.2em]"
+              style={{ color: 'rgb(180, 140, 80)' }}
+            >
               Analytics
             </span>
           </div>
 
           {/* Main nav items */}
-          <div className="space-y-1">
+          <div className="space-y-2">
             {NAVIGATION.main.map((item) => {
               const isActive = currentPath === item.path;
               const activeSubItem = getActiveSubItem(item.path, item.subItems);
               const hasSubItems = item.subItems && item.subItems.length > 0;
+              const Icon = item.icon;
 
               return (
                 <div key={item.path}>
-                  <NavItem
-                    path={item.path}
-                    label={item.label}
-                    icon={item.icon}
-                    description={item.description}
-                    isExpanded={isExpanded}
-                    hasSubItems={hasSubItems}
-                    onMobileClose={closeMobile}
-                  />
-
-                  {/* Sub-items */}
-                  {isActive && hasSubItems && isExpanded && (
+                  {/* Custom nav item with integrated sub-items */}
+                  <NavLink
+                    to={item.path}
+                    onClick={closeMobile}
+                    className="group block"
+                    title={!isExpanded ? item.label : undefined}
+                  >
                     <div
-                      className="mt-1 mb-2 ml-[60px] mr-3 space-y-0.5"
+                      className={`
+                        relative mx-3 rounded-xl
+                        transition-all duration-200
+                        ${isActive
+                          ? 'bg-[#1f1e1c]'
+                          : 'hover:bg-white/[0.04]'
+                        }
+                      `}
                       style={{
-                        opacity: isExpanded ? 1 : 0,
-                        transition: `opacity 200ms ease`,
+                        border: isActive && isExpanded ? '1px solid rgba(180, 140, 80, 0.5)' : '1px solid transparent',
+                        boxShadow: isActive && isExpanded ? 'inset 0 1px 0 rgba(255,255,255,0.03)' : 'none',
                       }}
                     >
-                      {item.subItems!.map((subItem) => {
-                        const isSubActive = activeSubItem === subItem.id;
-                        return (
-                          <button
-                            key={subItem.id}
-                            onClick={() => handleSubItemClick(subItem.id)}
-                            className={`
-                              w-full text-left px-3 py-2 rounded-lg text-[13px]
-                              transition-all duration-150
-                              ${isSubActive
-                                ? 'text-amber-300 bg-amber-500/10'
-                                : 'text-stone-400 hover:text-white hover:bg-white/[0.04]'
-                              }
-                            `}
-                          >
-                            {subItem.label}
-                          </button>
-                        );
-                      })}
+                      {/* Main item row */}
+                      <div className="flex items-center h-12">
+                        {/* Icon - fixed position */}
+                        <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
+                          <Icon
+                            size={22}
+                            strokeWidth={1.8}
+                            className={`transition-colors duration-200 ${
+                              isActive ? 'text-amber-400' : 'text-stone-500 group-hover:text-stone-300'
+                            }`}
+                          />
+                        </div>
+
+                        {/* Expanded content */}
+                        <div
+                          className="flex-1 min-w-0 flex items-center pr-4 overflow-hidden"
+                          style={{
+                            opacity: isExpanded ? 1 : 0,
+                            transition: `opacity ${TRANSITION_DURATION} ${TRANSITION_EASING}`,
+                          }}
+                        >
+                          <div className="flex-1 min-w-0">
+                            <div
+                              className={`text-[15px] font-medium whitespace-nowrap transition-colors duration-200 ${
+                                isActive ? 'text-stone-100' : 'text-stone-300 group-hover:text-white'
+                              }`}
+                            >
+                              {item.label}
+                            </div>
+                            {/* Description for non-active items */}
+                            {item.description && !isActive && isExpanded && (
+                              <div className="text-[13px] text-stone-600 truncate mt-0.5">
+                                {item.description}
+                              </div>
+                            )}
+                          </div>
+                          {/* Dropdown chevron */}
+                          {hasSubItems && isActive && (
+                            <ChevronRight
+                              size={18}
+                              className="text-stone-500 rotate-90 flex-shrink-0 ml-2"
+                            />
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Sub-items inside the bordered container */}
+                      {isActive && hasSubItems && isExpanded && (
+                        <div
+                          className="pb-3 pl-4 pr-3"
+                          style={{
+                            opacity: isExpanded ? 1 : 0,
+                            transition: `opacity 200ms ease`,
+                          }}
+                        >
+                          <div className="ml-8 border-l border-stone-700/50 pl-0">
+                            {item.subItems!.map((subItem) => {
+                              const isSubActive = activeSubItem === subItem.id;
+                              return (
+                                <button
+                                  key={subItem.id}
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    handleSubItemClick(subItem.id);
+                                  }}
+                                  className={`
+                                    w-full text-left pl-4 pr-3 py-2 text-[14px]
+                                    transition-all duration-150 relative
+                                    ${isSubActive
+                                      ? 'text-stone-100'
+                                      : 'text-stone-500 hover:text-stone-200'
+                                    }
+                                  `}
+                                  style={{
+                                    marginLeft: '-1px',
+                                    borderLeft: isSubActive ? '2px solid rgb(180, 140, 80)' : '2px solid transparent',
+                                  }}
+                                >
+                                  {subItem.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  )}
+                  </NavLink>
                 </div>
               );
             })}
