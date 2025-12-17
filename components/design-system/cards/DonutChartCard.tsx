@@ -449,7 +449,7 @@ export const DonutChartCard: React.FC<DonutChartCardProps> = ({
   return (
     <div
       ref={containerRef}
-      className={`rounded-2xl xl:rounded-3xl p-6 sm:p-8 xl:p-10 2xl:p-12 overflow-hidden flex flex-col ${className}`}
+      className={`rounded-2xl xl:rounded-3xl p-6 sm:p-8 xl:p-10 2xl:p-12 overflow-hidden flex flex-col relative ${className}`}
       style={{
         background: 'linear-gradient(145deg, #ffffff 0%, #fafaf9 100%)',
         boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)',
@@ -472,16 +472,18 @@ export const DonutChartCard: React.FC<DonutChartCardProps> = ({
           )}
         </div>
 
-        {expandable && (
-          <button
-            onClick={onExpand}
-            className="p-2.5 rounded-xl bg-stone-100/80 hover:bg-stone-200 text-stone-500 hover:text-stone-700 transition-all duration-200 hover:scale-105 active:scale-95 flex-shrink-0 ml-3"
-            title="Expand chart"
-          >
-            <Maximize2 size={18} strokeWidth={2} />
-          </button>
-        )}
       </div>
+
+      {/* Expand button - Absolute positioned in top right */}
+      {expandable && (
+        <button
+          onClick={onExpand}
+          className="absolute top-4 right-4 sm:top-6 sm:right-6 xl:top-8 xl:right-8 p-2.5 rounded-xl bg-stone-100/80 hover:bg-stone-200 text-stone-500 hover:text-stone-700 transition-all duration-200 hover:scale-105 active:scale-95 z-10"
+          title="Expand chart"
+        >
+          <Maximize2 size={18} strokeWidth={2} />
+        </button>
+      )}
 
       {/* Content - layout changes based on mode */}
       {layoutMode === 'wide' ? (

@@ -151,18 +151,19 @@ export const ChartCard: React.FC<ChartCardProps> = ({
             </div>
           )}
 
-          {/* Expand Button */}
-          {expandable && (
-            <button
-              onClick={onExpand}
-              className="p-2.5 rounded-xl bg-stone-100/80 hover:bg-stone-200 text-stone-500 hover:text-stone-700 transition-all duration-200 hover:scale-105 active:scale-95 flex-shrink-0"
-              title="Expand chart"
-            >
-              <Maximize2 size={18} strokeWidth={2} />
-            </button>
-          )}
         </div>
       </div>
+
+      {/* Expand Button - Absolute positioned in top right */}
+      {expandable && (
+        <button
+          onClick={onExpand}
+          className="absolute top-4 right-4 sm:top-6 sm:right-6 xl:top-8 xl:right-8 p-2.5 rounded-xl bg-stone-100/80 hover:bg-stone-200 text-stone-500 hover:text-stone-700 transition-all duration-200 hover:scale-105 active:scale-95 z-10"
+          title="Expand chart"
+        >
+          <Maximize2 size={18} strokeWidth={2} />
+        </button>
+      )}
 
       {/* Chart Area */}
       <div className="flex-1 min-h-[280px] flex flex-col justify-end">
@@ -259,7 +260,7 @@ export const SimpleChartCard: React.FC<SimpleChartCardProps> = ({
 }) => {
   return (
     <div
-      className={`rounded-2xl xl:rounded-3xl p-5 sm:p-6 xl:p-8 overflow-hidden flex flex-col ${className}`}
+      className={`rounded-2xl xl:rounded-3xl p-5 sm:p-6 xl:p-8 overflow-hidden flex flex-col relative ${className}`}
       style={{
         background: 'linear-gradient(145deg, #ffffff 0%, #fafaf9 100%)',
         boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)',
@@ -326,18 +327,19 @@ export const SimpleChartCard: React.FC<SimpleChartCardProps> = ({
             </div>
           )}
 
-          {/* Expand button */}
-          {expandable && (
-            <button
-              onClick={onExpand}
-              className="p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-stone-100/80 hover:bg-stone-200 text-stone-500 hover:text-stone-700 transition-all duration-200 hover:scale-105 active:scale-95"
-              title="Expand chart"
-            >
-              <Maximize2 size={16} strokeWidth={2} />
-            </button>
-          )}
         </div>
       </div>
+
+      {/* Expand button - Absolute positioned in top right */}
+      {expandable && (
+        <button
+          onClick={onExpand}
+          className="absolute top-4 right-4 sm:top-5 sm:right-5 xl:top-6 xl:right-6 p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-stone-100/80 hover:bg-stone-200 text-stone-500 hover:text-stone-700 transition-all duration-200 hover:scale-105 active:scale-95 z-10"
+          title="Expand chart"
+        >
+          <Maximize2 size={16} strokeWidth={2} />
+        </button>
+      )}
 
       {/* Chart Area */}
       <div className="flex-1 min-h-[280px]">

@@ -2367,6 +2367,7 @@ export const ClinicianDetailsTab: React.FC = () => {
               }
               insights={revenueInsights}
               minHeight="420px"
+              expandable
               onExpand={() => setExpandedCard('monthly-revenue')}
             >
               <BarChart
@@ -2427,6 +2428,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                 }
                 insights={sessionInsights}
                 minHeight="420px"
+                expandable
                 onExpand={() => setExpandedCard('monthly-sessions')}
               >
                 <BarChart
@@ -2461,6 +2463,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                 centerValue={`${showRate.toFixed(1)}%`}
                 centerValueColor={showRate >= 87.5 ? 'text-emerald-600' : 'text-rose-600'}
                 valueFormat="number"
+                expandable
                 onExpand={() => setExpandedCard('attendance-breakdown')}
               />
 
@@ -2470,6 +2473,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                 subtitle={`How often ${selectedClinician.name.split(' ')[0]} cancels sessions`}
                 insights={clinicianCancellationInsights}
                 minHeight="320px"
+                expandable
                 onExpand={() => setExpandedCard('clinician-cancellations')}
               >
                 <BarChart
@@ -2541,6 +2545,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                 }
                 insights={showCapacityPercentage ? capacityInsights : activeClientsInsights}
                 minHeight="420px"
+                expandable
                 onExpand={() => setExpandedCard('caseload-capacity')}
               >
                 {showCapacityPercentage ? (
@@ -2600,6 +2605,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                 centerValue={totalSessionFrequencyClients.toString()}
                 centerValueColor={weeklyEngagementPercent >= 50 ? 'text-emerald-600' : 'text-amber-600'}
                 valueFormat="number"
+                expandable
                 onExpand={() => setExpandedCard('session-frequency')}
               />
 
@@ -2671,6 +2677,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                 }
                 insights={clientMovementInsights}
                 minHeight="420px"
+                expandable
                 onExpand={() => setExpandedCard('client-movement')}
               >
                 <DivergingBarChart
@@ -2702,6 +2709,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                 centerValue={churnTimingTotals.total.toString()}
                 valueFormat="number"
                 size="md"
+                expandable
                 onExpand={() => setExpandedCard('churn-timing')}
               />
 
@@ -2750,6 +2758,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                 }
                 valueFormat="number"
                 size="md"
+                expandable
                 onExpand={() => setExpandedCard('outstanding-notes')}
               />
 
