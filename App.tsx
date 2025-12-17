@@ -99,7 +99,7 @@ const SignUpFlowWithNav: React.FC = () => {
 const ProtectedApp: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
 
   if (!isAuthenticated) {
     return (
@@ -112,7 +112,7 @@ const ProtectedApp: React.FC = () => {
   }
 
   // Dynamic margin based on sidebar state
-  const sidebarWidth = sidebarCollapsed ? 80 : 320;
+  const sidebarWidth = sidebarCollapsed ? 72 : 300;
 
   return (
     <div className="flex h-screen w-full bg-gradient-to-br from-[#fef5e7] via-[#fae5c1] to-[#f5d5a8] overflow-hidden relative">
@@ -139,7 +139,7 @@ const ProtectedApp: React.FC = () => {
           @media (min-width: 1024px) {
             #main-content {
               margin-left: ${sidebarWidth}px;
-              transition: margin-left 250ms cubic-bezier(0.4, 0, 0.2, 1);
+              transition: margin-left 350ms cubic-bezier(0.4, 0, 0.2, 1);
             }
           }
         `}</style>
