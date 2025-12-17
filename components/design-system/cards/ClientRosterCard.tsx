@@ -28,10 +28,12 @@ export interface ClientRosterCardProps {
   subtitle?: string;
   /** List of clients to display */
   clients: ClientData[];
-  /** Max number of clients visible at once (scrollable if more). Defaults to 5 */
+  /** Max number of clients visible at once (scrollable if more). Defaults to 4.5. Ignored when size='lg' */
   maxVisible?: number;
   /** Expand callback for fullscreen view */
   onExpand?: () => void;
+  /** Size variant - 'default' for cards, 'lg' for expanded/fullscreen views */
+  size?: 'default' | 'lg';
   /** Additional className */
   className?: string;
 }
@@ -92,6 +94,7 @@ export const ClientRosterCard: React.FC<ClientRosterCardProps> = ({
   clients,
   maxVisible = 4.5,
   onExpand,
+  size = 'default',
   className = '',
 }) => {
   const [selectedSegment, setSelectedSegment] = useState<SegmentId>('all');
@@ -111,13 +114,18 @@ export const ClientRosterCard: React.FC<ClientRosterCardProps> = ({
     milestone: clients.filter(c => c.status === 'milestone').length,
   }), [clients]);
 
-  return (
-    <div
-      className={`rounded-2xl xl:rounded-3xl relative flex flex-col overflow-hidden ${className}`}
-      style={{
+  // For lg size (expanded modal), use minimal styling and full height
+  const containerStyle = size === 'lg'
+    ? {}
+    : {
         background: 'linear-gradient(145deg, #ffffff 0%, #fafaf9 100%)',
         boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)',
-      }}
+      };
+
+  return (
+    <div
+      className={`${size === 'lg' ? 'h-full' : 'rounded-2xl xl:rounded-3xl'} relative flex flex-col overflow-hidden ${className}`}
+      style={containerStyle}
     >
       {/* Header Section */}
       <div className="p-6 sm:p-8 xl:p-10 pb-0 sm:pb-0 xl:pb-0">
@@ -173,10 +181,10 @@ export const ClientRosterCard: React.FC<ClientRosterCardProps> = ({
         </div>
       </div>
 
-      {/* Client list - limited to maxVisible rows with scroll */}
+      {/* Client list - limited to maxVisible rows with scroll (or flex-1 for lg size) */}
       <div
-        className="overflow-y-auto border-t border-stone-100"
-        style={{ maxHeight: `${maxVisible * CLIENT_ROW_HEIGHT}px` }}
+        className={`overflow-y-auto border-t border-stone-100 ${size === 'lg' ? 'flex-1' : ''}`}
+        style={size === 'lg' ? undefined : { maxHeight: `${maxVisible * CLIENT_ROW_HEIGHT}px` }}
       >
         {filteredClients.length === 0 ? (
           <div className="px-6 sm:px-8 xl:px-10 py-16 text-center">

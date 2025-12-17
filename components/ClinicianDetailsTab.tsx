@@ -3134,7 +3134,7 @@ export const ClinicianDetailsTab: React.FC = () => {
           <ClientRosterCard
             title=""
             clients={clinicianClients}
-            maxVisible={12}
+            size="lg"
           />
         </ExpandedChartModal>
       )}
