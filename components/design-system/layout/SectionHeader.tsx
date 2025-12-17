@@ -167,7 +167,7 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
               {question}
             </h3>
             {description && (
-              <p className="text-stone-500 text-base sm:text-lg mt-2.5 max-w-2xl leading-relaxed">
+              <p className="text-stone-600 text-base sm:text-lg mt-2.5 max-w-2xl leading-relaxed">
                 {description}
               </p>
             )}

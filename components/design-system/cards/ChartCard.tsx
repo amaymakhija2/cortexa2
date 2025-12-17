@@ -94,7 +94,7 @@ export const ChartCard: React.FC<ChartCardProps> = ({
 }) => {
   return (
     <div
-      className={`rounded-2xl xl:rounded-3xl p-6 sm:p-8 xl:p-10 relative flex flex-col overflow-hidden ${className}`}
+      className={`rounded-2xl xl:rounded-3xl p-6 sm:p-8 xl:p-10 2xl:p-12 relative flex flex-col overflow-hidden ${className}`}
       style={{
         background: 'linear-gradient(145deg, #ffffff 0%, #fafaf9 100%)',
         boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)',
@@ -102,20 +102,20 @@ export const ChartCard: React.FC<ChartCardProps> = ({
       }}
     >
       {/* Header Section */}
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
-        <div className="flex-1 min-w-0">
+      <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4 mb-8">
+        <div>
           <h3
-            className="text-stone-900 text-2xl sm:text-3xl xl:text-4xl font-bold mb-2 tracking-tight"
+            className="text-stone-900 text-2xl sm:text-3xl xl:text-4xl font-bold mb-3 tracking-tight"
             style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
           >
             {title}
           </h3>
           {subtitle && (
-            <p className="text-stone-500 text-base sm:text-lg xl:text-xl">{subtitle}</p>
+            <p className="text-stone-600 text-base sm:text-lg xl:text-xl">{subtitle}</p>
           )}
         </div>
 
-        <div className="flex items-center gap-3 flex-shrink-0">
+        <div className="flex items-center gap-4 flex-wrap">
           {/* Custom Header Controls (ToggleButton, GoalIndicator, ActionButton, etc.) */}
           {headerControls}
 
@@ -165,13 +165,13 @@ export const ChartCard: React.FC<ChartCardProps> = ({
       </div>
 
       {/* Chart Area */}
-      <div className="flex-1 min-h-[280px]">
+      <div className="flex-1 min-h-[280px] flex flex-col justify-end">
         {children}
       </div>
 
       {/* Insights Row */}
       {insights && insights.length > 0 && (
-        <div className={`grid grid-cols-${insights.length} gap-4 pt-4 mt-2 border-t-2 border-stone-100`}>
+        <div className={`grid grid-cols-${insights.length} gap-4 pt-3 border-t-2 border-stone-100`}>
           {insights.map((insight, idx) => (
             <div
               key={idx}

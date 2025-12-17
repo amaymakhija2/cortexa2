@@ -21,9 +21,9 @@ export interface GridProps {
 }
 
 const GAP_CLASSES = {
-  sm: 'gap-4 xl:gap-5',
-  md: 'gap-5 xl:gap-6',
-  lg: 'gap-6 xl:gap-8',
+  sm: 'gap-4 xl:gap-5 2xl:gap-6',
+  md: 'gap-5 xl:gap-6 2xl:gap-8',
+  lg: 'gap-6 xl:gap-8 2xl:gap-10',
 };
 
 const COLS_CLASSES: Record<GridColumns, string> = {
@@ -137,7 +137,7 @@ export const PageContent: React.FC<PageContentProps> = ({
   children,
 }) => {
   return (
-    <div className={`px-4 sm:px-6 lg:px-8 xl:px-10 py-6 xl:py-10 space-y-6 xl:space-y-8 ${className}`}>
+    <div className={`px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 py-6 xl:py-10 2xl:py-12 space-y-6 xl:space-y-8 2xl:space-y-10 ${className}`}>
       {children}
     </div>
   );

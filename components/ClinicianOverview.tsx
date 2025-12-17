@@ -63,7 +63,7 @@ const InfoTooltip: React.FC<{ text: string }> = ({ text }) => {
       <button
         ref={triggerRef}
         type="button"
-        className="text-stone-400 hover:text-stone-600 transition-colors cursor-help"
+        className="text-stone-500 hover:text-stone-700 transition-colors cursor-help"
         onMouseEnter={() => setIsVisible(true)}
         onMouseLeave={() => setIsVisible(false)}
         onClick={(e) => e.preventDefault()}
@@ -1091,10 +1091,10 @@ export const ClinicianOverview: React.FC = () => {
           }
         >
           {/* Metric selector label */}
-          <p className="text-stone-500 text-sm font-medium mb-4 uppercase tracking-wider">
+          <p className="text-stone-300 text-sm font-medium mb-4 uppercase tracking-wider">
             Select metric to rank by
             {!metric.higherIsBetter && (
-              <span className="ml-3 text-amber-500">· Lower values rank higher</span>
+              <span className="ml-3 text-amber-400">· Lower values rank higher</span>
             )}
           </p>
 
@@ -1140,7 +1140,7 @@ export const ClinicianOverview: React.FC = () => {
         <div className="px-6 sm:px-8 lg:px-12 py-6 lg:py-8">
 
           {/* Column headers */}
-          <div className="hidden lg:grid gap-4 py-4 text-sm font-bold text-stone-700 uppercase tracking-wide border-b-2 border-stone-300 mb-3"
+          <div className="hidden lg:grid gap-4 py-4 px-4 sm:px-6 text-sm font-bold text-stone-800 uppercase tracking-wide border-b-2 border-stone-300 mb-3"
             style={{
               // Calculate columns: Rank + Clinician + (Primary if not hidden) + Supporting
               gridTemplateColumns: (() => {
@@ -1152,7 +1152,7 @@ export const ClinicianOverview: React.FC = () => {
               })()
             }}
           >
-            <div>Rank</div>
+            <div className="text-center">Rank</div>
             <div>Clinician</div>
             {!metric.hidden && (
               <div className="text-right flex items-center justify-end">
@@ -1161,7 +1161,7 @@ export const ClinicianOverview: React.FC = () => {
               </div>
             )}
             {displayGroup.supporting.map((s) => (
-              <div key={s.key} className={`text-right flex items-center justify-end ${s.isPrimary ? 'text-stone-900' : 'text-stone-500'}`}>
+              <div key={s.key} className={`text-right flex items-center justify-end ${s.isPrimary ? 'text-stone-900' : 'text-stone-600'}`}>
                 {s.label}
                 {s.tooltip && <InfoTooltip text={s.tooltip} />}
               </div>
@@ -1210,7 +1210,7 @@ export const ClinicianOverview: React.FC = () => {
                         <h3 className="text-base text-stone-700 font-bold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
                           Team Average
                         </h3>
-                        <p className="text-stone-500 text-xs">{CLINICIANS_DATA.length} clinicians</p>
+                        <p className="text-stone-600 text-xs">{CLINICIANS_DATA.length} clinicians</p>
                       </div>
                       <div className="col-span-4 text-right">
                         <span className="text-xl font-black text-stone-600" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
@@ -1242,7 +1242,7 @@ export const ClinicianOverview: React.FC = () => {
                         <h3 className="text-base text-stone-700 font-bold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
                           Team Average
                         </h3>
-                        <p className="text-stone-500 text-xs">{CLINICIANS_DATA.length} clinicians</p>
+                        <p className="text-stone-600 text-xs">{CLINICIANS_DATA.length} clinicians</p>
                       </div>
 
                       {/* Primary Value */}
@@ -1260,7 +1260,7 @@ export const ClinicianOverview: React.FC = () => {
                         return (
                           <div key={s.key} className="text-right">
                             <span
-                              className={`font-semibold ${s.isPrimary ? 'text-xl font-black text-stone-600' : 'text-lg text-stone-500'}`}
+                              className={`font-semibold ${s.isPrimary ? 'text-xl font-black text-stone-600' : 'text-lg text-stone-600'}`}
                               style={s.isPrimary ? { fontFamily: "'DM Serif Display', Georgia, serif" } : undefined}
                             >
                               {s.format(avg)}
@@ -1335,7 +1335,7 @@ export const ClinicianOverview: React.FC = () => {
                               <h3 className="text-base text-stone-900 font-bold truncate" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
                                 {clinician.shortName}
                               </h3>
-                              <p className="text-stone-500 text-xs truncate">{clinician.role}</p>
+                              <p className="text-stone-600 text-xs truncate">{clinician.role}</p>
                             </div>
                           </div>
                           <div className="col-span-4 text-right">
@@ -1401,7 +1401,7 @@ export const ClinicianOverview: React.FC = () => {
                             >
                               {clinician.shortName}
                             </h3>
-                            <p className="text-stone-500 text-xs truncate">
+                            <p className="text-stone-600 text-xs truncate">
                               {clinician.role}
                             </p>
                           </div>

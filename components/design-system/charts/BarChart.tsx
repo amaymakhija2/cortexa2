@@ -162,7 +162,7 @@ const SIZE_CONFIG = {
     // Stacked bar total label
     stackedTotalClass: 'text-sm font-bold text-indigo-600',
     // Y-axis labels
-    yAxisClass: 'text-sm text-stone-500 font-semibold pr-4 py-1',
+    yAxisClass: 'text-sm text-stone-600 font-semibold pr-4 py-1',
     // X-axis labels
     xAxisClass: 'text-sm font-semibold',
     xAxisCurrentClass: 'text-stone-900 bg-stone-900/5 px-3 py-1 rounded-full',
@@ -190,7 +190,7 @@ const SIZE_CONFIG = {
     // Stacked bar total label
     stackedTotalClass: 'text-lg sm:text-xl font-bold text-indigo-600',
     // Y-axis labels
-    yAxisClass: 'text-base sm:text-lg text-stone-500 font-semibold pr-6 py-2',
+    yAxisClass: 'text-base sm:text-lg text-stone-600 font-semibold pr-6 py-2',
     // X-axis labels
     xAxisClass: 'text-base sm:text-lg font-semibold',
     xAxisCurrentClass: 'text-stone-900 bg-stone-900/5 px-4 py-1.5 rounded-full',
@@ -555,7 +555,7 @@ export const BarChart: React.FC<BarChartProps> = ({
                   className={`${sizeConfig.xAxisClass} ${
                     isCurrentItem
                       ? sizeConfig.xAxisCurrentClass
-                      : 'text-stone-500'
+                      : 'text-stone-600'
                   }`}
                 >
                   {item.label}

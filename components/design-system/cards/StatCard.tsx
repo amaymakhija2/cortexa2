@@ -68,7 +68,7 @@ export const StatCard: React.FC<StatCardProps> = ({
 
   return (
     <div
-      className={`rounded-2xl xl:rounded-3xl p-6 sm:p-7 xl:p-8 relative overflow-hidden ${className}`}
+      className={`rounded-2xl xl:rounded-3xl p-6 sm:p-7 xl:p-8 2xl:p-10 relative overflow-hidden ${className}`}
       style={{
         background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
         boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
@@ -82,28 +82,28 @@ export const StatCard: React.FC<StatCardProps> = ({
       )}
 
       <h3
-        className="text-stone-900 text-2xl sm:text-3xl xl:text-4xl font-bold mb-2 tracking-tight"
+        className="text-stone-900 text-2xl sm:text-3xl xl:text-4xl 2xl:text-5xl font-bold mb-2 tracking-tight"
         style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
       >
         {title}
       </h3>
 
-      <div className="flex items-baseline gap-2 sm:gap-3">
+      <div className="flex items-baseline gap-2 sm:gap-3 2xl:gap-4">
         <span
-          className={`${colorClass} font-bold text-4xl sm:text-5xl xl:text-6xl`}
+          className={`${colorClass} font-bold text-4xl sm:text-5xl xl:text-6xl 2xl:text-7xl`}
           style={{ lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
         >
           {value}
         </span>
         {valueLabel && (
-          <span className="text-stone-400 text-lg sm:text-xl xl:text-2xl font-medium">
+          <span className="text-stone-400 text-lg sm:text-xl xl:text-2xl 2xl:text-3xl font-medium">
             {valueLabel}
           </span>
         )}
       </div>
 
       {subtitle && (
-        <p className="text-stone-500 text-base sm:text-lg xl:text-xl mt-3 xl:mt-4 font-medium">
+        <p className="text-stone-500 text-base sm:text-lg xl:text-xl 2xl:text-2xl mt-3 xl:mt-4 2xl:mt-5 font-medium">
           {subtitle}
         </p>
       )}
@@ -155,7 +155,7 @@ export const StatCardWithBreakdown: React.FC<StatCardWithBreakdownProps> = ({
 
   return (
     <div
-      className={`rounded-2xl xl:rounded-3xl p-6 sm:p-7 xl:p-8 relative overflow-hidden ${className}`}
+      className={`rounded-2xl xl:rounded-3xl p-6 sm:p-7 xl:p-8 2xl:p-10 relative overflow-hidden ${className}`}
       style={{
         background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
         boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
@@ -168,21 +168,21 @@ export const StatCardWithBreakdown: React.FC<StatCardWithBreakdownProps> = ({
       )}
 
       <h3
-        className="text-stone-900 text-2xl sm:text-3xl xl:text-4xl font-bold mb-2 tracking-tight"
+        className="text-stone-900 text-2xl sm:text-3xl xl:text-4xl 2xl:text-5xl font-bold mb-2 tracking-tight"
         style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
       >
         {title}
       </h3>
 
       <span
-        className={`${colorClass} font-bold block text-4xl sm:text-5xl xl:text-6xl`}
+        className={`${colorClass} font-bold block text-4xl sm:text-5xl xl:text-6xl 2xl:text-7xl`}
         style={{ lineHeight: 1, fontFamily: "'DM Serif Display', Georgia, serif" }}
       >
         {value}
       </span>
 
       {breakdown.length > 0 && (
-        <p className="text-stone-500 text-base sm:text-lg xl:text-xl mt-3 xl:mt-4 font-medium">
+        <p className="text-stone-500 text-base sm:text-lg xl:text-xl 2xl:text-2xl mt-3 xl:mt-4 2xl:mt-5 font-medium">
           {breakdown.map((item, idx) => (
             <React.Fragment key={idx}>
               {idx > 0 && ', '}

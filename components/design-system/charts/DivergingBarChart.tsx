@@ -136,8 +136,8 @@ export const DivergingBarChart: React.FC<DivergingBarChartProps> = ({
             <stop offset="100%" stopColor={positiveConfig.colorEnd} stopOpacity={1} />
           </linearGradient>
 
-          {/* Negative bar gradient (bottom to top) */}
-          <linearGradient id={negativeGradientId} x1="0" y1="1" x2="0" y2="0">
+          {/* Negative bar gradient (top to bottom - lighter at top near zero, darker at tip) */}
+          <linearGradient id={negativeGradientId} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={negativeConfig.color} stopOpacity={1} />
             <stop offset="100%" stopColor={negativeConfig.colorEnd} stopOpacity={1} />
           </linearGradient>
@@ -206,11 +206,11 @@ export const DivergingBarChart: React.FC<DivergingBarChartProps> = ({
           )}
         </Bar>
 
-        {/* Negative bars (below zero) */}
+        {/* Negative bars (below zero) - radius flipped because Recharts interprets it relative to data direction */}
         <Bar
           dataKey="negativeValue"
           fill={`url(#${negativeGradientId})`}
-          radius={[0, 0, 8, 8]}
+          radius={[8, 8, 0, 0]}
           maxBarSize={50}
           style={{ filter: `url(#${shadowFilterId})` }}
         >

@@ -86,11 +86,10 @@ export const SectionContainer: React.FC<SectionContainerProps> = ({
 
       {/* Main section container - pure white, elevated */}
       <div
-        className="section-container"
+        className="section-container px-6 py-6 sm:px-8 sm:py-8 lg:px-10 lg:py-10 2xl:px-12 2xl:py-12"
         style={{
           background: 'white',
           borderRadius: '24px',
-          padding: '2.5rem',
           // Layered shadow for depth - like floating paper
           boxShadow: `
             0 1px 2px rgba(0, 0, 0, 0.04),

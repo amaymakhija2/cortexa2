@@ -61,7 +61,7 @@ const Tooltip: React.FC<{ title: string; description: string }> = ({ title, desc
       <div className="w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 hover:bg-stone-100 cursor-help group">
         <Info
           size={18}
-          className="text-stone-300 group-hover:text-stone-500 transition-colors duration-300"
+          className="text-stone-500 group-hover:text-stone-700 transition-colors duration-300"
           strokeWidth={1.5}
         />
       </div>
@@ -84,7 +84,7 @@ const Tooltip: React.FC<{ title: string; description: string }> = ({ title, desc
             >
               {title}
             </p>
-            <p className="text-stone-400 leading-relaxed text-sm">{description}</p>
+            <p className="text-stone-300 leading-relaxed text-sm">{description}</p>
           </div>
         </div>
       )}
@@ -347,7 +347,7 @@ const HeroMetricCard: React.FC<HeroMetricCardProps> = ({ data, type, sparklineDa
           <div className="flex items-start justify-between mb-5">
             <div className="flex items-center gap-3">
               <span
-                className="text-sm font-bold text-stone-500 uppercase tracking-[0.15em]"
+                className="text-sm font-bold text-stone-600 uppercase tracking-[0.15em]"
               >
                 {data.label}
               </span>
@@ -371,7 +371,7 @@ const HeroMetricCard: React.FC<HeroMetricCardProps> = ({ data, type, sparklineDa
                 {data.value}
               </span>
               {data.valueLabel && (
-                <span className="text-lg sm:text-xl text-stone-400 font-medium">
+                <span className="text-lg sm:text-xl text-stone-500 font-medium">
                   {data.valueLabel}
                 </span>
               )}
@@ -379,7 +379,7 @@ const HeroMetricCard: React.FC<HeroMetricCardProps> = ({ data, type, sparklineDa
           </div>
 
           {/* Subtext */}
-          <p className="text-base sm:text-lg text-stone-500 leading-relaxed mb-6">
+          <p className="text-base sm:text-lg text-stone-600 leading-relaxed mb-6">
             {data.subtext}
           </p>
 
@@ -444,7 +444,7 @@ const HeroMetricCard: React.FC<HeroMetricCardProps> = ({ data, type, sparklineDa
 
               return (
                 <div key={week.week} className="flex items-center gap-4">
-                  <span className="text-sm text-stone-500 w-28 shrink-0 font-medium">
+                  <span className="text-sm text-stone-600 w-28 shrink-0 font-medium">
                     {week.week}
                   </span>
                   <div className="flex-1 h-10 bg-stone-100 rounded-xl overflow-hidden">
@@ -473,7 +473,7 @@ const HeroMetricCard: React.FC<HeroMetricCardProps> = ({ data, type, sparklineDa
             className="mt-5 pt-4 border-t"
             style={{ borderColor: 'rgba(0, 0, 0, 0.06)' }}
           >
-            <p className="text-sm text-stone-500">
+            <p className="text-sm text-stone-600">
               <span
                 className="font-bold text-stone-800"
                 style={{ fontFamily: "'DM Serif Display', Georgia, serif", lineHeight: 1 }}
@@ -581,7 +581,7 @@ const ClientsMetricCard: React.FC<ClientsMetricCardProps> = ({ data, index }) =>
         <div className="p-5 sm:p-6">
           {/* Header */}
           <div className="flex items-start justify-between mb-4">
-            <span className="text-xs font-bold text-stone-500 uppercase tracking-[0.12em]">
+            <span className="text-xs font-bold text-stone-600 uppercase tracking-[0.12em]">
               {data.label}
             </span>
             <Tooltip title={tooltip.title} description={tooltip.description} />
@@ -599,14 +599,14 @@ const ClientsMetricCard: React.FC<ClientsMetricCardProps> = ({ data, index }) =>
               {data.value}
             </span>
             {data.valueLabel && (
-              <span className="text-base text-stone-400 ml-2 font-medium">
+              <span className="text-base text-stone-500 ml-2 font-medium">
                 {data.valueLabel}
               </span>
             )}
           </div>
 
           {/* Subtext - only show openings, not new/churned */}
-          <p className="text-sm text-stone-500 leading-relaxed mb-4 min-h-[20px]">
+          <p className="text-sm text-stone-600 leading-relaxed mb-4 min-h-[20px]">
             {openings || 'Client capacity available'}
           </p>
 
@@ -708,7 +708,7 @@ const ClientsMetricCard: React.FC<ClientsMetricCardProps> = ({ data, index }) =>
               className="pt-4 border-t"
               style={{ borderColor: 'rgba(0, 0, 0, 0.06)' }}
             >
-              <p className="text-sm text-stone-500">
+              <p className="text-sm text-stone-600">
                 <span
                   className={`font-bold ${newClients - churned >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}
                   style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
@@ -787,7 +787,7 @@ const SupportingMetricCard: React.FC<SupportingMetricCardProps> = ({ data, index
         <div className="p-5 sm:p-6">
           {/* Header */}
           <div className="flex items-start justify-between mb-4">
-            <span className="text-xs font-bold text-stone-500 uppercase tracking-[0.12em]">
+            <span className="text-xs font-bold text-stone-600 uppercase tracking-[0.12em]">
               {data.label}
             </span>
             <Tooltip title={tooltip.title} description={tooltip.description} />
@@ -805,14 +805,14 @@ const SupportingMetricCard: React.FC<SupportingMetricCardProps> = ({ data, index
               {data.value}
             </span>
             {data.valueLabel && (
-              <span className="text-base text-stone-400 ml-2 font-medium">
+              <span className="text-base text-stone-500 ml-2 font-medium">
                 {data.valueLabel}
               </span>
             )}
           </div>
 
           {/* Subtext */}
-          <p className="text-sm text-stone-500 leading-relaxed mb-4 min-h-[40px]">
+          <p className="text-sm text-stone-600 leading-relaxed mb-4 min-h-[40px]">
             {data.subtext}
           </p>
 

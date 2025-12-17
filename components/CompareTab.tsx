@@ -74,49 +74,49 @@ const DimensionSelector: React.FC<DimensionSelectorProps> = ({ selected, onChang
 const AGGREGATE_COLUMNS: TableColumn[] = [
   {
     key: 'revenue',
-    header: 'Gross Revenue',
+    header: 'Revenue',
     align: 'right',
     tooltip: 'Total revenue collected before any deductions.',
   },
   {
     key: 'completedSessions',
-    header: 'Completed Sessions',
+    header: 'Sessions',
     align: 'right',
     tooltip: 'Total number of sessions completed during this time period.',
   },
   {
     key: 'avgWeeklySessions',
-    header: 'Avg Weekly Sessions',
+    header: 'Wkly Avg',
     align: 'right',
     tooltip: 'Average number of sessions completed per week during this time period.',
   },
   {
     key: 'sessionGoalPercent',
-    header: 'Session Goal %',
+    header: 'Goal %',
     align: 'right',
     tooltip: 'Percentage of session goal achieved. Completed sessions ÷ session goal.',
   },
   {
     key: 'clientsSeen',
-    header: 'Clients Seen',
+    header: 'Clients',
     align: 'right',
     tooltip: 'Number of unique clients who had at least one session during this time period.',
   },
   {
     key: 'churnRate',
-    header: 'Churn Rate',
+    header: 'Churn',
     align: 'right',
     tooltip: 'Percentage of clients who churned (stopped coming). Lower is better.',
   },
   {
     key: 'cancelRate',
-    header: 'Cancel Rate',
+    header: 'Cancel',
     align: 'right',
     tooltip: 'Percentage of booked sessions that were canceled. Lower is better.',
   },
   {
     key: 'outstandingNotes',
-    header: 'Outstanding Notes',
+    header: 'Notes',
     align: 'right',
     tooltip: 'Number of sessions with overdue notes. Lower is better.',
   },
@@ -126,43 +126,43 @@ const AGGREGATE_COLUMNS: TableColumn[] = [
 const POINT_IN_TIME_COLUMNS: TableColumn[] = [
   {
     key: 'revenue',
-    header: 'Gross Revenue',
+    header: 'Revenue',
     align: 'right',
     tooltip: 'Total revenue collected before any deductions.',
   },
   {
     key: 'completedSessions',
-    header: 'Completed Sessions',
+    header: 'Sessions',
     align: 'right',
     tooltip: 'Total number of sessions completed during this month.',
   },
   {
     key: 'activeClients',
-    header: 'Active Clients',
+    header: 'Active',
     align: 'right',
     tooltip: 'Number of clients currently active (had a session in last 30 days).',
   },
   {
     key: 'caseloadCapacity',
-    header: 'Caseload Capacity',
+    header: 'Capacity',
     align: 'right',
     tooltip: 'How full is the caseload? Active clients ÷ client goal. Lower means more room for new clients.',
   },
   {
     key: 'churnRate',
-    header: 'Churn Rate',
+    header: 'Churn',
     align: 'right',
     tooltip: 'Percentage of clients who churned (stopped coming). Lower is better.',
   },
   {
     key: 'cancelRate',
-    header: 'Cancel Rate',
+    header: 'Cancel',
     align: 'right',
     tooltip: 'Percentage of booked sessions that were canceled. Lower is better.',
   },
   {
     key: 'outstandingNotes',
-    header: 'Outstanding Notes',
+    header: 'Notes',
     align: 'right',
     tooltip: 'Number of sessions with overdue notes. Lower is better.',
   },
@@ -309,7 +309,7 @@ export const CompareTab: React.FC = () => {
           <div className="flex items-center justify-center py-24 px-6 sm:px-8 lg:px-12">
             <div className="text-center max-w-md">
               <p className="text-stone-600 text-lg mb-2">No comparison data available</p>
-              <p className="text-stone-400 text-sm">
+              <p className="text-stone-500 text-sm">
                 Comparison requires multiple locations, supervisors, or credential types.
               </p>
             </div>
@@ -381,7 +381,7 @@ export const CompareTab: React.FC = () => {
         >
           {/* Dimension Selector in Header */}
           <div className="mt-6">
-            <p className="text-stone-500 text-sm font-medium mb-3 uppercase tracking-wider">
+            <p className="text-stone-300 text-sm font-medium mb-3 uppercase tracking-wider">
               Compare by
             </p>
             <DimensionSelector selected={dimension} onChange={setDimension} />
@@ -389,19 +389,19 @@ export const CompareTab: React.FC = () => {
         </PageHeader>
 
         {/* Table Content */}
-        <div className="px-6 sm:px-8 lg:px-12 py-6 lg:py-8">
+        <div className="px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
           {compareData.loading ? (
             <div className="flex items-center justify-center py-24">
               <div className="flex flex-col items-center gap-4">
-                <Loader2 size={32} className="animate-spin text-stone-400" />
-                <p className="text-stone-500 text-lg">Loading comparison data...</p>
+                <Loader2 size={32} className="animate-spin text-stone-500" />
+                <p className="text-stone-600 text-lg">Loading comparison data...</p>
               </div>
             </div>
           ) : compareData.error ? (
             <div className="flex items-center justify-center py-24">
               <div className="text-center">
                 <p className="text-stone-600 text-lg mb-2">Unable to load comparison data</p>
-                <p className="text-stone-400 text-sm">{compareData.error.message}</p>
+                <p className="text-stone-500 text-sm">{compareData.error.message}</p>
               </div>
             </div>
           ) : (

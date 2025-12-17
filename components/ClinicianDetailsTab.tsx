@@ -2076,42 +2076,46 @@ export const ClinicianDetailsTab: React.FC = () => {
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 lg:gap-4">
                     {/* Tenure */}
                     <div
-                      className="px-5 py-4 rounded-2xl"
+                      className="px-5 py-5 rounded-2xl flex flex-col"
                       style={{
                         background: 'rgba(255, 255, 255, 0.06)',
                         border: '1px solid rgba(255, 255, 255, 0.08)',
                       }}
                     >
-                      <p className="text-stone-500 text-xs uppercase tracking-wider mb-1">Tenure</p>
-                      <p className="text-white text-base lg:text-lg font-medium">{selectedClinician.tenure}</p>
+                      <div className="flex items-center justify-between h-5 mb-2">
+                        <p className="text-stone-400 text-sm uppercase tracking-wider">Tenure</p>
+                      </div>
+                      <p className="text-white text-lg lg:text-xl font-semibold">{selectedClinician.tenure}</p>
                     </div>
 
                     {/* Take Rate */}
                     <div
-                      className="px-5 py-4 rounded-2xl"
+                      className="px-5 py-5 rounded-2xl flex flex-col"
                       style={{
                         background: 'rgba(255, 255, 255, 0.06)',
                         border: '1px solid rgba(255, 255, 255, 0.08)',
                       }}
                     >
-                      <p className="text-stone-500 text-xs uppercase tracking-wider mb-1">Take Rate</p>
-                      <p className="text-white text-base lg:text-lg font-medium">{selectedClinician.takeRate}%</p>
+                      <div className="flex items-center justify-between h-5 mb-2">
+                        <p className="text-stone-400 text-sm uppercase tracking-wider">Take Rate</p>
+                      </div>
+                      <p className="text-white text-lg lg:text-xl font-semibold">{selectedClinician.takeRate}%</p>
                     </div>
 
                     {/* Session Goal - Clickable */}
                     <button
                       onClick={() => navigate('/configure?tab=clinician-goals')}
-                      className="px-5 py-4 rounded-2xl text-left transition-all duration-200 hover:scale-[1.02] group"
+                      className="px-5 py-5 rounded-2xl text-left transition-all duration-200 hover:scale-[1.02] group flex flex-col"
                       style={{
                         background: 'rgba(251, 191, 36, 0.1)',
                         border: '1px solid rgba(251, 191, 36, 0.2)',
                       }}
                     >
-                      <div className="flex items-center justify-between mb-1">
-                        <p className="text-amber-400/80 text-xs uppercase tracking-wider">Session Goal</p>
-                        <Settings size={12} className="text-amber-400/60 group-hover:text-amber-400 transition-colors" />
+                      <div className="flex items-center justify-between h-5 mb-2">
+                        <p className="text-amber-400/80 text-sm uppercase tracking-wider">Session Goal</p>
+                        <Settings size={14} className="text-amber-400/60 group-hover:text-amber-400 transition-colors" />
                       </div>
-                      <p className="text-amber-100 text-base lg:text-lg font-medium">
+                      <p className="text-amber-100 text-lg lg:text-xl font-semibold">
                         {masterClinicianData?.sessionGoal || '-'}/week
                       </p>
                     </button>
@@ -2119,17 +2123,17 @@ export const ClinicianDetailsTab: React.FC = () => {
                     {/* Caseload Goal - Clickable */}
                     <button
                       onClick={() => navigate('/configure?tab=clinician-goals')}
-                      className="px-5 py-4 rounded-2xl text-left transition-all duration-200 hover:scale-[1.02] group"
+                      className="px-5 py-5 rounded-2xl text-left transition-all duration-200 hover:scale-[1.02] group flex flex-col"
                       style={{
                         background: 'rgba(251, 191, 36, 0.1)',
                         border: '1px solid rgba(251, 191, 36, 0.2)',
                       }}
                     >
-                      <div className="flex items-center justify-between mb-1">
-                        <p className="text-amber-400/80 text-xs uppercase tracking-wider">Caseload Goal</p>
-                        <Settings size={12} className="text-amber-400/60 group-hover:text-amber-400 transition-colors" />
+                      <div className="flex items-center justify-between h-5 mb-2">
+                        <p className="text-amber-400/80 text-sm uppercase tracking-wider">Caseload Goal</p>
+                        <Settings size={14} className="text-amber-400/60 group-hover:text-amber-400 transition-colors" />
                       </div>
-                      <p className="text-amber-100 text-base lg:text-lg font-medium">
+                      <p className="text-amber-100 text-lg lg:text-xl font-semibold">
                         {masterClinicianData?.clientGoal || '-'} clients
                       </p>
                     </button>
@@ -2186,7 +2190,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                 >
                   Select a Clinician
                 </h2>
-                <p className="text-stone-500 text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed">
+                <p className="text-stone-600 text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed">
                   Choose a team member to explore their detailed performance metrics, trends, and insights.
                 </p>
               </div>
@@ -2256,27 +2260,27 @@ export const ClinicianDetailsTab: React.FC = () => {
                           >
                             {clinician.name}
                           </h3>
-                          <p className="text-base text-stone-500">{clinician.role}</p>
+                          <p className="text-base text-stone-600">{clinician.role}</p>
                         </div>
 
                         {/* Quick metrics row */}
                         <div className="flex items-center gap-5 pt-4 border-t border-stone-200/60">
                           <div className="flex-1">
-                            <p className="text-xs uppercase tracking-wider text-stone-400 mb-1">Last Month</p>
+                            <p className="text-xs uppercase tracking-wider text-stone-500 mb-1">Last Month</p>
                             <p className="text-lg font-semibold text-stone-800">
                               ${(CLINICIAN_FINANCIAL_DATA[clinician.id]?.monthlyRevenue[CLINICIAN_FINANCIAL_DATA[clinician.id]?.monthlyRevenue.length - 1]?.value / 1000).toFixed(1)}k
                             </p>
                           </div>
                           <div className="w-px h-10 bg-stone-200/60" />
                           <div className="flex-1">
-                            <p className="text-xs uppercase tracking-wider text-stone-400 mb-1">Clients</p>
+                            <p className="text-xs uppercase tracking-wider text-stone-500 mb-1">Clients</p>
                             <p className="text-lg font-semibold text-stone-800">
                               {CLINICIAN_CASELOAD_DATA[clinician.id]?.monthlyCaseload[CLINICIAN_CASELOAD_DATA[clinician.id]?.monthlyCaseload.length - 1]?.activeClients || 0}
                             </p>
                           </div>
                           <div className="w-px h-10 bg-stone-200/60" />
                           <div className="flex-1">
-                            <p className="text-xs uppercase tracking-wider text-stone-400 mb-1">Completed Sessions</p>
+                            <p className="text-xs uppercase tracking-wider text-stone-500 mb-1">Completed Sessions</p>
                             <p className="text-lg font-semibold text-stone-800">
                               {CLINICIAN_SESSION_DATA[clinician.id]?.monthlySessions[CLINICIAN_SESSION_DATA[clinician.id]?.monthlySessions.length - 1]?.completed || 0}
                             </p>
@@ -2285,7 +2289,7 @@ export const ClinicianDetailsTab: React.FC = () => {
 
                         {/* Hover arrow indicator */}
                         <div className="absolute bottom-6 right-6 opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all duration-300">
-                          <ArrowRight size={22} className="text-stone-400" strokeWidth={1.5} />
+                          <ArrowRight size={22} className="text-stone-500" strokeWidth={1.5} />
                         </div>
                       </div>
 
@@ -2400,8 +2404,8 @@ export const ClinicianDetailsTab: React.FC = () => {
             <Grid cols={2}>
               {/* Completed Sessions Per Month Chart */}
               <ChartCard
-                title="Completed Sessions Per Month"
-                subtitle={showWeeklyAvg ? `${selectedClinician.name.split(' ')[0]}'s average sessions per week` : `How many sessions ${selectedClinician.name.split(' ')[0]} is completing each month`}
+                title="Monthly Sessions"
+                subtitle={showWeeklyAvg ? `${selectedClinician.name.split(' ')[0]}'s average sessions per week` : `How many sessions ${selectedClinician.name.split(' ')[0]} completes each month`}
                 headerControls={
                   <>
                     <ToggleButton
@@ -2753,7 +2757,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                       >
                         Overdue Notes
                       </h3>
-                      <p className="text-stone-500 text-base sm:text-lg xl:text-xl mt-2">
+                      <p className="text-stone-600 text-base sm:text-lg xl:text-xl mt-2">
                         {`Notes ${selectedClinician.name.split(' ')[0]} needs to catch up on`}
                       </p>
                     </div>
@@ -2772,7 +2776,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                       >
                         {complianceData.overdueNotes}
                       </div>
-                      <div className="text-stone-500 text-base mt-1">overdue</div>
+                      <div className="text-stone-600 text-base mt-1">overdue</div>
                     </div>
                   </div>
                 </div>
@@ -2786,7 +2790,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                     <h4 className="text-lg font-semibold text-stone-900 mb-1">
                       All caught up!
                     </h4>
-                    <p className="text-stone-500 text-sm">No overdue notes</p>
+                    <p className="text-stone-600 text-sm">No overdue notes</p>
                   </div>
                 ) : (
                   <div className="divide-y divide-stone-100">
@@ -2806,7 +2810,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                         {/* Client Info */}
                         <div className="flex-1 min-w-0">
                           <p className="text-stone-900 font-semibold text-base truncate">{note.clientName}</p>
-                          <p className="text-stone-500 text-sm">{note.sessionDate} · {note.sessionType}</p>
+                          <p className="text-stone-600 text-sm">{note.sessionDate} · {note.sessionType}</p>
                         </div>
 
                         {/* Days Overdue Badge */}
