@@ -35,9 +35,9 @@ const COLLAPSED_WIDTH = ICON_RAIL_WIDTH;
 const EXPANDED_WIDTH = ICON_RAIL_WIDTH + EXPANDED_CONTENT_WIDTH;
 
 // Timing
-const COLLAPSE_DELAY = 400;
-const TRANSITION_DURATION = '400ms';
-const TRANSITION_EASING = 'cubic-bezier(0.4, 0, 0.2, 1)';
+const COLLAPSE_DELAY = 250;
+const TRANSITION_DURATION = '200ms';
+const TRANSITION_EASING = 'cubic-bezier(0.25, 0.1, 0.25, 1)';
 
 // Navigation structure
 const NAVIGATION = {

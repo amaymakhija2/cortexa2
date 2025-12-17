@@ -2321,7 +2321,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                 variant={selectedClinician.metrics.revenueVsGoal >= 100 ? 'positive' : 'negative'}
               />
               <StatCard
-                title="Completed Sessions"
+                title="Sessions"
                 value={sessionData ? `${Math.round(totalCompleted / sessionData.monthlySessions.length)}/mo` : '-'}
                 subtitle={sessionData ? `~${Math.round(totalCompleted / sessionData.monthlySessions.length / 4.33)}/week · ${totalCompleted} total` : '-'}
                 variant={selectedClinician.metrics.sessionsVsGoal >= 100 ? 'positive' : 'negative'}
