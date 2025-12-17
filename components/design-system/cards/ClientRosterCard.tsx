@@ -127,63 +127,83 @@ export const ClientRosterCard: React.FC<ClientRosterCardProps> = ({
       className={`${size === 'lg' ? 'h-full' : 'rounded-2xl xl:rounded-3xl'} relative flex flex-col overflow-hidden ${className}`}
       style={containerStyle}
     >
-      {/* Header Section */}
-      <div className="p-6 sm:p-8 xl:p-10 pb-0 sm:pb-0 xl:pb-0">
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
-          <div className="flex-1 min-w-0">
-            <h3
-              className="text-stone-900 text-2xl sm:text-3xl xl:text-4xl font-bold mb-2 tracking-tight"
-              style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-            >
-              {title}
-            </h3>
-            {subtitle && (
-              <p className="text-stone-500 text-base sm:text-lg xl:text-xl">{subtitle}</p>
-            )}
-          </div>
-
-          {/* Count indicator */}
-          <div className="flex-shrink-0 text-right">
-            <div
-              className="text-stone-900 text-3xl sm:text-4xl font-bold"
-              style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-            >
-              {filteredClients.length}
-            </div>
-            <div className="text-stone-500 text-sm font-medium">
-              {selectedSegment === 'all' ? 'total' : selectedSegment.replace('-', ' ')}
-            </div>
-          </div>
-        </div>
-
-        {/* Segment filter buttons */}
-        <div className="flex flex-wrap gap-2 mb-6">
-          {SEGMENT_CONFIG.map((segment) => {
-            const isSelected = selectedSegment === segment.id;
-            const count = segmentCounts[segment.id];
-            const colors = SEGMENT_BUTTON_COLORS[segment.color];
-
-            return (
-              <button
-                key={segment.id}
-                onClick={() => setSelectedSegment(segment.id)}
-                className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-                  isSelected ? colors.selected : colors.unselected
-                }`}
+      {/* Header Section - Compact for lg size */}
+      <div className={size === 'lg' ? 'flex-shrink-0' : 'p-6 sm:p-8 xl:p-10 pb-0 sm:pb-0 xl:pb-0'}>
+        {/* Title/Subtitle row - only show if title exists */}
+        {title && (
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+            <div className="flex-1 min-w-0">
+              <h3
+                className="text-stone-900 text-2xl sm:text-3xl xl:text-4xl font-bold mb-2 tracking-tight"
+                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
               >
-                {segment.label}
-                <span className={`ml-2 ${isSelected ? 'opacity-80' : 'opacity-60'}`}>
-                  {count}
-                </span>
-              </button>
-            );
-          })}
+                {title}
+              </h3>
+              {subtitle && (
+                <p className="text-stone-500 text-base sm:text-lg xl:text-xl">{subtitle}</p>
+              )}
+            </div>
+
+            {/* Count indicator - only with title */}
+            <div className="flex-shrink-0 text-right">
+              <div
+                className="text-stone-900 text-3xl sm:text-4xl font-bold"
+                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+              >
+                {filteredClients.length}
+              </div>
+              <div className="text-stone-500 text-sm font-medium">
+                {selectedSegment === 'all' ? 'total' : selectedSegment.replace('-', ' ')}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Segment filter buttons - inline with count for lg mode without title */}
+        <div className={`flex items-center ${size === 'lg' && !title ? 'justify-between pb-4 border-b border-stone-100' : 'flex-wrap gap-2 mb-6'}`}>
+          <div className="flex flex-wrap gap-2">
+            {SEGMENT_CONFIG.map((segment) => {
+              const isSelected = selectedSegment === segment.id;
+              const count = segmentCounts[segment.id];
+              const colors = SEGMENT_BUTTON_COLORS[segment.color];
+
+              return (
+                <button
+                  key={segment.id}
+                  onClick={() => setSelectedSegment(segment.id)}
+                  className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                    isSelected ? colors.selected : colors.unselected
+                  }`}
+                >
+                  {segment.label}
+                  <span className={`ml-2 ${isSelected ? 'opacity-80' : 'opacity-60'}`}>
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Count indicator - show inline when no title (lg mode) */}
+          {!title && (
+            <div className="flex items-center gap-3">
+              <div
+                className="text-stone-900 text-2xl font-bold"
+                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+              >
+                {filteredClients.length}
+              </div>
+              <div className="text-stone-500 text-sm font-medium">
+                {selectedSegment === 'all' ? 'clients' : selectedSegment.replace('-', ' ')}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Client list - limited to maxVisible rows with scroll (or flex-1 for lg size) */}
       <div
-        className={`overflow-y-auto border-t border-stone-100 ${size === 'lg' ? 'flex-1' : ''}`}
+        className={`overflow-y-auto ${size === 'lg' ? 'flex-1' : 'border-t border-stone-100'}`}
         style={size === 'lg' ? undefined : { maxHeight: `${maxVisible * CLIENT_ROW_HEIGHT}px` }}
       >
         {filteredClients.length === 0 ? (
