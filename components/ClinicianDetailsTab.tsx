@@ -1447,10 +1447,6 @@ export const ClinicianDetailsTab: React.FC = () => {
     if (!retentionData) return [];
     const rebookDiff = retentionData.currentRebookRate - retentionData.practiceAvgRebookRate;
     const sessionsDiff = retentionData.avgSessionsBeforeChurn - retentionData.practiceAvgSessionsBeforeChurn;
-    const month3Diff = retentionData.month3ReturnRate - retentionData.practiceAvgMonth3Return;
-    const month6Diff = retentionData.month6ReturnRate - retentionData.practiceAvgMonth6Return;
-    const oneYearDiff = retentionData.oneYearReturnRate - retentionData.practiceAvgOneYearReturn;
-    const beyondOneYearDiff = retentionData.beyondOneYearReturnRate - retentionData.practiceAvgBeyondOneYearReturn;
 
     return [
       {
@@ -1474,50 +1470,6 @@ export const ClinicianDetailsTab: React.FC = () => {
         },
         valueColor: sessionsDiff >= 0 ? 'text-emerald-600' : 'text-rose-600',
         indicator: { color: sessionsDiff >= 0 ? '#10b981' : '#f43f5e' },
-      },
-      {
-        id: 'month3',
-        label: 'Month 3 Return Rate',
-        values: {
-          clinician: `${retentionData.month3ReturnRate}%`,
-          practice: `${retentionData.practiceAvgMonth3Return}%`,
-          diff: month3Diff >= 0 ? `+${month3Diff}%` : `${month3Diff}%`,
-        },
-        valueColor: month3Diff >= 0 ? 'text-emerald-600' : 'text-rose-600',
-        indicator: { color: month3Diff >= 0 ? '#10b981' : '#f43f5e' },
-      },
-      {
-        id: 'month6',
-        label: 'Month 6 Return Rate',
-        values: {
-          clinician: `${retentionData.month6ReturnRate}%`,
-          practice: `${retentionData.practiceAvgMonth6Return}%`,
-          diff: month6Diff >= 0 ? `+${month6Diff}%` : `${month6Diff}%`,
-        },
-        valueColor: month6Diff >= 0 ? 'text-emerald-600' : 'text-rose-600',
-        indicator: { color: month6Diff >= 0 ? '#10b981' : '#f43f5e' },
-      },
-      {
-        id: 'oneYear',
-        label: '1-Year Return Rate',
-        values: {
-          clinician: `${retentionData.oneYearReturnRate}%`,
-          practice: `${retentionData.practiceAvgOneYearReturn}%`,
-          diff: oneYearDiff >= 0 ? `+${oneYearDiff}%` : `${oneYearDiff}%`,
-        },
-        valueColor: oneYearDiff >= 0 ? 'text-emerald-600' : 'text-rose-600',
-        indicator: { color: oneYearDiff >= 0 ? '#10b981' : '#f43f5e' },
-      },
-      {
-        id: 'beyondOneYear',
-        label: 'Beyond 1-Year Return Rate',
-        values: {
-          clinician: `${retentionData.beyondOneYearReturnRate}%`,
-          practice: `${retentionData.practiceAvgBeyondOneYearReturn}%`,
-          diff: beyondOneYearDiff >= 0 ? `+${beyondOneYearDiff}%` : `${beyondOneYearDiff}%`,
-        },
-        valueColor: beyondOneYearDiff >= 0 ? 'text-emerald-600' : 'text-rose-600',
-        indicator: { color: beyondOneYearDiff >= 0 ? '#10b981' : '#f43f5e' },
       },
     ];
   }, [retentionData, selectedClinician]);
@@ -2713,13 +2665,12 @@ export const ClinicianDetailsTab: React.FC = () => {
                 onExpand={() => setExpandedCard('churn-timing')}
               />
 
-              {/* Retention Comparison Table - spans full width */}
+              {/* Retention Comparison Table */}
               <DataTableCard
                 title="Retention Comparison"
                 subtitle={`How ${selectedClinician.name.split(' ')[0]}'s retention compares to the practice`}
                 columns={retentionTableColumns}
                 rows={retentionTableRows}
-                className="col-span-2"
               />
             </Grid>
           </SectionContainer>
