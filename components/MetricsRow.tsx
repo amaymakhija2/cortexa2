@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { PracticeMetrics } from '../types';
 import { MetricCard, ExpandableBarChart } from './design-system/cards/MetricCard';
@@ -216,29 +216,43 @@ export const MetricsRow: React.FC<MetricsRowProps> = ({ metrics, isLive = true }
     />,
   ];
 
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Card width: show ~3.5 cards on large screens to indicate scrollability
+  const cardStyle = {
+    width: 'clamp(280px, 26vw, 480px)',
+  };
+
   return (
-    <>
-      {/* Mobile/Tablet: Horizontal scroll (below lg/1024px) */}
+    // Container extends to right edge only (like Priority Tasks)
+    <div className="relative min-h-[280px] -mr-6 sm:-mr-8 lg:-mr-12">
+      {/* Scroll Container - absolute positioning for width constraint */}
       <div
-        className="lg:hidden flex gap-3 sm:gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2 -mx-4 sm:-mx-6 px-4 sm:px-6"
+        ref={scrollContainerRef}
+        className="absolute inset-0 flex gap-4 overflow-x-auto overflow-y-visible snap-x snap-mandatory pr-6 sm:pr-8 lg:pr-12"
         style={{
-          WebkitOverflowScrolling: 'touch',
           scrollbarWidth: 'none',
-          msOverflowStyle: 'none'
+          msOverflowStyle: 'none',
+          WebkitOverflowScrolling: 'touch',
         }}
       >
         {cards.map((card, index) => (
-          <div key={index} className="snap-start flex-shrink-0 w-[280px] sm:w-[320px] md:w-[340px]">
+          <div
+            key={index}
+            className="snap-start flex-shrink-0"
+            style={cardStyle}
+          >
             {card}
           </div>
         ))}
       </div>
 
-      {/* Desktop: Grid layout (lg/1024px and above) */}
-      <div className="hidden lg:grid lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 lg:gap-4 xl:gap-5 items-stretch">
-        {cards}
-      </div>
-    </>
+      <style>{`
+        .overflow-x-auto::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
+    </div>
   );
 };
 
