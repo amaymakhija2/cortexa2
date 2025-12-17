@@ -527,10 +527,16 @@ const CLINICIAN_RETENTION_DATA: Record<number, {
   practiceAvgMonth3Return: number;
   month6ReturnRate: number;          // % still active at 6 months
   practiceAvgMonth6Return: number;
+  month9ReturnRate: number;          // % still active at 9 months
+  practiceAvgMonth9Return: number;
   oneYearReturnRate: number;         // % still active at 1 year
   practiceAvgOneYearReturn: number;
   beyondOneYearReturnRate: number;   // % still active beyond 1 year
   practiceAvgBeyondOneYearReturn: number;
+  topPerformerMonth3Return: number;  // Top performer benchmarks
+  topPerformerMonth6Return: number;
+  topPerformerMonth9Return: number;
+  topPerformerOneYearReturn: number;
   churnTiming: { early: number; medium: number; late: number }; // <5, 5-15, >15 sessions
 }> = {
   1: { // Sarah Chen - Clinical Director (high performer)
@@ -556,10 +562,16 @@ const CLINICIAN_RETENTION_DATA: Record<number, {
     practiceAvgMonth3Return: 75,
     month6ReturnRate: 88,
     practiceAvgMonth6Return: 62,
+    month9ReturnRate: 81,
+    practiceAvgMonth9Return: 52,
     oneYearReturnRate: 74,
     practiceAvgOneYearReturn: 45,
     beyondOneYearReturnRate: 58,
     practiceAvgBeyondOneYearReturn: 32,
+    topPerformerMonth3Return: 95,
+    topPerformerMonth6Return: 90,
+    topPerformerMonth9Return: 84,
+    topPerformerOneYearReturn: 78,
     churnTiming: { early: 3, medium: 5, late: 8 }, // Most churn late = good retention
   },
   2: { // Maria Rodriguez - Senior Therapist
@@ -585,10 +597,16 @@ const CLINICIAN_RETENTION_DATA: Record<number, {
     practiceAvgMonth3Return: 75,
     month6ReturnRate: 78,
     practiceAvgMonth6Return: 62,
+    month9ReturnRate: 64,
+    practiceAvgMonth9Return: 52,
     oneYearReturnRate: 52,
     practiceAvgOneYearReturn: 45,
     beyondOneYearReturnRate: 38,
     practiceAvgBeyondOneYearReturn: 32,
+    topPerformerMonth3Return: 95,
+    topPerformerMonth6Return: 90,
+    topPerformerMonth9Return: 84,
+    topPerformerOneYearReturn: 78,
     churnTiming: { early: 4, medium: 7, late: 6 }, // Balanced churn distribution
   },
   3: { // Priya Patel - Therapist (needs attention)
@@ -614,10 +632,16 @@ const CLINICIAN_RETENTION_DATA: Record<number, {
     practiceAvgMonth3Return: 75,
     month6ReturnRate: 45,
     practiceAvgMonth6Return: 62,
+    month9ReturnRate: 32,
+    practiceAvgMonth9Return: 52,
     oneYearReturnRate: 22,
     practiceAvgOneYearReturn: 45,
     beyondOneYearReturnRate: 12,
     practiceAvgBeyondOneYearReturn: 32,
+    topPerformerMonth3Return: 95,
+    topPerformerMonth6Return: 90,
+    topPerformerMonth9Return: 84,
+    topPerformerOneYearReturn: 78,
     churnTiming: { early: 12, medium: 6, late: 2 }, // High early churn = concerning
   },
   4: { // James Kim - Associate Therapist (ramping up)
@@ -643,10 +667,16 @@ const CLINICIAN_RETENTION_DATA: Record<number, {
     practiceAvgMonth3Return: 75,
     month6ReturnRate: 68,
     practiceAvgMonth6Return: 62,
+    month9ReturnRate: 54,
+    practiceAvgMonth9Return: 52,
     oneYearReturnRate: 42,
     practiceAvgOneYearReturn: 45,
     beyondOneYearReturnRate: 28,
     practiceAvgBeyondOneYearReturn: 32,
+    topPerformerMonth3Return: 95,
+    topPerformerMonth6Return: 90,
+    topPerformerMonth9Return: 84,
+    topPerformerOneYearReturn: 78,
     churnTiming: { early: 5, medium: 4, late: 3 }, // Improving, fewer early churns
   },
   5: { // Michael Johnson - Associate Therapist (critical)
@@ -672,10 +702,16 @@ const CLINICIAN_RETENTION_DATA: Record<number, {
     practiceAvgMonth3Return: 75,
     month6ReturnRate: 32,
     practiceAvgMonth6Return: 62,
+    month9ReturnRate: 22,
+    practiceAvgMonth9Return: 52,
     oneYearReturnRate: 15,
     practiceAvgOneYearReturn: 45,
     beyondOneYearReturnRate: 8,
     practiceAvgBeyondOneYearReturn: 32,
+    topPerformerMonth3Return: 95,
+    topPerformerMonth6Return: 90,
+    topPerformerMonth9Return: 84,
+    topPerformerOneYearReturn: 78,
     churnTiming: { early: 18, medium: 8, late: 2 }, // Very high early churn = critical
   },
 };
@@ -1473,6 +1509,37 @@ export const ClinicianDetailsTab: React.FC = () => {
       },
     ];
   }, [retentionData, selectedClinician]);
+
+  // Retention curve data for line chart
+  const retentionCurveData = useMemo(() => {
+    if (!retentionData) return [];
+    return [
+      {
+        month: '3 mo',
+        clinician: retentionData.month3ReturnRate,
+        practice: retentionData.practiceAvgMonth3Return,
+        topPerformer: retentionData.topPerformerMonth3Return,
+      },
+      {
+        month: '6 mo',
+        clinician: retentionData.month6ReturnRate,
+        practice: retentionData.practiceAvgMonth6Return,
+        topPerformer: retentionData.topPerformerMonth6Return,
+      },
+      {
+        month: '9 mo',
+        clinician: retentionData.month9ReturnRate,
+        practice: retentionData.practiceAvgMonth9Return,
+        topPerformer: retentionData.topPerformerMonth9Return,
+      },
+      {
+        month: '12 mo',
+        clinician: retentionData.oneYearReturnRate,
+        practice: retentionData.practiceAvgOneYearReturn,
+        topPerformer: retentionData.topPerformerOneYearReturn,
+      },
+    ];
+  }, [retentionData]);
 
   return (
     <>
@@ -2673,6 +2740,34 @@ export const ClinicianDetailsTab: React.FC = () => {
                 rows={retentionTableRows}
                 minHeight="420px"
               />
+
+              {/* Return Rate Chart */}
+              <ChartCard
+                title="Return Rate"
+                subtitle={`% of clients still active at each milestone`}
+                legend={[
+                  { label: selectedClinician.name.split(' ')[0], color: 'bg-blue-500', type: 'box' },
+                  { label: 'Practice Avg', color: 'bg-stone-400', type: 'box' },
+                  { label: 'Top Performer', color: 'bg-emerald-500', type: 'box' },
+                ]}
+                minHeight="420px"
+                expandable
+                onExpand={() => setExpandedCard('return-rate')}
+              >
+                <LineChart
+                  data={retentionCurveData}
+                  xAxisKey="month"
+                  lines={[
+                    { dataKey: 'topPerformer', color: '#10b981', name: 'Top Performer' },
+                    { dataKey: 'clinician', color: '#3b82f6', name: selectedClinician.name.split(' ')[0] },
+                    { dataKey: 'practice', color: '#a8a29e', name: 'Practice Avg' },
+                  ]}
+                  yDomain={[0, 100]}
+                  yTickFormatter={(v) => `${v}%`}
+                  tooltipFormatter={(value, name) => [`${value}%`, name]}
+                  height={280}
+                />
+              </ChartCard>
             </Grid>
           </SectionContainer>
           )}
@@ -3071,6 +3166,35 @@ export const ClinicianDetailsTab: React.FC = () => {
             centerValue={churnTimingTotals.total.toString()}
             valueFormat="number"
             size="lg"
+          />
+        </ExpandedChartModal>
+      )}
+
+      {/* Return Rate Expanded */}
+      {selectedClinician && retentionData && (
+        <ExpandedChartModal
+          isOpen={expandedCard === 'return-rate'}
+          onClose={() => setExpandedCard(null)}
+          title="Return Rate"
+          subtitle={`% of clients still active at each milestone`}
+          legend={[
+            { label: selectedClinician.name.split(' ')[0], color: 'bg-blue-500', type: 'box' },
+            { label: 'Practice Avg', color: 'bg-stone-400', type: 'box' },
+            { label: 'Top Performer', color: 'bg-emerald-500', type: 'box' },
+          ]}
+        >
+          <LineChart
+            data={retentionCurveData}
+            xAxisKey="month"
+            lines={[
+              { dataKey: 'topPerformer', color: '#10b981', name: 'Top Performer' },
+              { dataKey: 'clinician', color: '#3b82f6', name: selectedClinician.name.split(' ')[0] },
+              { dataKey: 'practice', color: '#a8a29e', name: 'Practice Avg' },
+            ]}
+            yDomain={[0, 100]}
+            yTickFormatter={(v) => `${v}%`}
+            tooltipFormatter={(value, name) => [`${value}%`, name]}
+            height={400}
           />
         </ExpandedChartModal>
       )}
