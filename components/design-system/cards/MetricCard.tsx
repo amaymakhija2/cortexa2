@@ -255,9 +255,9 @@ export const MetricCard: React.FC<MetricCardProps> = ({
           <div className={`h-1.5 ${statusColor}`} />
 
           {/* Content */}
-          <div className="p-4 sm:p-5 xl:p-6 flex flex-col flex-1">
+          <div className="px-4 pt-4 pb-3 sm:px-5 sm:pt-5 sm:pb-4 xl:px-5 xl:pt-5 xl:pb-4 flex flex-col">
             {/* Label row */}
-            <div className="flex items-center justify-between mb-3 xl:mb-4">
+            <div className="flex items-center justify-between mb-2 xl:mb-3">
               <span className="text-sm sm:text-base lg:text-lg font-bold text-stone-700 uppercase tracking-wide">
                 {label}
               </span>
@@ -277,12 +277,12 @@ export const MetricCard: React.FC<MetricCardProps> = ({
             </div>
 
             {/* Subtext */}
-            <p className="text-sm sm:text-base lg:text-lg text-stone-500 leading-snug mb-4 xl:mb-5 flex-1">
+            <p className="text-sm sm:text-base lg:text-lg text-stone-500 leading-snug mb-2 xl:mb-3">
               {subtext}
             </p>
 
             {/* Footer */}
-            <div className={`pt-3 xl:pt-4 border-t border-stone-100 mt-auto ${hasButton ? 'flex items-center justify-between' : ''}`}>
+            <div className={`pt-2 xl:pt-3 border-t border-stone-100 ${hasButton ? 'flex items-center justify-between' : ''}`}>
               <StatusIndicator status={status} />
               {hasExpandable && (
                 <button

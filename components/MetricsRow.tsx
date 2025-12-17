@@ -225,11 +225,11 @@ export const MetricsRow: React.FC<MetricsRowProps> = ({ metrics, isLive = true }
 
   return (
     // Container extends to right edge only (like Priority Tasks)
-    <div className="relative min-h-[280px] -mr-6 sm:-mr-8 lg:-mr-12">
+    <div className="relative min-h-[240px] -mr-6 sm:-mr-8 lg:-mr-12">
       {/* Scroll Container - absolute positioning for width constraint */}
       <div
         ref={scrollContainerRef}
-        className="absolute inset-0 flex gap-4 overflow-x-auto overflow-y-visible snap-x snap-mandatory pr-6 sm:pr-8 lg:pr-12"
+        className="absolute inset-0 flex gap-4 overflow-x-auto snap-x snap-mandatory py-2 pr-6 sm:pr-8 lg:pr-12"
         style={{
           scrollbarWidth: 'none',
           msOverflowStyle: 'none',
