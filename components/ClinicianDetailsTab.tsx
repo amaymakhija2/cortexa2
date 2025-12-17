@@ -2613,6 +2613,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                 title="Client Roster"
                 subtitle={`${selectedClinician.name.split(' ')[0]}'s ${clinicianClients.length} current active clients`}
                 clients={clinicianClients}
+                onExpand={() => setExpandedCard('client-roster')}
               />
 
               {/* Client Session Frequency */}
@@ -3118,6 +3119,22 @@ export const ClinicianDetailsTab: React.FC = () => {
             centerValueColor={weeklyEngagementPercent >= 50 ? 'text-emerald-600' : 'text-amber-600'}
             valueFormat="number"
             size="lg"
+          />
+        </ExpandedChartModal>
+      )}
+
+      {/* Client Roster Expanded */}
+      {selectedClinician && (
+        <ExpandedChartModal
+          isOpen={expandedCard === 'client-roster'}
+          onClose={() => setExpandedCard(null)}
+          title="Client Roster"
+          subtitle={`${selectedClinician.name.split(' ')[0]}'s ${clinicianClients.length} current active clients`}
+        >
+          <ClientRosterCard
+            title=""
+            clients={clinicianClients}
+            maxVisible={12}
           />
         </ExpandedChartModal>
       )}

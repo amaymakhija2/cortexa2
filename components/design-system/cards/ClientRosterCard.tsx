@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { Maximize2 } from 'lucide-react';
 
 // =============================================================================
 // CLIENT ROSTER CARD COMPONENT
@@ -29,6 +30,8 @@ export interface ClientRosterCardProps {
   clients: ClientData[];
   /** Max number of clients visible at once (scrollable if more). Defaults to 5 */
   maxVisible?: number;
+  /** Expand callback for fullscreen view */
+  onExpand?: () => void;
   /** Additional className */
   className?: string;
 }
@@ -88,6 +91,7 @@ export const ClientRosterCard: React.FC<ClientRosterCardProps> = ({
   subtitle,
   clients,
   maxVisible = 4.5,
+  onExpand,
   className = '',
 }) => {
   const [selectedSegment, setSelectedSegment] = useState<SegmentId>('all');
@@ -251,6 +255,19 @@ export const ClientRosterCard: React.FC<ClientRosterCardProps> = ({
           })
         )}
       </div>
+
+      {/* Expand Button Footer */}
+      {onExpand && (
+        <div className="p-4 sm:p-5 border-t border-stone-100 bg-gradient-to-t from-stone-50/80 to-transparent">
+          <button
+            onClick={onExpand}
+            className="w-full flex items-center justify-center gap-2.5 py-3.5 px-6 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-semibold text-base transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] shadow-lg shadow-stone-900/20"
+          >
+            <Maximize2 size={18} strokeWidth={2.5} />
+            <span>View Full Roster</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 };
