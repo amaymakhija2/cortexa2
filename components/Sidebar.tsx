@@ -423,7 +423,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               const Icon = item.icon;
 
               return (
-                <div key={item.path}>
+                <div key={item.path} className="mx-3 overflow-hidden">
                   {/* Custom nav item with integrated sub-items */}
                   <NavLink
                     to={item.path}
@@ -433,14 +433,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   >
                     <div
                       className={`
-                        relative mx-3 rounded-xl
-                        transition-all duration-200
+                        relative rounded-xl
                         ${isActive
                           ? 'bg-[#1f1e1c]'
                           : 'hover:bg-white/[0.04]'
                         }
                       `}
                       style={{
+                        /* Fixed width prevents layout shift during transition */
+                        width: `${EXPANDED_WIDTH - 24}px`,
                         border: isActive && isExpanded ? '1px solid rgba(180, 140, 80, 0.5)' : '1px solid transparent',
                         boxShadow: isActive && isExpanded ? 'inset 0 1px 0 rgba(255,255,255,0.03)' : 'none',
                       }}
@@ -458,36 +459,39 @@ export const Sidebar: React.FC<SidebarProps> = ({
                           />
                         </div>
 
-                        {/* Expanded content */}
+                        {/* Expanded content - fixed width */}
                         <div
-                          className="flex-1 min-w-0 flex items-center pr-4 overflow-hidden"
+                          className="pr-4 whitespace-nowrap"
                           style={{
+                            width: `${EXPANDED_CONTENT_WIDTH - 16}px`,
                             opacity: isExpanded ? 1 : 0,
                             transition: `opacity ${TRANSITION_DURATION} ${TRANSITION_EASING}`,
                           }}
                         >
-                          <div className="flex-1 min-w-0">
-                            <div
-                              className={`text-[15px] font-medium whitespace-nowrap transition-colors duration-200 ${
-                                isActive ? 'text-stone-100' : 'text-stone-300 group-hover:text-white'
-                              }`}
-                            >
-                              {item.label}
-                            </div>
-                            {/* Description for non-active items */}
-                            {item.description && !isActive && isExpanded && (
-                              <div className="text-[13px] text-stone-600 truncate mt-0.5">
-                                {item.description}
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div
+                                className={`text-[15px] font-medium transition-colors duration-200 ${
+                                  isActive ? 'text-stone-100' : 'text-stone-300 group-hover:text-white'
+                                }`}
+                              >
+                                {item.label}
                               </div>
+                              {/* Description for non-active items */}
+                              {item.description && !isActive && (
+                                <div className="text-[13px] text-stone-600 mt-0.5">
+                                  {item.description}
+                                </div>
+                              )}
+                            </div>
+                            {/* Dropdown chevron */}
+                            {hasSubItems && isActive && (
+                              <ChevronRight
+                                size={18}
+                                className="text-stone-500 rotate-90 flex-shrink-0 ml-2"
+                              />
                             )}
                           </div>
-                          {/* Dropdown chevron */}
-                          {hasSubItems && isActive && (
-                            <ChevronRight
-                              size={18}
-                              className="text-stone-500 rotate-90 flex-shrink-0 ml-2"
-                            />
-                          )}
                         </div>
                       </div>
 
@@ -513,7 +517,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                                   }}
                                   className={`
                                     w-full text-left pl-4 pr-3 py-2 text-[14px]
-                                    transition-all duration-150 relative
+                                    transition-all duration-150 relative whitespace-nowrap
                                     ${isSubActive
                                       ? 'text-stone-100'
                                       : 'text-stone-500 hover:text-stone-200'
