@@ -48,21 +48,115 @@ console.log(`\nExisting payment data has ${recordCount} records`);
 // =============================================================================
 
 // Generate random client IDs (consistent per client)
-const clientIdMap = new Map();
-let clientCounter = 0;
-
 function generateClientId() {
   return crypto.randomBytes(8).toString('hex');
 }
 
-// Generate a pool of ~100 unique clients per clinician
-const clientPools = {};
-CLINICIANS.forEach(c => {
-  clientPools[c.id] = [];
-  const numClients = 80 + Math.floor(Math.random() * 40); // 80-120 clients per clinician
-  for (let i = 0; i < numClients; i++) {
-    clientPools[c.id].push(generateClientId());
+// Client model: Each client has a start date, frequency, and optional end date (churn)
+// This creates realistic client patterns where clients have regular sessions
+const clientModels = {};
+
+// Session frequency types
+const FREQUENCY_WEIGHTS = [
+  { type: 'weekly', daysInterval: 7, weight: 50 },      // 50% see clients weekly
+  { type: 'biweekly', daysInterval: 14, weight: 35 },   // 35% biweekly
+  { type: 'monthly', daysInterval: 28, weight: 15 },    // 15% monthly
+];
+
+function getRandomFrequency() {
+  const totalWeight = FREQUENCY_WEIGHTS.reduce((sum, f) => sum + f.weight, 0);
+  let random = Math.random() * totalWeight;
+  for (const freq of FREQUENCY_WEIGHTS) {
+    random -= freq.weight;
+    if (random <= 0) return freq;
   }
+  return FREQUENCY_WEIGHTS[0];
+}
+
+// Generate realistic client pools with session patterns
+// Each clinician has ~25-35 active clients at any time, but ~100-150 total over 3 years
+const startDate = new Date('2023-02-01');
+const endDate = new Date('2025-12-31'); // Full year of 2025
+const totalMonths = Math.round((endDate - startDate) / (1000 * 60 * 60 * 24 * 30));
+
+CLINICIANS.forEach(c => {
+  clientModels[c.id] = [];
+
+  // Clinician caseload settings
+  const targetActiveCaseload = c.id === '1' ? 30 : c.id === '2' ? 26 : c.id === '3' ? 24 : c.id === '4' ? 22 : 20;
+  const monthlyNewClients = c.id === '5' ? 1.5 : c.id === '4' ? 2 : 2.5; // Newer clinicians get fewer referrals
+  const monthlyChurnRate = 0.03; // ~3% monthly churn (typical for therapy)
+
+  // Generate clients over time with realistic patterns
+  let currentDate = new Date(startDate);
+  let activeClients = [];
+
+  while (currentDate <= endDate) {
+    const month = currentDate.getMonth();
+    const year = currentDate.getFullYear();
+
+    // Calculate how many active clients we have this month
+    activeClients = activeClients.filter(client => {
+      if (client.endDate && client.endDate <= currentDate) return false;
+      return true;
+    });
+
+    // Add new clients if below target caseload
+    const clientsNeeded = Math.max(0, targetActiveCaseload - activeClients.length);
+    const newClientsThisMonth = Math.min(clientsNeeded, Math.round(monthlyNewClients + Math.random() * 2));
+
+    for (let i = 0; i < newClientsThisMonth; i++) {
+      const clientStartDate = new Date(year, month, 1 + Math.floor(Math.random() * 28));
+      const frequency = getRandomFrequency();
+
+      // Determine if/when client will churn (some clients stay forever, some leave after a few months)
+      // Target: ~25-35% annual cohort churn for a well-run practice
+      let clientEndDate = null;
+      const churnRoll = Math.random();
+      if (churnRoll < 0.08) {
+        // 8% leave within 1-3 months (early churn - didn't find fit)
+        clientEndDate = new Date(clientStartDate);
+        clientEndDate.setMonth(clientEndDate.getMonth() + 1 + Math.floor(Math.random() * 2));
+      } else if (churnRoll < 0.18) {
+        // 10% leave within 4-12 months (completed short-term therapy)
+        clientEndDate = new Date(clientStartDate);
+        clientEndDate.setMonth(clientEndDate.getMonth() + 4 + Math.floor(Math.random() * 8));
+      } else if (churnRoll < 0.30) {
+        // 12% leave within 1-2 years (completed medium-term therapy)
+        clientEndDate = new Date(clientStartDate);
+        clientEndDate.setMonth(clientEndDate.getMonth() + 12 + Math.floor(Math.random() * 12));
+      }
+      // 70% stay long-term (ongoing therapy or beyond our data range)
+
+      // Make sure end date doesn't exceed our data range
+      if (clientEndDate && clientEndDate > endDate) {
+        clientEndDate = null;
+      }
+
+      const client = {
+        id: generateClientId(),
+        startDate: clientStartDate,
+        endDate: clientEndDate,
+        frequency: frequency,
+        clinicianId: c.id,
+      };
+
+      clientModels[c.id].push(client);
+      activeClients.push(client);
+    }
+
+    // Some existing clients churn randomly (beyond predetermined end dates)
+    for (const client of activeClients) {
+      if (!client.endDate && Math.random() < monthlyChurnRate * 0.3) {
+        client.endDate = new Date(year, month, 1 + Math.floor(Math.random() * 28));
+      }
+    }
+
+    // Move to next month
+    currentDate.setMonth(currentDate.getMonth() + 1);
+  }
+
+  console.log(`  ${c.name}: ${clientModels[c.id].length} total clients over 3 years`);
 });
 
 // CPT codes with realistic distribution
@@ -114,92 +208,59 @@ function addDays(date, days) {
 // GENERATE PAYMENT RECORDS
 // =============================================================================
 
-console.log('\nGenerating synthetic payment data...');
+console.log('\nGenerating synthetic payment data based on client session patterns...');
 
 const paymentRecords = [];
 
-// Generate data from Feb 2023 to Dec 2025 (matching original data range)
-const startDate = new Date('2023-02-01');
-const endDate = new Date('2025-12-04');
+// Generate sessions for each client based on their frequency
+CLINICIANS.forEach(clinician => {
+  const clients = clientModels[clinician.id];
 
-// Calculate total days
-const totalDays = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24));
-const recordsPerDay = Math.ceil(recordCount / totalDays);
+  clients.forEach(client => {
+    // Generate sessions from client start to end (or data end)
+    let sessionDate = new Date(client.startDate);
+    const clientEndDate = client.endDate || endDate;
+    const intervalDays = client.frequency.daysInterval;
 
-console.log(`Generating ~${recordsPerDay} records per day over ${totalDays} days`);
+    // Add some variation to session intervals (+/- 2 days)
+    while (sessionDate <= clientEndDate) {
+      // Skip weekends
+      const dayOfWeek = sessionDate.getDay();
+      if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+        const cptCode = getRandomCptCode();
+        const amount = getAmountForCpt(cptCode);
+        const datePaid = addDays(sessionDate, 1);
 
-// Distribution weights for clinicians (senior clinicians see more clients)
-const clinicianWeights = {
-  '1': 1.3,  // Sarah Chen - Clinical Director, highest volume
-  '2': 1.2,  // Maria Rodriguez - Senior Therapist
-  '3': 1.0,  // Priya Patel - Therapist
-  '4': 0.8,  // James Kim - Associate (newer)
-  '5': 0.7,  // Michael Johnson - Associate (newest)
-};
+        // Small chance of refund (0.5%)
+        const isRefund = Math.random() < 0.005;
 
-function getRandomClinician() {
-  const totalWeight = CLINICIANS.reduce((sum, c) => sum + (clinicianWeights[c.id] || 1), 0);
-  let random = Math.random() * totalWeight;
-  for (const clinician of CLINICIANS) {
-    random -= (clinicianWeights[clinician.id] || 1);
-    if (random <= 0) return clinician;
-  }
-  return CLINICIANS[0];
-}
+        // Small chance of no-show/cancellation (skip record) - 8%
+        if (Math.random() > 0.08) {
+          paymentRecords.push({
+            clinicianId: clinician.id,
+            clinician: clinician.name,
+            datePaid: formatDate(datePaid),
+            appointmentDate: formatDate(sessionDate),
+            cptCode: cptCode,
+            clientId: client.id,
+            amount: isRefund ? -amount : amount,
+          });
+        }
+      }
 
-// Generate records day by day
-let currentDate = new Date(startDate);
-let generatedCount = 0;
-
-while (currentDate <= endDate && generatedCount < recordCount) {
-  // Skip weekends (less sessions)
-  const dayOfWeek = currentDate.getDay();
-  const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-
-  // Vary sessions per day
-  let sessionsToday = isWeekend
-    ? Math.floor(Math.random() * 3) // 0-2 on weekends
-    : Math.floor(recordsPerDay * 0.7 + Math.random() * recordsPerDay * 0.6); // Vary around average
-
-  // Cap to not exceed total
-  sessionsToday = Math.min(sessionsToday, recordCount - generatedCount);
-
-  for (let i = 0; i < sessionsToday; i++) {
-    const clinician = getRandomClinician();
-    const clientPool = clientPools[clinician.id];
-    const clientId = clientPool[Math.floor(Math.random() * clientPool.length)];
-    const cptCode = getRandomCptCode();
-    const amount = getAmountForCpt(cptCode);
-
-    // Appointment date is current date, payment is usually next day
-    const appointmentDate = new Date(currentDate);
-    const datePaid = addDays(appointmentDate, 1);
-
-    // Small chance of refund (negative amount)
-    const isRefund = Math.random() < 0.005; // 0.5% refunds
-
-    paymentRecords.push({
-      clinicianId: clinician.id,
-      clinician: clinician.name,
-      datePaid: formatDate(datePaid),
-      appointmentDate: formatDate(appointmentDate),
-      cptCode: cptCode,
-      clientId: clientId,
-      amount: isRefund ? -amount : amount,
-    });
-
-    generatedCount++;
-  }
-
-  currentDate = addDays(currentDate, 1);
-}
+      // Move to next session with some variation
+      const variance = Math.floor(Math.random() * 5) - 2; // -2 to +2 days
+      sessionDate = addDays(sessionDate, intervalDays + variance);
+    }
+  });
+});
 
 // Add a few product sales (empty appointment date)
-const productSales = Math.floor(recordCount * 0.002); // 0.2% are product sales
-for (let i = 0; i < productSales && generatedCount < recordCount; i++) {
-  const clinician = getRandomClinician();
-  const clientPool = clientPools[clinician.id];
-  const clientId = clientPool[Math.floor(Math.random() * clientPool.length)];
+const productSales = Math.floor(paymentRecords.length * 0.002); // 0.2% are product sales
+for (let i = 0; i < productSales; i++) {
+  const clinician = CLINICIANS[Math.floor(Math.random() * CLINICIANS.length)];
+  const clients = clientModels[clinician.id];
+  const client = clients[Math.floor(Math.random() * clients.length)];
 
   const saleDate = new Date(startDate.getTime() + Math.random() * (endDate - startDate));
 
@@ -209,11 +270,9 @@ for (let i = 0; i < productSales && generatedCount < recordCount; i++) {
     datePaid: formatDate(saleDate),
     appointmentDate: '',
     cptCode: 'Product',
-    clientId: clientId,
+    clientId: client.id,
     amount: Math.round((50 + Math.random() * 150) / 5) * 5,
   });
-
-  generatedCount++;
 }
 
 // Sort by date paid

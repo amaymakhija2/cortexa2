@@ -206,6 +206,26 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
     return totalGrossRevenue > 0 ? (totalSupervisorCosts / totalGrossRevenue) * 100 : 0;
   }, [totalSupervisorCosts, totalGrossRevenue]);
 
+  // Hardcoded LTV chart data (memoized to prevent re-renders)
+  const hardcodedLtvData = useMemo(() => [
+    { month: 'M0', currentYear: 479, priorYear: 499 },
+    { month: 'M1', currentYear: 987, priorYear: 1046 },
+    { month: 'M2', currentYear: 1532, priorYear: 1587 },
+    { month: 'M3', currentYear: 2031, priorYear: 2084 },
+    { month: 'M4', currentYear: 2456, priorYear: 2531 },
+    { month: 'M5', currentYear: 2812, priorYear: 2789 },
+    { month: 'M6', currentYear: 3057, priorYear: 3067 },
+    { month: 'M7', currentYear: 3298, priorYear: 3312 },
+    { month: 'M8', currentYear: 3489, priorYear: 3556 },
+    { month: 'M9', currentYear: 3576, priorYear: 3800 },
+  ], []);
+
+  // LTV chart line configuration (memoized)
+  const ltvLines = useMemo(() => [
+    { dataKey: 'currentYear', color: '#10b981', activeColor: '#059669', name: '2025' },
+    { dataKey: 'priorYear', color: '#3b82f6', activeColor: '#2563eb', name: '2024' },
+  ], []);
+
   // =========================================================================
   // FORMATTERS
   // =========================================================================
@@ -220,6 +240,13 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
   const formatCurrencyShort = (value: number) => {
     return `$${(value / 1000).toFixed(0)}k`;
   };
+
+  // Memoized formatter functions for charts (to prevent re-renders)
+  const ltvYTickFormatter = useMemo(() => (v: number) => `$${(v / 1000).toFixed(1)}k`, []);
+  const ltvTooltipFormatter = useMemo(() => (value: number, name: string): [string, string] => [
+    `$${value.toLocaleString()}`,
+    name,
+  ], []);
 
   // =========================================================================
   // CHART DATA (formatted for BarChart component)
@@ -436,44 +463,14 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
                     active={showClinicianBreakdown}
                     onToggle={() => setShowClinicianBreakdown(!showClinicianBreakdown)}
                     icon={<Users size={16} />}
-                    hidden={!!hoveredClinicianBar}
                   />
-                  <GoalIndicator
-                    value={revenueGoalDisplay}
-                    label="Goal"
-                    color="amber"
-                    hidden={showClinicianBreakdown || !!hoveredClinicianBar}
-                  />
-                  {/* Hover tooltip for clinician segment */}
-                  {hoveredClinicianBar && (
-                    <div
-                      className="flex items-center gap-3 px-4 py-2 rounded-xl"
-                      style={{ backgroundColor: `${hoveredClinicianBar.color}15` }}
-                    >
-                      <div
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: hoveredClinicianBar.color }}
-                      />
-                      <span className="text-stone-700 font-semibold">
-                        {hoveredClinicianBar.segmentLabel}
-                      </span>
-                      <span
-                        className="font-bold"
-                        style={{ color: hoveredClinicianBar.color }}
-                      >
-                        {formatCurrencyShort(hoveredClinicianBar.value)}
-                      </span>
-                      <span className="text-stone-500 text-sm">
-                        in {hoveredClinicianBar.label}
-                      </span>
-                    </div>
+                  {!showClinicianBreakdown && (
+                    <GoalIndicator
+                      value={revenueGoalDisplay}
+                      label="Goal"
+                      color="amber"
+                    />
                   )}
-{/* Report button hidden for now
-                  <ActionButton
-                    label="Revenue Report"
-                    icon={<ArrowRight size={16} />}
-                  />
-*/}
                 </>
               }
               expandable
@@ -490,6 +487,8 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
                   stackOrder={CLINICIAN_STACK_ORDER}
                   formatValue={formatCurrencyShort}
                   onHover={setHoveredClinicianBar}
+                  hoverInfo={hoveredClinicianBar}
+                  formatHoverValue={formatCurrencyShort}
                   showLegend
                   legendPosition="top-right"
                   height="380px"
@@ -561,29 +560,12 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
                 ]}
               >
                 <LineChart
-                  data={[
-                    { month: 'M0', currentYear: 479, priorYear: 499 },
-                    { month: 'M1', currentYear: 987, priorYear: 1046 },
-                    { month: 'M2', currentYear: 1532, priorYear: 1587 },
-                    { month: 'M3', currentYear: 2031, priorYear: 2084 },
-                    { month: 'M4', currentYear: 2456, priorYear: 2531 },
-                    { month: 'M5', currentYear: 2812, priorYear: 2789 },
-                    { month: 'M6', currentYear: 3057, priorYear: 3067 },
-                    { month: 'M7', currentYear: 3298, priorYear: 3312 },
-                    { month: 'M8', currentYear: 3489, priorYear: 3556 },
-                    { month: 'M9', currentYear: 3576, priorYear: 3800 },
-                  ]}
+                  data={hardcodedLtvData}
                   xAxisKey="month"
-                  lines={[
-                    { dataKey: 'currentYear', color: '#10b981', activeColor: '#059669', name: '2025' },
-                    { dataKey: 'priorYear', color: '#3b82f6', activeColor: '#2563eb', name: '2024' },
-                  ]}
+                  lines={ltvLines}
                   yDomain={[0, 5000]}
-                  yTickFormatter={(v) => `$${(v / 1000).toFixed(1)}k`}
-                  tooltipFormatter={(value: number, name: string) => [
-                    `$${value.toLocaleString()}`,
-                    name,
-                  ]}
+                  yTickFormatter={ltvYTickFormatter}
+                  tooltipFormatter={ltvTooltipFormatter}
                 />
               </SimpleChartCard>
             )}
@@ -708,29 +690,12 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
                 ]}
               >
                 <LineChart
-                  data={[
-                    { month: 'M0', currentYear: 479, priorYear: 499 },
-                    { month: 'M1', currentYear: 987, priorYear: 1046 },
-                    { month: 'M2', currentYear: 1532, priorYear: 1587 },
-                    { month: 'M3', currentYear: 2031, priorYear: 2084 },
-                    { month: 'M4', currentYear: 2456, priorYear: 2531 },
-                    { month: 'M5', currentYear: 2812, priorYear: 2789 },
-                    { month: 'M6', currentYear: 3057, priorYear: 3067 },
-                    { month: 'M7', currentYear: 3298, priorYear: 3312 },
-                    { month: 'M8', currentYear: 3489, priorYear: 3556 },
-                    { month: 'M9', currentYear: 3576, priorYear: 3800 },
-                  ]}
+                  data={hardcodedLtvData}
                   xAxisKey="month"
-                  lines={[
-                    { dataKey: 'currentYear', color: '#10b981', activeColor: '#059669', name: '2025' },
-                    { dataKey: 'priorYear', color: '#3b82f6', activeColor: '#2563eb', name: '2024' },
-                  ]}
+                  lines={ltvLines}
                   yDomain={[0, 5000]}
-                  yTickFormatter={(v) => `$${(v / 1000).toFixed(1)}k`}
-                  tooltipFormatter={(value: number, name: string) => [
-                    `$${value.toLocaleString()}`,
-                    name,
-                  ]}
+                  yTickFormatter={ltvYTickFormatter}
+                  tooltipFormatter={ltvTooltipFormatter}
                 />
               </SimpleChartCard>
             </Grid>

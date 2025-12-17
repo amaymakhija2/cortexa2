@@ -138,6 +138,19 @@ export interface BarChartProps {
    */
   legendPosition?: 'bottom' | 'top-right';
 
+  /**
+   * Current hover info - when provided, replaces the legend with hover details
+   * Pass the same value received from onHover callback
+   */
+  hoverInfo?: HoverInfo | null;
+
+  /**
+   * Format function for hover tooltip value
+   * @param value - The value to format
+   * @returns Formatted string
+   */
+  formatHoverValue?: (value: number) => string;
+
   /** Additional className for the container */
   className?: string;
 }
@@ -273,6 +286,8 @@ export const BarChart: React.FC<BarChartProps> = ({
   height = '320px',
   showLegend = false,
   legendPosition = 'bottom',
+  hoverInfo,
+  formatHoverValue,
   className = '',
 }) => {
   // Get size configuration
@@ -518,20 +533,49 @@ export const BarChart: React.FC<BarChartProps> = ({
             </div>
           )}
 
-          {/* Top-right floating legend */}
+          {/* Top-right floating legend / hover info */}
           {showLegend && mode === 'stacked' && legendPosition === 'top-right' && segments.length > 0 && (
-            <div className="absolute top-0 right-0 z-20 flex items-center gap-4 bg-white/90 backdrop-blur-sm rounded-xl px-4 py-2.5 shadow-sm border border-stone-100">
-              {segments.map((segment) => (
-                <div key={segment.key} className="flex items-center gap-2">
+            <div
+              className="absolute top-0 right-0 z-20 flex items-center gap-4 rounded-xl px-4 py-2.5 shadow-sm border border-stone-100 transition-all duration-150"
+              style={{
+                backgroundColor: hoverInfo ? `${hoverInfo.color}15` : 'rgba(255,255,255,0.9)',
+                backdropFilter: 'blur(8px)',
+              }}
+            >
+              {hoverInfo ? (
+                /* Hover info display */
+                <>
                   <div
-                    className="w-3.5 h-3.5 rounded-full"
-                    style={{ backgroundColor: segment.color }}
+                    className="w-3.5 h-3.5 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: hoverInfo.color }}
                   />
                   <span className="text-sm font-semibold text-stone-700">
-                    {segment.label}
+                    {hoverInfo.segmentLabel}
                   </span>
-                </div>
-              ))}
+                  <span
+                    className="text-sm font-bold"
+                    style={{ color: hoverInfo.color }}
+                  >
+                    {formatHoverValue ? formatHoverValue(hoverInfo.value) : formatValue(hoverInfo.value)}
+                  </span>
+                  <span className="text-stone-500 text-sm">
+                    in {hoverInfo.label}
+                  </span>
+                </>
+              ) : (
+                /* Default legend */
+                segments.map((segment) => (
+                  <div key={segment.key} className="flex items-center gap-2">
+                    <div
+                      className="w-3.5 h-3.5 rounded-full"
+                      style={{ backgroundColor: segment.color }}
+                    />
+                    <span className="text-sm font-semibold text-stone-700">
+                      {segment.label}
+                    </span>
+                  </div>
+                ))
+              )}
             </div>
           )}
 

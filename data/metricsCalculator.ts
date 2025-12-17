@@ -428,6 +428,44 @@ function getClinicianActiveClientsForMonth(clinicianId: string, month: number, y
   return getClinicianActiveClients(clinicianId, monthRecords).length;
 }
 
+// Get the SET of active client IDs for a clinician in a specific month
+function getClinicianActiveClientIdsForMonth(clinicianId: string, month: number, year: number): Set<string> {
+  const { start, end } = getMonthRange(month, year);
+  const monthRecords = filterByDateRange(PAYMENT_DATA, start, end);
+  const clientIds = getClinicianActiveClients(clinicianId, monthRecords);
+  return new Set(clientIds);
+}
+
+// Calculate cohort-based retention: of clients active at start, how many are still active at end
+// This is the correct way to calculate churn - tracking the same clients over time
+function getClinicianCohortRetention(
+  clinicianId: string,
+  startMonth: number,
+  startYear: number,
+  endMonth: number,
+  endYear: number
+): { startingClients: number; retained: number; churned: number; churnRate: number } {
+  // Get the cohort: clients who were active in the start month
+  const startCohort = getClinicianActiveClientIdsForMonth(clinicianId, startMonth, startYear);
+
+  // Get clients active in the end month
+  const endActive = getClinicianActiveClientIdsForMonth(clinicianId, endMonth, endYear);
+
+  // Count how many from the start cohort are still active
+  let retained = 0;
+  startCohort.forEach(clientId => {
+    if (endActive.has(clientId)) {
+      retained++;
+    }
+  });
+
+  const startingClients = startCohort.size;
+  const churned = startingClients - retained;
+  const churnRate = startingClients > 0 ? (churned / startingClients) * 100 : 0;
+
+  return { startingClients, retained, churned, churnRate };
+}
+
 // Calculate metrics for all clinicians for a given time period
 export function calculateClinicianMetrics(
   startDate: Date,
@@ -450,9 +488,22 @@ export function calculateClinicianMetrics(
     const sessions = calculateSessions(clinicianRecords);
     const activeClients = getClinicianActiveClients(clinicianId, periodRecords);
     const avgActiveClients = getClinicianAvgActiveClients(clinicianId, startDate, endDate);
-    const activeClientsStart = getClinicianActiveClientsForMonth(clinicianId, startMonth, startYear);
-    const activeClientsEnd = getClinicianActiveClientsForMonth(clinicianId, endMonth, endYear);
-    const churnedClients = getClinicianChurnedClients(clinicianId, startDate, endDate);
+
+    // Use cohort-based retention: track the SAME clients from start to end
+    // This answers: "Of the clients we had at the start, how many are still with us?"
+    const cohortRetention = getClinicianCohortRetention(
+      clinicianId,
+      startMonth,
+      startYear,
+      endMonth,
+      endYear
+    );
+
+    // activeClientsStart = starting cohort size
+    // activeClientsEnd = how many from that cohort are still active (retained)
+    // Note: activeClientsEnd here is NOT total active clients at end, it's retained from start
+    const activeClientsStart = cohortRetention.startingClients;
+    const activeClientsEnd = cohortRetention.retained; // Retained from starting cohort
 
     // Find clinician name from CLINICIANS array
     const clinician = CLINICIANS.find(c => c.id === clinicianId);
@@ -469,9 +520,9 @@ export function calculateClinicianMetrics(
       activeClientsStart,
       activeClientsEnd,
       newClients: 0, // Will be calculated separately for specific month
-      clientsChurned: churnedClients.length,
+      clientsChurned: cohortRetention.churned,
       avgSessionsPerClient: activeClients.length > 0 ? sessions / activeClients.length : 0,
-      churnRate: activeClientsStart > 0 ? (churnedClients.length / activeClientsStart) * 100 : 0,
+      churnRate: cohortRetention.churnRate,
     };
   });
 }
