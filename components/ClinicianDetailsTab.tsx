@@ -18,6 +18,7 @@ import {
   ClientRosterCard,
   DataTableCard,
   StackedBarCard,
+  ExpandedChartModal,
 } from './design-system';
 import type { ClientData } from './design-system';
 
@@ -872,6 +873,9 @@ export const ClinicianDetailsTab: React.FC = () => {
 
   // Animation state for clinician change
   const [isTransitioning, setIsTransitioning] = useState(false);
+
+  // Expanded chart modal state
+  const [expandedCard, setExpandedCard] = useState<string | null>(null);
 
   // Toggle for sessions view (monthly total vs weekly average)
   const [showWeeklyAvg, setShowWeeklyAvg] = useState(false);
@@ -2363,6 +2367,7 @@ export const ClinicianDetailsTab: React.FC = () => {
               }
               insights={revenueInsights}
               minHeight="420px"
+              onExpand={() => setExpandedCard('monthly-revenue')}
             >
               <BarChart
                 data={revenueBarData}
@@ -2422,6 +2427,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                 }
                 insights={sessionInsights}
                 minHeight="420px"
+                onExpand={() => setExpandedCard('monthly-sessions')}
               >
                 <BarChart
                   data={showWeeklyAvg ? sessionWeeklyBarData : sessionBarData}
@@ -2455,6 +2461,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                 centerValue={`${showRate.toFixed(1)}%`}
                 centerValueColor={showRate >= 87.5 ? 'text-emerald-600' : 'text-rose-600'}
                 valueFormat="number"
+                onExpand={() => setExpandedCard('attendance-breakdown')}
               />
 
               {/* Clinician Cancellations Chart */}
@@ -2463,6 +2470,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                 subtitle={`How often ${selectedClinician.name.split(' ')[0]} cancels sessions`}
                 insights={clinicianCancellationInsights}
                 minHeight="320px"
+                onExpand={() => setExpandedCard('clinician-cancellations')}
               >
                 <BarChart
                   data={clinicianCancellationsBarData}
@@ -2533,6 +2541,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                 }
                 insights={showCapacityPercentage ? capacityInsights : activeClientsInsights}
                 minHeight="420px"
+                onExpand={() => setExpandedCard('caseload-capacity')}
               >
                 {showCapacityPercentage ? (
                   <BarChart
@@ -2591,6 +2600,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                 centerValue={totalSessionFrequencyClients.toString()}
                 centerValueColor={weeklyEngagementPercent >= 50 ? 'text-emerald-600' : 'text-amber-600'}
                 valueFormat="number"
+                onExpand={() => setExpandedCard('session-frequency')}
               />
 
               {/* Client Demographics - 3 stacked bar cards */}
@@ -2661,6 +2671,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                 }
                 insights={clientMovementInsights}
                 minHeight="420px"
+                onExpand={() => setExpandedCard('client-movement')}
               >
                 <DivergingBarChart
                   data={clientMovementData}
@@ -2691,14 +2702,16 @@ export const ClinicianDetailsTab: React.FC = () => {
                 centerValue={churnTimingTotals.total.toString()}
                 valueFormat="number"
                 size="md"
+                onExpand={() => setExpandedCard('churn-timing')}
               />
 
-              {/* Retention Comparison Table */}
+              {/* Retention Comparison Table - spans full width */}
               <DataTableCard
                 title="Retention Comparison"
                 subtitle={`How ${selectedClinician.name.split(' ')[0]}'s retention compares to the practice`}
                 columns={retentionTableColumns}
                 rows={retentionTableRows}
+                className="col-span-2"
               />
             </Grid>
           </SectionContainer>
@@ -2737,6 +2750,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                 }
                 valueFormat="number"
                 size="md"
+                onExpand={() => setExpandedCard('outstanding-notes')}
               />
 
               {/* Overdue Notes List - Using design system patterns */}
@@ -2858,6 +2872,276 @@ export const ClinicianDetailsTab: React.FC = () => {
           }
         }
       `}</style>
+
+      {/* ============================================
+          EXPANDED CHART MODALS
+          ============================================ */}
+
+      {/* Monthly Revenue Expanded */}
+      {selectedClinician && financialData && (
+        <ExpandedChartModal
+          isOpen={expandedCard === 'monthly-revenue'}
+          onClose={() => setExpandedCard(null)}
+          title="Monthly Gross Revenue"
+          subtitle={`How much ${selectedClinician.name.split(' ')[0]} is collecting each month`}
+        >
+          <BarChart
+            data={revenueBarData}
+            mode="single"
+            goal={{ value: financialData.revenueGoal }}
+            getBarColor={(value) =>
+              value >= financialData.revenueGoal
+                ? {
+                    gradient: 'linear-gradient(180deg, #34d399 0%, #059669 100%)',
+                    shadow: '0 4px 12px -2px rgba(16, 185, 129, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
+                    textColor: 'text-emerald-600',
+                  }
+                : {
+                    gradient: 'linear-gradient(180deg, #60a5fa 0%, #2563eb 100%)',
+                    shadow: '0 4px 12px -2px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
+                    textColor: 'text-blue-600',
+                  }
+            }
+            formatValue={formatCurrencyShort}
+            height="400px"
+            size="lg"
+          />
+        </ExpandedChartModal>
+      )}
+
+      {/* Monthly Sessions Expanded */}
+      {selectedClinician && sessionData && (
+        <ExpandedChartModal
+          isOpen={expandedCard === 'monthly-sessions'}
+          onClose={() => setExpandedCard(null)}
+          title="Monthly Sessions"
+          subtitle={showWeeklyAvg ? `${selectedClinician.name.split(' ')[0]}'s average sessions per week` : `How many sessions ${selectedClinician.name.split(' ')[0]} completes each month`}
+        >
+          <BarChart
+            data={showWeeklyAvg ? sessionWeeklyBarData : sessionBarData}
+            mode="single"
+            goal={{ value: showWeeklyAvg ? weeklySessionGoal : monthlySessionGoal }}
+            getBarColor={(value) => {
+              const goal = showWeeklyAvg ? weeklySessionGoal : monthlySessionGoal;
+              return value >= goal
+                ? {
+                    gradient: 'linear-gradient(180deg, #34d399 0%, #059669 100%)',
+                    shadow: '0 4px 12px -2px rgba(16, 185, 129, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
+                    textColor: 'text-emerald-600',
+                  }
+                : {
+                    gradient: 'linear-gradient(180deg, #60a5fa 0%, #2563eb 100%)',
+                    shadow: '0 4px 12px -2px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
+                    textColor: 'text-blue-600',
+                  };
+            }}
+            formatValue={(v) => v.toString()}
+            height="400px"
+            size="lg"
+          />
+        </ExpandedChartModal>
+      )}
+
+      {/* Attendance Breakdown Expanded */}
+      {selectedClinician && sessionData && (
+        <ExpandedChartModal
+          isOpen={expandedCard === 'attendance-breakdown'}
+          onClose={() => setExpandedCard(null)}
+          title="Attendance Breakdown"
+          subtitle={`What happens to ${selectedClinician.name.split(' ')[0]}'s booked sessions`}
+        >
+          <DonutChartCard
+            title=""
+            segments={attendanceSegments}
+            centerLabel="Show Rate"
+            centerValue={`${showRate.toFixed(1)}%`}
+            centerValueColor={showRate >= 87.5 ? 'text-emerald-600' : 'text-rose-600'}
+            valueFormat="number"
+            size="lg"
+          />
+        </ExpandedChartModal>
+      )}
+
+      {/* Clinician Cancellations Expanded */}
+      {selectedClinician && sessionData && (
+        <ExpandedChartModal
+          isOpen={expandedCard === 'clinician-cancellations'}
+          onClose={() => setExpandedCard(null)}
+          title="Clinician Cancellations"
+          subtitle={`How often ${selectedClinician.name.split(' ')[0]} cancels sessions`}
+        >
+          <BarChart
+            data={clinicianCancellationsBarData}
+            mode="single"
+            getBarColor={(value) => {
+              const avg = totalClinicianCancelled / 12;
+              return value > avg * 1.5
+                ? {
+                    gradient: 'linear-gradient(180deg, #f87171 0%, #dc2626 100%)',
+                    shadow: '0 4px 12px -2px rgba(220, 38, 38, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
+                    textColor: 'text-red-600',
+                  }
+                : {
+                    gradient: 'linear-gradient(180deg, #60a5fa 0%, #2563eb 100%)',
+                    shadow: '0 4px 12px -2px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
+                    textColor: 'text-blue-600',
+                  };
+            }}
+            formatValue={(v) => Math.round(v).toString()}
+            height="400px"
+            size="lg"
+          />
+        </ExpandedChartModal>
+      )}
+
+      {/* Caseload Capacity Expanded */}
+      {selectedClinician && caseloadData && (
+        <ExpandedChartModal
+          isOpen={expandedCard === 'caseload-capacity'}
+          onClose={() => setExpandedCard(null)}
+          title="Active Clients & Caseload Capacity"
+          subtitle={`How full ${selectedClinician.name.split(' ')[0]}'s caseload is each month`}
+        >
+          {showCapacityPercentage ? (
+            <BarChart
+              data={capacityPercentageBarData}
+              mode="single"
+              getBarColor={(value) => ({
+                gradient: value >= 90
+                  ? 'linear-gradient(180deg, #34d399 0%, #059669 100%)'
+                  : value >= 75
+                    ? 'linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%)'
+                    : 'linear-gradient(180deg, #fb7185 0%, #f43f5e 100%)',
+                shadow: value >= 90
+                  ? '0 4px 12px -2px rgba(16, 185, 129, 0.35)'
+                  : value >= 75
+                    ? '0 4px 12px -2px rgba(245, 158, 11, 0.35)'
+                    : '0 4px 12px -2px rgba(244, 63, 94, 0.35)',
+                textColor: value >= 90
+                  ? 'text-emerald-600'
+                  : value >= 75
+                    ? 'text-amber-600'
+                    : 'text-rose-600',
+              })}
+              formatValue={(v) => `${v}%`}
+              maxValue={100}
+              height="400px"
+              size="lg"
+            />
+          ) : (
+            <BarChart
+              data={activeClientsBarData}
+              mode="single"
+              goal={{ value: currentCapacity }}
+              getBarColor={() => ({
+                gradient: 'linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%)',
+                shadow: '0 4px 12px -2px rgba(245, 158, 11, 0.35)',
+                textColor: 'text-amber-600',
+              })}
+              formatValue={(v) => v.toString()}
+              height="400px"
+              size="lg"
+            />
+          )}
+        </ExpandedChartModal>
+      )}
+
+      {/* Session Frequency Expanded */}
+      {selectedClinician && caseloadData && (
+        <ExpandedChartModal
+          isOpen={expandedCard === 'session-frequency'}
+          onClose={() => setExpandedCard(null)}
+          title="Client Session Frequency"
+          subtitle={`How often ${selectedClinician.name.split(' ')[0]}'s clients come in`}
+        >
+          <DonutChartCard
+            title=""
+            segments={sessionFrequencySegments}
+            centerLabel="Active"
+            centerValue={totalSessionFrequencyClients.toString()}
+            centerValueColor={weeklyEngagementPercent >= 50 ? 'text-emerald-600' : 'text-amber-600'}
+            valueFormat="number"
+            size="lg"
+          />
+        </ExpandedChartModal>
+      )}
+
+      {/* Client Movement Expanded */}
+      {selectedClinician && caseloadData && (
+        <ExpandedChartModal
+          isOpen={expandedCard === 'client-movement'}
+          onClose={() => setExpandedCard(null)}
+          title="New and Churned Clients Per Month"
+          subtitle={`How ${selectedClinician.name.split(' ')[0]}'s client base is changing`}
+        >
+          <DivergingBarChart
+            data={clientMovementData}
+            positiveConfig={{
+              label: 'New Clients',
+              color: '#34d399',
+              colorEnd: '#10b981',
+            }}
+            negativeConfig={{
+              label: 'Churned',
+              color: '#fb7185',
+              colorEnd: '#f43f5e',
+            }}
+            height="400px"
+          />
+        </ExpandedChartModal>
+      )}
+
+      {/* Churn Timing Expanded */}
+      {selectedClinician && caseloadData && (
+        <ExpandedChartModal
+          isOpen={expandedCard === 'churn-timing'}
+          onClose={() => setExpandedCard(null)}
+          title="Churn Timing"
+          subtitle={`How far ${selectedClinician.name.split(' ')[0]}'s clients get before leaving`}
+        >
+          <DonutChartCard
+            title=""
+            segments={[
+              { label: 'Early (<5 sessions)', value: churnTimingTotals.early, color: '#ef4444' },
+              { label: 'Medium (5-15)', value: churnTimingTotals.medium, color: '#f59e0b' },
+              { label: 'Late (>15)', value: churnTimingTotals.late, color: '#10b981' },
+            ]}
+            centerLabel="Total Churned"
+            centerValue={churnTimingTotals.total.toString()}
+            valueFormat="number"
+            size="lg"
+          />
+        </ExpandedChartModal>
+      )}
+
+      {/* Outstanding Notes Expanded */}
+      {selectedClinician && complianceData && (
+        <ExpandedChartModal
+          isOpen={expandedCard === 'outstanding-notes'}
+          onClose={() => setExpandedCard(null)}
+          title="Outstanding Notes"
+          subtitle={`How many notes ${selectedClinician.name.split(' ')[0]} needs to complete`}
+        >
+          <DonutChartCard
+            title=""
+            segments={[
+              { label: 'Overdue', value: complianceData.overdueNotes, color: '#ef4444' },
+              { label: 'Due within 48h', value: complianceData.dueWithin48h, color: '#f59e0b' },
+            ]}
+            centerLabel="Total"
+            centerValue={complianceData.outstandingNotes.toString()}
+            centerValueColor={
+              complianceData.overdueNotes === 0
+                ? 'text-emerald-600'
+                : complianceData.overdueNotes <= 3
+                  ? 'text-amber-600'
+                  : 'text-rose-600'
+            }
+            valueFormat="number"
+            size="lg"
+          />
+        </ExpandedChartModal>
+      )}
     </>
   );
 };

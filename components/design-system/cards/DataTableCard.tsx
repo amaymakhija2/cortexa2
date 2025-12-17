@@ -288,11 +288,16 @@ export const DataTableCard: React.FC<DataTableCardProps> = ({
                   background: 'linear-gradient(180deg, rgba(245, 245, 244, 0.8) 0%, rgba(250, 250, 249, 0.4) 100%)',
                 }}
               >
-                {/* Empty header for label column */}
+                {/* Header for label column */}
                 <th
                   className={`text-left ${sizeConfig.thFirstClass} font-semibold text-stone-600 uppercase tracking-wider`}
-                  style={{ borderBottom: '2px solid rgba(214, 211, 209, 0.5)' }}
-                ></th>
+                  style={{
+                    borderBottom: '2px solid rgba(214, 211, 209, 0.5)',
+                    width: '40%',
+                  }}
+                >
+                  Metric
+                </th>
                 {columns.map((col, index) => (
                   <th
                     key={col.key}
@@ -302,19 +307,16 @@ export const DataTableCard: React.FC<DataTableCardProps> = ({
                     style={{
                       borderBottom: '2px solid rgba(214, 211, 209, 0.5)',
                       textAlign: col.align || 'left',
+                      width: `${60 / columns.length}%`,
                       ...(col.isTotals && {
                         background: 'rgba(245, 245, 244, 0.6)',
                       }),
                     }}
                   >
-                    <span className="inline-flex items-center relative pr-5">
+                    <div className={`flex items-center gap-1 ${col.align === 'right' ? 'justify-end' : col.align === 'center' ? 'justify-center' : 'justify-start'}`}>
                       {col.header}
-                      {col.tooltip && (
-                        <span className="absolute top-1/2 -translate-y-1/2 -right-0.5">
-                          <HeaderTooltip text={col.tooltip} />
-                        </span>
-                      )}
-                    </span>
+                      {col.tooltip && <HeaderTooltip text={col.tooltip} />}
+                    </div>
                   </th>
                 ))}
               </tr>
@@ -334,7 +336,10 @@ export const DataTableCard: React.FC<DataTableCardProps> = ({
                     }}
                   >
                     {/* Row label with optional indicator */}
-                    <td className={`${sizeConfig.tdPadding} group-hover:bg-stone-50/50 whitespace-nowrap`}>
+                    <td
+                      className={`${sizeConfig.tdPadding} group-hover:bg-stone-50/50 whitespace-nowrap`}
+                      style={{ width: '40%' }}
+                    >
                       <div className={`flex items-center ${sizeConfig.indicatorGap}`}>
                         {row.indicator && (
                           <div
