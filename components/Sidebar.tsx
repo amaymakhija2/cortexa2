@@ -242,7 +242,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const handleSubItemClick = (itemId: string) => {
     const newParams = new URLSearchParams(searchParams);
     newParams.set('tab', itemId);
-    setSearchParams(newParams);
+    setSearchParams(newParams, { replace: true });
     setMobileMenuOpen?.(false);
   };
 
@@ -517,7 +517,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                                   }}
                                   className={`
                                     w-full text-left pl-4 pr-3 py-2 text-[14px]
-                                    transition-all duration-150 relative whitespace-nowrap
+                                    relative whitespace-nowrap
                                     ${isSubActive
                                       ? 'text-stone-100'
                                       : 'text-stone-500 hover:text-stone-200'
