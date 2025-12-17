@@ -118,26 +118,50 @@ Categorizes when clients leave based on how many sessions they completed before 
 
 ## Return Rate Metrics
 
-Return Rate measures early client engagement — whether clients come back for subsequent sessions. This is different from Retention Rate, which measures ongoing month-to-month loyalty.
+Return Rate measures client engagement and progression — whether clients continue coming back over time. This is different from Retention Rate, which measures ongoing month-to-month loyalty. Return Rate can be measured by session milestones or time milestones.
 
-### Session 2 Return Rate
-The percentage of new clients who return for their second session.
+### Return Rate by Session
 
-**Formula:** Clients who completed session 2 ÷ Clients who completed session 1 × 100
+Measures what percentage of clients reach each session milestone. Used to identify where in the client journey drop-off occurs.
 
-**Example:** 10 new clients started this quarter. 7 returned for session 2 → Session 2 Return Rate = 70%
+| Milestone | Description |
+|-----------|-------------|
+| **Session 2** | % of clients who return for their second session |
+| **Session 5** | % of clients who reach session 5 (key engagement threshold) |
+| **Session 12** | % of clients who reach session 12 (established relationship) |
+| **Session 24** | % of clients who reach session 24 (long-term clients) |
 
-### Session 3 Return Rate
-The percentage of new clients who return for their third session. Clients who reach session 3 are significantly more likely to become long-term clients.
+**Formula:** Clients who reached milestone ÷ Clients who started × 100
 
-**Formula:** Clients who completed session 3 ÷ Clients who completed session 1 × 100
+**Example:** 100 new clients started. 76 reached session 5 → Session 5 Return Rate = 76%
 
-**Example:** 10 new clients started this quarter. 6 reached session 3 → Session 3 Return Rate = 60%
+### Return Rate by Time
 
-### Session 5 Return Rate
-The percentage of new clients who reach their fifth session.
+Measures what percentage of clients remain active at each time milestone. Used to understand how long clients stay engaged with the practice.
 
-**Formula:** Clients who completed session 5 ÷ Clients who completed session 1 × 100
+| Milestone | Description |
+|-----------|-------------|
+| **1 Month** | % of clients still active after 1 month |
+| **3 Months** | % of clients still active after 3 months |
+| **6 Months** | % of clients still active after 6 months |
+
+**Formula:** Clients still active at milestone ÷ Clients who started × 100
+
+**Example:** 100 new clients started. 72 are still active at 3 months → 3-Month Return Rate = 72%
+
+### Industry Benchmarks
+
+Return rates can be compared against industry averages to assess practice performance:
+
+| Milestone | Typical Industry Avg |
+|-----------|---------------------|
+| Session 2 | 82% |
+| Session 5 | 65% |
+| Session 12 | 45% |
+| Session 24 | 28% |
+| 1 Month | 78% |
+| 3 Months | 55% |
+| 6 Months | 38% |
 
 ---
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   LineChart as RechartsLineChart,
   Line,
@@ -64,6 +64,8 @@ export interface LineChartProps {
   referenceLines?: ReferenceLineConfig[];
   /** Whether to show reference lines on the chart (defaults to true) */
   showReferenceLines?: boolean;
+  /** Whether to animate only on initial mount (defaults to true to prevent re-animation on parent re-renders) */
+  animateOnce?: boolean;
 }
 
 /**
@@ -113,10 +115,25 @@ export const LineChart: React.FC<LineChartProps> = ({
   areaFillId,
   referenceLines = [],
   showReferenceLines = true,
+  animateOnce = true,
 }) => {
+  // Track if initial animation has completed to prevent re-animation on re-renders
+  const [hasAnimated, setHasAnimated] = useState(false);
+
+  useEffect(() => {
+    if (animateOnce && !hasAnimated) {
+      // Mark animation as complete after the animation duration
+      const timer = setTimeout(() => setHasAnimated(true), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [animateOnce, hasAnimated]);
+
+  // Only animate on first render if animateOnce is true
+  const shouldAnimate = animateOnce ? !hasAnimated : true;
+
   return (
     <ResponsiveContainer width="100%" height={height}>
-      <RechartsLineChart data={data} margin={{ top: 20, right: 30, bottom: 30, left: 30 }}>
+      <RechartsLineChart data={data} margin={{ top: 10, right: 10, bottom: 5, left: 0 }}>
         {/* Area fill gradient definitions */}
         {showAreaFill && (
           <defs>
@@ -157,18 +174,18 @@ export const LineChart: React.FC<LineChartProps> = ({
           dataKey={xAxisKey}
           axisLine={false}
           tickLine={false}
-          tick={{ fill: '#57534e', fontSize: 15, fontWeight: 600 }}
-          dy={12}
-          height={50}
+          tick={{ fill: '#57534e', fontSize: 14, fontWeight: 600 }}
+          dy={8}
+          height={40}
         />
 
         <YAxis
           axisLine={false}
           tickLine={false}
-          tick={{ fill: lines[0]?.color || '#57534e', fontSize: 14, fontWeight: 700 }}
+          tick={{ fill: lines[0]?.color || '#57534e', fontSize: 13, fontWeight: 700 }}
           domain={yDomain}
           tickFormatter={yTickFormatter}
-          width={55}
+          width={45}
         />
 
         <Tooltip
@@ -210,7 +227,7 @@ export const LineChart: React.FC<LineChartProps> = ({
             dot={{ fill: line.color, r: 7, strokeWidth: 4, stroke: '#fff' }}
             activeDot={{ r: 10, strokeWidth: 4, stroke: '#fff', fill: line.activeColor || line.color }}
             fill={showAreaFill ? `url(#${areaFillId || `lineGradient-${line.dataKey}`})` : undefined}
-            isAnimationActive={true}
+            isAnimationActive={shouldAnimate}
             animationDuration={800}
             animationBegin={idx * 150}
             animationEasing="ease-out"
