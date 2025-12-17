@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { Users } from 'lucide-react';
 import {
   PageHeader,
@@ -12,8 +12,8 @@ import {
   StatCard,
   ToggleButton,
   BarChart,
+  LineChart,
   ExpandedChartModal,
-  RetentionFunnelCard,
   CohortSelector,
 } from '../design-system';
 import type { HoverInfo } from '../design-system';
@@ -55,13 +55,53 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
   churnByFrequencyData,
 }) => {
   // =========================================================================
-  // LOCAL STATE
+  // LOCAL STATE & REFS
   // =========================================================================
 
   const [selectedCohort, setSelectedCohort] = useState<string | null>(null);
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const [showClinicianBreakdown, setShowClinicianBreakdown] = useState(false);
   const [hoveredClinicianBar, setHoveredClinicianBar] = useState<HoverInfo | null>(null);
+
+  // Ref for the data section to scroll into view
+  const dataSectionRef = useRef<HTMLDivElement>(null);
+  const previousCohort = useRef<string | null>(null);
+
+  // =========================================================================
+  // SCROLL INTO VIEW ON COHORT SELECTION
+  // =========================================================================
+
+  const handleCohortSelect = useCallback((cohortId: string | null) => {
+    const wasNull = previousCohort.current === null;
+    previousCohort.current = cohortId;
+    setSelectedCohort(cohortId);
+
+    // Scroll when selecting a cohort for the first time (from no selection)
+    if (cohortId && wasNull) {
+      // Wait for the content to render and animate in
+      setTimeout(() => {
+        if (dataSectionRef.current) {
+          // Find the scrollable parent container
+          const scrollableParent = dataSectionRef.current.closest('.overflow-y-auto');
+          if (scrollableParent) {
+            // Calculate scroll position to show data with some context above
+            const containerRect = scrollableParent.getBoundingClientRect();
+            const elementRect = dataSectionRef.current.getBoundingClientRect();
+            const currentScroll = scrollableParent.scrollTop;
+
+            // Scroll to show the data section with ~80px padding from top
+            // This keeps some of the cohort selector visible for context
+            const targetScroll = currentScroll + (elementRect.top - containerRect.top) - 80;
+
+            scrollableParent.scrollTo({
+              top: targetScroll,
+              behavior: 'smooth',
+            });
+          }
+        }
+      }, 250); // Delay to let the reveal animation start first
+    }
+  }, []);
 
   // =========================================================================
   // COMPUTED VALUES
@@ -148,6 +188,44 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
     },
   ], [totalChurn, avgMonthlyChurn, highestChurnMonth]);
 
+  // Line chart data for retention curves
+  const sessionsRetentionLineData = useMemo(() => {
+    return retentionFunnelData.sessionsFunnel.map((stage) => ({
+      label: stage.label,
+      practice: stage.percentage,
+      industry: (stage as any).industryAvg ?? stage.percentage,
+    }));
+  }, [retentionFunnelData.sessionsFunnel]);
+
+  const timeRetentionLineData = useMemo(() => {
+    return retentionFunnelData.timeFunnel.map((stage) => ({
+      label: stage.label,
+      practice: stage.percentage,
+      industry: (stage as any).industryAvg ?? stage.percentage,
+    }));
+  }, [retentionFunnelData.timeFunnel]);
+
+  // Retention insights
+  const sessionsRetentionInsights = useMemo(() => {
+    const finalStage = retentionFunnelData.sessionsFunnel[retentionFunnelData.sessionsFunnel.length - 1];
+    const industryFinal = (finalStage as any).industryAvg ?? 28;
+    const diff = finalStage.percentage - industryFinal;
+    return [
+      { value: `${finalStage.percentage}%`, label: 'Final Retention', bgColor: 'bg-amber-50', textColor: 'text-amber-700' },
+      { value: `+${diff}%`, label: 'vs Industry', bgColor: diff >= 0 ? 'bg-emerald-50' : 'bg-rose-50', textColor: diff >= 0 ? 'text-emerald-600' : 'text-rose-600' },
+    ];
+  }, [retentionFunnelData.sessionsFunnel]);
+
+  const timeRetentionInsights = useMemo(() => {
+    const finalStage = retentionFunnelData.timeFunnel[retentionFunnelData.timeFunnel.length - 1];
+    const industryFinal = (finalStage as any).industryAvg ?? 38;
+    const diff = finalStage.percentage - industryFinal;
+    return [
+      { value: `${finalStage.percentage}%`, label: 'Final Retention', bgColor: 'bg-indigo-50', textColor: 'text-indigo-700' },
+      { value: `+${diff}%`, label: 'vs Industry', bgColor: diff >= 0 ? 'bg-emerald-50' : 'bg-rose-50', textColor: diff >= 0 ? 'text-emerald-600' : 'text-rose-600' },
+    ];
+  }, [retentionFunnelData.timeFunnel]);
+
   // =========================================================================
   // RENDER
   // =========================================================================
@@ -189,7 +267,7 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
               recommended: c.recommended,
             }))}
             selectedCohort={selectedCohort}
-            onSelect={setSelectedCohort}
+            onSelect={handleCohortSelect}
             title=""
             subtitle=""
           />
@@ -197,7 +275,12 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
 
         {/* Only show data sections if a cohort is selected */}
         {selectedCohort && selectedCohortData && (
-          <>
+          <div
+            ref={dataSectionRef}
+            style={{
+              animation: 'cohortReveal 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards',
+            }}
+          >
             {/* ================================================================
                 COHORT SUMMARY - HERO STATS WITH BENCHMARKS
                 ================================================================ */}
@@ -345,49 +428,73 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
             </SectionContainer>
 
             {/* ================================================================
-                SECTION: RETENTION JOURNEY
+                SECTION: RETURN RATE
                 ================================================================ */}
             <SectionContainer accent="amber" index={2} isLast>
               <SectionHeader
                 number={2}
                 question="How far do clients get?"
-                description="Session milestones and time-based retention"
+                description="Session milestones and time-based return rates"
                 accent="amber"
                 showAccentLine={false}
                 compact
               />
 
-              {/* Both funnels side by side */}
+              {/* Both return rate curves side by side */}
               <Grid cols={2} gap="lg">
-                <RetentionFunnelCard
-                  stages={retentionFunnelData.sessionsFunnel}
-                  title="Retention by Sessions"
-                  subtitle={`${selectedCohortData.clientCount.toLocaleString()} clients (${selectedCohortData.label})`}
-                  variant="sessions"
+                <ChartCard
+                  title="Return Rate by Session"
+                  subtitle={`% of clients still active at each session milestone`}
+                  legend={[
+                    { label: 'Your Practice', color: '#f59e0b', type: 'line' },
+                    { label: 'Industry Avg', color: '#a8a29e', type: 'line' },
+                  ]}
                   expandable
                   onExpand={() => setExpandedCard('sessions-funnel')}
-                  insights={[
-                    { value: retentionFunnelData.sessionsFunnel[0]?.count || 0, label: 'Started', bgColor: 'bg-amber-50', textColor: 'text-amber-700' },
-                    { value: `${retentionFunnelData.sessionsFunnel[retentionFunnelData.sessionsFunnel.length - 1]?.percentage || 0}%`, label: 'Final Retention', bgColor: 'bg-amber-50', textColor: 'text-amber-700' },
-                    { value: `${100 - (retentionFunnelData.sessionsFunnel[retentionFunnelData.sessionsFunnel.length - 1]?.percentage || 0)}%`, label: 'Drop-off', bgColor: 'bg-stone-100', textColor: 'text-stone-700' },
+                  insights={sessionsRetentionInsights}
+                  minHeight="520px"
+                >
+                  <LineChart
+                    data={sessionsRetentionLineData}
+                    xAxisKey="label"
+                    lines={[
+                      { dataKey: 'practice', color: '#f59e0b', name: 'Your Practice' },
+                      { dataKey: 'industry', color: '#a8a29e', name: 'Industry Avg' },
+                    ]}
+                    yDomain={[0, 100]}
+                    yTickFormatter={(v) => `${v}%`}
+                    tooltipFormatter={(value, name) => [`${value}%`, name]}
+                    height="100%"
+                  />
+                </ChartCard>
+                <ChartCard
+                  title="Return Rate by Time"
+                  subtitle={`% of clients still active at each time milestone`}
+                  legend={[
+                    { label: 'Your Practice', color: '#6366f1', type: 'line' },
+                    { label: 'Industry Avg', color: '#a8a29e', type: 'line' },
                   ]}
-                />
-                <RetentionFunnelCard
-                  stages={retentionFunnelData.timeFunnel}
-                  title="Retention by Time"
-                  subtitle={`${selectedCohortData.clientCount.toLocaleString()} clients (${selectedCohortData.label})`}
-                  variant="time"
                   expandable
                   onExpand={() => setExpandedCard('time-funnel')}
-                  insights={[
-                    { value: retentionFunnelData.timeFunnel[0]?.count || 0, label: 'Started', bgColor: 'bg-indigo-50', textColor: 'text-indigo-700' },
-                    { value: `${retentionFunnelData.timeFunnel[retentionFunnelData.timeFunnel.length - 1]?.percentage || 0}%`, label: 'Final Retention', bgColor: 'bg-indigo-50', textColor: 'text-indigo-700' },
-                    { value: `${100 - (retentionFunnelData.timeFunnel[retentionFunnelData.timeFunnel.length - 1]?.percentage || 0)}%`, label: 'Drop-off', bgColor: 'bg-stone-100', textColor: 'text-stone-700' },
-                  ]}
-                />
+                  insights={timeRetentionInsights}
+                  minHeight="520px"
+                >
+                  <LineChart
+                    data={timeRetentionLineData}
+                    xAxisKey="label"
+                    lines={[
+                      { dataKey: 'practice', color: '#6366f1', name: 'Your Practice' },
+                      { dataKey: 'industry', color: '#a8a29e', name: 'Industry Avg' },
+                    ]}
+                    yDomain={[0, 100]}
+                    yTickFormatter={(v) => `${v}%`}
+                    tooltipFormatter={(value, name) => [`${value}%`, name]}
+                    height="100%"
+                  />
+                </ChartCard>
               </Grid>
             </SectionContainer>
-          </>
+          </div>
         )}
       </PageContent>
 
@@ -447,45 +554,55 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
         )}
       </ExpandedChartModal>
 
-      {/* Sessions Funnel Expanded */}
+      {/* Return Rate by Session Expanded */}
       <ExpandedChartModal
         isOpen={expandedCard === 'sessions-funnel'}
         onClose={() => setExpandedCard(null)}
-        title="Retention by Sessions"
-        subtitle="Client milestones reached"
+        title="Return Rate by Session"
+        subtitle="% of clients still active at each session milestone"
+        legend={[
+          { label: 'Your Practice', color: '#f59e0b', type: 'line' },
+          { label: 'Industry Avg', color: '#a8a29e', type: 'line' },
+        ]}
+        insights={sessionsRetentionInsights}
       >
-        <RetentionFunnelCard
-          stages={retentionFunnelData.sessionsFunnel}
-          title=""
-          subtitle=""
-          variant="sessions"
-          size="lg"
-          insights={[
-            { value: retentionFunnelData.sessionsFunnel[0]?.count || 0, label: 'Started', bgColor: 'bg-amber-50', textColor: 'text-amber-700' },
-            { value: `${retentionFunnelData.sessionsFunnel[retentionFunnelData.sessionsFunnel.length - 1]?.percentage || 0}%`, label: 'Final Retention', bgColor: 'bg-amber-50', textColor: 'text-amber-700' },
-            { value: `${100 - (retentionFunnelData.sessionsFunnel[retentionFunnelData.sessionsFunnel.length - 1]?.percentage || 0)}%`, label: 'Drop-off', bgColor: 'bg-stone-100', textColor: 'text-stone-700' },
+        <LineChart
+          data={sessionsRetentionLineData}
+          xAxisKey="label"
+          lines={[
+            { dataKey: 'practice', color: '#f59e0b', name: 'Your Practice' },
+            { dataKey: 'industry', color: '#a8a29e', name: 'Industry Avg' },
           ]}
+          yDomain={[0, 100]}
+          yTickFormatter={(v) => `${v}%`}
+          tooltipFormatter={(value, name) => [`${value}%`, name]}
+          height="100%"
         />
       </ExpandedChartModal>
 
-      {/* Time Funnel Expanded */}
+      {/* Return Rate by Time Expanded */}
       <ExpandedChartModal
         isOpen={expandedCard === 'time-funnel'}
         onClose={() => setExpandedCard(null)}
-        title="Retention by Time"
-        subtitle="Duration with practice"
+        title="Return Rate by Time"
+        subtitle="% of clients still active at each time milestone"
+        legend={[
+          { label: 'Your Practice', color: '#6366f1', type: 'line' },
+          { label: 'Industry Avg', color: '#a8a29e', type: 'line' },
+        ]}
+        insights={timeRetentionInsights}
       >
-        <RetentionFunnelCard
-          stages={retentionFunnelData.timeFunnel}
-          title=""
-          subtitle=""
-          variant="time"
-          size="lg"
-          insights={[
-            { value: retentionFunnelData.timeFunnel[0]?.count || 0, label: 'Started', bgColor: 'bg-indigo-50', textColor: 'text-indigo-700' },
-            { value: `${retentionFunnelData.timeFunnel[retentionFunnelData.timeFunnel.length - 1]?.percentage || 0}%`, label: 'Final Retention', bgColor: 'bg-indigo-50', textColor: 'text-indigo-700' },
-            { value: `${100 - (retentionFunnelData.timeFunnel[retentionFunnelData.timeFunnel.length - 1]?.percentage || 0)}%`, label: 'Drop-off', bgColor: 'bg-stone-100', textColor: 'text-stone-700' },
+        <LineChart
+          data={timeRetentionLineData}
+          xAxisKey="label"
+          lines={[
+            { dataKey: 'practice', color: '#6366f1', name: 'Your Practice' },
+            { dataKey: 'industry', color: '#a8a29e', name: 'Industry Avg' },
           ]}
+          yDomain={[0, 100]}
+          yTickFormatter={(v) => `${v}%`}
+          tooltipFormatter={(value, name) => [`${value}%`, name]}
+          height="100%"
         />
       </ExpandedChartModal>
 

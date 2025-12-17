@@ -18,6 +18,7 @@ import {
   ClientRosterCard,
   DataTableCard,
   StackedBarCard,
+  ExpandedChartModal,
 } from './design-system';
 import type { ClientData } from './design-system';
 
@@ -376,28 +377,28 @@ const CLINICIAN_CASELOAD_DATA: Record<number, {
       inconsistent: 1,
     },
   },
-  3: { // Priya Patel - Therapist (needs attention) - Declining caseload, high churn
+  3: { // Priya Patel - Therapist (slightly below avg) - Stable caseload, slight churn
     monthlyCaseload: [
-      { month: 'Jan', activeClients: 24, capacity: 28, newClients: 1, churned: 3 },
-      { month: 'Feb', activeClients: 22, capacity: 28, newClients: 1, churned: 3 },
-      { month: 'Mar', activeClients: 21, capacity: 28, newClients: 2, churned: 3 },
-      { month: 'Apr', activeClients: 20, capacity: 28, newClients: 1, churned: 2 },
-      { month: 'May', activeClients: 19, capacity: 28, newClients: 1, churned: 2 },
-      { month: 'Jun', activeClients: 18, capacity: 28, newClients: 1, churned: 2 },
-      { month: 'Jul', activeClients: 17, capacity: 28, newClients: 1, churned: 2 },
-      { month: 'Aug', activeClients: 17, capacity: 28, newClients: 2, churned: 2 },
-      { month: 'Sep', activeClients: 17, capacity: 28, newClients: 2, churned: 2 },
-      { month: 'Oct', activeClients: 17, capacity: 28, newClients: 2, churned: 2 },
-      { month: 'Nov', activeClients: 17, capacity: 28, newClients: 2, churned: 2 },
-      { month: 'Dec', activeClients: 18, capacity: 28, newClients: 3, churned: 2 },
+      { month: 'Jan', activeClients: 24, capacity: 28, newClients: 2, churned: 1 },
+      { month: 'Feb', activeClients: 24, capacity: 28, newClients: 1, churned: 1 },
+      { month: 'Mar', activeClients: 23, capacity: 28, newClients: 1, churned: 2 },
+      { month: 'Apr', activeClients: 23, capacity: 28, newClients: 1, churned: 1 },
+      { month: 'May', activeClients: 23, capacity: 28, newClients: 1, churned: 1 },
+      { month: 'Jun', activeClients: 23, capacity: 28, newClients: 1, churned: 1 },
+      { month: 'Jul', activeClients: 22, capacity: 28, newClients: 1, churned: 2 },
+      { month: 'Aug', activeClients: 22, capacity: 28, newClients: 1, churned: 1 },
+      { month: 'Sep', activeClients: 23, capacity: 28, newClients: 2, churned: 1 },
+      { month: 'Oct', activeClients: 23, capacity: 28, newClients: 1, churned: 1 },
+      { month: 'Nov', activeClients: 23, capacity: 28, newClients: 1, churned: 1 },
+      { month: 'Dec', activeClients: 23, capacity: 28, newClients: 1, churned: 1 },
     ],
-    atRiskClients: 5,
+    atRiskClients: 3,
     practiceAvgUtilization: 78,
     sessionFrequency: {
-      weekly: 6,       // Low weekly engagement - concerning
-      biweekly: 5,
-      monthly: 4,
-      inconsistent: 3, // High inconsistent - needs attention
+      weekly: 10,      // Decent weekly engagement
+      biweekly: 8,
+      monthly: 3,
+      inconsistent: 2,
     },
   },
   4: { // James Kim - Associate Therapist (ramping up) - Great growth trajectory
@@ -424,28 +425,28 @@ const CLINICIAN_CASELOAD_DATA: Record<number, {
       inconsistent: 0,
     },
   },
-  5: { // Michael Johnson - Associate Therapist (critical) - Hemorrhaging clients
+  5: { // Michael Johnson - Associate Therapist (needs coaching) - Below average but improving
     monthlyCaseload: [
-      { month: 'Jan', activeClients: 16, capacity: 25, newClients: 1, churned: 3 },
-      { month: 'Feb', activeClients: 14, capacity: 25, newClients: 1, churned: 3 },
-      { month: 'Mar', activeClients: 13, capacity: 25, newClients: 2, churned: 3 },
-      { month: 'Apr', activeClients: 12, capacity: 25, newClients: 1, churned: 2 },
-      { month: 'May', activeClients: 11, capacity: 25, newClients: 1, churned: 2 },
-      { month: 'Jun', activeClients: 10, capacity: 25, newClients: 1, churned: 2 },
-      { month: 'Jul', activeClients: 9, capacity: 25, newClients: 1, churned: 2 },
-      { month: 'Aug', activeClients: 9, capacity: 25, newClients: 2, churned: 2 },
-      { month: 'Sep', activeClients: 9, capacity: 25, newClients: 2, churned: 2 },
-      { month: 'Oct', activeClients: 8, capacity: 25, newClients: 1, churned: 2 },
-      { month: 'Nov', activeClients: 7, capacity: 25, newClients: 1, churned: 2 },
-      { month: 'Dec', activeClients: 6, capacity: 25, newClients: 1, churned: 2 },
+      { month: 'Jan', activeClients: 18, capacity: 25, newClients: 2, churned: 1 },
+      { month: 'Feb', activeClients: 18, capacity: 25, newClients: 1, churned: 1 },
+      { month: 'Mar', activeClients: 17, capacity: 25, newClients: 1, churned: 2 },
+      { month: 'Apr', activeClients: 17, capacity: 25, newClients: 1, churned: 1 },
+      { month: 'May', activeClients: 18, capacity: 25, newClients: 2, churned: 1 },
+      { month: 'Jun', activeClients: 18, capacity: 25, newClients: 1, churned: 1 },
+      { month: 'Jul', activeClients: 17, capacity: 25, newClients: 1, churned: 2 },
+      { month: 'Aug', activeClients: 18, capacity: 25, newClients: 2, churned: 1 },
+      { month: 'Sep', activeClients: 18, capacity: 25, newClients: 1, churned: 1 },
+      { month: 'Oct', activeClients: 19, capacity: 25, newClients: 2, churned: 1 },
+      { month: 'Nov', activeClients: 19, capacity: 25, newClients: 1, churned: 1 },
+      { month: 'Dec', activeClients: 19, capacity: 25, newClients: 1, churned: 1 },
     ],
-    atRiskClients: 4,
+    atRiskClients: 3,
     practiceAvgUtilization: 78,
     sessionFrequency: {
-      weekly: 2,       // Very low weekly - critical issue
-      biweekly: 1,
-      monthly: 1,
-      inconsistent: 2, // High inconsistent ratio for small caseload
+      weekly: 8,       // Lower weekly engagement than peers
+      biweekly: 6,
+      monthly: 3,
+      inconsistent: 2,
     },
   },
 };
@@ -526,156 +527,192 @@ const CLINICIAN_RETENTION_DATA: Record<number, {
   practiceAvgMonth3Return: number;
   month6ReturnRate: number;          // % still active at 6 months
   practiceAvgMonth6Return: number;
+  month9ReturnRate: number;          // % still active at 9 months
+  practiceAvgMonth9Return: number;
   oneYearReturnRate: number;         // % still active at 1 year
   practiceAvgOneYearReturn: number;
   beyondOneYearReturnRate: number;   // % still active beyond 1 year
   practiceAvgBeyondOneYearReturn: number;
+  topPerformerMonth3Return: number;  // Top performer benchmarks
+  topPerformerMonth6Return: number;
+  topPerformerMonth9Return: number;
+  topPerformerOneYearReturn: number;
   churnTiming: { early: number; medium: number; late: number }; // <5, 5-15, >15 sessions
 }> = {
   1: { // Sarah Chen - Clinical Director (high performer)
     monthlyRebookRate: [
       { month: 'Jan', rate: 91 },
-      { month: 'Feb', rate: 89 },
+      { month: 'Feb', rate: 90 },
       { month: 'Mar', rate: 92 },
-      { month: 'Apr', rate: 88 },
+      { month: 'Apr', rate: 91 },
       { month: 'May', rate: 90 },
       { month: 'Jun', rate: 91 },
+      { month: 'Jul', rate: 89 },
+      { month: 'Aug', rate: 90 },
+      { month: 'Sep', rate: 92 },
+      { month: 'Oct', rate: 91 },
+      { month: 'Nov', rate: 90 },
+      { month: 'Dec', rate: 91 },
+    ],
+    currentRebookRate: 91,
+    practiceAvgRebookRate: 88,
+    avgSessionsBeforeChurn: 18.5,
+    practiceAvgSessionsBeforeChurn: 14.2,
+    month3ReturnRate: 92,
+    practiceAvgMonth3Return: 85,
+    month6ReturnRate: 85,
+    practiceAvgMonth6Return: 72,
+    month9ReturnRate: 76,
+    practiceAvgMonth9Return: 62,
+    oneYearReturnRate: 68,
+    practiceAvgOneYearReturn: 55,
+    beyondOneYearReturnRate: 52,
+    practiceAvgBeyondOneYearReturn: 42,
+    topPerformerMonth3Return: 92,
+    topPerformerMonth6Return: 85,
+    topPerformerMonth9Return: 76,
+    topPerformerOneYearReturn: 68,
+    churnTiming: { early: 2, medium: 4, late: 6 }, // Most churn late = good retention
+  },
+  2: { // Maria Rodriguez - Senior Therapist
+    monthlyRebookRate: [
+      { month: 'Jan', rate: 89 },
+      { month: 'Feb', rate: 88 },
+      { month: 'Mar', rate: 90 },
+      { month: 'Apr', rate: 88 },
+      { month: 'May', rate: 89 },
+      { month: 'Jun', rate: 88 },
       { month: 'Jul', rate: 87 },
       { month: 'Aug', rate: 89 },
-      { month: 'Sep', rate: 93 },
-      { month: 'Oct', rate: 90 },
+      { month: 'Sep', rate: 90 },
+      { month: 'Oct', rate: 89 },
       { month: 'Nov', rate: 88 },
       { month: 'Dec', rate: 89 },
     ],
     currentRebookRate: 89,
-    practiceAvgRebookRate: 78,
-    avgSessionsBeforeChurn: 18.5,
-    practiceAvgSessionsBeforeChurn: 12.3,
-    month3ReturnRate: 92,
-    practiceAvgMonth3Return: 75,
-    month6ReturnRate: 88,
-    practiceAvgMonth6Return: 62,
-    oneYearReturnRate: 74,
-    practiceAvgOneYearReturn: 45,
-    beyondOneYearReturnRate: 58,
-    practiceAvgBeyondOneYearReturn: 32,
-    churnTiming: { early: 3, medium: 5, late: 8 }, // Most churn late = good retention
+    practiceAvgRebookRate: 88,
+    avgSessionsBeforeChurn: 15.2,
+    practiceAvgSessionsBeforeChurn: 14.2,
+    month3ReturnRate: 88,
+    practiceAvgMonth3Return: 85,
+    month6ReturnRate: 78,
+    practiceAvgMonth6Return: 72,
+    month9ReturnRate: 66,
+    practiceAvgMonth9Return: 62,
+    oneYearReturnRate: 58,
+    practiceAvgOneYearReturn: 55,
+    beyondOneYearReturnRate: 45,
+    practiceAvgBeyondOneYearReturn: 42,
+    topPerformerMonth3Return: 92,
+    topPerformerMonth6Return: 85,
+    topPerformerMonth9Return: 76,
+    topPerformerOneYearReturn: 68,
+    churnTiming: { early: 3, medium: 5, late: 5 }, // Balanced churn distribution
   },
-  2: { // Maria Rodriguez - Senior Therapist
+  3: { // Priya Patel - Therapist (slightly below average - coaching opportunity)
     monthlyRebookRate: [
-      { month: 'Jan', rate: 87 },
+      { month: 'Jan', rate: 86 },
       { month: 'Feb', rate: 85 },
-      { month: 'Mar', rate: 88 },
-      { month: 'Apr', rate: 84 },
+      { month: 'Mar', rate: 84 },
+      { month: 'Apr', rate: 85 },
       { month: 'May', rate: 86 },
       { month: 'Jun', rate: 85 },
-      { month: 'Jul', rate: 83 },
-      { month: 'Aug', rate: 85 },
-      { month: 'Sep', rate: 87 },
+      { month: 'Jul', rate: 84 },
+      { month: 'Aug', rate: 86 },
+      { month: 'Sep', rate: 85 },
       { month: 'Oct', rate: 86 },
+      { month: 'Nov', rate: 86 },
+      { month: 'Dec', rate: 87 },
+    ],
+    currentRebookRate: 87,
+    practiceAvgRebookRate: 88,
+    avgSessionsBeforeChurn: 12.1,
+    practiceAvgSessionsBeforeChurn: 14.2,
+    month3ReturnRate: 82,
+    practiceAvgMonth3Return: 85,
+    month6ReturnRate: 68,
+    practiceAvgMonth6Return: 72,
+    month9ReturnRate: 58,
+    practiceAvgMonth9Return: 62,
+    oneYearReturnRate: 50,
+    practiceAvgOneYearReturn: 55,
+    beyondOneYearReturnRate: 38,
+    practiceAvgBeyondOneYearReturn: 42,
+    topPerformerMonth3Return: 92,
+    topPerformerMonth6Return: 85,
+    topPerformerMonth9Return: 76,
+    topPerformerOneYearReturn: 68,
+    churnTiming: { early: 4, medium: 4, late: 3 }, // Slightly higher early churn
+  },
+  4: { // James Kim - Associate Therapist (ramping up)
+    monthlyRebookRate: [
+      { month: 'Jan', rate: 86 },
+      { month: 'Feb', rate: 87 },
+      { month: 'Mar', rate: 87 },
+      { month: 'Apr', rate: 88 },
+      { month: 'May', rate: 88 },
+      { month: 'Jun', rate: 87 },
+      { month: 'Jul', rate: 86 },
+      { month: 'Aug', rate: 88 },
+      { month: 'Sep', rate: 89 },
+      { month: 'Oct', rate: 88 },
+      { month: 'Nov', rate: 87 },
+      { month: 'Dec', rate: 88 },
+    ],
+    currentRebookRate: 88,
+    practiceAvgRebookRate: 88,
+    avgSessionsBeforeChurn: 13.5,
+    practiceAvgSessionsBeforeChurn: 14.2,
+    month3ReturnRate: 84,
+    practiceAvgMonth3Return: 85,
+    month6ReturnRate: 71,
+    practiceAvgMonth6Return: 72,
+    month9ReturnRate: 60,
+    practiceAvgMonth9Return: 62,
+    oneYearReturnRate: 52,
+    practiceAvgOneYearReturn: 55,
+    beyondOneYearReturnRate: 38,
+    practiceAvgBeyondOneYearReturn: 42,
+    topPerformerMonth3Return: 92,
+    topPerformerMonth6Return: 85,
+    topPerformerMonth9Return: 76,
+    topPerformerOneYearReturn: 68,
+    churnTiming: { early: 3, medium: 4, late: 4 }, // Improving, fewer early churns
+  },
+  5: { // Michael Johnson - Associate Therapist (needs coaching - slightly below avg)
+    monthlyRebookRate: [
+      { month: 'Jan', rate: 82 },
+      { month: 'Feb', rate: 81 },
+      { month: 'Mar', rate: 80 },
+      { month: 'Apr', rate: 82 },
+      { month: 'May', rate: 83 },
+      { month: 'Jun', rate: 82 },
+      { month: 'Jul', rate: 81 },
+      { month: 'Aug', rate: 83 },
+      { month: 'Sep', rate: 84 },
+      { month: 'Oct', rate: 83 },
       { month: 'Nov', rate: 84 },
       { month: 'Dec', rate: 85 },
     ],
     currentRebookRate: 85,
-    practiceAvgRebookRate: 78,
-    avgSessionsBeforeChurn: 15.2,
-    practiceAvgSessionsBeforeChurn: 12.3,
-    month3ReturnRate: 85,
-    practiceAvgMonth3Return: 75,
-    month6ReturnRate: 78,
-    practiceAvgMonth6Return: 62,
-    oneYearReturnRate: 52,
-    practiceAvgOneYearReturn: 45,
-    beyondOneYearReturnRate: 38,
-    practiceAvgBeyondOneYearReturn: 32,
-    churnTiming: { early: 4, medium: 7, late: 6 }, // Balanced churn distribution
-  },
-  3: { // Priya Patel - Therapist (needs attention)
-    monthlyRebookRate: [
-      { month: 'Jan', rate: 78 },
-      { month: 'Feb', rate: 76 },
-      { month: 'Mar', rate: 74 },
-      { month: 'Apr', rate: 73 },
-      { month: 'May', rate: 72 },
-      { month: 'Jun', rate: 70 },
-      { month: 'Jul', rate: 68 },
-      { month: 'Aug', rate: 70 },
-      { month: 'Sep', rate: 69 },
-      { month: 'Oct', rate: 71 },
-      { month: 'Nov', rate: 70 },
-      { month: 'Dec', rate: 71 },
-    ],
-    currentRebookRate: 71,
-    practiceAvgRebookRate: 78,
-    avgSessionsBeforeChurn: 8.4,
-    practiceAvgSessionsBeforeChurn: 12.3,
-    month3ReturnRate: 62,
-    practiceAvgMonth3Return: 75,
-    month6ReturnRate: 45,
-    practiceAvgMonth6Return: 62,
-    oneYearReturnRate: 22,
-    practiceAvgOneYearReturn: 45,
-    beyondOneYearReturnRate: 12,
-    practiceAvgBeyondOneYearReturn: 32,
-    churnTiming: { early: 12, medium: 6, late: 2 }, // High early churn = concerning
-  },
-  4: { // James Kim - Associate Therapist (ramping up)
-    monthlyRebookRate: [
-      { month: 'Jan', rate: 79 },
-      { month: 'Feb', rate: 80 },
-      { month: 'Mar', rate: 81 },
-      { month: 'Apr', rate: 82 },
-      { month: 'May', rate: 83 },
-      { month: 'Jun', rate: 81 },
-      { month: 'Jul', rate: 80 },
-      { month: 'Aug', rate: 82 },
-      { month: 'Sep', rate: 84 },
-      { month: 'Oct', rate: 83 },
-      { month: 'Nov', rate: 81 },
-      { month: 'Dec', rate: 82 },
-    ],
-    currentRebookRate: 82,
-    practiceAvgRebookRate: 78,
-    avgSessionsBeforeChurn: 11.8,
-    practiceAvgSessionsBeforeChurn: 12.3,
-    month3ReturnRate: 80,
-    practiceAvgMonth3Return: 75,
-    month6ReturnRate: 68,
-    practiceAvgMonth6Return: 62,
-    oneYearReturnRate: 42,
-    practiceAvgOneYearReturn: 45,
-    beyondOneYearReturnRate: 28,
-    practiceAvgBeyondOneYearReturn: 32,
-    churnTiming: { early: 5, medium: 4, late: 3 }, // Improving, fewer early churns
-  },
-  5: { // Michael Johnson - Associate Therapist (critical)
-    monthlyRebookRate: [
-      { month: 'Jan', rate: 72 },
-      { month: 'Feb', rate: 70 },
-      { month: 'Mar', rate: 68 },
-      { month: 'Apr', rate: 66 },
-      { month: 'May', rate: 64 },
-      { month: 'Jun', rate: 62 },
-      { month: 'Jul', rate: 60 },
-      { month: 'Aug', rate: 62 },
-      { month: 'Sep', rate: 65 },
-      { month: 'Oct', rate: 63 },
-      { month: 'Nov', rate: 62 },
-      { month: 'Dec', rate: 64 },
-    ],
-    currentRebookRate: 64,
-    practiceAvgRebookRate: 78,
-    avgSessionsBeforeChurn: 6.2,
-    practiceAvgSessionsBeforeChurn: 12.3,
-    month3ReturnRate: 48,
-    practiceAvgMonth3Return: 75,
-    month6ReturnRate: 32,
-    practiceAvgMonth6Return: 62,
-    oneYearReturnRate: 15,
-    practiceAvgOneYearReturn: 45,
-    beyondOneYearReturnRate: 8,
-    practiceAvgBeyondOneYearReturn: 32,
-    churnTiming: { early: 18, medium: 8, late: 2 }, // Very high early churn = critical
+    practiceAvgRebookRate: 88,
+    avgSessionsBeforeChurn: 10.8,
+    practiceAvgSessionsBeforeChurn: 14.2,
+    month3ReturnRate: 78,
+    practiceAvgMonth3Return: 85,
+    month6ReturnRate: 62,
+    practiceAvgMonth6Return: 72,
+    month9ReturnRate: 52,
+    practiceAvgMonth9Return: 62,
+    oneYearReturnRate: 45,
+    practiceAvgOneYearReturn: 55,
+    beyondOneYearReturnRate: 32,
+    practiceAvgBeyondOneYearReturn: 42,
+    topPerformerMonth3Return: 92,
+    topPerformerMonth6Return: 85,
+    topPerformerMonth9Return: 76,
+    topPerformerOneYearReturn: 68,
+    churnTiming: { early: 5, medium: 4, late: 3 }, // Slightly higher early churn than peers
   },
 };
 
@@ -872,6 +909,9 @@ export const ClinicianDetailsTab: React.FC = () => {
 
   // Animation state for clinician change
   const [isTransitioning, setIsTransitioning] = useState(false);
+
+  // Expanded chart modal state
+  const [expandedCard, setExpandedCard] = useState<string | null>(null);
 
   // Toggle for sessions view (monthly total vs weekly average)
   const [showWeeklyAvg, setShowWeeklyAvg] = useState(false);
@@ -1443,10 +1483,6 @@ export const ClinicianDetailsTab: React.FC = () => {
     if (!retentionData) return [];
     const rebookDiff = retentionData.currentRebookRate - retentionData.practiceAvgRebookRate;
     const sessionsDiff = retentionData.avgSessionsBeforeChurn - retentionData.practiceAvgSessionsBeforeChurn;
-    const month3Diff = retentionData.month3ReturnRate - retentionData.practiceAvgMonth3Return;
-    const month6Diff = retentionData.month6ReturnRate - retentionData.practiceAvgMonth6Return;
-    const oneYearDiff = retentionData.oneYearReturnRate - retentionData.practiceAvgOneYearReturn;
-    const beyondOneYearDiff = retentionData.beyondOneYearReturnRate - retentionData.practiceAvgBeyondOneYearReturn;
 
     return [
       {
@@ -1471,52 +1507,46 @@ export const ClinicianDetailsTab: React.FC = () => {
         valueColor: sessionsDiff >= 0 ? 'text-emerald-600' : 'text-rose-600',
         indicator: { color: sessionsDiff >= 0 ? '#10b981' : '#f43f5e' },
       },
-      {
-        id: 'month3',
-        label: 'Month 3 Return Rate',
-        values: {
-          clinician: `${retentionData.month3ReturnRate}%`,
-          practice: `${retentionData.practiceAvgMonth3Return}%`,
-          diff: month3Diff >= 0 ? `+${month3Diff}%` : `${month3Diff}%`,
-        },
-        valueColor: month3Diff >= 0 ? 'text-emerald-600' : 'text-rose-600',
-        indicator: { color: month3Diff >= 0 ? '#10b981' : '#f43f5e' },
-      },
-      {
-        id: 'month6',
-        label: 'Month 6 Return Rate',
-        values: {
-          clinician: `${retentionData.month6ReturnRate}%`,
-          practice: `${retentionData.practiceAvgMonth6Return}%`,
-          diff: month6Diff >= 0 ? `+${month6Diff}%` : `${month6Diff}%`,
-        },
-        valueColor: month6Diff >= 0 ? 'text-emerald-600' : 'text-rose-600',
-        indicator: { color: month6Diff >= 0 ? '#10b981' : '#f43f5e' },
-      },
-      {
-        id: 'oneYear',
-        label: '1-Year Return Rate',
-        values: {
-          clinician: `${retentionData.oneYearReturnRate}%`,
-          practice: `${retentionData.practiceAvgOneYearReturn}%`,
-          diff: oneYearDiff >= 0 ? `+${oneYearDiff}%` : `${oneYearDiff}%`,
-        },
-        valueColor: oneYearDiff >= 0 ? 'text-emerald-600' : 'text-rose-600',
-        indicator: { color: oneYearDiff >= 0 ? '#10b981' : '#f43f5e' },
-      },
-      {
-        id: 'beyondOneYear',
-        label: 'Beyond 1-Year Return Rate',
-        values: {
-          clinician: `${retentionData.beyondOneYearReturnRate}%`,
-          practice: `${retentionData.practiceAvgBeyondOneYearReturn}%`,
-          diff: beyondOneYearDiff >= 0 ? `+${beyondOneYearDiff}%` : `${beyondOneYearDiff}%`,
-        },
-        valueColor: beyondOneYearDiff >= 0 ? 'text-emerald-600' : 'text-rose-600',
-        indicator: { color: beyondOneYearDiff >= 0 ? '#10b981' : '#f43f5e' },
-      },
     ];
   }, [retentionData, selectedClinician]);
+
+  // Retention curve data for line chart
+  // Starts at Month 1 = 100% (all clients who had their first session)
+  const retentionCurveData = useMemo(() => {
+    if (!retentionData) return [];
+    return [
+      {
+        month: 'Mo 1',
+        clinician: 100,
+        practice: 100,
+        topPerformer: 100,
+      },
+      {
+        month: 'Mo 3',
+        clinician: retentionData.month3ReturnRate,
+        practice: retentionData.practiceAvgMonth3Return,
+        topPerformer: retentionData.topPerformerMonth3Return,
+      },
+      {
+        month: 'Mo 6',
+        clinician: retentionData.month6ReturnRate,
+        practice: retentionData.practiceAvgMonth6Return,
+        topPerformer: retentionData.topPerformerMonth6Return,
+      },
+      {
+        month: 'Mo 9',
+        clinician: retentionData.month9ReturnRate,
+        practice: retentionData.practiceAvgMonth9Return,
+        topPerformer: retentionData.topPerformerMonth9Return,
+      },
+      {
+        month: 'Mo 12',
+        clinician: retentionData.oneYearReturnRate,
+        practice: retentionData.practiceAvgOneYearReturn,
+        topPerformer: retentionData.topPerformerOneYearReturn,
+      },
+    ];
+  }, [retentionData]);
 
   return (
     <>
@@ -2076,42 +2106,46 @@ export const ClinicianDetailsTab: React.FC = () => {
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 lg:gap-4">
                     {/* Tenure */}
                     <div
-                      className="px-5 py-4 rounded-2xl"
+                      className="px-5 py-5 rounded-2xl flex flex-col"
                       style={{
                         background: 'rgba(255, 255, 255, 0.06)',
                         border: '1px solid rgba(255, 255, 255, 0.08)',
                       }}
                     >
-                      <p className="text-stone-500 text-xs uppercase tracking-wider mb-1">Tenure</p>
-                      <p className="text-white text-base lg:text-lg font-medium">{selectedClinician.tenure}</p>
+                      <div className="flex items-center justify-between h-5 mb-2">
+                        <p className="text-stone-400 text-sm uppercase tracking-wider">Tenure</p>
+                      </div>
+                      <p className="text-white text-lg lg:text-xl font-semibold">{selectedClinician.tenure}</p>
                     </div>
 
                     {/* Take Rate */}
                     <div
-                      className="px-5 py-4 rounded-2xl"
+                      className="px-5 py-5 rounded-2xl flex flex-col"
                       style={{
                         background: 'rgba(255, 255, 255, 0.06)',
                         border: '1px solid rgba(255, 255, 255, 0.08)',
                       }}
                     >
-                      <p className="text-stone-500 text-xs uppercase tracking-wider mb-1">Take Rate</p>
-                      <p className="text-white text-base lg:text-lg font-medium">{selectedClinician.takeRate}%</p>
+                      <div className="flex items-center justify-between h-5 mb-2">
+                        <p className="text-stone-400 text-sm uppercase tracking-wider">Take Rate</p>
+                      </div>
+                      <p className="text-white text-lg lg:text-xl font-semibold">{selectedClinician.takeRate}%</p>
                     </div>
 
                     {/* Session Goal - Clickable */}
                     <button
                       onClick={() => navigate('/configure?tab=clinician-goals')}
-                      className="px-5 py-4 rounded-2xl text-left transition-all duration-200 hover:scale-[1.02] group"
+                      className="px-5 py-5 rounded-2xl text-left transition-all duration-200 hover:scale-[1.02] group flex flex-col"
                       style={{
                         background: 'rgba(251, 191, 36, 0.1)',
                         border: '1px solid rgba(251, 191, 36, 0.2)',
                       }}
                     >
-                      <div className="flex items-center justify-between mb-1">
-                        <p className="text-amber-400/80 text-xs uppercase tracking-wider">Session Goal</p>
-                        <Settings size={12} className="text-amber-400/60 group-hover:text-amber-400 transition-colors" />
+                      <div className="flex items-center justify-between h-5 mb-2">
+                        <p className="text-amber-400/80 text-sm uppercase tracking-wider">Session Goal</p>
+                        <Settings size={14} className="text-amber-400/60 group-hover:text-amber-400 transition-colors" />
                       </div>
-                      <p className="text-amber-100 text-base lg:text-lg font-medium">
+                      <p className="text-amber-100 text-lg lg:text-xl font-semibold">
                         {masterClinicianData?.sessionGoal || '-'}/week
                       </p>
                     </button>
@@ -2119,17 +2153,17 @@ export const ClinicianDetailsTab: React.FC = () => {
                     {/* Caseload Goal - Clickable */}
                     <button
                       onClick={() => navigate('/configure?tab=clinician-goals')}
-                      className="px-5 py-4 rounded-2xl text-left transition-all duration-200 hover:scale-[1.02] group"
+                      className="px-5 py-5 rounded-2xl text-left transition-all duration-200 hover:scale-[1.02] group flex flex-col"
                       style={{
                         background: 'rgba(251, 191, 36, 0.1)',
                         border: '1px solid rgba(251, 191, 36, 0.2)',
                       }}
                     >
-                      <div className="flex items-center justify-between mb-1">
-                        <p className="text-amber-400/80 text-xs uppercase tracking-wider">Caseload Goal</p>
-                        <Settings size={12} className="text-amber-400/60 group-hover:text-amber-400 transition-colors" />
+                      <div className="flex items-center justify-between h-5 mb-2">
+                        <p className="text-amber-400/80 text-sm uppercase tracking-wider">Caseload Goal</p>
+                        <Settings size={14} className="text-amber-400/60 group-hover:text-amber-400 transition-colors" />
                       </div>
-                      <p className="text-amber-100 text-base lg:text-lg font-medium">
+                      <p className="text-amber-100 text-lg lg:text-xl font-semibold">
                         {masterClinicianData?.clientGoal || '-'} clients
                       </p>
                     </button>
@@ -2186,7 +2220,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                 >
                   Select a Clinician
                 </h2>
-                <p className="text-stone-500 text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed">
+                <p className="text-stone-600 text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed">
                   Choose a team member to explore their detailed performance metrics, trends, and insights.
                 </p>
               </div>
@@ -2256,27 +2290,27 @@ export const ClinicianDetailsTab: React.FC = () => {
                           >
                             {clinician.name}
                           </h3>
-                          <p className="text-base text-stone-500">{clinician.role}</p>
+                          <p className="text-base text-stone-600">{clinician.role}</p>
                         </div>
 
                         {/* Quick metrics row */}
                         <div className="flex items-center gap-5 pt-4 border-t border-stone-200/60">
                           <div className="flex-1">
-                            <p className="text-xs uppercase tracking-wider text-stone-400 mb-1">Last Month</p>
+                            <p className="text-xs uppercase tracking-wider text-stone-500 mb-1">Last Month</p>
                             <p className="text-lg font-semibold text-stone-800">
                               ${(CLINICIAN_FINANCIAL_DATA[clinician.id]?.monthlyRevenue[CLINICIAN_FINANCIAL_DATA[clinician.id]?.monthlyRevenue.length - 1]?.value / 1000).toFixed(1)}k
                             </p>
                           </div>
                           <div className="w-px h-10 bg-stone-200/60" />
                           <div className="flex-1">
-                            <p className="text-xs uppercase tracking-wider text-stone-400 mb-1">Clients</p>
+                            <p className="text-xs uppercase tracking-wider text-stone-500 mb-1">Clients</p>
                             <p className="text-lg font-semibold text-stone-800">
                               {CLINICIAN_CASELOAD_DATA[clinician.id]?.monthlyCaseload[CLINICIAN_CASELOAD_DATA[clinician.id]?.monthlyCaseload.length - 1]?.activeClients || 0}
                             </p>
                           </div>
                           <div className="w-px h-10 bg-stone-200/60" />
                           <div className="flex-1">
-                            <p className="text-xs uppercase tracking-wider text-stone-400 mb-1">Completed Sessions</p>
+                            <p className="text-xs uppercase tracking-wider text-stone-500 mb-1">Completed Sessions</p>
                             <p className="text-lg font-semibold text-stone-800">
                               {CLINICIAN_SESSION_DATA[clinician.id]?.monthlySessions[CLINICIAN_SESSION_DATA[clinician.id]?.monthlySessions.length - 1]?.completed || 0}
                             </p>
@@ -2285,7 +2319,7 @@ export const ClinicianDetailsTab: React.FC = () => {
 
                         {/* Hover arrow indicator */}
                         <div className="absolute bottom-6 right-6 opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all duration-300">
-                          <ArrowRight size={22} className="text-stone-400" strokeWidth={1.5} />
+                          <ArrowRight size={22} className="text-stone-500" strokeWidth={1.5} />
                         </div>
                       </div>
 
@@ -2313,7 +2347,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                 variant={selectedClinician.metrics.revenueVsGoal >= 100 ? 'positive' : 'negative'}
               />
               <StatCard
-                title="Completed Sessions"
+                title="Sessions"
                 value={sessionData ? `${Math.round(totalCompleted / sessionData.monthlySessions.length)}/mo` : '-'}
                 subtitle={sessionData ? `~${Math.round(totalCompleted / sessionData.monthlySessions.length / 4.33)}/week · ${totalCompleted} total` : '-'}
                 variant={selectedClinician.metrics.sessionsVsGoal >= 100 ? 'positive' : 'negative'}
@@ -2359,6 +2393,8 @@ export const ClinicianDetailsTab: React.FC = () => {
               }
               insights={revenueInsights}
               minHeight="420px"
+              expandable
+              onExpand={() => setExpandedCard('monthly-revenue')}
             >
               <BarChart
                 data={revenueBarData}
@@ -2400,8 +2436,8 @@ export const ClinicianDetailsTab: React.FC = () => {
             <Grid cols={2}>
               {/* Completed Sessions Per Month Chart */}
               <ChartCard
-                title="Completed Sessions Per Month"
-                subtitle={showWeeklyAvg ? `${selectedClinician.name.split(' ')[0]}'s average sessions per week` : `How many sessions ${selectedClinician.name.split(' ')[0]} is completing each month`}
+                title="Monthly Sessions"
+                subtitle={showWeeklyAvg ? `${selectedClinician.name.split(' ')[0]}'s average sessions per week` : `How many sessions ${selectedClinician.name.split(' ')[0]} completes each month`}
                 headerControls={
                   <>
                     <ToggleButton
@@ -2418,6 +2454,8 @@ export const ClinicianDetailsTab: React.FC = () => {
                 }
                 insights={sessionInsights}
                 minHeight="420px"
+                expandable
+                onExpand={() => setExpandedCard('monthly-sessions')}
               >
                 <BarChart
                   data={showWeeklyAvg ? sessionWeeklyBarData : sessionBarData}
@@ -2451,6 +2489,8 @@ export const ClinicianDetailsTab: React.FC = () => {
                 centerValue={`${showRate.toFixed(1)}%`}
                 centerValueColor={showRate >= 87.5 ? 'text-emerald-600' : 'text-rose-600'}
                 valueFormat="number"
+                expandable
+                onExpand={() => setExpandedCard('attendance-breakdown')}
               />
 
               {/* Clinician Cancellations Chart */}
@@ -2459,6 +2499,8 @@ export const ClinicianDetailsTab: React.FC = () => {
                 subtitle={`How often ${selectedClinician.name.split(' ')[0]} cancels sessions`}
                 insights={clinicianCancellationInsights}
                 minHeight="320px"
+                expandable
+                onExpand={() => setExpandedCard('clinician-cancellations')}
               >
                 <BarChart
                   data={clinicianCancellationsBarData}
@@ -2529,6 +2571,8 @@ export const ClinicianDetailsTab: React.FC = () => {
                 }
                 insights={showCapacityPercentage ? capacityInsights : activeClientsInsights}
                 minHeight="420px"
+                expandable
+                onExpand={() => setExpandedCard('caseload-capacity')}
               >
                 {showCapacityPercentage ? (
                   <BarChart
@@ -2576,6 +2620,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                 title="Client Roster"
                 subtitle={`${selectedClinician.name.split(' ')[0]}'s ${clinicianClients.length} current active clients`}
                 clients={clinicianClients}
+                onExpand={() => setExpandedCard('client-roster')}
               />
 
               {/* Client Session Frequency */}
@@ -2587,6 +2632,8 @@ export const ClinicianDetailsTab: React.FC = () => {
                 centerValue={totalSessionFrequencyClients.toString()}
                 centerValueColor={weeklyEngagementPercent >= 50 ? 'text-emerald-600' : 'text-amber-600'}
                 valueFormat="number"
+                expandable
+                onExpand={() => setExpandedCard('session-frequency')}
               />
 
               {/* Client Demographics - 3 stacked bar cards */}
@@ -2657,6 +2704,8 @@ export const ClinicianDetailsTab: React.FC = () => {
                 }
                 insights={clientMovementInsights}
                 minHeight="420px"
+                expandable
+                onExpand={() => setExpandedCard('client-movement')}
               >
                 <DivergingBarChart
                   data={clientMovementData}
@@ -2687,6 +2736,8 @@ export const ClinicianDetailsTab: React.FC = () => {
                 centerValue={churnTimingTotals.total.toString()}
                 valueFormat="number"
                 size="md"
+                expandable
+                onExpand={() => setExpandedCard('churn-timing')}
               />
 
               {/* Retention Comparison Table */}
@@ -2695,7 +2746,36 @@ export const ClinicianDetailsTab: React.FC = () => {
                 subtitle={`How ${selectedClinician.name.split(' ')[0]}'s retention compares to the practice`}
                 columns={retentionTableColumns}
                 rows={retentionTableRows}
+                minHeight="420px"
               />
+
+              {/* Return Rate Chart */}
+              <ChartCard
+                title="Return Rate"
+                subtitle={`% of clients still active at each milestone`}
+                legend={[
+                  { label: selectedClinician.name.split(' ')[0], color: 'bg-blue-500', type: 'box' },
+                  { label: 'Practice Avg', color: 'bg-stone-400', type: 'box' },
+                  { label: 'Top Performer', color: 'bg-emerald-500', type: 'box' },
+                ]}
+                minHeight="420px"
+                expandable
+                onExpand={() => setExpandedCard('return-rate')}
+              >
+                <LineChart
+                  data={retentionCurveData}
+                  xAxisKey="month"
+                  lines={[
+                    { dataKey: 'topPerformer', color: '#10b981', name: 'Top Performer' },
+                    { dataKey: 'clinician', color: '#3b82f6', name: selectedClinician.name.split(' ')[0] },
+                    { dataKey: 'practice', color: '#a8a29e', name: 'Practice Avg' },
+                  ]}
+                  yDomain={[0, 100]}
+                  yTickFormatter={(v) => `${v}%`}
+                  tooltipFormatter={(value, name) => [`${value}%`, name]}
+                  height={280}
+                />
+              </ChartCard>
             </Grid>
           </SectionContainer>
           )}
@@ -2733,6 +2813,8 @@ export const ClinicianDetailsTab: React.FC = () => {
                 }
                 valueFormat="number"
                 size="md"
+                expandable
+                onExpand={() => setExpandedCard('outstanding-notes')}
               />
 
               {/* Overdue Notes List - Using design system patterns */}
@@ -2753,7 +2835,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                       >
                         Overdue Notes
                       </h3>
-                      <p className="text-stone-500 text-base sm:text-lg xl:text-xl mt-2">
+                      <p className="text-stone-600 text-base sm:text-lg xl:text-xl mt-2">
                         {`Notes ${selectedClinician.name.split(' ')[0]} needs to catch up on`}
                       </p>
                     </div>
@@ -2772,7 +2854,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                       >
                         {complianceData.overdueNotes}
                       </div>
-                      <div className="text-stone-500 text-base mt-1">overdue</div>
+                      <div className="text-stone-600 text-base mt-1">overdue</div>
                     </div>
                   </div>
                 </div>
@@ -2786,7 +2868,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                     <h4 className="text-lg font-semibold text-stone-900 mb-1">
                       All caught up!
                     </h4>
-                    <p className="text-stone-500 text-sm">No overdue notes</p>
+                    <p className="text-stone-600 text-sm">No overdue notes</p>
                   </div>
                 ) : (
                   <div className="divide-y divide-stone-100">
@@ -2806,7 +2888,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                         {/* Client Info */}
                         <div className="flex-1 min-w-0">
                           <p className="text-stone-900 font-semibold text-base truncate">{note.clientName}</p>
-                          <p className="text-stone-500 text-sm">{note.sessionDate} · {note.sessionType}</p>
+                          <p className="text-stone-600 text-sm">{note.sessionDate} · {note.sessionType}</p>
                         </div>
 
                         {/* Days Overdue Badge */}
@@ -2854,6 +2936,321 @@ export const ClinicianDetailsTab: React.FC = () => {
           }
         }
       `}</style>
+
+      {/* ============================================
+          EXPANDED CHART MODALS
+          ============================================ */}
+
+      {/* Monthly Revenue Expanded */}
+      {selectedClinician && financialData && (
+        <ExpandedChartModal
+          isOpen={expandedCard === 'monthly-revenue'}
+          onClose={() => setExpandedCard(null)}
+          title="Monthly Gross Revenue"
+          subtitle={`How much ${selectedClinician.name.split(' ')[0]} is collecting each month`}
+        >
+          <BarChart
+            data={revenueBarData}
+            mode="single"
+            goal={{ value: financialData.revenueGoal }}
+            getBarColor={(value) =>
+              value >= financialData.revenueGoal
+                ? {
+                    gradient: 'linear-gradient(180deg, #34d399 0%, #059669 100%)',
+                    shadow: '0 4px 12px -2px rgba(16, 185, 129, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
+                    textColor: 'text-emerald-600',
+                  }
+                : {
+                    gradient: 'linear-gradient(180deg, #60a5fa 0%, #2563eb 100%)',
+                    shadow: '0 4px 12px -2px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
+                    textColor: 'text-blue-600',
+                  }
+            }
+            formatValue={formatCurrencyShort}
+            height="400px"
+            size="lg"
+          />
+        </ExpandedChartModal>
+      )}
+
+      {/* Monthly Sessions Expanded */}
+      {selectedClinician && sessionData && (
+        <ExpandedChartModal
+          isOpen={expandedCard === 'monthly-sessions'}
+          onClose={() => setExpandedCard(null)}
+          title="Monthly Sessions"
+          subtitle={showWeeklyAvg ? `${selectedClinician.name.split(' ')[0]}'s average sessions per week` : `How many sessions ${selectedClinician.name.split(' ')[0]} completes each month`}
+        >
+          <BarChart
+            data={showWeeklyAvg ? sessionWeeklyBarData : sessionBarData}
+            mode="single"
+            goal={{ value: showWeeklyAvg ? weeklySessionGoal : monthlySessionGoal }}
+            getBarColor={(value) => {
+              const goal = showWeeklyAvg ? weeklySessionGoal : monthlySessionGoal;
+              return value >= goal
+                ? {
+                    gradient: 'linear-gradient(180deg, #34d399 0%, #059669 100%)',
+                    shadow: '0 4px 12px -2px rgba(16, 185, 129, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
+                    textColor: 'text-emerald-600',
+                  }
+                : {
+                    gradient: 'linear-gradient(180deg, #60a5fa 0%, #2563eb 100%)',
+                    shadow: '0 4px 12px -2px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
+                    textColor: 'text-blue-600',
+                  };
+            }}
+            formatValue={(v) => v.toString()}
+            height="400px"
+            size="lg"
+          />
+        </ExpandedChartModal>
+      )}
+
+      {/* Attendance Breakdown Expanded */}
+      {selectedClinician && sessionData && (
+        <ExpandedChartModal
+          isOpen={expandedCard === 'attendance-breakdown'}
+          onClose={() => setExpandedCard(null)}
+          title="Attendance Breakdown"
+          subtitle={`What happens to ${selectedClinician.name.split(' ')[0]}'s booked sessions`}
+        >
+          <DonutChartCard
+            title=""
+            segments={attendanceSegments}
+            centerLabel="Show Rate"
+            centerValue={`${showRate.toFixed(1)}%`}
+            centerValueColor={showRate >= 87.5 ? 'text-emerald-600' : 'text-rose-600'}
+            valueFormat="number"
+            size="lg"
+          />
+        </ExpandedChartModal>
+      )}
+
+      {/* Clinician Cancellations Expanded */}
+      {selectedClinician && sessionData && (
+        <ExpandedChartModal
+          isOpen={expandedCard === 'clinician-cancellations'}
+          onClose={() => setExpandedCard(null)}
+          title="Clinician Cancellations"
+          subtitle={`How often ${selectedClinician.name.split(' ')[0]} cancels sessions`}
+        >
+          <BarChart
+            data={clinicianCancellationsBarData}
+            mode="single"
+            getBarColor={(value) => {
+              const avg = totalClinicianCancelled / 12;
+              return value > avg * 1.5
+                ? {
+                    gradient: 'linear-gradient(180deg, #f87171 0%, #dc2626 100%)',
+                    shadow: '0 4px 12px -2px rgba(220, 38, 38, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
+                    textColor: 'text-red-600',
+                  }
+                : {
+                    gradient: 'linear-gradient(180deg, #60a5fa 0%, #2563eb 100%)',
+                    shadow: '0 4px 12px -2px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
+                    textColor: 'text-blue-600',
+                  };
+            }}
+            formatValue={(v) => Math.round(v).toString()}
+            height="400px"
+            size="lg"
+          />
+        </ExpandedChartModal>
+      )}
+
+      {/* Caseload Capacity Expanded */}
+      {selectedClinician && caseloadData && (
+        <ExpandedChartModal
+          isOpen={expandedCard === 'caseload-capacity'}
+          onClose={() => setExpandedCard(null)}
+          title="Active Clients & Caseload Capacity"
+          subtitle={`How full ${selectedClinician.name.split(' ')[0]}'s caseload is each month`}
+        >
+          {showCapacityPercentage ? (
+            <BarChart
+              data={capacityPercentageBarData}
+              mode="single"
+              getBarColor={(value) => ({
+                gradient: value >= 90
+                  ? 'linear-gradient(180deg, #34d399 0%, #059669 100%)'
+                  : value >= 75
+                    ? 'linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%)'
+                    : 'linear-gradient(180deg, #fb7185 0%, #f43f5e 100%)',
+                shadow: value >= 90
+                  ? '0 4px 12px -2px rgba(16, 185, 129, 0.35)'
+                  : value >= 75
+                    ? '0 4px 12px -2px rgba(245, 158, 11, 0.35)'
+                    : '0 4px 12px -2px rgba(244, 63, 94, 0.35)',
+                textColor: value >= 90
+                  ? 'text-emerald-600'
+                  : value >= 75
+                    ? 'text-amber-600'
+                    : 'text-rose-600',
+              })}
+              formatValue={(v) => `${v}%`}
+              maxValue={100}
+              height="400px"
+              size="lg"
+            />
+          ) : (
+            <BarChart
+              data={activeClientsBarData}
+              mode="single"
+              goal={{ value: currentCapacity }}
+              getBarColor={() => ({
+                gradient: 'linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%)',
+                shadow: '0 4px 12px -2px rgba(245, 158, 11, 0.35)',
+                textColor: 'text-amber-600',
+              })}
+              formatValue={(v) => v.toString()}
+              height="400px"
+              size="lg"
+            />
+          )}
+        </ExpandedChartModal>
+      )}
+
+      {/* Session Frequency Expanded */}
+      {selectedClinician && caseloadData && (
+        <ExpandedChartModal
+          isOpen={expandedCard === 'session-frequency'}
+          onClose={() => setExpandedCard(null)}
+          title="Client Session Frequency"
+          subtitle={`How often ${selectedClinician.name.split(' ')[0]}'s clients come in`}
+        >
+          <DonutChartCard
+            title=""
+            segments={sessionFrequencySegments}
+            centerLabel="Active"
+            centerValue={totalSessionFrequencyClients.toString()}
+            centerValueColor={weeklyEngagementPercent >= 50 ? 'text-emerald-600' : 'text-amber-600'}
+            valueFormat="number"
+            size="lg"
+          />
+        </ExpandedChartModal>
+      )}
+
+      {/* Client Roster Expanded */}
+      {selectedClinician && (
+        <ExpandedChartModal
+          isOpen={expandedCard === 'client-roster'}
+          onClose={() => setExpandedCard(null)}
+          title="Client Roster"
+          subtitle={`${selectedClinician.name.split(' ')[0]}'s ${clinicianClients.length} current active clients`}
+        >
+          <ClientRosterCard
+            title=""
+            clients={clinicianClients}
+            size="lg"
+          />
+        </ExpandedChartModal>
+      )}
+
+      {/* Client Movement Expanded */}
+      {selectedClinician && caseloadData && (
+        <ExpandedChartModal
+          isOpen={expandedCard === 'client-movement'}
+          onClose={() => setExpandedCard(null)}
+          title="New and Churned Clients Per Month"
+          subtitle={`How ${selectedClinician.name.split(' ')[0]}'s client base is changing`}
+        >
+          <DivergingBarChart
+            data={clientMovementData}
+            positiveConfig={{
+              label: 'New Clients',
+              color: '#34d399',
+              colorEnd: '#10b981',
+            }}
+            negativeConfig={{
+              label: 'Churned',
+              color: '#fb7185',
+              colorEnd: '#f43f5e',
+            }}
+            height="400px"
+          />
+        </ExpandedChartModal>
+      )}
+
+      {/* Churn Timing Expanded */}
+      {selectedClinician && caseloadData && (
+        <ExpandedChartModal
+          isOpen={expandedCard === 'churn-timing'}
+          onClose={() => setExpandedCard(null)}
+          title="Churn Timing"
+          subtitle={`How far ${selectedClinician.name.split(' ')[0]}'s clients get before leaving`}
+        >
+          <DonutChartCard
+            title=""
+            segments={[
+              { label: 'Early (<5 sessions)', value: churnTimingTotals.early, color: '#ef4444' },
+              { label: 'Medium (5-15)', value: churnTimingTotals.medium, color: '#f59e0b' },
+              { label: 'Late (>15)', value: churnTimingTotals.late, color: '#10b981' },
+            ]}
+            centerLabel="Total Churned"
+            centerValue={churnTimingTotals.total.toString()}
+            valueFormat="number"
+            size="lg"
+          />
+        </ExpandedChartModal>
+      )}
+
+      {/* Return Rate Expanded */}
+      {selectedClinician && retentionData && (
+        <ExpandedChartModal
+          isOpen={expandedCard === 'return-rate'}
+          onClose={() => setExpandedCard(null)}
+          title="Return Rate"
+          subtitle={`% of clients still active at each milestone`}
+          legend={[
+            { label: selectedClinician.name.split(' ')[0], color: 'bg-blue-500', type: 'box' },
+            { label: 'Practice Avg', color: 'bg-stone-400', type: 'box' },
+            { label: 'Top Performer', color: 'bg-emerald-500', type: 'box' },
+          ]}
+        >
+          <LineChart
+            data={retentionCurveData}
+            xAxisKey="month"
+            lines={[
+              { dataKey: 'topPerformer', color: '#10b981', name: 'Top Performer' },
+              { dataKey: 'clinician', color: '#3b82f6', name: selectedClinician.name.split(' ')[0] },
+              { dataKey: 'practice', color: '#a8a29e', name: 'Practice Avg' },
+            ]}
+            yDomain={[0, 100]}
+            yTickFormatter={(v) => `${v}%`}
+            tooltipFormatter={(value, name) => [`${value}%`, name]}
+            height={400}
+          />
+        </ExpandedChartModal>
+      )}
+
+      {/* Outstanding Notes Expanded */}
+      {selectedClinician && complianceData && (
+        <ExpandedChartModal
+          isOpen={expandedCard === 'outstanding-notes'}
+          onClose={() => setExpandedCard(null)}
+          title="Outstanding Notes"
+          subtitle={`How many notes ${selectedClinician.name.split(' ')[0]} needs to complete`}
+        >
+          <DonutChartCard
+            title=""
+            segments={[
+              { label: 'Overdue', value: complianceData.overdueNotes, color: '#ef4444' },
+              { label: 'Due within 48h', value: complianceData.dueWithin48h, color: '#f59e0b' },
+            ]}
+            centerLabel="Total"
+            centerValue={complianceData.outstandingNotes.toString()}
+            centerValueColor={
+              complianceData.overdueNotes === 0
+                ? 'text-emerald-600'
+                : complianceData.overdueNotes <= 3
+                  ? 'text-amber-600'
+                  : 'text-rose-600'
+            }
+            valueFormat="number"
+            size="lg"
+          />
+        </ExpandedChartModal>
+      )}
     </>
   );
 };

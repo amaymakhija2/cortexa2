@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { Info, ChevronRight } from 'lucide-react';
 
@@ -179,6 +180,8 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   className = '',
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [portalPosition, setPortalPosition] = useState<{ top: number; left: number; width: number } | null>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const hasExpandable = Boolean(expandableContent);
   const hasNavigation = Boolean(navigateTo);
@@ -186,99 +189,156 @@ export const MetricCard: React.FC<MetricCardProps> = ({
 
   const statusColor = STATUS_CONFIG[status].color;
 
+  // Update portal position based on card location
+  const updatePortalPosition = useCallback(() => {
+    if (cardRef.current && isExpanded) {
+      const rect = cardRef.current.getBoundingClientRect();
+      setPortalPosition({
+        top: rect.bottom,
+        left: rect.left,
+        width: rect.width,
+      });
+    }
+  }, [isExpanded]);
+
+  // Update position on expand, scroll, resize
+  useEffect(() => {
+    if (isExpanded) {
+      updatePortalPosition();
+
+      // Listen for scroll on all scrollable parents
+      const handleScroll = () => updatePortalPosition();
+      const handleResize = () => updatePortalPosition();
+
+      window.addEventListener('scroll', handleScroll, true);
+      window.addEventListener('resize', handleResize);
+
+      return () => {
+        window.removeEventListener('scroll', handleScroll, true);
+        window.removeEventListener('resize', handleResize);
+      };
+    }
+  }, [isExpanded, updatePortalPosition]);
+
+  // Close on click outside
+  useEffect(() => {
+    if (!isExpanded) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      // Check if click is outside both card and portal content
+      if (cardRef.current && !cardRef.current.contains(target)) {
+        const portalContent = document.getElementById(`metric-card-portal-${label}`);
+        if (!portalContent || !portalContent.contains(target)) {
+          setIsExpanded(false);
+        }
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isExpanded, label]);
+
   return (
-    <div className={`relative h-full flex flex-col ${className}`}>
-      {/* Main Card */}
-      <div
-        className={`group relative bg-white rounded-2xl flex flex-col h-full transition-all duration-300 hover:shadow-xl overflow-hidden ${
-          isExpanded && hasExpandable ? 'rounded-b-none' : ''
-        }`}
-        style={{
-          boxShadow: '0 2px 8px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.04)',
-        }}
-      >
-        {/* Status bar */}
-        <div className={`h-1.5 ${statusColor}`} />
+    <>
+      <div ref={cardRef} className={`relative h-full flex flex-col ${className}`}>
+        {/* Main Card */}
+        <div
+          className={`group relative bg-white rounded-2xl flex flex-col h-full transition-all duration-300 hover:shadow-xl overflow-hidden ${
+            isExpanded && hasExpandable ? 'rounded-b-none' : ''
+          }`}
+          style={{
+            boxShadow: '0 2px 8px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.04)',
+          }}
+        >
+          {/* Status bar */}
+          <div className={`h-1.5 ${statusColor}`} />
 
-        {/* Content */}
-        <div className="p-4 sm:p-5 xl:p-6 flex flex-col flex-1">
-          {/* Label row */}
-          <div className="flex items-center justify-between mb-3 xl:mb-4">
-            <span className="text-sm sm:text-base lg:text-lg font-bold text-stone-700 uppercase tracking-wide">
-              {label}
-            </span>
-            {tooltip && <Tooltip title={tooltip.title} description={tooltip.description} />}
-          </div>
-
-          {/* Value */}
-          <div className="mb-2 xl:mb-3">
-            <span className="text-3xl sm:text-4xl xl:text-5xl font-black text-stone-900 tracking-tight">
-              {value}
-            </span>
-            {valueLabel && (
-              <span className="text-base sm:text-lg xl:text-xl font-medium text-stone-400 ml-2">
-                {valueLabel}
+          {/* Content */}
+          <div className="px-4 pt-4 pb-3 sm:px-5 sm:pt-5 sm:pb-4 xl:px-5 xl:pt-5 xl:pb-4 flex flex-col">
+            {/* Label row */}
+            <div className="flex items-center justify-between mb-2 xl:mb-3">
+              <span className="text-sm sm:text-base lg:text-lg font-bold text-stone-700 uppercase tracking-wide">
+                {label}
               </span>
-            )}
-          </div>
+              {tooltip && <Tooltip title={tooltip.title} description={tooltip.description} />}
+            </div>
 
-          {/* Subtext */}
-          <p className="text-sm sm:text-base lg:text-lg text-stone-500 leading-snug mb-4 xl:mb-5 flex-1">
-            {subtext}
-          </p>
+            {/* Value */}
+            <div className="mb-2 xl:mb-3">
+              <span className="text-3xl sm:text-4xl xl:text-5xl font-black text-stone-900 tracking-tight">
+                {value}
+              </span>
+              {valueLabel && (
+                <span className="text-base sm:text-lg xl:text-xl font-medium text-stone-400 ml-2">
+                  {valueLabel}
+                </span>
+              )}
+            </div>
 
-          {/* Footer */}
-          <div className={`pt-3 xl:pt-4 border-t border-stone-100 mt-auto ${hasButton ? 'flex items-center justify-between' : ''}`}>
-            <StatusIndicator status={status} />
-            {hasExpandable && (
-              <button
-                onClick={() => setIsExpanded(!isExpanded)}
-                className={`flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 ${
-                  isExpanded
-                    ? 'bg-stone-900 text-white'
-                    : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
-                }`}
-              >
-                <span className="hidden sm:inline">{isExpanded ? 'Close' : expandButtonLabel}</span>
-                <span className="sm:hidden">{isExpanded ? 'Close' : expandButtonLabelMobile}</span>
-                <ChevronRight
-                  size={14}
-                  className={`transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`}
-                />
-              </button>
-            )}
-            {hasNavigation && !hasExpandable && (
-              <button
-                onClick={() => navigate(navigateTo!.path)}
-                className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 bg-stone-100 text-stone-600 hover:bg-stone-200"
-              >
-                <span className="hidden sm:inline">{navigateTo!.label}</span>
-                <span className="sm:hidden">{navigateTo!.labelMobile || navigateTo!.label}</span>
-                <ChevronRight size={14} />
-              </button>
-            )}
+            {/* Subtext */}
+            <p className="text-sm sm:text-base lg:text-lg text-stone-500 leading-snug mb-2 xl:mb-3">
+              {subtext}
+            </p>
+
+            {/* Footer */}
+            <div className={`pt-2 xl:pt-3 border-t border-stone-100 ${hasButton ? 'flex items-center justify-between' : ''}`}>
+              <StatusIndicator status={status} />
+              {hasExpandable && (
+                <button
+                  onClick={() => setIsExpanded(!isExpanded)}
+                  className={`flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 ${
+                    isExpanded
+                      ? 'bg-stone-900 text-white'
+                      : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                  }`}
+                >
+                  <span className="hidden sm:inline">{isExpanded ? 'Close' : expandButtonLabel}</span>
+                  <span className="sm:hidden">{isExpanded ? 'Close' : expandButtonLabelMobile}</span>
+                  <ChevronRight
+                    size={14}
+                    className={`transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`}
+                  />
+                </button>
+              )}
+              {hasNavigation && !hasExpandable && (
+                <button
+                  onClick={() => navigate(navigateTo!.path)}
+                  className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 bg-stone-100 text-stone-600 hover:bg-stone-200"
+                >
+                  <span className="hidden sm:inline">{navigateTo!.label}</span>
+                  <span className="sm:hidden">{navigateTo!.labelMobile || navigateTo!.label}</span>
+                  <ChevronRight size={14} />
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Expandable Panel - positioned absolutely so it doesn't affect card height */}
-      {hasExpandable && (
+      {/* Expandable Panel - rendered via Portal to escape overflow clipping */}
+      {hasExpandable && isExpanded && portalPosition && createPortal(
         <div
-          className={`absolute top-full left-0 right-0 z-30 overflow-hidden transition-all duration-500 ease-out ${
-            isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-          }`}
+          id={`metric-card-portal-${label}`}
+          className="fixed z-[9999] transition-opacity duration-300"
+          style={{
+            top: portalPosition.top,
+            left: portalPosition.left,
+            width: portalPosition.width,
+          }}
         >
           <div
-            className="bg-white border-t border-stone-100 rounded-b-2xl p-4 sm:p-5"
+            className="bg-white border-t border-stone-100 rounded-b-2xl p-4 sm:p-5 animate-in fade-in slide-in-from-top-2 duration-200"
             style={{
-              boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.08)',
             }}
           >
             {expandableContent}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
-    </div>
+    </>
   );
 };
 

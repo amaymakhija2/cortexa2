@@ -91,7 +91,7 @@ const MilestoneClientRow: React.FC<ClientRowProps<ApproachingClient> & { milesto
               </span>
             )}
           </div>
-          <div className="flex items-center gap-3 text-sm text-stone-500 mt-0.5">
+          <div className="flex items-center gap-3 text-sm text-stone-600 mt-0.5">
             <span>{client.clinician}</span>
             {client.nextAppointment && (
               <>
@@ -109,7 +109,7 @@ const MilestoneClientRow: React.FC<ClientRowProps<ApproachingClient> & { milesto
       {/* Action hint */}
       <ChevronRight
         size={16}
-        className="text-stone-300 group-hover:text-stone-500 transition-colors flex-shrink-0"
+        className="text-stone-400 group-hover:text-stone-600 transition-colors flex-shrink-0"
       />
     </button>
   );

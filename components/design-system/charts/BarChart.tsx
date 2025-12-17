@@ -1,11 +1,13 @@
 import React from 'react';
 import { useChartAnimation } from './useChartAnimation';
+import { Legend, HoverInfoDisplay } from '../Legend';
 
 // =============================================================================
 // BAR CHART COMPONENT
 // =============================================================================
 // Premium custom bar chart with support for single bars, stacked bars,
 // goal lines, hover interactions, and beautiful gradients.
+// Now uses the unified Legend component for consistent styling.
 // =============================================================================
 
 // -----------------------------------------------------------------------------
@@ -138,6 +140,19 @@ export interface BarChartProps {
    */
   legendPosition?: 'bottom' | 'top-right';
 
+  /**
+   * Current hover info - when provided, replaces the legend with hover details
+   * Pass the same value received from onHover callback
+   */
+  hoverInfo?: HoverInfo | null;
+
+  /**
+   * Format function for hover tooltip value
+   * @param value - The value to format
+   * @returns Formatted string
+   */
+  formatHoverValue?: (value: number) => string;
+
   /** Additional className for the container */
   className?: string;
 }
@@ -162,7 +177,7 @@ const SIZE_CONFIG = {
     // Stacked bar total label
     stackedTotalClass: 'text-sm font-bold text-indigo-600',
     // Y-axis labels
-    yAxisClass: 'text-sm text-stone-500 font-semibold pr-4 py-1',
+    yAxisClass: 'text-sm text-stone-600 font-semibold pr-4 py-1',
     // X-axis labels
     xAxisClass: 'text-sm font-semibold',
     xAxisCurrentClass: 'text-stone-900 bg-stone-900/5 px-3 py-1 rounded-full',
@@ -190,7 +205,7 @@ const SIZE_CONFIG = {
     // Stacked bar total label
     stackedTotalClass: 'text-lg sm:text-xl font-bold text-indigo-600',
     // Y-axis labels
-    yAxisClass: 'text-base sm:text-lg text-stone-500 font-semibold pr-6 py-2',
+    yAxisClass: 'text-base sm:text-lg text-stone-600 font-semibold pr-6 py-2',
     // X-axis labels
     xAxisClass: 'text-base sm:text-lg font-semibold',
     xAxisCurrentClass: 'text-stone-900 bg-stone-900/5 px-4 py-1.5 rounded-full',
@@ -273,6 +288,8 @@ export const BarChart: React.FC<BarChartProps> = ({
   height = '320px',
   showLegend = false,
   legendPosition = 'bottom',
+  hoverInfo,
+  formatHoverValue,
   className = '',
 }) => {
   // Get size configuration
@@ -518,20 +535,29 @@ export const BarChart: React.FC<BarChartProps> = ({
             </div>
           )}
 
-          {/* Top-right floating legend */}
+          {/* Top-right floating legend / hover info - using unified Legend component */}
           {showLegend && mode === 'stacked' && legendPosition === 'top-right' && segments.length > 0 && (
-            <div className="absolute top-0 right-0 z-20 flex items-center gap-4 bg-white/90 backdrop-blur-sm rounded-xl px-4 py-2.5 shadow-sm border border-stone-100">
-              {segments.map((segment) => (
-                <div key={segment.key} className="flex items-center gap-2">
-                  <div
-                    className="w-3.5 h-3.5 rounded-full"
-                    style={{ backgroundColor: segment.color }}
-                  />
-                  <span className="text-sm font-semibold text-stone-700">
-                    {segment.label}
-                  </span>
-                </div>
-              ))}
+            <div className="absolute top-0 right-0 z-20">
+              {hoverInfo ? (
+                <HoverInfoDisplay
+                  label={hoverInfo.label}
+                  segmentLabel={hoverInfo.segmentLabel}
+                  value={hoverInfo.value}
+                  color={hoverInfo.color}
+                  formatValue={formatHoverValue || formatValue}
+                  size={size === 'lg' ? 'lg' : 'md'}
+                />
+              ) : (
+                <Legend
+                  items={segments.map((s) => ({
+                    label: s.label,
+                    color: s.color,
+                    type: 'dot',
+                  }))}
+                  variant="floating"
+                  size={size === 'lg' ? 'lg' : 'md'}
+                />
+              )}
             </div>
           )}
 
@@ -555,7 +581,7 @@ export const BarChart: React.FC<BarChartProps> = ({
                   className={`${sizeConfig.xAxisClass} ${
                     isCurrentItem
                       ? sizeConfig.xAxisCurrentClass
-                      : 'text-stone-500'
+                      : 'text-stone-600'
                   }`}
                 >
                   {item.label}
@@ -566,20 +592,18 @@ export const BarChart: React.FC<BarChartProps> = ({
         </div>
       </div>
 
-      {/* Bottom Legend (stacked mode only) */}
+      {/* Bottom Legend (stacked mode only) - using unified Legend component */}
       {showLegend && mode === 'stacked' && legendPosition === 'bottom' && segments.length > 0 && (
-        <div className="flex items-center gap-5 mt-4 pt-3 border-t border-stone-100 flex-wrap justify-center">
-          {segments.map((segment) => (
-            <div key={segment.key} className="flex items-center gap-2">
-              <div
-                className={`${sizeConfig.legendDotSize} rounded-full`}
-                style={{ backgroundColor: segment.color }}
-              />
-              <span className={sizeConfig.legendTextClass}>
-                {segment.label}
-              </span>
-            </div>
-          ))}
+        <div className="mt-4 pt-3 border-t border-stone-100">
+          <Legend
+            items={segments.map((s) => ({
+              label: s.label,
+              color: s.color,
+              type: 'dot',
+            }))}
+            variant="compact"
+            size={size === 'lg' ? 'lg' : 'md'}
+          />
         </div>
       )}
     </div>

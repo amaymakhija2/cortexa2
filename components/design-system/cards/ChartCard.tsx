@@ -1,20 +1,72 @@
 import React, { useState } from 'react';
 import { Maximize2, Minimize2 } from 'lucide-react';
+import { Legend } from '../Legend';
+import type { LegendItem as UnifiedLegendItem } from '../Legend';
 
 // =============================================================================
 // CHART CARD COMPONENT
 // =============================================================================
 // Container for charts with header, legend, expand functionality, and insights.
+// Now uses the unified Legend component for consistent styling.
 // =============================================================================
 
 export interface LegendItem {
   /** Legend label */
   label: string;
-  /** Color indicator type */
+  /** Color indicator type: 'box' maps to 'dot', 'line' stays as 'line' */
   type: 'box' | 'line';
-  /** Color value (tailwind class or hex) */
+  /** Color value (hex code, e.g., '#3b82f6') - Tailwind classes are deprecated */
   color: string;
 }
+
+// Helper to extract hex color from Tailwind class (backward compatibility)
+// Maps common Tailwind bg-* classes to hex values
+const TAILWIND_TO_HEX: Record<string, string> = {
+  'bg-blue-500': '#3b82f6',
+  'bg-blue-600': '#2563eb',
+  'bg-emerald-500': '#10b981',
+  'bg-emerald-600': '#059669',
+  'bg-green-500': '#22c55e',
+  'bg-amber-500': '#f59e0b',
+  'bg-amber-600': '#d97706',
+  'bg-rose-500': '#f43f5e',
+  'bg-rose-600': '#e11d48',
+  'bg-red-500': '#ef4444',
+  'bg-stone-400': '#a8a29e',
+  'bg-stone-500': '#78716c',
+  'bg-violet-500': '#8b5cf6',
+  'bg-violet-600': '#7c3aed',
+  'bg-indigo-500': '#6366f1',
+  'bg-indigo-600': '#4f46e5',
+  'bg-cyan-500': '#06b6d4',
+  'bg-teal-500': '#14b8a6',
+  'bg-pink-500': '#ec4899',
+  'bg-orange-500': '#f97316',
+  'bg-gray-500': '#6b7280',
+  // Gradient classes - extract the primary color
+  'bg-gradient-to-b from-amber-400 to-amber-500': '#f59e0b',
+  'bg-gradient-to-b from-emerald-400 to-emerald-500': '#10b981',
+};
+
+const extractHexFromTailwind = (tailwindClass: string): string => {
+  // If it's already a hex color, return it
+  if (tailwindClass.startsWith('#')) return tailwindClass;
+
+  // Try to find in our mapping
+  const hex = TAILWIND_TO_HEX[tailwindClass];
+  if (hex) return hex;
+
+  // Try to extract color from class name pattern (e.g., bg-blue-500)
+  const match = tailwindClass.match(/bg-(\w+)-(\d+)/);
+  if (match) {
+    const baseKey = `bg-${match[1]}-${match[2]}`;
+    if (TAILWIND_TO_HEX[baseKey]) return TAILWIND_TO_HEX[baseKey];
+  }
+
+  // Fallback to stone
+  console.warn(`Unknown Tailwind color class: ${tailwindClass}, using fallback`);
+  return '#78716c';
+};
 
 export interface InsightItem {
   /** Insight value */
@@ -94,7 +146,7 @@ export const ChartCard: React.FC<ChartCardProps> = ({
 }) => {
   return (
     <div
-      className={`rounded-2xl xl:rounded-3xl p-6 sm:p-8 xl:p-10 relative flex flex-col overflow-hidden ${className}`}
+      className={`rounded-2xl xl:rounded-3xl p-6 sm:p-8 xl:p-10 2xl:p-12 relative flex flex-col overflow-hidden ${className}`}
       style={{
         background: 'linear-gradient(145deg, #ffffff 0%, #fafaf9 100%)',
         boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)',
@@ -102,20 +154,20 @@ export const ChartCard: React.FC<ChartCardProps> = ({
       }}
     >
       {/* Header Section */}
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
-        <div className="flex-1 min-w-0">
+      <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4 mb-8">
+        <div>
           <h3
-            className="text-stone-900 text-2xl sm:text-3xl xl:text-4xl font-bold mb-2 tracking-tight"
+            className="text-stone-900 text-2xl sm:text-3xl xl:text-4xl font-bold mb-3 tracking-tight"
             style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
           >
             {title}
           </h3>
           {subtitle && (
-            <p className="text-stone-500 text-base sm:text-lg xl:text-xl">{subtitle}</p>
+            <p className="text-stone-600 text-base sm:text-lg xl:text-xl">{subtitle}</p>
           )}
         </div>
 
-        <div className="flex items-center gap-3 flex-shrink-0">
+        <div className="flex items-center gap-4 flex-wrap">
           {/* Custom Header Controls (ToggleButton, GoalIndicator, ActionButton, etc.) */}
           {headerControls}
 
@@ -132,46 +184,41 @@ export const ChartCard: React.FC<ChartCardProps> = ({
             </div>
           )}
 
-          {/* Legend */}
+          {/* Legend - using unified Legend component */}
           {legend && legend.length > 0 && (
-            <div className="flex items-center gap-6 bg-stone-50 rounded-xl px-5 py-3">
-              {legend.map((item, idx) => (
-                <React.Fragment key={idx}>
-                  {idx > 0 && <div className="w-px h-6 bg-stone-200" />}
-                  <div className="flex items-center gap-3">
-                    {item.type === 'box' ? (
-                      <div className={`w-5 h-5 rounded-md ${item.color} shadow-sm`}></div>
-                    ) : (
-                      <div className={`w-8 h-1 ${item.color} rounded-full`}></div>
-                    )}
-                    <span className="text-stone-700 text-base font-semibold">{item.label}</span>
-                  </div>
-                </React.Fragment>
-              ))}
-            </div>
+            <Legend
+              items={legend.map((item) => ({
+                label: item.label,
+                color: item.color.startsWith('#') ? item.color : extractHexFromTailwind(item.color),
+                type: item.type === 'box' ? 'dot' : 'line',
+              }))}
+              variant="inline"
+              size="md"
+            />
           )}
 
-          {/* Expand Button */}
-          {expandable && (
-            <button
-              onClick={onExpand}
-              className="p-2.5 rounded-xl bg-stone-100/80 hover:bg-stone-200 text-stone-500 hover:text-stone-700 transition-all duration-200 hover:scale-105 active:scale-95 flex-shrink-0"
-              title="Expand chart"
-            >
-              <Maximize2 size={18} strokeWidth={2} />
-            </button>
-          )}
         </div>
       </div>
 
+      {/* Expand Button - Absolute positioned in top right */}
+      {expandable && (
+        <button
+          onClick={onExpand}
+          className="absolute top-4 right-4 sm:top-6 sm:right-6 xl:top-8 xl:right-8 p-2.5 rounded-xl bg-stone-100/80 hover:bg-stone-200 text-stone-500 hover:text-stone-700 transition-all duration-200 hover:scale-105 active:scale-95 z-10"
+          title="Expand chart"
+        >
+          <Maximize2 size={18} strokeWidth={2} />
+        </button>
+      )}
+
       {/* Chart Area */}
-      <div className="flex-1 min-h-[280px]">
+      <div className="flex-1 min-h-[280px] flex flex-col justify-end">
         {children}
       </div>
 
       {/* Insights Row */}
       {insights && insights.length > 0 && (
-        <div className={`grid grid-cols-${insights.length} gap-4 pt-4 mt-2 border-t-2 border-stone-100`}>
+        <div className={`grid grid-cols-${insights.length} gap-4 pt-3 border-t-2 border-stone-100`}>
           {insights.map((insight, idx) => (
             <div
               key={idx}
@@ -259,7 +306,7 @@ export const SimpleChartCard: React.FC<SimpleChartCardProps> = ({
 }) => {
   return (
     <div
-      className={`rounded-2xl xl:rounded-3xl p-5 sm:p-6 xl:p-8 overflow-hidden flex flex-col ${className}`}
+      className={`rounded-2xl xl:rounded-3xl p-5 sm:p-6 xl:p-8 overflow-hidden flex flex-col relative ${className}`}
       style={{
         background: 'linear-gradient(145deg, #ffffff 0%, #fafaf9 100%)',
         boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)',
@@ -326,18 +373,19 @@ export const SimpleChartCard: React.FC<SimpleChartCardProps> = ({
             </div>
           )}
 
-          {/* Expand button */}
-          {expandable && (
-            <button
-              onClick={onExpand}
-              className="p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-stone-100/80 hover:bg-stone-200 text-stone-500 hover:text-stone-700 transition-all duration-200 hover:scale-105 active:scale-95"
-              title="Expand chart"
-            >
-              <Maximize2 size={16} strokeWidth={2} />
-            </button>
-          )}
         </div>
       </div>
+
+      {/* Expand button - Absolute positioned in top right */}
+      {expandable && (
+        <button
+          onClick={onExpand}
+          className="absolute top-4 right-4 sm:top-5 sm:right-5 xl:top-6 xl:right-6 p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-stone-100/80 hover:bg-stone-200 text-stone-500 hover:text-stone-700 transition-all duration-200 hover:scale-105 active:scale-95 z-10"
+          title="Expand chart"
+        >
+          <Maximize2 size={16} strokeWidth={2} />
+        </button>
+      )}
 
       {/* Chart Area */}
       <div className="flex-1 min-h-[280px]">
@@ -488,23 +536,17 @@ export const ExpandedChartModal: React.FC<ExpandedChartModalProps> = ({
               {/* Custom Header Controls */}
               {headerControls}
 
-              {/* Legend */}
+              {/* Legend - using unified Legend component */}
               {legend && legend.length > 0 && (
-                <div className="flex items-center gap-8 bg-stone-50 rounded-2xl px-8 py-5">
-                  {legend.map((item, idx) => (
-                    <React.Fragment key={idx}>
-                      {idx > 0 && <div className="w-px h-8 bg-stone-200" />}
-                      <div className="flex items-center gap-4">
-                        {item.type === 'box' ? (
-                          <div className={`w-6 h-6 rounded-lg ${item.color} shadow-sm`}></div>
-                        ) : (
-                          <div className={`w-10 h-1.5 ${item.color} rounded-full`}></div>
-                        )}
-                        <span className="text-stone-700 text-lg font-semibold">{item.label}</span>
-                      </div>
-                    </React.Fragment>
-                  ))}
-                </div>
+                <Legend
+                  items={legend.map((item) => ({
+                    label: item.label,
+                    color: item.color.startsWith('#') ? item.color : extractHexFromTailwind(item.color),
+                    type: item.type === 'box' ? 'dot' : 'line',
+                  }))}
+                  variant="inline"
+                  size="lg"
+                />
               )}
             </div>
           </div>

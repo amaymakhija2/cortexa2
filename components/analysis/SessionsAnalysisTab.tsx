@@ -333,25 +333,25 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
         <Section spacing="md">
           <AnimatedGrid cols={4} gap="md" staggerDelay={60}>
             <StatCard
-              title="Completed Sessions"
+              title="Sessions Completed"
               value={totalCompleted.toLocaleString()}
               valueLabel="total"
               subtitle={periodLabel}
             />
             <StatCard
-              title="Booked Sessions"
+              title="Sessions Booked"
               value={totalBooked.toLocaleString()}
               valueLabel="total"
               subtitle={periodLabel}
             />
             <StatCard
-              title="Weekly Completed Sessions"
+              title="Weekly Sessions"
               value={avgWeeklyCompleted.toString()}
               valueLabel="average"
               subtitle={periodLabel}
             />
             <StatCard
-              title="Client Cancel Rate"
+              title="Cancel Rate"
               value={`${clientCancelRate.toFixed(1)}%`}
               valueLabel="average"
               subtitle={periodLabel}

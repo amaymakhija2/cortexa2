@@ -183,31 +183,36 @@ const ALL_CHURN_TIMING_DATA = [
 
 // Retention cohort options - simplified for practice owners
 // Just 3 clear choices: All Time, This Year, Last Year
+// Realistic churn: ~30% annual for a well-run practice
 const RETENTION_COHORTS = [
   {
     id: 'all-time',
     label: 'All Time',
     sublabel: 'Every client since you opened',
-    clientCount: 847,
+    clientCount: 412,
     maturity: 'mature' as const,
     recommended: true,
-    summary: { clientsAcquired: 847, clientsChurned: 691, activeClients: 156, avgSessionsPerClient: 14.3 }
+    // All-time: 412 acquired over ~3 years, 256 churned, 156 currently active
+    // ~62% cumulative churn (normal for 3+ years of operations)
+    summary: { clientsAcquired: 412, clientsChurned: 256, activeClients: 156, avgSessionsPerClient: 18.2 }
   },
   {
     id: 'this-year',
     label: 'This Year',
     sublabel: 'Clients who started in 2025',
-    clientCount: 312,
+    clientCount: 89,
     maturity: 'mature' as const,
-    summary: { clientsAcquired: 312, clientsChurned: 198, activeClients: 114, avgSessionsPerClient: 11.8 }
+    // 2025 cohort: 89 new clients, 21 churned so far (24% - lower since less time to churn)
+    summary: { clientsAcquired: 89, clientsChurned: 21, activeClients: 68, avgSessionsPerClient: 11.4 }
   },
   {
     id: 'last-year',
     label: 'Last Year',
     sublabel: 'Clients who started in 2024',
-    clientCount: 289,
+    clientCount: 142,
     maturity: 'mature' as const,
-    summary: { clientsAcquired: 289, clientsChurned: 247, activeClients: 42, avgSessionsPerClient: 16.1 }
+    // 2024 cohort: 142 acquired, 90 churned over time (63% after full year - some churned in 2025)
+    summary: { clientsAcquired: 142, clientsChurned: 90, activeClients: 52, avgSessionsPerClient: 16.8 }
   },
 ];
 
@@ -222,19 +227,22 @@ const getCohortPhrase = (cohortId: string): string => {
 };
 
 // Retention funnel data - client journey visualization
+// Realistic retention rates for therapy practice (based on 412 all-time clients)
+// Both funnels start at Month 1 / Session 1 = 100% (all clients who had their first session)
 const RETENTION_FUNNEL_DATA = {
   sessionsFunnel: [
-    { label: 'Started', count: 847, percentage: 100 },
-    { label: 'Session 2', count: 652, percentage: 77 },
-    { label: 'Session 5', count: 644, percentage: 76 },
-    { label: 'Session 12', count: 440, percentage: 52 },
-    { label: 'Session 24', count: 263, percentage: 31 },
+    { label: 'S1', count: 412, percentage: 100, industryAvg: 100 },      // All clients who started
+    { label: 'S2', count: 362, percentage: 88, industryAvg: 82 },        // 88% return for session 2
+    { label: 'S5', count: 313, percentage: 76, industryAvg: 65 },        // 76% reach session 5
+    { label: 'S12', count: 247, percentage: 60, industryAvg: 45 },       // 60% reach session 12
+    { label: 'S24', count: 178, percentage: 43, industryAvg: 28 },       // 43% reach session 24
   ],
   timeFunnel: [
-    { label: 'Started', count: 847, percentage: 100 },
-    { label: '1 Month', count: 695, percentage: 82 },
-    { label: '3 Months', count: 525, percentage: 62 },
-    { label: '6 Months', count: 347, percentage: 41 },
+    { label: 'Mo 1', count: 412, percentage: 100, industryAvg: 100 },    // All clients at month 1
+    { label: 'Mo 3', count: 358, percentage: 87, industryAvg: 78 },      // 87% still active at 3 months
+    { label: 'Mo 6', count: 296, percentage: 72, industryAvg: 55 },      // 72% at 6 months
+    { label: 'Mo 9', count: 247, percentage: 60, industryAvg: 42 },      // 60% at 9 months
+    { label: 'Mo 12', count: 235, percentage: 57, industryAvg: 38 },     // 57% at 12 months
   ],
 };
 
@@ -335,21 +343,23 @@ const COHORT_LTV_DATA = {
 // Churn distribution by gender (for comparison with client distribution)
 // Client distribution: Male 33%, Female 62%, Other 5%
 // Churn shows Males slightly over-represented in churn
+// Total aligns with all-time churned clients: 256
 const CHURN_BY_GENDER_DATA = {
-  male: 48,    // 38% of churn vs 33% of clients (+5%)
-  female: 72,  // 57% of churn vs 62% of clients (-5%)
-  other: 6,    // 5% of churn vs 5% of clients (=)
-  total: 126
+  male: 97,    // 38% of churn vs 33% of clients (+5%)
+  female: 146, // 57% of churn vs 62% of clients (-5%)
+  other: 13,   // 5% of churn vs 5% of clients (=)
+  total: 256
 };
 
 // Churn distribution by frequency (for comparison with client distribution)
 // Client distribution: Weekly 51%, Bi-weekly 40%, Monthly 8%
 // Churn shows Monthly clients massively over-represented
+// Total aligns with all-time churned clients: 256
 const CHURN_BY_FREQUENCY_DATA = {
-  weekly: 25,    // 20% of churn vs 51% of clients (-31%) - weekly clients stay!
-  biweekly: 57,  // 45% of churn vs 40% of clients (+5%)
-  monthly: 44,   // 35% of churn vs 8% of clients (+27%) - monthly clients leave!
-  total: 126
+  weekly: 51,    // 20% of churn vs 51% of clients (-31%) - weekly clients stay!
+  biweekly: 115, // 45% of churn vs 40% of clients (+5%)
+  monthly: 90,   // 35% of churn vs 8% of clients (+27%) - monthly clients leave!
+  total: 256
 };
 
 // Admin Analytics Data

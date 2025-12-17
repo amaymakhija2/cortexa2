@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { Maximize2 } from 'lucide-react';
 
 // =============================================================================
 // CLIENT ROSTER CARD COMPONENT
@@ -27,8 +28,12 @@ export interface ClientRosterCardProps {
   subtitle?: string;
   /** List of clients to display */
   clients: ClientData[];
-  /** Max number of clients visible at once (scrollable if more). Defaults to 5 */
+  /** Max number of clients visible at once (scrollable if more). Defaults to 4.5. Ignored when size='lg' */
   maxVisible?: number;
+  /** Expand callback for fullscreen view */
+  onExpand?: () => void;
+  /** Size variant - 'default' for cards, 'lg' for expanded/fullscreen views */
+  size?: 'default' | 'lg';
   /** Additional className */
   className?: string;
 }
@@ -88,6 +93,8 @@ export const ClientRosterCard: React.FC<ClientRosterCardProps> = ({
   subtitle,
   clients,
   maxVisible = 4.5,
+  onExpand,
+  size = 'default',
   className = '',
 }) => {
   const [selectedSegment, setSelectedSegment] = useState<SegmentId>('all');
@@ -107,72 +114,97 @@ export const ClientRosterCard: React.FC<ClientRosterCardProps> = ({
     milestone: clients.filter(c => c.status === 'milestone').length,
   }), [clients]);
 
-  return (
-    <div
-      className={`rounded-2xl xl:rounded-3xl relative flex flex-col overflow-hidden ${className}`}
-      style={{
+  // For lg size (expanded modal), use minimal styling and full height
+  const containerStyle = size === 'lg'
+    ? {}
+    : {
         background: 'linear-gradient(145deg, #ffffff 0%, #fafaf9 100%)',
         boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)',
-      }}
+      };
+
+  return (
+    <div
+      className={`${size === 'lg' ? 'h-full' : 'rounded-2xl xl:rounded-3xl'} relative flex flex-col overflow-hidden ${className}`}
+      style={containerStyle}
     >
-      {/* Header Section */}
-      <div className="p-6 sm:p-8 xl:p-10 pb-0 sm:pb-0 xl:pb-0">
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
-          <div className="flex-1 min-w-0">
-            <h3
-              className="text-stone-900 text-2xl sm:text-3xl xl:text-4xl font-bold mb-2 tracking-tight"
-              style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-            >
-              {title}
-            </h3>
-            {subtitle && (
-              <p className="text-stone-500 text-base sm:text-lg xl:text-xl">{subtitle}</p>
-            )}
-          </div>
-
-          {/* Count indicator */}
-          <div className="flex-shrink-0 text-right">
-            <div
-              className="text-stone-900 text-3xl sm:text-4xl font-bold"
-              style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-            >
-              {filteredClients.length}
-            </div>
-            <div className="text-stone-500 text-sm font-medium">
-              {selectedSegment === 'all' ? 'total' : selectedSegment.replace('-', ' ')}
-            </div>
-          </div>
-        </div>
-
-        {/* Segment filter buttons */}
-        <div className="flex flex-wrap gap-2 mb-6">
-          {SEGMENT_CONFIG.map((segment) => {
-            const isSelected = selectedSegment === segment.id;
-            const count = segmentCounts[segment.id];
-            const colors = SEGMENT_BUTTON_COLORS[segment.color];
-
-            return (
-              <button
-                key={segment.id}
-                onClick={() => setSelectedSegment(segment.id)}
-                className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-                  isSelected ? colors.selected : colors.unselected
-                }`}
+      {/* Header Section - Compact for lg size */}
+      <div className={size === 'lg' ? 'flex-shrink-0' : 'p-6 sm:p-8 xl:p-10 pb-0 sm:pb-0 xl:pb-0'}>
+        {/* Title/Subtitle row - only show if title exists */}
+        {title && (
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+            <div className="flex-1 min-w-0">
+              <h3
+                className="text-stone-900 text-2xl sm:text-3xl xl:text-4xl font-bold mb-2 tracking-tight"
+                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
               >
-                {segment.label}
-                <span className={`ml-2 ${isSelected ? 'opacity-80' : 'opacity-60'}`}>
-                  {count}
-                </span>
-              </button>
-            );
-          })}
+                {title}
+              </h3>
+              {subtitle && (
+                <p className="text-stone-500 text-base sm:text-lg xl:text-xl">{subtitle}</p>
+              )}
+            </div>
+
+            {/* Count indicator - only with title */}
+            <div className="flex-shrink-0 text-right">
+              <div
+                className="text-stone-900 text-3xl sm:text-4xl font-bold"
+                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+              >
+                {filteredClients.length}
+              </div>
+              <div className="text-stone-500 text-sm font-medium">
+                {selectedSegment === 'all' ? 'total' : selectedSegment.replace('-', ' ')}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Segment filter buttons - inline with count for lg mode without title */}
+        <div className={`flex items-center ${size === 'lg' && !title ? 'justify-between pb-4 border-b border-stone-100' : 'flex-wrap gap-2 mb-6'}`}>
+          <div className="flex flex-wrap gap-2">
+            {SEGMENT_CONFIG.map((segment) => {
+              const isSelected = selectedSegment === segment.id;
+              const count = segmentCounts[segment.id];
+              const colors = SEGMENT_BUTTON_COLORS[segment.color];
+
+              return (
+                <button
+                  key={segment.id}
+                  onClick={() => setSelectedSegment(segment.id)}
+                  className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                    isSelected ? colors.selected : colors.unselected
+                  }`}
+                >
+                  {segment.label}
+                  <span className={`ml-2 ${isSelected ? 'opacity-80' : 'opacity-60'}`}>
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Count indicator - show inline when no title (lg mode) */}
+          {!title && (
+            <div className="flex items-center gap-3">
+              <div
+                className="text-stone-900 text-2xl font-bold"
+                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+              >
+                {filteredClients.length}
+              </div>
+              <div className="text-stone-500 text-sm font-medium">
+                {selectedSegment === 'all' ? 'clients' : selectedSegment.replace('-', ' ')}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Client list - limited to maxVisible rows with scroll */}
+      {/* Client list - limited to maxVisible rows with scroll (or flex-1 for lg size) */}
       <div
-        className="overflow-y-auto border-t border-stone-100"
-        style={{ maxHeight: `${maxVisible * CLIENT_ROW_HEIGHT}px` }}
+        className={`overflow-y-auto ${size === 'lg' ? 'flex-1' : 'border-t border-stone-100'}`}
+        style={size === 'lg' ? undefined : { maxHeight: `${maxVisible * CLIENT_ROW_HEIGHT}px` }}
       >
         {filteredClients.length === 0 ? (
           <div className="px-6 sm:px-8 xl:px-10 py-16 text-center">
@@ -251,6 +283,19 @@ export const ClientRosterCard: React.FC<ClientRosterCardProps> = ({
           })
         )}
       </div>
+
+      {/* Expand Button Footer */}
+      {onExpand && (
+        <div className="p-4 sm:p-5 border-t border-stone-100 bg-gradient-to-t from-stone-50/80 to-transparent">
+          <button
+            onClick={onExpand}
+            className="w-full flex items-center justify-center gap-2.5 py-3.5 px-6 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-semibold text-base transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] shadow-lg shadow-stone-900/20"
+          >
+            <Maximize2 size={18} strokeWidth={2.5} />
+            <span>View Full Roster</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 };
