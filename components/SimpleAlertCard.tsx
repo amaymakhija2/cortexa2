@@ -160,7 +160,7 @@ export const SimpleAlertCard: React.FC<SimpleAlertCardProps> = ({
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 + 0.22, duration: 0.45 }}
-            className="flex items-baseline gap-6 sm:gap-8 lg:gap-10 mb-auto"
+            className="flex items-baseline gap-6 sm:gap-8 lg:gap-10 mt-auto"
           >
             {stats.map((stat, idx) => (
               <div key={idx} className="flex flex-col">
