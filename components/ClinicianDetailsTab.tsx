@@ -2671,6 +2671,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                 subtitle={`How ${selectedClinician.name.split(' ')[0]}'s retention compares to the practice`}
                 columns={retentionTableColumns}
                 rows={retentionTableRows}
+                minHeight="420px"
               />
             </Grid>
           </SectionContainer>

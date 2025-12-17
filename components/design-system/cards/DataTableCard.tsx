@@ -144,6 +144,8 @@ export interface DataTableCardProps {
   onExpand?: () => void;
   /** Force mobile card view */
   forceMobileView?: boolean;
+  /** Minimum height for the card */
+  minHeight?: string;
   /** Additional className */
   className?: string;
 }
@@ -200,6 +202,7 @@ export const DataTableCard: React.FC<DataTableCardProps> = ({
   expandable = false,
   onExpand,
   forceMobileView = false,
+  minHeight,
   className = '',
 }) => {
   const sizeConfig = SIZE_CONFIG[size];
@@ -234,10 +237,11 @@ export const DataTableCard: React.FC<DataTableCardProps> = ({
 
   // For lg size inside ExpandedChartModal, use minimal container styling
   const containerStyle = size === 'lg'
-    ? {}
+    ? { minHeight: minHeight || undefined }
     : {
         background: 'linear-gradient(145deg, #ffffff 0%, #fafaf9 100%)',
         boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)',
+        minHeight: minHeight || undefined,
       };
 
   return (
