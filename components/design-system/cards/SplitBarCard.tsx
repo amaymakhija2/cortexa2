@@ -1,11 +1,13 @@
 import React from 'react';
 import { Maximize2 } from 'lucide-react';
+import { Legend } from '../Legend';
 
 // =============================================================================
 // SPLIT BAR CARD COMPONENT
 // =============================================================================
 // A premium split bar visualization for comparing two values.
 // Features gradient segments with icons, percentages, and legends.
+// Now uses the unified Legend component for consistent styling.
 // =============================================================================
 
 export interface SplitBarSegment {
@@ -206,34 +208,32 @@ export const SplitBarCard: React.FC<SplitBarCardProps> = ({
           </div>
         </div>
 
-        {/* Labels below */}
+        {/* Labels below - using unified Legend component */}
         <div className="flex justify-between mt-4">
-          <div className="flex items-center gap-2.5">
-            <div
-              className="w-3 h-3 rounded-full"
-              style={{
-                background: `linear-gradient(135deg, ${leftSegment.color} 0%, ${leftColorEnd} 100%)`,
-                boxShadow: `0 2px 4px ${leftSegment.color}4D`,
-              }}
-            />
-            <span className="text-stone-600 font-medium">{leftSegment.label}</span>
-            <span className="text-stone-400 text-sm">
-              ({leftSegment.value.toLocaleString()})
-            </span>
-          </div>
-          <div className="flex items-center gap-2.5">
-            <div
-              className="w-3 h-3 rounded-full"
-              style={{
-                background: `linear-gradient(135deg, ${rightSegment.color} 0%, ${rightColorEnd} 100%)`,
-                boxShadow: `0 2px 4px ${rightSegment.color}4D`,
-              }}
-            />
-            <span className="text-stone-600 font-medium">{rightSegment.label}</span>
-            <span className="text-stone-400 text-sm">
-              ({rightSegment.value.toLocaleString()})
-            </span>
-          </div>
+          <Legend
+            items={[
+              {
+                label: leftSegment.label,
+                color: leftSegment.color,
+                type: 'dot',
+                value: leftSegment.value,
+              },
+            ]}
+            variant="compact"
+            size="md"
+          />
+          <Legend
+            items={[
+              {
+                label: rightSegment.label,
+                color: rightSegment.color,
+                type: 'dot',
+                value: rightSegment.value,
+              },
+            ]}
+            variant="compact"
+            size="md"
+          />
         </div>
       </div>
     </div>

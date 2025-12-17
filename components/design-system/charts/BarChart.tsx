@@ -1,11 +1,13 @@
 import React from 'react';
 import { useChartAnimation } from './useChartAnimation';
+import { Legend, HoverInfoDisplay } from '../Legend';
 
 // =============================================================================
 // BAR CHART COMPONENT
 // =============================================================================
 // Premium custom bar chart with support for single bars, stacked bars,
 // goal lines, hover interactions, and beautiful gradients.
+// Now uses the unified Legend component for consistent styling.
 // =============================================================================
 
 // -----------------------------------------------------------------------------
@@ -533,48 +535,28 @@ export const BarChart: React.FC<BarChartProps> = ({
             </div>
           )}
 
-          {/* Top-right floating legend / hover info */}
+          {/* Top-right floating legend / hover info - using unified Legend component */}
           {showLegend && mode === 'stacked' && legendPosition === 'top-right' && segments.length > 0 && (
-            <div
-              className="absolute top-0 right-0 z-20 flex items-center gap-4 rounded-xl px-4 py-2.5 shadow-sm border border-stone-100 transition-all duration-150"
-              style={{
-                backgroundColor: hoverInfo ? `${hoverInfo.color}15` : 'rgba(255,255,255,0.9)',
-                backdropFilter: 'blur(8px)',
-              }}
-            >
+            <div className="absolute top-0 right-0 z-20">
               {hoverInfo ? (
-                /* Hover info display */
-                <>
-                  <div
-                    className="w-3.5 h-3.5 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: hoverInfo.color }}
-                  />
-                  <span className="text-sm font-semibold text-stone-700">
-                    {hoverInfo.segmentLabel}
-                  </span>
-                  <span
-                    className="text-sm font-bold"
-                    style={{ color: hoverInfo.color }}
-                  >
-                    {formatHoverValue ? formatHoverValue(hoverInfo.value) : formatValue(hoverInfo.value)}
-                  </span>
-                  <span className="text-stone-500 text-sm">
-                    in {hoverInfo.label}
-                  </span>
-                </>
+                <HoverInfoDisplay
+                  label={hoverInfo.label}
+                  segmentLabel={hoverInfo.segmentLabel}
+                  value={hoverInfo.value}
+                  color={hoverInfo.color}
+                  formatValue={formatHoverValue || formatValue}
+                  size={size === 'lg' ? 'lg' : 'md'}
+                />
               ) : (
-                /* Default legend */
-                segments.map((segment) => (
-                  <div key={segment.key} className="flex items-center gap-2">
-                    <div
-                      className="w-3.5 h-3.5 rounded-full"
-                      style={{ backgroundColor: segment.color }}
-                    />
-                    <span className="text-sm font-semibold text-stone-700">
-                      {segment.label}
-                    </span>
-                  </div>
-                ))
+                <Legend
+                  items={segments.map((s) => ({
+                    label: s.label,
+                    color: s.color,
+                    type: 'dot',
+                  }))}
+                  variant="floating"
+                  size={size === 'lg' ? 'lg' : 'md'}
+                />
               )}
             </div>
           )}
@@ -610,20 +592,18 @@ export const BarChart: React.FC<BarChartProps> = ({
         </div>
       </div>
 
-      {/* Bottom Legend (stacked mode only) */}
+      {/* Bottom Legend (stacked mode only) - using unified Legend component */}
       {showLegend && mode === 'stacked' && legendPosition === 'bottom' && segments.length > 0 && (
-        <div className="flex items-center gap-5 mt-4 pt-3 border-t border-stone-100 flex-wrap justify-center">
-          {segments.map((segment) => (
-            <div key={segment.key} className="flex items-center gap-2">
-              <div
-                className={`${sizeConfig.legendDotSize} rounded-full`}
-                style={{ backgroundColor: segment.color }}
-              />
-              <span className={sizeConfig.legendTextClass}>
-                {segment.label}
-              </span>
-            </div>
-          ))}
+        <div className="mt-4 pt-3 border-t border-stone-100">
+          <Legend
+            items={segments.map((s) => ({
+              label: s.label,
+              color: s.color,
+              type: 'dot',
+            }))}
+            variant="compact"
+            size={size === 'lg' ? 'lg' : 'md'}
+          />
         </div>
       )}
     </div>

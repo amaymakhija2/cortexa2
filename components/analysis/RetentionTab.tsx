@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { Users } from 'lucide-react';
 import {
   PageHeader,
@@ -55,13 +55,53 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
   churnByFrequencyData,
 }) => {
   // =========================================================================
-  // LOCAL STATE
+  // LOCAL STATE & REFS
   // =========================================================================
 
   const [selectedCohort, setSelectedCohort] = useState<string | null>(null);
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const [showClinicianBreakdown, setShowClinicianBreakdown] = useState(false);
   const [hoveredClinicianBar, setHoveredClinicianBar] = useState<HoverInfo | null>(null);
+
+  // Ref for the data section to scroll into view
+  const dataSectionRef = useRef<HTMLDivElement>(null);
+  const previousCohort = useRef<string | null>(null);
+
+  // =========================================================================
+  // SCROLL INTO VIEW ON COHORT SELECTION
+  // =========================================================================
+
+  const handleCohortSelect = useCallback((cohortId: string | null) => {
+    const wasNull = previousCohort.current === null;
+    previousCohort.current = cohortId;
+    setSelectedCohort(cohortId);
+
+    // Scroll when selecting a cohort for the first time (from no selection)
+    if (cohortId && wasNull) {
+      // Wait for the content to render and animate in
+      setTimeout(() => {
+        if (dataSectionRef.current) {
+          // Find the scrollable parent container
+          const scrollableParent = dataSectionRef.current.closest('.overflow-y-auto');
+          if (scrollableParent) {
+            // Calculate scroll position to show data with some context above
+            const containerRect = scrollableParent.getBoundingClientRect();
+            const elementRect = dataSectionRef.current.getBoundingClientRect();
+            const currentScroll = scrollableParent.scrollTop;
+
+            // Scroll to show the data section with ~80px padding from top
+            // This keeps some of the cohort selector visible for context
+            const targetScroll = currentScroll + (elementRect.top - containerRect.top) - 80;
+
+            scrollableParent.scrollTo({
+              top: targetScroll,
+              behavior: 'smooth',
+            });
+          }
+        }
+      }, 250); // Delay to let the reveal animation start first
+    }
+  }, []);
 
   // =========================================================================
   // COMPUTED VALUES
@@ -227,7 +267,7 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
               recommended: c.recommended,
             }))}
             selectedCohort={selectedCohort}
-            onSelect={setSelectedCohort}
+            onSelect={handleCohortSelect}
             title=""
             subtitle=""
           />
@@ -235,7 +275,12 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
 
         {/* Only show data sections if a cohort is selected */}
         {selectedCohort && selectedCohortData && (
-          <>
+          <div
+            ref={dataSectionRef}
+            style={{
+              animation: 'cohortReveal 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards',
+            }}
+          >
             {/* ================================================================
                 COHORT SUMMARY - HERO STATS WITH BENCHMARKS
                 ================================================================ */}
@@ -400,6 +445,10 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
                 <ChartCard
                   title="Return Rate by Session"
                   subtitle={`% of clients still active at each session milestone`}
+                  legend={[
+                    { label: 'Your Practice', color: '#f59e0b', type: 'line' },
+                    { label: 'Industry Avg', color: '#a8a29e', type: 'line' },
+                  ]}
                   expandable
                   onExpand={() => setExpandedCard('sessions-funnel')}
                   insights={sessionsRetentionInsights}
@@ -415,13 +464,16 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
                     yDomain={[0, 100]}
                     yTickFormatter={(v) => `${v}%`}
                     tooltipFormatter={(value, name) => [`${value}%`, name]}
-                    showLegend
                     height="100%"
                   />
                 </ChartCard>
                 <ChartCard
                   title="Return Rate by Time"
                   subtitle={`% of clients still active at each time milestone`}
+                  legend={[
+                    { label: 'Your Practice', color: '#6366f1', type: 'line' },
+                    { label: 'Industry Avg', color: '#a8a29e', type: 'line' },
+                  ]}
                   expandable
                   onExpand={() => setExpandedCard('time-funnel')}
                   insights={timeRetentionInsights}
@@ -437,13 +489,12 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
                     yDomain={[0, 100]}
                     yTickFormatter={(v) => `${v}%`}
                     tooltipFormatter={(value, name) => [`${value}%`, name]}
-                    showLegend
                     height="100%"
                   />
                 </ChartCard>
               </Grid>
             </SectionContainer>
-          </>
+          </div>
         )}
       </PageContent>
 
@@ -509,6 +560,10 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
         onClose={() => setExpandedCard(null)}
         title="Return Rate by Session"
         subtitle="% of clients still active at each session milestone"
+        legend={[
+          { label: 'Your Practice', color: '#f59e0b', type: 'line' },
+          { label: 'Industry Avg', color: '#a8a29e', type: 'line' },
+        ]}
         insights={sessionsRetentionInsights}
       >
         <LineChart
@@ -521,7 +576,6 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
           yDomain={[0, 100]}
           yTickFormatter={(v) => `${v}%`}
           tooltipFormatter={(value, name) => [`${value}%`, name]}
-          showLegend
           height="100%"
         />
       </ExpandedChartModal>
@@ -532,6 +586,10 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
         onClose={() => setExpandedCard(null)}
         title="Return Rate by Time"
         subtitle="% of clients still active at each time milestone"
+        legend={[
+          { label: 'Your Practice', color: '#6366f1', type: 'line' },
+          { label: 'Industry Avg', color: '#a8a29e', type: 'line' },
+        ]}
         insights={timeRetentionInsights}
       >
         <LineChart
@@ -544,7 +602,6 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
           yDomain={[0, 100]}
           yTickFormatter={(v) => `${v}%`}
           tooltipFormatter={(value, name) => [`${value}%`, name]}
-          showLegend
           height="100%"
         />
       </ExpandedChartModal>

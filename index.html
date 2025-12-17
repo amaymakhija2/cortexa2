@@ -126,6 +126,25 @@
           -webkit-overflow-scrolling: touch;
         }
       }
+
+      /* ===== COHORT REVEAL ANIMATION ===== */
+      /* Smooth reveal animation when selecting a cohort in the retention tab */
+      @keyframes cohortReveal {
+        0% {
+          opacity: 0;
+          transform: translateY(24px);
+          filter: blur(4px);
+        }
+        40% {
+          opacity: 0.6;
+          filter: blur(1px);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0);
+          filter: blur(0);
+        }
+      }
     </style>
   <script type="importmap">
 {

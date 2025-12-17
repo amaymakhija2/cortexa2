@@ -1,20 +1,72 @@
 import React, { useState } from 'react';
 import { Maximize2, Minimize2 } from 'lucide-react';
+import { Legend } from '../Legend';
+import type { LegendItem as UnifiedLegendItem } from '../Legend';
 
 // =============================================================================
 // CHART CARD COMPONENT
 // =============================================================================
 // Container for charts with header, legend, expand functionality, and insights.
+// Now uses the unified Legend component for consistent styling.
 // =============================================================================
 
 export interface LegendItem {
   /** Legend label */
   label: string;
-  /** Color indicator type */
+  /** Color indicator type: 'box' maps to 'dot', 'line' stays as 'line' */
   type: 'box' | 'line';
-  /** Color value (tailwind class or hex) */
+  /** Color value (hex code, e.g., '#3b82f6') - Tailwind classes are deprecated */
   color: string;
 }
+
+// Helper to extract hex color from Tailwind class (backward compatibility)
+// Maps common Tailwind bg-* classes to hex values
+const TAILWIND_TO_HEX: Record<string, string> = {
+  'bg-blue-500': '#3b82f6',
+  'bg-blue-600': '#2563eb',
+  'bg-emerald-500': '#10b981',
+  'bg-emerald-600': '#059669',
+  'bg-green-500': '#22c55e',
+  'bg-amber-500': '#f59e0b',
+  'bg-amber-600': '#d97706',
+  'bg-rose-500': '#f43f5e',
+  'bg-rose-600': '#e11d48',
+  'bg-red-500': '#ef4444',
+  'bg-stone-400': '#a8a29e',
+  'bg-stone-500': '#78716c',
+  'bg-violet-500': '#8b5cf6',
+  'bg-violet-600': '#7c3aed',
+  'bg-indigo-500': '#6366f1',
+  'bg-indigo-600': '#4f46e5',
+  'bg-cyan-500': '#06b6d4',
+  'bg-teal-500': '#14b8a6',
+  'bg-pink-500': '#ec4899',
+  'bg-orange-500': '#f97316',
+  'bg-gray-500': '#6b7280',
+  // Gradient classes - extract the primary color
+  'bg-gradient-to-b from-amber-400 to-amber-500': '#f59e0b',
+  'bg-gradient-to-b from-emerald-400 to-emerald-500': '#10b981',
+};
+
+const extractHexFromTailwind = (tailwindClass: string): string => {
+  // If it's already a hex color, return it
+  if (tailwindClass.startsWith('#')) return tailwindClass;
+
+  // Try to find in our mapping
+  const hex = TAILWIND_TO_HEX[tailwindClass];
+  if (hex) return hex;
+
+  // Try to extract color from class name pattern (e.g., bg-blue-500)
+  const match = tailwindClass.match(/bg-(\w+)-(\d+)/);
+  if (match) {
+    const baseKey = `bg-${match[1]}-${match[2]}`;
+    if (TAILWIND_TO_HEX[baseKey]) return TAILWIND_TO_HEX[baseKey];
+  }
+
+  // Fallback to stone
+  console.warn(`Unknown Tailwind color class: ${tailwindClass}, using fallback`);
+  return '#78716c';
+};
 
 export interface InsightItem {
   /** Insight value */
@@ -132,23 +184,17 @@ export const ChartCard: React.FC<ChartCardProps> = ({
             </div>
           )}
 
-          {/* Legend */}
+          {/* Legend - using unified Legend component */}
           {legend && legend.length > 0 && (
-            <div className="flex items-center gap-6 bg-stone-50 rounded-xl px-5 py-3">
-              {legend.map((item, idx) => (
-                <React.Fragment key={idx}>
-                  {idx > 0 && <div className="w-px h-6 bg-stone-200" />}
-                  <div className="flex items-center gap-3">
-                    {item.type === 'box' ? (
-                      <div className={`w-5 h-5 rounded-md ${item.color} shadow-sm`}></div>
-                    ) : (
-                      <div className={`w-8 h-1 ${item.color} rounded-full`}></div>
-                    )}
-                    <span className="text-stone-700 text-base font-semibold">{item.label}</span>
-                  </div>
-                </React.Fragment>
-              ))}
-            </div>
+            <Legend
+              items={legend.map((item) => ({
+                label: item.label,
+                color: item.color.startsWith('#') ? item.color : extractHexFromTailwind(item.color),
+                type: item.type === 'box' ? 'dot' : 'line',
+              }))}
+              variant="inline"
+              size="md"
+            />
           )}
 
         </div>
@@ -490,23 +536,17 @@ export const ExpandedChartModal: React.FC<ExpandedChartModalProps> = ({
               {/* Custom Header Controls */}
               {headerControls}
 
-              {/* Legend */}
+              {/* Legend - using unified Legend component */}
               {legend && legend.length > 0 && (
-                <div className="flex items-center gap-8 bg-stone-50 rounded-2xl px-8 py-5">
-                  {legend.map((item, idx) => (
-                    <React.Fragment key={idx}>
-                      {idx > 0 && <div className="w-px h-8 bg-stone-200" />}
-                      <div className="flex items-center gap-4">
-                        {item.type === 'box' ? (
-                          <div className={`w-6 h-6 rounded-lg ${item.color} shadow-sm`}></div>
-                        ) : (
-                          <div className={`w-10 h-1.5 ${item.color} rounded-full`}></div>
-                        )}
-                        <span className="text-stone-700 text-lg font-semibold">{item.label}</span>
-                      </div>
-                    </React.Fragment>
-                  ))}
-                </div>
+                <Legend
+                  items={legend.map((item) => ({
+                    label: item.label,
+                    color: item.color.startsWith('#') ? item.color : extractHexFromTailwind(item.color),
+                    type: item.type === 'box' ? 'dot' : 'line',
+                  }))}
+                  variant="inline"
+                  size="lg"
+                />
               )}
             </div>
           </div>

@@ -1,11 +1,14 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Maximize2 } from 'lucide-react';
+import { Legend } from '../Legend';
+import type { LegendItem } from '../Legend';
 
 // =============================================================================
 // DONUT CHART CARD COMPONENT
 // =============================================================================
 // Premium donut/pie chart with adaptive layouts based on container width.
 // Switches between horizontal (wide) and vertical (narrow) layouts automatically.
+// Now uses the unified Legend component for consistent styling.
 // =============================================================================
 
 export interface DonutSegment {
@@ -279,170 +282,88 @@ export const DonutChartCard: React.FC<DonutChartCardProps> = ({
     </div>
   );
 
-  // Render legend for WIDE layout - detailed cards on the right
+  // Build legend items from segment data - using unified Legend component
+  const legendItems: LegendItem[] = useMemo(() => {
+    return segmentPaths.map((segment) => ({
+      label: segment.label,
+      color: segment.color,
+      type: 'dot' as const,
+      value: formatValue(segment.value, valueFormat, currencySymbol),
+      percent: segment.percent * 100,
+    }));
+  }, [segmentPaths, valueFormat, currencySymbol]);
+
+  // Handle legend item hover
+  const handleLegendItemHover = (item: LegendItem | null) => {
+    if (item) {
+      const segment = segmentPaths.find((s) => s.label === item.label);
+      if (segment) {
+        handleSegmentHover(segment, segment.percent * 100);
+      }
+    } else {
+      handleSegmentHover(null, 0);
+    }
+  };
+
+  // Render legend for WIDE layout - using unified Legend stacked variant
   const renderWideLegend = () => (
-    <div className="flex flex-col gap-3 xl:gap-4 flex-1 min-w-[220px] max-w-[380px]">
-      {segmentPaths.map((segment, idx) => {
-        const isHovered = hoveredSegment === segment.label;
-        const percentDisplay = (segment.percent * 100).toFixed(1);
-        const legendDelay = 200 + idx * 60;
-
-        return (
-          <div
-            key={segment.label}
-            className={`relative rounded-xl cursor-pointer overflow-hidden transition-transform duration-200 ${
-              isHovered ? 'scale-[1.02]' : 'hover:scale-[1.01]'
-            }`}
-            style={{
-              background: isHovered
-                ? `linear-gradient(135deg, ${segment.color}12 0%, ${segment.color}06 100%)`
-                : 'linear-gradient(135deg, #fafaf9 0%, #f5f5f4 100%)',
-              boxShadow: isHovered
-                ? `0 6px 20px -4px ${segment.color}30, inset 0 0 0 1px ${segment.color}25`
-                : '0 2px 8px -2px rgba(0, 0, 0, 0.06), inset 0 0 0 1px rgba(0, 0, 0, 0.04)',
-              opacity: isAnimated ? 1 : 0,
-              transform: isAnimated ? 'translateX(0)' : 'translateX(20px)',
-              transition: `opacity 400ms ease ${legendDelay}ms, transform 400ms ease ${legendDelay}ms, background 200ms ease, box-shadow 200ms ease`,
-            }}
-            onMouseEnter={() => handleSegmentHover(segment, segment.percent * 100)}
-            onMouseLeave={() => handleSegmentHover(null, 0)}
-          >
-            <div className="relative flex items-center gap-3 xl:gap-4 py-3 xl:py-4 px-4 xl:px-5">
-              {/* Color dot */}
-              <div
-                className="w-3.5 h-3.5 xl:w-4 xl:h-4 rounded-full flex-shrink-0"
-                style={{
-                  backgroundColor: segment.color,
-                  boxShadow: `0 0 8px ${segment.color}50`,
-                }}
-              />
-
-              {/* Label - matches design system typography */}
-              <span
-                className="flex-1 text-stone-700 font-semibold text-sm sm:text-base"
-                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-              >
-                {segment.label}
-              </span>
-
-              {/* Value + Percent */}
-              <div className="flex items-center gap-2 xl:gap-3 flex-shrink-0">
-                <span
-                  className="text-stone-900 font-bold text-sm sm:text-base xl:text-lg tabular-nums"
-                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-                >
-                  {formatValue(segment.value, valueFormat, currencySymbol)}
-                </span>
-                <span
-                  className="px-2 xl:px-2.5 py-1 rounded-lg text-xs sm:text-sm font-bold tabular-nums"
-                  style={{
-                    backgroundColor: `${segment.color}18`,
-                    color: segment.color,
-                  }}
-                >
-                  {percentDisplay}%
-                </span>
-              </div>
-            </div>
-          </div>
-        );
-      })}
+    <div
+      className="flex-1 min-w-[220px] max-w-[380px]"
+      style={{
+        opacity: isAnimated ? 1 : 0,
+        transform: isAnimated ? 'translateX(0)' : 'translateX(20px)',
+        transition: 'opacity 400ms ease 200ms, transform 400ms ease 200ms',
+      }}
+    >
+      <Legend
+        items={legendItems}
+        variant="stacked"
+        size="md"
+        interactive
+        hoveredItem={hoveredSegment}
+        onItemHover={handleLegendItemHover}
+      />
     </div>
   );
 
-  // Render legend for MEDIUM layout - 2-column grid below
+  // Render legend for MEDIUM layout - using unified Legend grid variant
   const renderMediumLegend = () => (
-    <div className="grid grid-cols-2 gap-3 w-full">
-      {segmentPaths.map((segment, idx) => {
-        const isHovered = hoveredSegment === segment.label;
-        const percentDisplay = (segment.percent * 100).toFixed(1);
-        const legendDelay = 200 + idx * 50;
-
-        return (
-          <div
-            key={segment.label}
-            className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200"
-            style={{
-              background: isHovered ? `${segment.color}12` : 'linear-gradient(135deg, #fafaf9 0%, #f5f5f4 100%)',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04), inset 0 0 0 1px rgba(0, 0, 0, 0.03)',
-              opacity: isAnimated ? 1 : 0,
-              transform: isAnimated ? 'translateY(0)' : 'translateY(10px)',
-              transition: `opacity 300ms ease ${legendDelay}ms, transform 300ms ease ${legendDelay}ms, background 150ms ease`,
-            }}
-            onMouseEnter={() => handleSegmentHover(segment, segment.percent * 100)}
-            onMouseLeave={() => handleSegmentHover(null, 0)}
-          >
-            {/* Color dot */}
-            <div
-              className="w-3 h-3 rounded-full flex-shrink-0"
-              style={{ backgroundColor: segment.color }}
-            />
-
-            {/* Label */}
-            <span
-              className="flex-1 text-stone-700 font-medium text-sm truncate"
-              style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-            >
-              {segment.label}
-            </span>
-
-            {/* Percentage */}
-            <span
-              className="text-sm font-bold tabular-nums flex-shrink-0"
-              style={{ color: segment.color }}
-            >
-              {percentDisplay}%
-            </span>
-          </div>
-        );
-      })}
+    <div
+      className="w-full"
+      style={{
+        opacity: isAnimated ? 1 : 0,
+        transform: isAnimated ? 'translateY(0)' : 'translateY(10px)',
+        transition: 'opacity 300ms ease 200ms, transform 300ms ease 200ms',
+      }}
+    >
+      <Legend
+        items={legendItems}
+        variant="grid"
+        size="md"
+        interactive
+        hoveredItem={hoveredSegment}
+        onItemHover={handleLegendItemHover}
+      />
     </div>
   );
 
-  // Render legend for COMPACT layout - simple inline list below
+  // Render legend for COMPACT layout - using unified Legend compact variant
   const renderCompactLegend = () => (
-    <div className="flex flex-wrap justify-center gap-x-5 gap-y-2.5">
-      {segmentPaths.map((segment, idx) => {
-        const isHovered = hoveredSegment === segment.label;
-        const percentDisplay = (segment.percent * 100).toFixed(0);
-        const legendDelay = 200 + idx * 40;
-
-        return (
-          <div
-            key={segment.label}
-            className="flex items-center gap-2 cursor-pointer transition-opacity duration-200"
-            style={{
-              opacity: isAnimated ? (isHovered ? 1 : 0.9) : 0,
-              transform: isAnimated ? 'translateY(0)' : 'translateY(8px)',
-              transition: `opacity 300ms ease ${legendDelay}ms, transform 300ms ease ${legendDelay}ms`,
-            }}
-            onMouseEnter={() => handleSegmentHover(segment, segment.percent * 100)}
-            onMouseLeave={() => handleSegmentHover(null, 0)}
-          >
-            {/* Color dot */}
-            <div
-              className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-              style={{ backgroundColor: segment.color }}
-            />
-
-            {/* Label */}
-            <span
-              className="text-stone-600 text-sm font-medium"
-              style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-            >
-              {segment.label}
-            </span>
-
-            {/* Percentage */}
-            <span
-              className="text-sm font-bold"
-              style={{ color: segment.color }}
-            >
-              {percentDisplay}%
-            </span>
-          </div>
-        );
-      })}
+    <div
+      style={{
+        opacity: isAnimated ? 1 : 0,
+        transform: isAnimated ? 'translateY(0)' : 'translateY(8px)',
+        transition: 'opacity 300ms ease 200ms, transform 300ms ease 200ms',
+      }}
+    >
+      <Legend
+        items={legendItems}
+        variant="compact"
+        size="sm"
+        interactive
+        hoveredItem={hoveredSegment}
+        onItemHover={handleLegendItemHover}
+      />
     </div>
   );
 

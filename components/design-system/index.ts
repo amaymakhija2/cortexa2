@@ -83,6 +83,10 @@ export type { MetricCardProps, MetricStatus, ExpandableBarChartProps, BarChartIt
 export { ToggleButton, GoalIndicator, ActionButton, SegmentedControl } from './controls';
 export type { ToggleButtonProps, GoalIndicatorProps, GoalIndicatorColor, ActionButtonProps, ActionButtonVariant, SegmentedControlProps, SegmentedControlOption } from './controls';
 
+// Legend Component
+export { Legend, HoverInfoDisplay } from './Legend';
+export type { LegendItem as UnifiedLegendItem, LegendProps, LegendVariant, LegendSize, HoverInfoDisplayProps } from './Legend';
+
 // Chart Components
 export { BarChart, LineChart, DivergingBarChart, RetentionFunnelChart, RetentionFunnelCard } from './charts';
 export type {

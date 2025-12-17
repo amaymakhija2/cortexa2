@@ -228,20 +228,21 @@ const getCohortPhrase = (cohortId: string): string => {
 
 // Retention funnel data - client journey visualization
 // Realistic retention rates for therapy practice (based on 412 all-time clients)
-// Now includes industry averages for comparison
+// Both funnels start at Month 1 / Session 1 = 100% (all clients who had their first session)
 const RETENTION_FUNNEL_DATA = {
   sessionsFunnel: [
-    { label: 'Start', count: 412, percentage: 100, industryAvg: 100 },
-    { label: 'S2', count: 362, percentage: 88, industryAvg: 82 },   // 88% return for session 2 (industry: 82%)
-    { label: 'S5', count: 313, percentage: 76, industryAvg: 65 },   // 76% reach session 5 (industry: 65%)
-    { label: 'S12', count: 247, percentage: 60, industryAvg: 45 },  // 60% reach session 12 (industry: 45%)
-    { label: 'S24', count: 178, percentage: 43, industryAvg: 28 },  // 43% reach session 24 (industry: 28%)
+    { label: 'S1', count: 412, percentage: 100, industryAvg: 100 },      // All clients who started
+    { label: 'S2', count: 362, percentage: 88, industryAvg: 82 },        // 88% return for session 2
+    { label: 'S5', count: 313, percentage: 76, industryAvg: 65 },        // 76% reach session 5
+    { label: 'S12', count: 247, percentage: 60, industryAvg: 45 },       // 60% reach session 12
+    { label: 'S24', count: 178, percentage: 43, industryAvg: 28 },       // 43% reach session 24
   ],
   timeFunnel: [
-    { label: 'Start', count: 412, percentage: 100, industryAvg: 100 },
-    { label: '1 Mo', count: 358, percentage: 87, industryAvg: 78 },     // 87% still active at 1 month (industry: 78%)
-    { label: '3 Mo', count: 296, percentage: 72, industryAvg: 55 },    // 72% at 3 months (industry: 55%)
-    { label: '6 Mo', count: 235, percentage: 57, industryAvg: 38 },    // 57% at 6 months (industry: 38%)
+    { label: 'Mo 1', count: 412, percentage: 100, industryAvg: 100 },    // All clients at month 1
+    { label: 'Mo 3', count: 358, percentage: 87, industryAvg: 78 },      // 87% still active at 3 months
+    { label: 'Mo 6', count: 296, percentage: 72, industryAvg: 55 },      // 72% at 6 months
+    { label: 'Mo 9', count: 247, percentage: 60, industryAvg: 42 },      // 60% at 9 months
+    { label: 'Mo 12', count: 235, percentage: 57, industryAvg: 38 },     // 57% at 12 months
   ],
 };
 

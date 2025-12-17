@@ -7,14 +7,15 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
   ReferenceLine,
 } from 'recharts';
+import { Legend } from '../Legend';
 
 // =============================================================================
 // LINE CHART COMPONENT
 // =============================================================================
 // Design system wrapper for Recharts LineChart with consistent thick styling.
+// Now uses the unified Legend component for consistent styling across charts.
 // =============================================================================
 
 export interface LineConfig {
@@ -131,9 +132,30 @@ export const LineChart: React.FC<LineChartProps> = ({
   // Only animate on first render if animateOnce is true
   const shouldAnimate = animateOnce ? !hasAnimated : true;
 
+  // Build legend items from line configs
+  const legendItems = lines.map((line) => ({
+    label: line.name || line.dataKey,
+    color: line.color,
+    type: 'line' as const,
+  }));
+
   return (
-    <ResponsiveContainer width="100%" height={height}>
-      <RechartsLineChart data={data} margin={{ top: 10, right: 10, bottom: 5, left: 0 }}>
+    <div className="flex flex-col h-full w-full">
+      {/* Legend - positioned above chart using unified Legend component */}
+      {showLegend && (
+        <div className="flex justify-end mb-2 flex-shrink-0">
+          <Legend
+            items={legendItems}
+            variant="chart"
+            size="md"
+          />
+        </div>
+      )}
+
+      {/* Chart */}
+      <div className="flex-1 min-h-0">
+        <ResponsiveContainer width="100%" height="100%">
+          <RechartsLineChart data={data} margin={{ top: 10, right: 10, bottom: 5, left: 0 }}>
         {/* Area fill gradient definitions */}
         {showAreaFill && (
           <defs>
@@ -201,21 +223,6 @@ export const LineChart: React.FC<LineChartProps> = ({
           formatter={tooltipFormatter}
         />
 
-        {showLegend && (
-          <Legend
-            verticalAlign="top"
-            align="right"
-            iconType="circle"
-            iconSize={12}
-            wrapperStyle={{ paddingBottom: '10px' }}
-            formatter={(value) => (
-              <span style={{ color: '#57534e', fontSize: '14px', fontWeight: 600 }}>
-                {lines.find((l) => l.dataKey === value)?.name || value}
-              </span>
-            )}
-          />
-        )}
-
         {lines.map((line, idx) => (
           <Line
             key={line.dataKey}
@@ -233,8 +240,10 @@ export const LineChart: React.FC<LineChartProps> = ({
             animationEasing="ease-out"
           />
         ))}
-      </RechartsLineChart>
-    </ResponsiveContainer>
+          </RechartsLineChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
   );
 };
 

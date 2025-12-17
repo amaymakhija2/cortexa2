@@ -1511,29 +1511,36 @@ export const ClinicianDetailsTab: React.FC = () => {
   }, [retentionData, selectedClinician]);
 
   // Retention curve data for line chart
+  // Starts at Month 1 = 100% (all clients who had their first session)
   const retentionCurveData = useMemo(() => {
     if (!retentionData) return [];
     return [
       {
-        month: '3 mo',
+        month: 'Mo 1',
+        clinician: 100,
+        practice: 100,
+        topPerformer: 100,
+      },
+      {
+        month: 'Mo 3',
         clinician: retentionData.month3ReturnRate,
         practice: retentionData.practiceAvgMonth3Return,
         topPerformer: retentionData.topPerformerMonth3Return,
       },
       {
-        month: '6 mo',
+        month: 'Mo 6',
         clinician: retentionData.month6ReturnRate,
         practice: retentionData.practiceAvgMonth6Return,
         topPerformer: retentionData.topPerformerMonth6Return,
       },
       {
-        month: '9 mo',
+        month: 'Mo 9',
         clinician: retentionData.month9ReturnRate,
         practice: retentionData.practiceAvgMonth9Return,
         topPerformer: retentionData.topPerformerMonth9Return,
       },
       {
-        month: '12 mo',
+        month: 'Mo 12',
         clinician: retentionData.oneYearReturnRate,
         practice: retentionData.practiceAvgOneYearReturn,
         topPerformer: retentionData.topPerformerOneYearReturn,
