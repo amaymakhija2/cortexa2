@@ -268,14 +268,14 @@ export const ClientRoster: React.FC = () => {
         <div className="px-6 sm:px-8 lg:px-12 py-6 lg:py-8">
 
           {/* Column headers */}
-          <div className="hidden lg:grid gap-4 py-4 text-sm font-bold text-stone-700 uppercase tracking-wide border-b-2 border-stone-300 mb-3"
-            style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr 140px' }}
+          <div className="hidden lg:grid gap-4 py-4 px-8 text-base font-bold text-stone-700 uppercase tracking-wide border-b-2 border-stone-300 mb-3"
+            style={{ gridTemplateColumns: '2fr 1.2fr 1fr 1fr 160px' }}
           >
             <div>Client</div>
             <div>Clinician</div>
-            <div className="text-right">Sessions Complete</div>
+            <div className="text-right">Sessions</div>
             <div className="text-right">Last Seen</div>
-            <div className="text-right">Email Sent</div>
+            <div className="text-right">Action</div>
           </div>
 
           {/* Client rows */}
@@ -291,9 +291,9 @@ export const ClientRoster: React.FC = () => {
                   style={{ boxShadow: '0 2px 12px -2px rgba(0, 0, 0, 0.08)' }}
                 >
                   {/* Accent bar */}
-                  <div className={`h-0.5 ${statusColor.dot}`} />
+                  <div className={`h-1 ${statusColor.dot}`} />
 
-                  <div className="px-4 sm:px-6 py-4 lg:py-5">
+                  <div className="px-4 sm:px-6 lg:px-8 py-4 lg:py-6">
                     {/* Mobile layout */}
                     <div className="lg:hidden">
                       <div className="flex items-center justify-between gap-3">
@@ -353,24 +353,24 @@ export const ClientRoster: React.FC = () => {
 
                     {/* Desktop layout */}
                     <div className="hidden lg:grid gap-4 items-center"
-                      style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr 140px' }}
+                      style={{ gridTemplateColumns: '2fr 1.2fr 1fr 1fr 160px' }}
                     >
                       {/* Client */}
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-4">
                         <div
-                          className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0 ${statusColor.bg} ${statusColor.text}`}
+                          className={`w-12 h-12 rounded-xl flex items-center justify-center text-base font-bold flex-shrink-0 ${statusColor.bg} ${statusColor.text}`}
                         >
                           {client.initials}
                         </div>
                         <div className="min-w-0">
-                          <h3 className="text-base text-stone-900 font-bold truncate" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                          <h3 className="text-lg text-stone-900 font-bold truncate" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
                             {client.name}
                           </h3>
-                          <div className="flex items-center gap-2">
-                            <div className={`w-2 h-2 rounded-full ${statusColor.dot}`} />
-                            <span className="text-stone-500 text-xs capitalize">{client.status.replace('-', ' ')}</span>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <div className={`w-2.5 h-2.5 rounded-full ${statusColor.dot}`} />
+                            <span className="text-stone-500 text-sm capitalize">{client.status.replace('-', ' ')}</span>
                             {client.milestone && (
-                              <span className={`text-xs px-2 py-0.5 rounded-full ${statusColor.bg} ${statusColor.text}`}>
+                              <span className={`text-sm px-2.5 py-0.5 rounded-full font-medium ${statusColor.bg} ${statusColor.text}`}>
                                 → Session {client.milestone}
                               </span>
                             )}
@@ -379,13 +379,13 @@ export const ClientRoster: React.FC = () => {
                       </div>
 
                       {/* Clinician */}
-                      <div className="text-stone-600 text-sm">
+                      <div className="text-stone-900 text-lg font-bold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
                         {client.clinicianShort}
                       </div>
 
                       {/* Sessions */}
                       <div className="text-right">
-                        <span className="text-lg font-bold text-stone-900" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                        <span className="text-xl font-bold text-stone-900" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
                           {client.totalSessions}
                         </span>
                       </div>
@@ -394,17 +394,17 @@ export const ClientRoster: React.FC = () => {
                       <div className="text-right">
                         {client.nextAppointment ? (
                           <div>
-                            <div className="flex items-center justify-end gap-1.5 text-emerald-600">
-                              <Calendar size={14} />
-                              <span className="text-sm font-semibold">{client.nextAppointment}</span>
+                            <div className="flex items-center justify-end gap-2 text-emerald-600">
+                              <Calendar size={16} />
+                              <span className="text-base font-semibold">{client.nextAppointment}</span>
                             </div>
-                            <p className="text-stone-400 text-xs">next appt</p>
+                            <p className="text-stone-400 text-sm mt-0.5">next appt</p>
                           </div>
                         ) : (
                           <div>
-                            <span className="text-sm text-stone-600">{formatLastSeen(client.lastSeenDays)}</span>
+                            <span className="text-base text-stone-600">{formatLastSeen(client.lastSeenDays)}</span>
                             {client.churnedDate && (
-                              <p className="text-stone-400 text-xs">Left {client.churnedDate}</p>
+                              <p className="text-stone-400 text-sm mt-0.5">Left {client.churnedDate}</p>
                             )}
                           </div>
                         )}
@@ -414,7 +414,7 @@ export const ClientRoster: React.FC = () => {
                       <div className="text-right">
                         <button
                           onClick={() => toggleContacted(client.id)}
-                          className={`px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 ml-auto transition-all duration-300 ${
+                          className={`px-5 py-2.5 rounded-xl text-base font-semibold flex items-center gap-2 ml-auto transition-all duration-300 ${
                             isContacted
                               ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
                               : 'bg-stone-100 text-stone-600 hover:bg-stone-200 border border-stone-200'
@@ -422,7 +422,7 @@ export const ClientRoster: React.FC = () => {
                         >
                           {isContacted ? (
                             <>
-                              <Check size={16} />
+                              <Check size={18} />
                               Done
                             </>
                           ) : (
@@ -438,26 +438,26 @@ export const ClientRoster: React.FC = () => {
           </div>
 
           {/* Legend */}
-          <div className="mt-6 pt-6 border-t border-stone-200 flex flex-wrap items-center gap-6 text-sm text-stone-500">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-emerald-500" />
-              <span>Healthy</span>
+          <div className="mt-8 pt-6 border-t border-stone-200 flex flex-wrap items-center gap-8 text-base text-stone-600">
+            <div className="flex items-center gap-2.5">
+              <div className="w-3.5 h-3.5 rounded-full bg-emerald-500" />
+              <span className="font-medium">Healthy</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-rose-500" />
-              <span>At-Risk</span>
+            <div className="flex items-center gap-2.5">
+              <div className="w-3.5 h-3.5 rounded-full bg-rose-500" />
+              <span className="font-medium">At-Risk</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-cyan-500" />
-              <span>New clients</span>
+            <div className="flex items-center gap-2.5">
+              <div className="w-3.5 h-3.5 rounded-full bg-cyan-500" />
+              <span className="font-medium">New clients</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-amber-500" />
-              <span>Milestone approaching</span>
+            <div className="flex items-center gap-2.5">
+              <div className="w-3.5 h-3.5 rounded-full bg-amber-500" />
+              <span className="font-medium">Milestone approaching</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-stone-400" />
-              <span>Recently churned</span>
+            <div className="flex items-center gap-2.5">
+              <div className="w-3.5 h-3.5 rounded-full bg-stone-400" />
+              <span className="font-medium">Recently churned</span>
             </div>
           </div>
         </div>

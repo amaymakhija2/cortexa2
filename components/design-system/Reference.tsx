@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { ResponsiveContainer, LineChart, Line, BarChart as RechartsBarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, LabelList, ComposedChart, ReferenceLine } from 'recharts';
-import { Users, DollarSign, Clock, TrendingUp, TrendingDown, Check, AlertCircle, Info, X as XIcon, ArrowRight, Target, FileText } from 'lucide-react';
+import { ResponsiveContainer, LineChart as RechartsLineChart, Line, BarChart as RechartsBarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, LabelList, ComposedChart, ReferenceLine } from 'recharts';
+import { Users, DollarSign, Clock, TrendingUp, TrendingDown, Check, AlertCircle, Info, X as XIcon, ArrowRight, Target, FileText, MapPin, Grid3X3, List } from 'lucide-react';
 
 // Import from design system (same folder)
 import {
@@ -19,9 +19,11 @@ import {
   ToggleButton,
   GoalIndicator,
   ActionButton,
+  SegmentedControl,
   DonutChartCard,
   DataTableCard,
   BarChart,
+  LineChart,
   SplitBarCard,
   DivergingBarChart,
   RetentionFunnelCard,
@@ -30,6 +32,17 @@ import {
   MilestoneOpportunityCard,
   MetricCard,
   ExpandableBarChart,
+  Legend,
+  HoverInfoDisplay,
+  ActionableClientListCard,
+  ClientRosterCard,
+  InsightCard,
+  ExecutiveSummary,
+  ComingSoonCard,
+  DefinitionsBar,
+  AnimatedSection,
+  AnimatedGrid,
+  AnimatedPageContent,
 } from './';
 import type { HoverInfo } from './charts';
 
@@ -189,6 +202,33 @@ const SAMPLE_APPROACHING_CLIENTS = [
   { id: '5', name: 'Morgan Freeman', currentSessions: 2, targetMilestone: 5, sessionsToGo: 3, nextAppointment: 'Dec 8', clinician: 'Dr. Chen' },
 ];
 
+// Sample data for ClientRosterCard
+const SAMPLE_CLIENT_ROSTER = [
+  { id: '1', name: 'Sarah Mitchell', initials: 'SM', totalSessions: 12, lastSeenDays: 3, nextAppointment: 'Dec 5', status: 'healthy' as const },
+  { id: '2', name: 'James Rodriguez', initials: 'JR', totalSessions: 8, lastSeenDays: 21, nextAppointment: null, status: 'at-risk' as const },
+  { id: '3', name: 'Emily Chen', initials: 'EC', totalSessions: 2, lastSeenDays: 1, nextAppointment: 'Dec 3', status: 'new' as const },
+  { id: '4', name: 'Michael Brown', initials: 'MB', totalSessions: 4, lastSeenDays: 5, nextAppointment: 'Dec 8', status: 'milestone' as const, milestone: 5 },
+  { id: '5', name: 'Lisa Wang', initials: 'LW', totalSessions: 15, lastSeenDays: 7, nextAppointment: 'Dec 10', status: 'healthy' as const },
+  { id: '6', name: 'David Kim', initials: 'DK', totalSessions: 6, lastSeenDays: 14, nextAppointment: null, status: 'at-risk' as const },
+];
+
+// Sample data for LineChart component
+const SAMPLE_RETURN_RATE_DATA = [
+  { month: 'Jan', clinician: 82, practice: 78 },
+  { month: 'Feb', clinician: 85, practice: 79 },
+  { month: 'Mar', clinician: 81, practice: 77 },
+  { month: 'Apr', clinician: 88, practice: 80 },
+  { month: 'May', clinician: 86, practice: 79 },
+  { month: 'Jun', clinician: 90, practice: 81 },
+];
+
+// Sample data for Legend component
+const SAMPLE_LEGEND_ITEMS = [
+  { label: 'Revenue', color: '#10b981', type: 'dot' as const },
+  { label: 'Goal', color: '#f59e0b', type: 'line' as const },
+  { label: 'Last Year', color: '#a8a29e', type: 'line' as const },
+];
+
 export const Reference: React.FC = () => {
   const [activeSection, setActiveSection] = useState('overview');
   const [expandedChart, setExpandedChart] = useState<string | null>(null);
@@ -196,6 +236,9 @@ export const Reference: React.FC = () => {
   const [toggleDemo2, setToggleDemo2] = useState(true);
   const [barChartMode, setBarChartMode] = useState<'single' | 'stacked'>('single');
   const [hoveredSegment, setHoveredSegment] = useState<HoverInfo | null>(null);
+  const [segmentedControlValue, setSegmentedControlValue] = useState('location');
+  const [viewModeValue, setViewModeValue] = useState('grid');
+  const [legendHoveredItem, setLegendHoveredItem] = useState<string | null>(null);
 
   // =========================================================================
   // PAGE STRUCTURE TEMPLATE (Copy this for new pages)
@@ -274,6 +317,7 @@ export const Reference: React.FC = () => {
           { id: 'controls', label: 'Controls' },
           { id: 'charts', label: 'Charts' },
           { id: 'styles', label: 'Styles' },
+          { id: 'roadmap', label: 'Roadmap' },
         ]}
         activeTab={activeSection}
         onTabChange={setActiveSection}
@@ -361,6 +405,46 @@ export const Reference: React.FC = () => {
                   <h3 className="font-bold text-stone-900 mb-2">CompactCard</h3>
                   <p className="text-sm text-stone-600 mb-3">Smaller cards for demographics, lists</p>
                   <code className="text-xs bg-stone-200 px-2 py-1 rounded text-stone-800">cards/CompactCard.tsx</code>
+                </div>
+                <div className="rounded-xl p-5 bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-200">
+                  <h3 className="font-bold text-stone-900 mb-2">SegmentedControl</h3>
+                  <p className="text-sm text-stone-600 mb-3">Premium segmented button group with sliding indicator</p>
+                  <code className="text-xs bg-indigo-100 px-2 py-1 rounded text-indigo-800">controls/SegmentedControl.tsx</code>
+                </div>
+                <div className="rounded-xl p-5 bg-gradient-to-br from-blue-50 to-sky-50 border border-blue-200">
+                  <h3 className="font-bold text-stone-900 mb-2">LineChart</h3>
+                  <p className="text-sm text-stone-600 mb-3">Thick line charts with multiple series support</p>
+                  <code className="text-xs bg-blue-100 px-2 py-1 rounded text-blue-800">charts/LineChart.tsx</code>
+                </div>
+                <div className="rounded-xl p-5 bg-gradient-to-br from-teal-50 to-emerald-50 border border-teal-200">
+                  <h3 className="font-bold text-stone-900 mb-2">Legend</h3>
+                  <p className="text-sm text-stone-600 mb-3">Unified legend system with multiple variants</p>
+                  <code className="text-xs bg-teal-100 px-2 py-1 rounded text-teal-800">Legend.tsx</code>
+                </div>
+                <div className="rounded-xl p-5 bg-gradient-to-br from-orange-50 to-amber-50 border border-orange-200">
+                  <h3 className="font-bold text-stone-900 mb-2">InsightCard</h3>
+                  <p className="text-sm text-stone-600 mb-3">Insight-first cards with sentiment indicators</p>
+                  <code className="text-xs bg-orange-100 px-2 py-1 rounded text-orange-800">cards/InsightCard.tsx</code>
+                </div>
+                <div className="rounded-xl p-5 bg-gradient-to-br from-yellow-50 to-amber-50 border border-yellow-200">
+                  <h3 className="font-bold text-stone-900 mb-2">ExecutiveSummary</h3>
+                  <p className="text-sm text-stone-600 mb-3">Editorial-style expandable summary card</p>
+                  <code className="text-xs bg-yellow-100 px-2 py-1 rounded text-yellow-800">cards/ExecutiveSummary.tsx</code>
+                </div>
+                <div className="rounded-xl p-5 bg-gradient-to-br from-fuchsia-50 to-pink-50 border border-fuchsia-200">
+                  <h3 className="font-bold text-stone-900 mb-2">ClientRosterCard</h3>
+                  <p className="text-sm text-stone-600 mb-3">Filterable client list with status indicators</p>
+                  <code className="text-xs bg-fuchsia-100 px-2 py-1 rounded text-fuchsia-800">cards/ClientRosterCard.tsx</code>
+                </div>
+                <div className="rounded-xl p-5 bg-gradient-to-br from-purple-50 to-violet-50 border border-purple-200">
+                  <h3 className="font-bold text-stone-900 mb-2">AnimatedGrid</h3>
+                  <p className="text-sm text-stone-600 mb-3">Grid with staggered entrance animations</p>
+                  <code className="text-xs bg-purple-100 px-2 py-1 rounded text-purple-800">layout/AnimatedSection.tsx</code>
+                </div>
+                <div className="rounded-xl p-5 bg-gradient-to-br from-slate-50 to-gray-50 border border-slate-200">
+                  <h3 className="font-bold text-stone-900 mb-2">ComingSoonCard</h3>
+                  <p className="text-sm text-stone-600 mb-3">Atmospheric placeholder for features in development</p>
+                  <code className="text-xs bg-slate-200 px-2 py-1 rounded text-slate-800">cards/ComingSoonCard.tsx</code>
                 </div>
               </Grid>
             </Section>
@@ -524,12 +608,31 @@ export const Reference: React.FC = () => {
               <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
                 StatCard
               </h2>
-              <p className="text-stone-500 mb-6">Hero metric cards for key statistics. Use in 4-column grid.</p>
+              <p className="text-stone-500 mb-6">Hero metric cards for key statistics. Use in 4-column grid at page top.</p>
 
+              {/* Basic Variants */}
+              <h3 className="text-lg font-semibold text-stone-800 mb-4">Basic Variants</h3>
               <Grid cols={4} gap="md">
                 <StatCard title="Default" value="156" subtitle="of 180 capacity" />
+                <StatCard title="Positive" value="+12%" variant="positive" subtitle="vs last month" />
+                <StatCard title="Negative" value="-5%" variant="negative" subtitle="vs last month" />
+                <StatCard title="Percentage" value="87%" variant="percentage" subtitle="capacity used" />
+              </Grid>
+
+              {/* With Value Label */}
+              <h3 className="text-lg font-semibold text-stone-800 mb-4 mt-8">With Value Label</h3>
+              <Grid cols={4} gap="md">
+                <StatCard title="Active Clients" value={156} valueLabel="right now" subtitle="+14 in Jan–Dec 2024" />
+                <StatCard title="Sessions" value={698} valueLabel="completed" subtitle="82% of goal" />
+                <StatCard title="Show Rate" value="94%" valueLabel="average" variant="positive" subtitle="+2% vs last month" />
+                <StatCard title="Avg Revenue" value="$185" valueLabel="per session" subtitle="above benchmark" />
+              </Grid>
+
+              {/* With Breakdown */}
+              <h3 className="text-lg font-semibold text-stone-800 mb-4 mt-8">StatCardWithBreakdown</h3>
+              <Grid cols={4} gap="md">
                 <StatCardWithBreakdown
-                  title="With Breakdown"
+                  title="Net Client Growth"
                   value="+14"
                   variant="positive"
                   breakdown={[
@@ -537,13 +640,37 @@ export const Reference: React.FC = () => {
                     { label: 'churned', value: '-48', color: 'negative' }
                   ]}
                 />
-                <StatCard title="Positive" value="+12%" variant="positive" subtitle="vs last month" />
-                <StatCard title="Negative" value="-5%" variant="negative" subtitle="vs last month" />
+                <StatCardWithBreakdown
+                  title="Session Mix"
+                  value="698"
+                  breakdown={[
+                    { label: 'telehealth', value: '412', color: 'positive' },
+                    { label: 'in-person', value: '286', color: 'neutral' }
+                  ]}
+                />
+                <StatCardWithBreakdown
+                  title="Attendance"
+                  value="94%"
+                  variant="positive"
+                  breakdown={[
+                    { label: 'showed', value: '656', color: 'positive' },
+                    { label: 'no-shows', value: '42', color: 'negative' }
+                  ]}
+                />
+                <StatCardWithBreakdown
+                  title="Notes Status"
+                  value="12"
+                  variant="negative"
+                  breakdown={[
+                    { label: 'overdue', value: '8', color: 'negative' },
+                    { label: 'pending', value: '4', color: 'neutral' }
+                  ]}
+                />
               </Grid>
 
               <div className="mt-6 rounded-xl p-5 bg-stone-100">
-                <h4 className="font-semibold text-stone-900 mb-3">Props Reference</h4>
-                <div className="grid grid-cols-2 gap-4 text-sm">
+                <h4 className="font-semibold text-stone-900 mb-3">StatCard Props</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm mb-6">
                   <div>
                     <code className="text-violet-600">title</code>
                     <span className="text-stone-500 ml-2">string - Card title</span>
@@ -553,12 +680,32 @@ export const Reference: React.FC = () => {
                     <span className="text-stone-500 ml-2">string | number - Main value</span>
                   </div>
                   <div>
+                    <code className="text-violet-600">valueLabel</code>
+                    <span className="text-stone-500 ml-2">string - Label next to value (e.g., "right now")</span>
+                  </div>
+                  <div>
                     <code className="text-violet-600">subtitle</code>
                     <span className="text-stone-500 ml-2">string - Description below value</span>
                   </div>
                   <div>
                     <code className="text-violet-600">variant</code>
-                    <span className="text-stone-500 ml-2">'default' | 'positive' | 'negative'</span>
+                    <span className="text-stone-500 ml-2">'default' | 'positive' | 'negative' | 'percentage'</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">valueColor</code>
+                    <span className="text-stone-500 ml-2">string - Custom color (overrides variant)</span>
+                  </div>
+                </div>
+
+                <h4 className="font-semibold text-stone-900 mb-3">StatCardWithBreakdown Props</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <code className="text-violet-600">breakdown</code>
+                    <span className="text-stone-500 ml-2">{'{ label, value, color }[]'} - Breakdown items</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">color</code>
+                    <span className="text-stone-500 ml-2">'positive' | 'negative' | 'neutral'</span>
                   </div>
                 </div>
               </div>
@@ -709,12 +856,12 @@ export const Reference: React.FC = () => {
                   height="280px"
                 >
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={SAMPLE_LINE_DATA} margin={{ top: 10, right: 20, bottom: 10, left: 20 }}>
+                    <RechartsLineChart data={SAMPLE_LINE_DATA} margin={{ top: 10, right: 20, bottom: 10, left: 20 }}>
                       <CartesianGrid strokeDasharray="4 4" stroke="#e7e5e4" vertical={false} />
                       <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#57534e', fontSize: 14 }} />
                       <YAxis axisLine={false} tickLine={false} tick={{ fill: '#3b82f6', fontSize: 12 }} domain={[70, 100]} tickFormatter={(v) => `${v}%`} />
                       <Line type="monotone" dataKey="percentage" stroke="#3b82f6" strokeWidth={3} dot={{ fill: '#3b82f6', r: 5 }} />
-                    </LineChart>
+                    </RechartsLineChart>
                   </ResponsiveContainer>
                 </SimpleChartCard>
               </Grid>
@@ -869,7 +1016,17 @@ export const Reference: React.FC = () => {
               <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
                 DonutChartCard
               </h2>
-              <p className="text-stone-500 mb-6">Premium donut/pie chart with animated segments, center content, and interactive legend.</p>
+              <p className="text-stone-500 mb-6">Premium donut/pie chart with animated segments, center content, and adaptive layout. Auto-detects container width.</p>
+
+              {/* Adaptive Layout Info */}
+              <div className="mb-6 rounded-xl p-5 bg-indigo-50 border border-indigo-200">
+                <h4 className="font-semibold text-indigo-800 mb-3">Adaptive Layout Modes</h4>
+                <ul className="text-sm text-indigo-700 space-y-1">
+                  <li><strong>Wide (≥650px):</strong> Horizontal - donut left, detailed legend cards right</li>
+                  <li><strong>Medium (450-649px):</strong> Vertical - centered donut, 2-column legend grid below</li>
+                  <li><strong>Compact (&lt;450px):</strong> Vertical - smaller donut, simple inline legend below</li>
+                </ul>
+              </div>
 
               <Grid cols={2} gap="lg">
                 <DonutChartCard
@@ -885,7 +1042,6 @@ export const Reference: React.FC = () => {
                   centerValue="$1.73M"
                   valueFormat="currency"
                   expandable
-                  size="md"
                 />
 
                 <DonutChartCard
@@ -903,7 +1059,6 @@ export const Reference: React.FC = () => {
                   centerValueColor="text-emerald-600"
                   valueFormat="number"
                   expandable
-                  size="md"
                 />
               </Grid>
 
@@ -920,19 +1075,27 @@ export const Reference: React.FC = () => {
                   </div>
                   <div>
                     <code className="text-violet-600">centerValue</code>
-                    <span className="text-stone-500 ml-2">string - Value in center</span>
+                    <span className="text-stone-500 ml-2">string | number - Value in center</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">centerValueColor</code>
+                    <span className="text-stone-500 ml-2">string - Tailwind color class</span>
                   </div>
                   <div>
                     <code className="text-violet-600">valueFormat</code>
                     <span className="text-stone-500 ml-2">'number' | 'currency' | 'percentage' | 'compact'</span>
                   </div>
                   <div>
-                    <code className="text-violet-600">size</code>
-                    <span className="text-stone-500 ml-2">'sm' | 'md' | 'lg'</span>
+                    <code className="text-violet-600">currencySymbol</code>
+                    <span className="text-stone-500 ml-2">string - Currency prefix (default: $)</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">expandable</code>
+                    <span className="text-stone-500 ml-2">boolean - Show expand button</span>
                   </div>
                   <div>
                     <code className="text-violet-600">onSegmentHover</code>
-                    <span className="text-stone-500 ml-2">Hover callback</span>
+                    <span className="text-stone-500 ml-2">(segment, percent) =&gt; void</span>
                   </div>
                 </div>
               </div>
@@ -1329,6 +1492,92 @@ export const Reference: React.FC = () => {
                   <div>
                     <code className="text-violet-600">variant</code>
                     <span className="text-stone-500 ml-2">'dark' | 'outline' | 'subtle'</span>
+                  </div>
+                </div>
+              </div>
+            </Section>
+
+            {/* Segmented Control */}
+            <Section>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                SegmentedControl
+              </h2>
+              <p className="text-stone-500 mb-6">Premium segmented control for mutually exclusive option selection. Features sliding indicator, refined gradients, and smooth transitions.</p>
+
+              <div className="rounded-2xl p-6 bg-white shadow-sm border border-stone-100 mb-6">
+                <div className="flex flex-col gap-6">
+                  {/* Basic Example */}
+                  <div>
+                    <p className="text-sm text-stone-500 mb-3">Default variant:</p>
+                    <SegmentedControl
+                      options={[
+                        { id: 'location', label: 'Location' },
+                        { id: 'supervisor', label: 'Supervisor' },
+                        { id: 'license', label: 'License Type' },
+                      ]}
+                      value={segmentedControlValue}
+                      onChange={setSegmentedControlValue}
+                    />
+                  </div>
+
+                  {/* With Icons */}
+                  <div>
+                    <p className="text-sm text-stone-500 mb-3">With icons (size sm):</p>
+                    <SegmentedControl
+                      options={[
+                        { id: 'grid', label: 'Grid', icon: <Grid3X3 size={16} /> },
+                        { id: 'list', label: 'List', icon: <List size={16} /> },
+                      ]}
+                      value={viewModeValue}
+                      onChange={setViewModeValue}
+                      size="sm"
+                    />
+                  </div>
+
+                  {/* Subtle Variant */}
+                  <div>
+                    <p className="text-sm text-stone-500 mb-3">Subtle variant (size lg):</p>
+                    <SegmentedControl
+                      options={[
+                        { id: 'location', label: 'By Location' },
+                        { id: 'supervisor', label: 'By Supervisor' },
+                        { id: 'license', label: 'By License' },
+                      ]}
+                      value={segmentedControlValue}
+                      onChange={setSegmentedControlValue}
+                      size="lg"
+                      variant="subtle"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-xl p-5 bg-stone-100">
+                <h4 className="font-semibold text-stone-900 mb-3">Props Reference</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <code className="text-violet-600">options</code>
+                    <span className="text-stone-500 ml-2">{'{ id, label, icon?, disabled? }[]'}</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">value</code>
+                    <span className="text-stone-500 ml-2">string - Selected option id</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">onChange</code>
+                    <span className="text-stone-500 ml-2">(value: string) =&gt; void</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">size</code>
+                    <span className="text-stone-500 ml-2">'sm' | 'md' | 'lg' (default: md)</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">variant</code>
+                    <span className="text-stone-500 ml-2">'default' | 'subtle'</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">ariaLabel</code>
+                    <span className="text-stone-500 ml-2">string - Accessible label</span>
                   </div>
                 </div>
               </div>
@@ -1815,6 +2064,208 @@ export const Reference: React.FC = () => {
               </div>
             </Section>
 
+            {/* LineChart Component */}
+            <Section>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                LineChart Component
+              </h2>
+              <p className="text-stone-500 mb-6">Design system wrapper for Recharts LineChart with consistent thick styling. Features thick lines (strokeWidth: 4), large dots, and reference line support.</p>
+
+              {/* Interactive Demo */}
+              <div className="mb-8">
+                <ChartCard
+                  title="Return Rate Over Time"
+                  subtitle="6-month return rate comparison"
+                  headerControls={
+                    <GoalIndicator value="85%" label="Target" color="emerald" />
+                  }
+                  insights={[
+                    { value: '86.5%', label: 'Clinician Avg', bgColor: 'bg-blue-50', textColor: 'text-blue-600' },
+                    { value: '79%', label: 'Practice Avg', bgColor: 'bg-amber-50', textColor: 'text-amber-600' },
+                  ]}
+                  minHeight="400px"
+                >
+                  <LineChart
+                    data={SAMPLE_RETURN_RATE_DATA}
+                    xAxisKey="month"
+                    lines={[
+                      { dataKey: 'clinician', color: '#3b82f6', name: 'Clinician' },
+                      { dataKey: 'practice', color: '#f59e0b', name: 'Practice' },
+                    ]}
+                    yDomain={[70, 100]}
+                    yTickFormatter={(v) => `${v}%`}
+                    showLegend
+                    referenceLines={[
+                      { value: 85, label: 'Target', color: '#10b981', dashed: true },
+                    ]}
+                  />
+                </ChartCard>
+              </div>
+
+              {/* Props Reference */}
+              <div className="rounded-xl p-5 bg-stone-100 mb-6">
+                <h4 className="font-semibold text-stone-900 mb-3">Props Reference</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <code className="text-violet-600">data</code>
+                    <span className="text-stone-500 ml-2">Record&lt;string, any&gt;[] - Chart data</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">xAxisKey</code>
+                    <span className="text-stone-500 ml-2">string - X-axis data key</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">lines</code>
+                    <span className="text-stone-500 ml-2">{'{ dataKey, color, name? }[]'}</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">yDomain</code>
+                    <span className="text-stone-500 ml-2">[min, max] - Y-axis range</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">showLegend</code>
+                    <span className="text-stone-500 ml-2">boolean - Show legend row</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">referenceLines</code>
+                    <span className="text-stone-500 ml-2">{'{ value, label, color?, dashed? }[]'}</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">showAreaFill</code>
+                    <span className="text-stone-500 ml-2">boolean - Fill under line</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">animateOnce</code>
+                    <span className="text-stone-500 ml-2">boolean - Animate only on mount</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Code Example */}
+              <div className="rounded-xl p-5 bg-stone-100">
+                <h4 className="font-semibold text-stone-900 mb-3">Usage Example</h4>
+                <pre className="text-sm text-stone-700 overflow-x-auto">
+{`<LineChart
+  data={[
+    { month: 'Jan', clinician: 82, practice: 78 },
+    { month: 'Feb', clinician: 85, practice: 79 },
+  ]}
+  xAxisKey="month"
+  lines={[
+    { dataKey: 'clinician', color: '#3b82f6', name: 'Clinician' },
+    { dataKey: 'practice', color: '#f59e0b', name: 'Practice' },
+  ]}
+  yDomain={[70, 100]}
+  yTickFormatter={(v) => \`\${v}%\`}
+  showLegend
+  referenceLines={[
+    { value: 85, label: 'Target', color: '#10b981' },
+  ]}
+/>`}
+                </pre>
+              </div>
+            </Section>
+
+            {/* Legend Component */}
+            <Section>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                Legend Component
+              </h2>
+              <p className="text-stone-500 mb-6">Unified legend system for consistent styling across all chart components. Multiple variants for different contexts.</p>
+
+              {/* Interactive Demo */}
+              <div className="mb-8 space-y-8">
+                {/* Inline Variant */}
+                <div>
+                  <p className="text-sm text-stone-500 mb-3 font-semibold">Inline variant (for ChartCard headers):</p>
+                  <Legend
+                    items={SAMPLE_LEGEND_ITEMS}
+                    variant="inline"
+                    size="md"
+                  />
+                </div>
+
+                {/* Floating Variant */}
+                <div>
+                  <p className="text-sm text-stone-500 mb-3 font-semibold">Floating variant (for BarChart overlay):</p>
+                  <Legend
+                    items={SAMPLE_LEGEND_ITEMS}
+                    variant="floating"
+                    interactive
+                    hoveredItem={legendHoveredItem}
+                    onItemHover={(item) => setLegendHoveredItem(item?.label || null)}
+                  />
+                </div>
+
+                {/* Compact Variant */}
+                <div>
+                  <p className="text-sm text-stone-500 mb-3 font-semibold">Compact variant (simple horizontal wrap):</p>
+                  <Legend
+                    items={[
+                      { label: 'Telehealth', color: '#0891b2', value: 2400 },
+                      { label: 'In-Person', color: '#d97706', value: 1800 },
+                    ]}
+                    variant="compact"
+                    size="md"
+                  />
+                </div>
+
+                {/* Chart Variant */}
+                <div>
+                  <p className="text-sm text-stone-500 mb-3 font-semibold">Chart variant (inside chart area):</p>
+                  <Legend
+                    items={SAMPLE_LEGEND_ITEMS}
+                    variant="chart"
+                    size="md"
+                  />
+                </div>
+              </div>
+
+              {/* Props Reference */}
+              <div className="rounded-xl p-5 bg-stone-100 mb-6">
+                <h4 className="font-semibold text-stone-900 mb-3">Props Reference</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <code className="text-violet-600">items</code>
+                    <span className="text-stone-500 ml-2">{'{ label, color, type?, value?, percent? }[]'}</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">variant</code>
+                    <span className="text-stone-500 ml-2">'inline' | 'floating' | 'stacked' | 'grid' | 'compact' | 'chart'</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">size</code>
+                    <span className="text-stone-500 ml-2">'sm' | 'md' | 'lg'</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">interactive</code>
+                    <span className="text-stone-500 ml-2">boolean - Enable hover states</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">hoveredItem</code>
+                    <span className="text-stone-500 ml-2">string | null - Currently hovered label</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">onItemHover</code>
+                    <span className="text-stone-500 ml-2">(item | null) =&gt; void</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Variant Descriptions */}
+              <div className="rounded-xl p-5 bg-indigo-50 border border-indigo-200">
+                <h4 className="font-semibold text-indigo-800 mb-3">Variant Guide</h4>
+                <ul className="text-sm text-indigo-700 space-y-1">
+                  <li><strong>inline:</strong> Horizontal row in card headers with dividers</li>
+                  <li><strong>floating:</strong> Overlay with backdrop blur for chart overlays</li>
+                  <li><strong>stacked:</strong> Vertical list with values (DonutChartCard wide)</li>
+                  <li><strong>grid:</strong> 2-column grid (DonutChartCard medium)</li>
+                  <li><strong>compact:</strong> Simple horizontal wrap (SplitBarCard)</li>
+                  <li><strong>chart:</strong> Inside chart area (Recharts replacement)</li>
+                </ul>
+              </div>
+            </Section>
+
             {/* SectionHeader Component */}
             <Section>
               <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
@@ -2041,6 +2492,314 @@ export const Reference: React.FC = () => {
                   <li><strong>Next appointment:</strong> Shows scheduled date if available</li>
                   <li><strong>"1 to go!" badge:</strong> Highlights clients one session away</li>
                 </ul>
+              </div>
+            </Section>
+
+            {/* ClientRosterCard Component */}
+            <Section>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                ClientRosterCard
+              </h2>
+              <p className="text-stone-500 mb-6">Filterable client list card with status filters. Used for displaying client rosters with health status indicators.</p>
+
+              {/* Interactive Demo */}
+              <div className="mb-8">
+                <ClientRosterCard
+                  title="Client Roster"
+                  subtitle={`${SAMPLE_CLIENT_ROSTER.length} active clients`}
+                  clients={SAMPLE_CLIENT_ROSTER}
+                  maxVisible={4}
+                />
+              </div>
+
+              {/* Props Reference */}
+              <div className="rounded-xl p-5 bg-stone-100">
+                <h4 className="font-semibold text-stone-900 mb-3">Props Reference</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <code className="text-violet-600">title</code>
+                    <span className="text-stone-500 ml-2">string - Card title</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">subtitle</code>
+                    <span className="text-stone-500 ml-2">string - Card subtitle</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">clients</code>
+                    <span className="text-stone-500 ml-2">ClientData[] - Client list</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">maxVisible</code>
+                    <span className="text-stone-500 ml-2">number - Max visible rows (default 4.5)</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">size</code>
+                    <span className="text-stone-500 ml-2">'default' | 'lg' - Size variant</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">onExpand</code>
+                    <span className="text-stone-500 ml-2">() =&gt; void - Expand handler</span>
+                  </div>
+                </div>
+              </div>
+            </Section>
+
+            {/* InsightCard Component */}
+            <Section>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                InsightCard
+              </h2>
+              <p className="text-stone-500 mb-6">Insight-first cards that lead with the finding, not labels. The statement IS the content. Clean hierarchy, excellent readability.</p>
+
+              {/* Interactive Demo */}
+              <div className="mb-8">
+                <Grid cols={2}>
+                  <InsightCard
+                    statement="Monthly clients are 35% of churn but only 20% of your client base"
+                    emphasis="35% of churn"
+                    metric="1.8×"
+                    metricLabel="overrepresented"
+                    sentiment="negative"
+                    category="Session Frequency"
+                  />
+                  <InsightCard
+                    statement="Weekly clients have the highest retention rate at 92%"
+                    emphasis="92%"
+                    metric="+15%"
+                    metricLabel="vs average"
+                    sentiment="positive"
+                    category="Retention"
+                  />
+                </Grid>
+              </div>
+
+              {/* Props Reference */}
+              <div className="rounded-xl p-5 bg-stone-100">
+                <h4 className="font-semibold text-stone-900 mb-3">Props Reference</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <code className="text-violet-600">statement</code>
+                    <span className="text-stone-500 ml-2">string - The main insight (headline)</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">emphasis</code>
+                    <span className="text-stone-500 ml-2">string - Part to highlight</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">metric</code>
+                    <span className="text-stone-500 ml-2">string - Metric value (e.g., "1.8×")</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">metricLabel</code>
+                    <span className="text-stone-500 ml-2">string - Metric description</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">sentiment</code>
+                    <span className="text-stone-500 ml-2">'positive' | 'negative' | 'neutral'</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">category</code>
+                    <span className="text-stone-500 ml-2">string - Category label</span>
+                  </div>
+                </div>
+              </div>
+            </Section>
+
+            {/* ExecutiveSummary Component */}
+            <Section>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                ExecutiveSummary
+              </h2>
+              <p className="text-stone-500 mb-6">Editorial-style summary card for maximum impact. Inspired by premium financial publications - expandable with bold typography.</p>
+
+              {/* Interactive Demo */}
+              <div className="mb-8">
+                <ExecutiveSummary
+                  headline="Practice revenue is up 12% this quarter"
+                  summary="Your practice has shown **strong performance** across key metrics. Client retention improved by **8 percentage points** while new client acquisition remained steady. The **highest performing clinicians** have maintained show rates above 95%."
+                  accent="emerald"
+                />
+              </div>
+
+              {/* Props Reference */}
+              <div className="rounded-xl p-5 bg-stone-100">
+                <h4 className="font-semibold text-stone-900 mb-3">Props Reference</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <code className="text-violet-600">headline</code>
+                    <span className="text-stone-500 ml-2">string - Main headline statement</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">summary</code>
+                    <span className="text-stone-500 ml-2">string - Summary text (supports **bold**)</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">defaultExpanded</code>
+                    <span className="text-stone-500 ml-2">boolean - Start expanded</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">accent</code>
+                    <span className="text-stone-500 ml-2">'amber' | 'emerald' | 'rose' | 'indigo' | 'cyan'</span>
+                  </div>
+                </div>
+              </div>
+            </Section>
+
+            {/* ComingSoonCard Component */}
+            <Section>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                ComingSoonCard
+              </h2>
+              <p className="text-stone-500 mb-6">Elegant placeholder for features in development. Features floating orbs, subtle animations, and premium typography.</p>
+
+              {/* Interactive Demo */}
+              <div className="mb-8 rounded-2xl overflow-hidden border border-stone-200" style={{ maxHeight: '400px' }}>
+                <ComingSoonCard
+                  accent="violet"
+                  title="Advanced Analytics"
+                  description="We're crafting powerful new insights for your practice."
+                  features={['Predictive Churn', 'Revenue Forecasting', 'Custom Reports']}
+                  className="!min-h-[350px]"
+                />
+              </div>
+
+              {/* Props Reference */}
+              <div className="rounded-xl p-5 bg-stone-100">
+                <h4 className="font-semibold text-stone-900 mb-3">Props Reference</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <code className="text-violet-600">title</code>
+                    <span className="text-stone-500 ml-2">string - Headline (default: "Coming Soon")</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">description</code>
+                    <span className="text-stone-500 ml-2">string - Supporting description</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">features</code>
+                    <span className="text-stone-500 ml-2">string[] - Feature pills to display</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">accent</code>
+                    <span className="text-stone-500 ml-2">'violet' | 'blue' | 'emerald' | 'amber' | 'rose' | 'cyan'</span>
+                  </div>
+                </div>
+              </div>
+            </Section>
+
+            {/* DefinitionsBar Component */}
+            <Section>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                DefinitionsBar
+              </h2>
+              <p className="text-stone-500 mb-6">Compact horizontal bar for displaying key term definitions. Used to clarify terminology in analysis sections.</p>
+
+              {/* Interactive Demo */}
+              <div className="mb-8">
+                <DefinitionsBar
+                  definitions={[
+                    { term: 'Churned', definition: 'No appointment in 30+ days and none scheduled' },
+                    { term: 'Retained', definition: 'Active or scheduled within 30 days' },
+                  ]}
+                />
+              </div>
+
+              {/* Props Reference */}
+              <div className="rounded-xl p-5 bg-stone-100">
+                <h4 className="font-semibold text-stone-900 mb-3">Props Reference</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <code className="text-violet-600">definitions</code>
+                    <span className="text-stone-500 ml-2">{'{ term: string, definition: string }[]'}</span>
+                  </div>
+                </div>
+              </div>
+            </Section>
+
+            {/* AnimatedSection & AnimatedGrid Components */}
+            <Section>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                Animation Components
+              </h2>
+              <p className="text-stone-500 mb-6">CSS-only entrance animations with staggered reveals. No library dependencies - pure CSS for performance.</p>
+
+              {/* Component Descriptions */}
+              <div className="mb-8 space-y-6">
+                <div className="rounded-2xl p-6 bg-white shadow-sm border border-stone-100">
+                  <h3 className="text-lg font-semibold text-stone-900 mb-2">AnimatedSection</h3>
+                  <p className="text-stone-500 mb-4">Entrance animation wrapper with fade-in + slide-up. Use delay prop for staggered reveals.</p>
+                  <pre className="text-sm text-stone-700 bg-stone-100 p-4 rounded-xl overflow-x-auto">
+{`<AnimatedSection delay={0}>
+  <Grid cols={4}>...</Grid>
+</AnimatedSection>
+<AnimatedSection delay={100}>
+  <ChartCard>...</ChartCard>
+</AnimatedSection>`}
+                  </pre>
+                </div>
+
+                <div className="rounded-2xl p-6 bg-white shadow-sm border border-stone-100">
+                  <h3 className="text-lg font-semibold text-stone-900 mb-2">AnimatedGrid</h3>
+                  <p className="text-stone-500 mb-4">Grid with automatic staggered animations for each child. Each child gets delayed animation.</p>
+                  <pre className="text-sm text-stone-700 bg-stone-100 p-4 rounded-xl overflow-x-auto">
+{`<AnimatedGrid cols={4} staggerDelay={50}>
+  <StatCard ... />
+  <StatCard ... />
+  <StatCard ... />
+  <StatCard ... />
+</AnimatedGrid>`}
+                  </pre>
+                </div>
+
+                <div className="rounded-2xl p-6 bg-white shadow-sm border border-stone-100">
+                  <h3 className="text-lg font-semibold text-stone-900 mb-2">AnimatedPageContent</h3>
+                  <p className="text-stone-500 mb-4">Page content wrapper with entrance animation. Use with nested AnimatedSection/AnimatedGrid for full page animations.</p>
+                  <pre className="text-sm text-stone-700 bg-stone-100 p-4 rounded-xl overflow-x-auto">
+{`<AnimatedPageContent baseDelay={50}>
+  <AnimatedGrid cols={4}>...</AnimatedGrid>
+  <AnimatedSection delay={200}>...</AnimatedSection>
+</AnimatedPageContent>`}
+                  </pre>
+                </div>
+              </div>
+
+              {/* Props Reference */}
+              <div className="rounded-xl p-5 bg-stone-100">
+                <h4 className="font-semibold text-stone-900 mb-3">AnimatedSection Props</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm mb-6">
+                  <div>
+                    <code className="text-violet-600">delay</code>
+                    <span className="text-stone-500 ml-2">number - Animation delay (ms)</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">duration</code>
+                    <span className="text-stone-500 ml-2">number - Duration (default: 500ms)</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">animate</code>
+                    <span className="text-stone-500 ml-2">boolean - Enable animation</span>
+                  </div>
+                </div>
+
+                <h4 className="font-semibold text-stone-900 mb-3">AnimatedGrid Props</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <code className="text-violet-600">cols</code>
+                    <span className="text-stone-500 ml-2">1 | 2 | 3 | 4 | 5</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">gap</code>
+                    <span className="text-stone-500 ml-2">'sm' | 'md' | 'lg'</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">baseDelay</code>
+                    <span className="text-stone-500 ml-2">number - Delay before first item</span>
+                  </div>
+                  <div>
+                    <code className="text-violet-600">staggerDelay</code>
+                    <span className="text-stone-500 ml-2">number - Delay between items (default: 60ms)</span>
+                  </div>
+                </div>
               </div>
             </Section>
 
@@ -2284,6 +3043,166 @@ export const Reference: React.FC = () => {
                 <span className="px-3 py-1.5 rounded-full bg-blue-100 text-blue-700 text-sm font-semibold flex items-center gap-1.5">
                   <Info size={14} /> Info
                 </span>
+              </div>
+            </Section>
+          </>
+        )}
+
+        {/* ================================================================= */}
+        {/* SECTION: ROADMAP - Patterns not yet in design system            */}
+        {/* ================================================================= */}
+        {activeSection === 'roadmap' && (
+          <>
+            <Section>
+              <h2 className="text-3xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                Design System Roadmap
+              </h2>
+              <p className="text-stone-500 mb-8 text-lg">
+                Patterns used in the app that could be standardized in the design system.
+              </p>
+
+              {/* High Priority */}
+              <div className="mb-10">
+                <h3 className="text-xl font-bold text-rose-600 mb-4 flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full bg-rose-500"></span>
+                  High Priority
+                </h3>
+                <Grid cols={2} gap="md">
+                  <div className="rounded-2xl p-6 bg-white shadow-sm border border-stone-100">
+                    <h4 className="font-bold text-stone-900 mb-2">Modal / Dialog</h4>
+                    <p className="text-sm text-stone-500 mb-3">Generic overlay modal with backdrop blur, animations, and optional tabs. Currently custom-built in ReferralModal.</p>
+                    <code className="text-xs bg-rose-50 px-2 py-1 rounded text-rose-700">referral/ReferralModal.tsx</code>
+                  </div>
+                  <div className="rounded-2xl p-6 bg-white shadow-sm border border-stone-100">
+                    <h4 className="font-bold text-stone-900 mb-2">Form Inputs</h4>
+                    <p className="text-sm text-stone-500 mb-3">TextInput, EmailInput, PasswordInput with validation states, error messages, and light/dark variants.</p>
+                    <code className="text-xs bg-rose-50 px-2 py-1 rounded text-rose-700">OnboardingFlow.tsx, LoginPage.tsx</code>
+                  </div>
+                  <div className="rounded-2xl p-6 bg-white shadow-sm border border-stone-100">
+                    <h4 className="font-bold text-stone-900 mb-2">Dropdown / Select</h4>
+                    <p className="text-sm text-stone-500 mb-3">Generic dropdown selector with search, multi-select support, and consistent styling.</p>
+                    <code className="text-xs bg-rose-50 px-2 py-1 rounded text-rose-700">PracticeConfigurationPage.tsx</code>
+                  </div>
+                  <div className="rounded-2xl p-6 bg-white shadow-sm border border-stone-100">
+                    <h4 className="font-bold text-stone-900 mb-2">Toast / Notification</h4>
+                    <p className="text-sm text-stone-500 mb-3">Transient notifications for success/error feedback with auto-dismiss and action buttons.</p>
+                    <code className="text-xs bg-rose-50 px-2 py-1 rounded text-rose-700">Not yet implemented</code>
+                  </div>
+                </Grid>
+              </div>
+
+              {/* Medium Priority */}
+              <div className="mb-10">
+                <h3 className="text-xl font-bold text-amber-600 mb-4 flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full bg-amber-500"></span>
+                  Medium Priority
+                </h3>
+                <Grid cols={3} gap="md">
+                  <div className="rounded-2xl p-5 bg-white shadow-sm border border-stone-100">
+                    <h4 className="font-bold text-stone-900 mb-2">Toggle Switch</h4>
+                    <p className="text-sm text-stone-500 mb-2">Animated on/off toggle (different from ToggleButton). Used in settings.</p>
+                    <code className="text-xs bg-amber-50 px-2 py-1 rounded text-amber-700">SettingsPage.tsx</code>
+                  </div>
+                  <div className="rounded-2xl p-5 bg-white shadow-sm border border-stone-100">
+                    <h4 className="font-bold text-stone-900 mb-2">Month Picker</h4>
+                    <p className="text-sm text-stone-500 mb-2">Calendar-style month selector with year navigation.</p>
+                    <code className="text-xs bg-amber-50 px-2 py-1 rounded text-amber-700">MonthPicker.tsx</code>
+                  </div>
+                  <div className="rounded-2xl p-5 bg-white shadow-sm border border-stone-100">
+                    <h4 className="font-bold text-stone-900 mb-2">Badge / Chip</h4>
+                    <p className="text-sm text-stone-500 mb-2">Standalone badge component with status variants and animations.</p>
+                    <code className="text-xs bg-amber-50 px-2 py-1 rounded text-amber-700">ReferralBadge.tsx</code>
+                  </div>
+                  <div className="rounded-2xl p-5 bg-white shadow-sm border border-stone-100">
+                    <h4 className="font-bold text-stone-900 mb-2">Tab Group</h4>
+                    <p className="text-sm text-stone-500 mb-2">Reusable tab navigation component for content switching.</p>
+                    <code className="text-xs bg-amber-50 px-2 py-1 rounded text-amber-700">Multiple pages</code>
+                  </div>
+                  <div className="rounded-2xl p-5 bg-white shadow-sm border border-stone-100">
+                    <h4 className="font-bold text-stone-900 mb-2">Setting Row</h4>
+                    <p className="text-sm text-stone-500 mb-2">Configuration item with icon, label, description, and control slot.</p>
+                    <code className="text-xs bg-amber-50 px-2 py-1 rounded text-amber-700">SettingsPage.tsx</code>
+                  </div>
+                  <div className="rounded-2xl p-5 bg-white shadow-sm border border-stone-100">
+                    <h4 className="font-bold text-stone-900 mb-2">Tooltip</h4>
+                    <p className="text-sm text-stone-500 mb-2">Hover-triggered info display with positioning and delay.</p>
+                    <code className="text-xs bg-amber-50 px-2 py-1 rounded text-amber-700">Various</code>
+                  </div>
+                </Grid>
+              </div>
+
+              {/* Low Priority */}
+              <div className="mb-10">
+                <h3 className="text-xl font-bold text-stone-500 mb-4 flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full bg-stone-400"></span>
+                  Low Priority / Future
+                </h3>
+                <div className="flex flex-wrap gap-3">
+                  <span className="px-4 py-2 rounded-full bg-stone-100 text-stone-600 text-sm font-medium">Skeleton Loaders</span>
+                  <span className="px-4 py-2 rounded-full bg-stone-100 text-stone-600 text-sm font-medium">Empty States</span>
+                  <span className="px-4 py-2 rounded-full bg-stone-100 text-stone-600 text-sm font-medium">Breadcrumbs</span>
+                  <span className="px-4 py-2 rounded-full bg-stone-100 text-stone-600 text-sm font-medium">Pagination</span>
+                  <span className="px-4 py-2 rounded-full bg-stone-100 text-stone-600 text-sm font-medium">Search Input</span>
+                  <span className="px-4 py-2 rounded-full bg-stone-100 text-stone-600 text-sm font-medium">Slider / Range</span>
+                  <span className="px-4 py-2 rounded-full bg-stone-100 text-stone-600 text-sm font-medium">Checkbox / Radio</span>
+                  <span className="px-4 py-2 rounded-full bg-stone-100 text-stone-600 text-sm font-medium">Drawer / Sidebar</span>
+                  <span className="px-4 py-2 rounded-full bg-stone-100 text-stone-600 text-sm font-medium">Copy Button</span>
+                  <span className="px-4 py-2 rounded-full bg-stone-100 text-stone-600 text-sm font-medium">Comparison Widget</span>
+                </div>
+              </div>
+
+              {/* What's Covered */}
+              <div className="rounded-2xl p-6 bg-emerald-50 border border-emerald-200">
+                <h3 className="text-xl font-bold text-emerald-800 mb-4 flex items-center gap-2">
+                  <Check size={20} />
+                  Currently in Design System
+                </h3>
+                <div className="grid grid-cols-4 gap-4 text-sm">
+                  <div>
+                    <h4 className="font-semibold text-emerald-700 mb-2">Layout</h4>
+                    <ul className="text-emerald-600 space-y-1">
+                      <li>PageHeader</li>
+                      <li>Grid / Section</li>
+                      <li>PageContent</li>
+                      <li>SectionHeader</li>
+                      <li>AnimatedSection</li>
+                      <li>AnimatedGrid</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-emerald-700 mb-2">Cards (20+)</h4>
+                    <ul className="text-emerald-600 space-y-1">
+                      <li>StatCard</li>
+                      <li>MetricCard</li>
+                      <li>ChartCard</li>
+                      <li>DonutChartCard</li>
+                      <li>DataTableCard</li>
+                      <li>ClientRosterCard</li>
+                      <li>InsightCard</li>
+                      <li>+ many more...</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-emerald-700 mb-2">Controls</h4>
+                    <ul className="text-emerald-600 space-y-1">
+                      <li>ActionButton (3 variants)</li>
+                      <li>ToggleButton</li>
+                      <li>GoalIndicator (6 colors)</li>
+                      <li>SegmentedControl</li>
+                      <li>CohortSelector</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-emerald-700 mb-2">Charts</h4>
+                    <ul className="text-emerald-600 space-y-1">
+                      <li>BarChart</li>
+                      <li>LineChart</li>
+                      <li>DivergingBarChart</li>
+                      <li>RetentionFunnelChart</li>
+                      <li>Legend (6 variants)</li>
+                    </ul>
+                  </div>
+                </div>
               </div>
             </Section>
           </>

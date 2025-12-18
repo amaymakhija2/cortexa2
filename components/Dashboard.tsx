@@ -435,11 +435,11 @@ export const Dashboard: React.FC = () => {
               }
             />
 
-            {/* Cards Container */}
-            <div className="relative flex-1 min-h-[560px]">
+            {/* Cards Container - breaks out of parent padding to extend to viewport edge */}
+            <div className="relative flex-1 min-h-[560px] -mr-6 sm:-mr-8 lg:-mr-12">
               <div
                 ref={scrollContainerRef}
-                className="absolute inset-0 flex gap-4 lg:gap-5 overflow-x-auto overflow-y-hidden snap-x snap-mandatory scrollbar-hide pb-2"
+                className="absolute inset-0 flex gap-4 lg:gap-5 overflow-x-auto overflow-y-hidden snap-x snap-mandatory scrollbar-hide pb-2 pr-6 sm:pr-8 lg:pr-12"
                 style={{
                   scrollbarWidth: 'none',
                   msOverflowStyle: 'none',
