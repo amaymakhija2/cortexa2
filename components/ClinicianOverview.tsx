@@ -200,8 +200,43 @@ const METRIC_GROUPS: MetricGroupConfig[] = [
       format: (v) => v.toLocaleString(),
       higherIsBetter: true,
       tooltip: 'Clients who had their first session during this time period.',
+      hidden: true, // Show in supporting array instead for proper column order
     },
-    supporting: [],
+    supporting: [
+      {
+        key: 'consultsBooked',
+        label: 'Consults Booked',
+        shortLabel: 'Consults',
+        format: (v) => v.toLocaleString(),
+        higherIsBetter: true,
+        tooltip: 'Consultations booked with this clinician during the time period.',
+      },
+      {
+        key: 'newClients',
+        label: 'New Clients',
+        shortLabel: 'New',
+        format: (v) => v.toLocaleString(),
+        higherIsBetter: true,
+        tooltip: 'Clients who had their first session during this time period.',
+        isPrimary: true, // This is the ranking metric - highlight it
+      },
+      {
+        key: 'conversionRate',
+        label: 'Conversion Rate',
+        shortLabel: 'Conv %',
+        format: (v) => `${v.toFixed(0)}%`,
+        higherIsBetter: true,
+        tooltip: 'Percentage of consultations that converted to new clients.',
+      },
+      {
+        key: 'newClientPercent',
+        label: 'New Client %',
+        shortLabel: 'New %',
+        format: (v) => `${v.toFixed(0)}%`,
+        higherIsBetter: true,
+        tooltip: 'New clients as a percentage of total active caseload.',
+      },
+    ],
   },
   {
     id: 'sessions',
@@ -404,6 +439,9 @@ interface ClinicianMetrics {
   utilizationRate: number;
   activeClients: number;
   newClients: number;
+  consultsBooked: number; // Consultations booked this period
+  conversionRate: number; // New clients / consults booked (%)
+  newClientPercent: number; // New clients as % of active caseload
   rebookRate: number;
   atRiskClients: number;
   newClientRevenue: number;
@@ -510,6 +548,11 @@ function buildClinicianData(calculated: ClinicianMetricsCalculated[], periodId: 
       ? (newClients / activeClients) * calc.revenue
       : 0;
 
+    // Growth pipeline metrics
+    const consultsBooked = syntheticMetrics?.consultsBookedThisMonth ?? Math.round(newClients * 1.5);
+    const conversionRate = consultsBooked > 0 ? (newClients / consultsBooked) * 100 : 0;
+    const newClientPercent = activeClients > 0 ? (newClients / activeClients) * 100 : 0;
+
     // Use per-clinician retention metrics
     const session1to2Retention = syntheticMetrics?.session1to2Retention ?? Math.min(95, 100 - churnRate + 10);
     const session5Retention = syntheticMetrics?.session5Retention ?? Math.min(85, 100 - churnRate);
@@ -549,6 +592,9 @@ function buildClinicianData(calculated: ClinicianMetricsCalculated[], periodId: 
         utilizationRate: Math.round(utilizationRate),
         activeClients,
         newClients,
+        consultsBooked,
+        conversionRate: Math.round(conversionRate),
+        newClientPercent: Math.round(newClientPercent * 10) / 10,
         rebookRate: Math.round(rebookRate),
         atRiskClients,
         newClientRevenue: Math.round(newClientRevenue),
@@ -645,8 +691,8 @@ export const ClinicianOverview: React.FC = () => {
     if (groupId === 'documentation') {
       setViewMode('live');
     }
-    // Default to last-12-months for Retention (churn is a historical metric)
-    if (groupId === 'retention' && viewMode === 'live') {
+    // Default to last-12-months for Retention and Growth (historical metrics)
+    if ((groupId === 'retention' || groupId === 'growth') && viewMode === 'live') {
       setViewMode('last-12-months');
     }
   };

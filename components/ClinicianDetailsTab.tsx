@@ -1312,12 +1312,22 @@ export const ClinicianDetailsTab: React.FC = () => {
 
   const netClientGrowth = useMemo(() => totalNewClients - totalChurnedClients, [totalNewClients, totalChurnedClients]);
 
-  // Client movement chart data for DivergingBarChart
+  // Client movement chart data for DivergingBarChart (kept for reference)
   const clientMovementData = useMemo(() => {
     if (!caseloadData) return [];
     return caseloadData.monthlyCaseload.map(item => ({
       label: item.month,
       positive: item.newClients,
+      negative: item.churned,
+    }));
+  }, [caseloadData]);
+
+  // Churned clients only - for DivergingBarChart (negative only)
+  const churnedClientsData = useMemo(() => {
+    if (!caseloadData) return [];
+    return caseloadData.monthlyCaseload.map(item => ({
+      label: item.month,
+      positive: 0,
       negative: item.churned,
     }));
   }, [caseloadData]);
@@ -2686,33 +2696,20 @@ export const ClinicianDetailsTab: React.FC = () => {
               compact
             />
             <Grid cols={2}>
-              {/* New and Churned Clients Chart */}
+              {/* Churned Clients Chart */}
               <ChartCard
-                title="New and Churned Clients Per Month"
-                subtitle={`How ${selectedClinician.name.split(' ')[0]}'s client base is changing`}
-                headerControls={
-                  <div className="flex items-center gap-5 bg-stone-50 rounded-xl px-5 py-2.5">
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 rounded-md bg-gradient-to-b from-emerald-400 to-emerald-500"></div>
-                      <span className="text-stone-700 text-base font-semibold">New</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 rounded-md bg-gradient-to-b from-rose-400 to-rose-500"></div>
-                      <span className="text-stone-700 text-base font-semibold">Churned</span>
-                    </div>
-                  </div>
-                }
-                insights={clientMovementInsights}
+                title="Churned Clients Per Month"
+                subtitle={`How many clients ${selectedClinician.name.split(' ')[0]} is losing each month`}
                 minHeight="420px"
                 expandable
                 onExpand={() => setExpandedCard('client-movement')}
               >
                 <DivergingBarChart
-                  data={clientMovementData}
+                  data={churnedClientsData}
                   positiveConfig={{
-                    label: 'New Clients',
-                    color: '#34d399',
-                    colorEnd: '#10b981',
+                    label: '',
+                    color: 'transparent',
+                    colorEnd: 'transparent',
                   }}
                   negativeConfig={{
                     label: 'Churned',
@@ -2720,6 +2717,8 @@ export const ClinicianDetailsTab: React.FC = () => {
                     colorEnd: '#f43f5e',
                   }}
                   height="280px"
+                  yDomain={[-(Math.max(...churnedClientsData.map(d => d.negative)) + 3), 2]}
+                  formatNegativeLabel={(value) => Math.abs(value).toString()}
                 />
               </ChartCard>
 
@@ -2781,12 +2780,65 @@ export const ClinicianDetailsTab: React.FC = () => {
           )}
 
           {/* ---------------------------------------------------------
-              SECTION 5: Compliance
+              SECTION 5: Client Acquisition
               --------------------------------------------------------- */}
-          {isSpotlightMode && selectedClinician && complianceData && (
-          <SectionContainer accent="stone" index={4} isLast>
+          {isSpotlightMode && selectedClinician && (
+          <SectionContainer accent="cyan" index={4}>
             <SectionHeader
               number={5}
+              question="How do they acquire clients?"
+              description="Consultation pipeline and conversion performance"
+              accent="cyan"
+              showAccentLine={false}
+              compact
+            />
+            <Grid cols={2}>
+              {/* Consults Booked vs Converted */}
+              <StatCard
+                title="Consults This Month"
+                value="6"
+                subtitle="consultations booked"
+                trend={{ value: 20, direction: 'up', label: 'vs last month' }}
+                accent="cyan"
+              />
+
+              {/* Conversion Rate */}
+              <StatCard
+                title="Conversion Rate"
+                value="67%"
+                subtitle="consults → new clients"
+                trend={{ value: 5, direction: 'up', label: 'vs practice avg' }}
+                accent="emerald"
+              />
+
+              {/* New Clients */}
+              <StatCard
+                title="New Clients"
+                value="4"
+                subtitle="converted this month"
+                trend={{ value: 1, direction: 'up', label: 'vs last month' }}
+                accent="amber"
+              />
+
+              {/* New Client % of Caseload */}
+              <StatCard
+                title="New Client %"
+                value="18%"
+                subtitle="of active caseload"
+                trend={{ value: 3, direction: 'up', label: 'vs practice avg' }}
+                accent="indigo"
+              />
+            </Grid>
+          </SectionContainer>
+          )}
+
+          {/* ---------------------------------------------------------
+              SECTION 6: Compliance
+              --------------------------------------------------------- */}
+          {isSpotlightMode && selectedClinician && complianceData && (
+          <SectionContainer accent="stone" index={5} isLast>
+            <SectionHeader
+              number={6}
               question="Are they staying compliant?"
               description="Documentation status and overdue notes"
               accent="stone"
@@ -3151,15 +3203,15 @@ export const ClinicianDetailsTab: React.FC = () => {
         <ExpandedChartModal
           isOpen={expandedCard === 'client-movement'}
           onClose={() => setExpandedCard(null)}
-          title="New and Churned Clients Per Month"
-          subtitle={`How ${selectedClinician.name.split(' ')[0]}'s client base is changing`}
+          title="Churned Clients Per Month"
+          subtitle={`How many clients ${selectedClinician.name.split(' ')[0]} is losing each month`}
         >
           <DivergingBarChart
-            data={clientMovementData}
+            data={churnedClientsData}
             positiveConfig={{
-              label: 'New Clients',
-              color: '#34d399',
-              colorEnd: '#10b981',
+              label: '',
+              color: 'transparent',
+              colorEnd: 'transparent',
             }}
             negativeConfig={{
               label: 'Churned',
@@ -3167,6 +3219,8 @@ export const ClinicianDetailsTab: React.FC = () => {
               colorEnd: '#f43f5e',
             }}
             height="400px"
+            yDomain={[-(Math.max(...churnedClientsData.map(d => d.negative)) + 3), 2]}
+            formatNegativeLabel={(value) => Math.abs(value).toString()}
           />
         </ExpandedChartModal>
       )}

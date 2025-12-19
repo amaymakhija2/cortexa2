@@ -524,11 +524,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                                     handleSubItemClick(subItem.id);
                                   }}
                                   className={`
-                                    w-full text-left pl-4 pr-3 py-2 text-[14px]
-                                    relative whitespace-nowrap
+                                    w-full text-left pl-4 pr-3 py-2.5 text-[15px] font-medium
+                                    relative whitespace-nowrap tracking-[-0.01em]
+                                    transition-colors duration-150
                                     ${isSubActive
-                                      ? 'text-stone-100'
-                                      : 'text-stone-500 hover:text-stone-200'
+                                      ? 'text-stone-50'
+                                      : 'text-stone-400 hover:text-stone-100'
                                     }
                                   `}
                                   style={{

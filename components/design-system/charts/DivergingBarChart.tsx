@@ -56,6 +56,8 @@ export interface DivergingBarChartProps {
   formatNegativeLabel?: (value: number) => string;
   /** Format tooltip value */
   tooltipFormatter?: (value: number, name: string) => [string | number, string];
+  /** Y-axis domain [min, max] - if not provided, auto-calculated */
+  yDomain?: [number, number];
 }
 
 /**
@@ -98,6 +100,7 @@ export const DivergingBarChart: React.FC<DivergingBarChartProps> = ({
   formatPositiveLabel = (value) => `+${value}`,
   formatNegativeLabel = (value) => `-${Math.abs(value)}`,
   tooltipFormatter,
+  yDomain,
 }) => {
   // Transform data to have negative values for the negative bars
   const chartData = data.map((item) => ({
@@ -168,6 +171,7 @@ export const DivergingBarChart: React.FC<DivergingBarChartProps> = ({
           tick={{ fill: '#78716c', fontSize: 14, fontWeight: 600 }}
           tickFormatter={(value) => Math.abs(value).toString()}
           width={40}
+          domain={yDomain}
         />
 
         {/* Zero reference line */}
@@ -206,7 +210,7 @@ export const DivergingBarChart: React.FC<DivergingBarChartProps> = ({
           )}
         </Bar>
 
-        {/* Negative bars (below zero) - radius flipped because Recharts interprets it relative to data direction */}
+        {/* Negative bars (below zero) - position="bottom" places at bar tip, positive offset pushes further down */}
         <Bar
           dataKey="negativeValue"
           fill={`url(#${negativeGradientId})`}
