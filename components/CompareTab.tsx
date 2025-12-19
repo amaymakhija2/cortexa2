@@ -79,6 +79,24 @@ const AGGREGATE_COLUMNS: TableColumn[] = [
     tooltip: 'Total revenue collected before any deductions.',
   },
   {
+    key: 'consultationsBooked',
+    header: 'Consults',
+    align: 'right',
+    tooltip: 'Total consultations booked during this time period.',
+  },
+  {
+    key: 'newClients',
+    header: 'New Clients',
+    align: 'right',
+    tooltip: 'Number of consultations that converted to new clients.',
+  },
+  {
+    key: 'conversionRate',
+    header: 'Conv %',
+    align: 'right',
+    tooltip: 'Percentage of consultations that converted to clients. Higher is better.',
+  },
+  {
     key: 'completedSessions',
     header: 'Sessions',
     align: 'right',
@@ -129,6 +147,24 @@ const POINT_IN_TIME_COLUMNS: TableColumn[] = [
     header: 'Revenue',
     align: 'right',
     tooltip: 'Total revenue collected before any deductions.',
+  },
+  {
+    key: 'consultationsBooked',
+    header: 'Consults',
+    align: 'right',
+    tooltip: 'Consultations booked this month.',
+  },
+  {
+    key: 'newClients',
+    header: 'New Clients',
+    align: 'right',
+    tooltip: 'Number of consultations that converted to new clients this month.',
+  },
+  {
+    key: 'conversionRate',
+    header: 'Conv %',
+    align: 'right',
+    tooltip: 'Percentage of consultations that converted to clients. Higher is better.',
   },
   {
     key: 'completedSessions',
@@ -188,6 +224,9 @@ function buildAggregateRows(groups: AggregateMetrics[]): TableRow[] {
     },
     values: {
       revenue: `$${(group.revenue / 1000).toFixed(0)}K`,
+      consultationsBooked: group.consultationsBooked.toString(),
+      newClients: group.newClients.toString(),
+      conversionRate: `${group.conversionRate}%`,
       completedSessions: group.completedSessions.toLocaleString(),
       avgWeeklySessions: group.avgWeeklySessions.toLocaleString(),
       sessionGoalPercent: `${group.sessionGoalPercent}%`,
@@ -209,6 +248,9 @@ function buildPointInTimeRows(groups: PointInTimeMetrics[]): TableRow[] {
     },
     values: {
       revenue: `$${(group.revenue / 1000).toFixed(0)}K`,
+      consultationsBooked: group.consultationsBooked.toString(),
+      newClients: group.newClients.toString(),
+      conversionRate: `${group.conversionRate}%`,
       completedSessions: group.completedSessions.toLocaleString(),
       activeClients: group.activeClients.toLocaleString(),
       caseloadCapacity: `${group.caseloadCapacity}%`,

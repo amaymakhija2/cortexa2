@@ -285,7 +285,7 @@ export const DataTableCard: React.FC<DataTableCardProps> = ({
             boxShadow: 'inset 0 0 0 1px rgba(0, 0, 0, 0.04)',
           }}
         >
-          <table className="w-full">
+          <table className="w-full min-w-max">
             <thead>
               <tr
                 style={{

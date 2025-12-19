@@ -10,7 +10,8 @@ import { MonthPicker } from './MonthPicker';
 import { CompareTab } from './CompareTab';
 import { PageHeader, SectionHeader } from './design-system';
 import { ReferralBadge, ReferralModal } from './referral';
-import { PracticeMetrics } from '../types';
+import { PracticeMetrics, ConsultationMetricDetail } from '../types';
+import { MOCK_CONSULTATIONS } from '../data/consultations';
 import { useMetrics, useDataDateRange, DashboardMetrics } from '../hooks';
 import { allPriorityCards } from '../data/priorityCardsData';
 import { useSettings, PracticeGoals as PracticeGoalsSettings } from '../context/SettingsContext';
@@ -24,6 +25,57 @@ const FULL_MONTHS = [
 // Default goals (used as fallback, main goals come from SettingsContext)
 const DEFAULT_GOALS = {
   notesOverdue: 0.10,   // <10% overdue notes target (not in practice goals config)
+  monthlyConsultations: 20, // Monthly consultation booking goal
+};
+
+// Calculate consultation metrics for a given month
+const getConsultationMetrics = (month: number, year: number, consultationGoal: number): ConsultationMetricDetail => {
+  const startOfMonth = new Date(year, month, 1);
+  const endOfMonth = new Date(year, month + 1, 0, 23, 59, 59);
+
+  const isInMonth = (dateStr: string | undefined) => {
+    if (!dateStr) return false;
+    const date = new Date(dateStr);
+    return date >= startOfMonth && date <= endOfMonth;
+  };
+
+  // Consultations booked this month (by createdAt date)
+  const booked = MOCK_CONSULTATIONS.filter(c => isInMonth(c.createdAt)).length;
+
+  // Converted this month (by convertedDate)
+  const converted = MOCK_CONSULTATIONS.filter(c =>
+    c.stage === 'converted' && isInMonth(c.convertedDate)
+  ).length;
+
+  // Lost this month (by lostDate)
+  const lost = MOCK_CONSULTATIONS.filter(c =>
+    c.stage === 'lost' && isInMonth(c.lostDate)
+  ).length;
+
+  // In progress (currently active in the pipeline, not yet converted/lost)
+  const inProgress = MOCK_CONSULTATIONS.filter(c =>
+    ['consult_complete', 'intake_pending', 'intake_scheduled', 'paperwork_pending', 'ready_for_session'].includes(c.stage)
+  ).length;
+
+  // Determine status based on booked vs goal
+  const getStatus = (): 'Healthy' | 'Needs attention' | 'Critical' => {
+    const percentOfGoal = booked / consultationGoal;
+    if (percentOfGoal >= 0.8) return 'Healthy';
+    if (percentOfGoal >= 0.5) return 'Needs attention';
+    return 'Critical';
+  };
+
+  return {
+    label: 'Consultations',
+    value: `${booked}`,
+    valueLabel: 'booked',
+    subtext: `Goal: ${consultationGoal} · ${converted} converted`,
+    status: getStatus(),
+    booked,
+    converted,
+    inProgress,
+    lost,
+  };
 };
 
 // Get progress through the month (0-1) for pro-rating goals
@@ -120,6 +172,9 @@ const buildPracticeMetrics = (calc: DashboardMetrics, month: number, year: numbe
 
   const notesSubtext = `${totalOverdueNotes} overdue · ${totalDueSoonNotes} due soon`;
 
+  // Get consultation metrics for this month
+  const consultationMetrics = getConsultationMetrics(month, year, DEFAULT_GOALS.monthlyConsultations);
+
   return {
     revenue: {
       label: "Revenue",
@@ -135,6 +190,7 @@ const buildPracticeMetrics = (calc: DashboardMetrics, month: number, year: numbe
       subtext: sessionsSubtext,
       status: getSessionsStatus()
     },
+    consultations: consultationMetrics,
     clientGrowth: {
       label: "Clients",
       value: `${calc.clients.active}`,

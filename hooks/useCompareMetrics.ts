@@ -7,7 +7,67 @@ import {
   CredentialType,
   Clinician,
 } from '../data/clinicians';
+import { MOCK_CONSULTATIONS } from '../data/consultations';
 import { useClinicianMetricsForPeriod, useClinicianMetricsForMonth, ClinicianMetricsCalculated } from './useClinicianMetrics';
+
+// =============================================================================
+// CONSULTATION METRICS HELPERS
+// =============================================================================
+
+// Get consultation metrics for a clinician in a given month
+function getClinicianConsultationMetrics(clinicianId: string, month: number, year: number) {
+  const startOfMonth = new Date(year, month, 1);
+  const endOfMonth = new Date(year, month + 1, 0, 23, 59, 59);
+
+  const isInMonth = (dateStr: string | undefined) => {
+    if (!dateStr) return false;
+    const date = new Date(dateStr);
+    return date >= startOfMonth && date <= endOfMonth;
+  };
+
+  // Filter consultations for this clinician
+  const clinicianConsults = MOCK_CONSULTATIONS.filter(c => c.clinicianId === clinicianId);
+
+  // Booked this month
+  const booked = clinicianConsults.filter(c => isInMonth(c.createdAt)).length;
+
+  // Converted this month
+  const converted = clinicianConsults.filter(c =>
+    c.stage === 'converted' && isInMonth(c.convertedDate)
+  ).length;
+
+  // Lost this month
+  const lost = clinicianConsults.filter(c =>
+    c.stage === 'lost' && isInMonth(c.lostDate)
+  ).length;
+
+  // Conversion rate (of closed consultations)
+  const closed = converted + lost;
+  const conversionRate = closed > 0 ? (converted / closed) * 100 : 0;
+
+  return { booked, converted, lost, conversionRate };
+}
+
+// Get consultation metrics for a clinician over last 12 months
+function getClinicianConsultationMetricsLast12Months(clinicianId: string) {
+  const now = new Date();
+  let totalBooked = 0;
+  let totalConverted = 0;
+  let totalLost = 0;
+
+  for (let i = 0; i < 12; i++) {
+    const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const metrics = getClinicianConsultationMetrics(clinicianId, date.getMonth(), date.getFullYear());
+    totalBooked += metrics.booked;
+    totalConverted += metrics.converted;
+    totalLost += metrics.lost;
+  }
+
+  const totalClosed = totalConverted + totalLost;
+  const conversionRate = totalClosed > 0 ? (totalConverted / totalClosed) * 100 : 0;
+
+  return { booked: totalBooked, converted: totalConverted, lost: totalLost, conversionRate };
+}
 
 // =============================================================================
 // TYPES
@@ -30,6 +90,10 @@ export interface AggregateMetrics {
   churnRate: number;
   cancelRate: number;
   outstandingNotes: number;
+  // Consultation metrics
+  consultationsBooked: number;
+  newClients: number;
+  conversionRate: number;
 }
 
 // Metrics for Live/Historical (point-in-time)
@@ -45,6 +109,10 @@ export interface PointInTimeMetrics {
   churnRate: number;
   cancelRate: number;
   outstandingNotes: number;
+  // Consultation metrics
+  consultationsBooked: number;
+  newClients: number;
+  conversionRate: number;
 }
 
 export interface CompareDataAggregate {
@@ -152,6 +220,25 @@ function aggregateMetricsForPeriod(
     const avgCancelRate = countWithMetrics > 0 ? totalCancelRate / countWithMetrics : 0;
     const avgChurnRate = countWithMetrics > 0 ? totalChurnRate / countWithMetrics : 0;
 
+    // Aggregate consultation metrics for all clinicians in the group
+    let totalConsultationsBooked = 0;
+    let totalNewClients = 0;
+    let totalConvertedConsults = 0;
+    let totalLostConsults = 0;
+
+    for (const clinician of groupClinicians) {
+      const consultMetrics = getClinicianConsultationMetricsLast12Months(clinician.id);
+      totalConsultationsBooked += consultMetrics.booked;
+      totalNewClients += consultMetrics.converted; // New clients = converted consultations
+      totalConvertedConsults += consultMetrics.converted;
+      totalLostConsults += consultMetrics.lost;
+    }
+
+    const totalClosedConsults = totalConvertedConsults + totalLostConsults;
+    const groupConversionRate = totalClosedConsults > 0
+      ? (totalConvertedConsults / totalClosedConsults) * 100
+      : 0;
+
     result.push({
       id: groupId,
       label: getGroupLabel(groupId, dimension),
@@ -165,6 +252,9 @@ function aggregateMetricsForPeriod(
       churnRate: Math.round(avgChurnRate * 10) / 10,
       cancelRate: Math.round(avgCancelRate),
       outstandingNotes: totalOutstandingNotes,
+      consultationsBooked: totalConsultationsBooked,
+      newClients: totalNewClients,
+      conversionRate: Math.round(groupConversionRate),
     });
   }
 
@@ -175,7 +265,9 @@ function aggregateMetricsForPeriod(
 function aggregateMetricsForMonth(
   clinicians: Clinician[],
   calculatedMetrics: ClinicianMetricsCalculated[],
-  dimension: CompareDimension
+  dimension: CompareDimension,
+  month: number,
+  year: number
 ): PointInTimeMetrics[] {
   const groups = new Map<string, Clinician[]>();
 
@@ -222,6 +314,25 @@ function aggregateMetricsForMonth(
     const avgCancelRate = countWithMetrics > 0 ? totalCancelRate / countWithMetrics : 0;
     const avgChurnRate = countWithMetrics > 0 ? totalChurnRate / countWithMetrics : 0;
 
+    // Aggregate consultation metrics for all clinicians in the group for this month
+    let totalConsultationsBooked = 0;
+    let totalNewClients = 0;
+    let totalConvertedConsults = 0;
+    let totalLostConsults = 0;
+
+    for (const clinician of groupClinicians) {
+      const consultMetrics = getClinicianConsultationMetrics(clinician.id, month, year);
+      totalConsultationsBooked += consultMetrics.booked;
+      totalNewClients += consultMetrics.converted;
+      totalConvertedConsults += consultMetrics.converted;
+      totalLostConsults += consultMetrics.lost;
+    }
+
+    const totalClosedConsults = totalConvertedConsults + totalLostConsults;
+    const groupConversionRate = totalClosedConsults > 0
+      ? (totalConvertedConsults / totalClosedConsults) * 100
+      : 0;
+
     result.push({
       id: groupId,
       label: getGroupLabel(groupId, dimension),
@@ -234,6 +345,9 @@ function aggregateMetricsForMonth(
       churnRate: Math.round(avgChurnRate * 10) / 10,
       cancelRate: Math.round(avgCancelRate),
       outstandingNotes: totalOutstandingNotes,
+      consultationsBooked: totalConsultationsBooked,
+      newClients: totalNewClients,
+      conversionRate: Math.round(groupConversionRate),
     });
   }
 
@@ -273,8 +387,8 @@ export function useCompareMetricsPointInTime(
 
   const groups = useMemo(() => {
     if (!clinicianMetrics || clinicianMetrics.length === 0) return [];
-    return aggregateMetricsForMonth(CLINICIANS, clinicianMetrics, dimension);
-  }, [clinicianMetrics, dimension]);
+    return aggregateMetricsForMonth(CLINICIANS, clinicianMetrics, dimension, month, year);
+  }, [clinicianMetrics, dimension, month, year]);
 
   return {
     viewMode: isLive ? 'live' : 'historical',
