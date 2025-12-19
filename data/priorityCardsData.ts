@@ -57,6 +57,21 @@ export const burnoutSignal: PriorityCard = {
   category: "urgent",
 };
 
+export const lowConsultConversion: PriorityCard = {
+  id: "low-consult-conversion",
+  title: "Consultation Conversion Problem",
+  aiGuidance: "James K has had 8 consultations in the last 60 days but only converted 2 — that's a 25% conversion rate. Your practice average is 65%. Worth reviewing his consultation approach.",
+  action: "Review Consultations",
+  status: "critical",
+  stats: [
+    { value: 8, label: "consults", color: "white" },
+    { value: 2, label: "converted", color: "red" },
+    { value: "25%", label: "rate", color: "red" },
+  ],
+  comparisonText: "Practice average: 65%",
+  category: "urgent",
+};
+
 export const outstandingBalances: PriorityCard = {
   id: "outstanding-balances",
   title: "Outstanding Balances",
@@ -531,14 +546,15 @@ export const weeklySnapshot: PriorityCard = {
 export const allPriorityCards: PriorityCard[] = [
   // === THE DEMO 5 (first 5 cards they see) ===
   earlyEngagementWarning,   // 1. HOOK - "Priya P lost 60% of new clients" - shocking specificity
-  burnoutSignal,            // 2. DIFFERENTIATION - "Maria R showing burnout" - no EHR does this
-  outstandingBalances,      // 3. MONEY - "$2,450 outstanding" - direct ROI
-  churnPattern,             // 4. INTELLIGENCE - "68% churn in first 5 sessions" - strategic insight
+  lowConsultConversion,     // 2. MONEY WALKING OUT THE DOOR - "James K converting only 25%" - $12k lost
+  burnoutSignal,            // 3. DIFFERENTIATION - "Maria R showing burnout" - no EHR does this
+  outstandingBalances,      // 4. MONEY - "$2,450 outstanding" - direct ROI
   caseloadImbalance,        // 5. VALIDATION - "Sarah C 95%, Michael J 38%" - proves what they feel
 
   // === ACT 2: "My Practice is Leaking" ===
-  rebookNeeded,             // 6. Actionable today
-  revenueBehindPace,        // 7. Stakes
+  churnPattern,             // 6. INTELLIGENCE - "68% churn in first 5 sessions" - strategic insight
+  rebookNeeded,             // 7. Actionable today
+  revenueBehindPace,        // 8. Stakes
   cancellationSpike,        // 8. Pattern detection
   firstSessionDropoff,      // 9. Industry benchmark
   notesDueSoon,             // 10. Compliance risk

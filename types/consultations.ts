@@ -80,6 +80,11 @@ export interface Consultation {
   datetime: string;          // ISO 8601 format
   duration: number;          // minutes
 
+  // Meeting details
+  meetingType?: 'google_meet' | 'zoom' | 'phone';  // Type of consultation meeting
+  meetingLink?: string;      // Video call link (for Google Meet/Zoom)
+  meetingPhone?: string;     // Phone number to call (for phone consultations)
+
   // Clinician
   clinicianId: string;
   clinicianName: string;

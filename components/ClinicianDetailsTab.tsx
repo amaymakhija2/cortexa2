@@ -14,6 +14,7 @@ import {
   AnimatedGrid,
   DonutChartCard,
   DivergingBarChart,
+  GroupedBarChart,
   ToggleButton,
   ClientRosterCard,
   DataTableCard,
@@ -448,6 +449,96 @@ const CLINICIAN_CASELOAD_DATA: Record<number, {
       monthly: 3,
       inconsistent: 2,
     },
+  },
+};
+
+// Mock acquisition data for each clinician (12 months of consults booked and clients converted)
+const CLINICIAN_ACQUISITION_DATA: Record<number, {
+  monthlyAcquisition: {
+    month: string;
+    consultsBooked: number;
+    clientsConverted: number;
+  }[];
+}> = {
+  1: { // Sarah Chen - Excellent converter (75%+ rate)
+    monthlyAcquisition: [
+      { month: 'Jan', consultsBooked: 5, clientsConverted: 4 },
+      { month: 'Feb', consultsBooked: 4, clientsConverted: 3 },
+      { month: 'Mar', consultsBooked: 3, clientsConverted: 2 },
+      { month: 'Apr', consultsBooked: 4, clientsConverted: 3 },
+      { month: 'May', consultsBooked: 5, clientsConverted: 4 },
+      { month: 'Jun', consultsBooked: 3, clientsConverted: 3 },
+      { month: 'Jul', consultsBooked: 4, clientsConverted: 3 },
+      { month: 'Aug', consultsBooked: 6, clientsConverted: 5 },
+      { month: 'Sep', consultsBooked: 5, clientsConverted: 4 },
+      { month: 'Oct', consultsBooked: 4, clientsConverted: 3 },
+      { month: 'Nov', consultsBooked: 5, clientsConverted: 4 },
+      { month: 'Dec', consultsBooked: 4, clientsConverted: 3 },
+    ],
+  },
+  2: { // Maria Rodriguez - Good converter (65-70% rate)
+    monthlyAcquisition: [
+      { month: 'Jan', consultsBooked: 4, clientsConverted: 2 },
+      { month: 'Feb', consultsBooked: 5, clientsConverted: 3 },
+      { month: 'Mar', consultsBooked: 3, clientsConverted: 2 },
+      { month: 'Apr', consultsBooked: 4, clientsConverted: 3 },
+      { month: 'May', consultsBooked: 3, clientsConverted: 2 },
+      { month: 'Jun', consultsBooked: 4, clientsConverted: 3 },
+      { month: 'Jul', consultsBooked: 5, clientsConverted: 3 },
+      { month: 'Aug', consultsBooked: 4, clientsConverted: 3 },
+      { month: 'Sep', consultsBooked: 3, clientsConverted: 2 },
+      { month: 'Oct', consultsBooked: 4, clientsConverted: 3 },
+      { month: 'Nov', consultsBooked: 5, clientsConverted: 3 },
+      { month: 'Dec', consultsBooked: 3, clientsConverted: 2 },
+    ],
+  },
+  3: { // Priya Patel - Struggling converter (35-40% rate)
+    monthlyAcquisition: [
+      { month: 'Jan', consultsBooked: 4, clientsConverted: 2 },
+      { month: 'Feb', consultsBooked: 3, clientsConverted: 1 },
+      { month: 'Mar', consultsBooked: 4, clientsConverted: 1 },
+      { month: 'Apr', consultsBooked: 5, clientsConverted: 2 },
+      { month: 'May', consultsBooked: 3, clientsConverted: 1 },
+      { month: 'Jun', consultsBooked: 4, clientsConverted: 2 },
+      { month: 'Jul', consultsBooked: 3, clientsConverted: 1 },
+      { month: 'Aug', consultsBooked: 4, clientsConverted: 1 },
+      { month: 'Sep', consultsBooked: 5, clientsConverted: 2 },
+      { month: 'Oct', consultsBooked: 3, clientsConverted: 1 },
+      { month: 'Nov', consultsBooked: 4, clientsConverted: 2 },
+      { month: 'Dec', consultsBooked: 3, clientsConverted: 1 },
+    ],
+  },
+  4: { // James Kim - Growing and improving (60-70% rate, increasing volume)
+    monthlyAcquisition: [
+      { month: 'Jan', consultsBooked: 5, clientsConverted: 4 },
+      { month: 'Feb', consultsBooked: 6, clientsConverted: 4 },
+      { month: 'Mar', consultsBooked: 5, clientsConverted: 4 },
+      { month: 'Apr', consultsBooked: 6, clientsConverted: 4 },
+      { month: 'May', consultsBooked: 7, clientsConverted: 5 },
+      { month: 'Jun', consultsBooked: 6, clientsConverted: 4 },
+      { month: 'Jul', consultsBooked: 7, clientsConverted: 5 },
+      { month: 'Aug', consultsBooked: 6, clientsConverted: 4 },
+      { month: 'Sep', consultsBooked: 8, clientsConverted: 5 },
+      { month: 'Oct', consultsBooked: 7, clientsConverted: 5 },
+      { month: 'Nov', consultsBooked: 8, clientsConverted: 5 },
+      { month: 'Dec', consultsBooked: 6, clientsConverted: 4 },
+    ],
+  },
+  5: { // Michael Johnson - Poor converter (25-35% rate)
+    monthlyAcquisition: [
+      { month: 'Jan', consultsBooked: 3, clientsConverted: 2 },
+      { month: 'Feb', consultsBooked: 4, clientsConverted: 1 },
+      { month: 'Mar', consultsBooked: 3, clientsConverted: 1 },
+      { month: 'Apr', consultsBooked: 4, clientsConverted: 1 },
+      { month: 'May', consultsBooked: 3, clientsConverted: 1 },
+      { month: 'Jun', consultsBooked: 5, clientsConverted: 1 },
+      { month: 'Jul', consultsBooked: 4, clientsConverted: 1 },
+      { month: 'Aug', consultsBooked: 3, clientsConverted: 1 },
+      { month: 'Sep', consultsBooked: 4, clientsConverted: 1 },
+      { month: 'Oct', consultsBooked: 5, clientsConverted: 2 },
+      { month: 'Nov', consultsBooked: 3, clientsConverted: 1 },
+      { month: 'Dec', consultsBooked: 4, clientsConverted: 1 },
+    ],
   },
 };
 
@@ -1331,6 +1422,114 @@ export const ClinicianDetailsTab: React.FC = () => {
       negative: item.churned,
     }));
   }, [caseloadData]);
+
+  // Get acquisition data for selected clinician
+  const acquisitionData = selectedClinician ? CLINICIAN_ACQUISITION_DATA[selectedClinician.id] : null;
+
+  // Acquisition chart data for GroupedBarChart
+  const acquisitionChartData = useMemo(() => {
+    if (!acquisitionData) return [];
+    return acquisitionData.monthlyAcquisition.map(item => ({
+      label: item.month,
+      value1: item.consultsBooked,
+      value2: item.clientsConverted,
+    }));
+  }, [acquisitionData]);
+
+  // Acquisition metrics
+  const totalConsultsBooked = useMemo(() => {
+    if (!acquisitionData) return 0;
+    return acquisitionData.monthlyAcquisition.reduce((sum, item) => sum + item.consultsBooked, 0);
+  }, [acquisitionData]);
+
+  const totalClientsConverted = useMemo(() => {
+    if (!acquisitionData) return 0;
+    return acquisitionData.monthlyAcquisition.reduce((sum, item) => sum + item.clientsConverted, 0);
+  }, [acquisitionData]);
+
+  const overallConversionRate = useMemo(() => {
+    if (!totalConsultsBooked) return 0;
+    return Math.round((totalClientsConverted / totalConsultsBooked) * 100);
+  }, [totalConsultsBooked, totalClientsConverted]);
+
+  // Conversion rate line chart data - clinician vs practice avg
+  const conversionRateLineData = useMemo(() => {
+    if (!acquisitionData) return [];
+    // Practice average is ~60%
+    const practiceAvg = 60;
+
+    return acquisitionData.monthlyAcquisition.map(item => {
+      const clinicianRate = item.consultsBooked > 0
+        ? Math.round((item.clientsConverted / item.consultsBooked) * 100)
+        : 0;
+      return {
+        month: item.month,
+        clinician: clinicianRate,
+        practice: practiceAvg,
+      };
+    });
+  }, [acquisitionData]);
+
+  // Toggle state for lost consults view (stage vs affordability)
+  const [showLostByAffordability, setShowLostByAffordability] = useState(false);
+
+  // Lost consults data - where in the pipeline are consults lost
+  const lostConsultsData = useMemo(() => {
+    if (!acquisitionData) return { byStage: [], byAffordability: [], totalLost: 0 };
+
+    // Calculate total lost (consults - converted)
+    const totalLost = totalConsultsBooked - totalClientsConverted;
+
+    // Distribution by stage (mock data based on clinician performance)
+    // Better converters lose fewer at each stage
+    const conversionRate = overallConversionRate;
+    const isHighPerformer = conversionRate >= 70;
+    const isMidPerformer = conversionRate >= 50;
+
+    const byStage = [
+      {
+        label: 'Pre-Consult',
+        value: Math.round(totalLost * (isHighPerformer ? 0.15 : isMidPerformer ? 0.20 : 0.25)),
+        color: '#f43f5e' // rose
+      },
+      {
+        label: 'Pre-Intake',
+        value: Math.round(totalLost * (isHighPerformer ? 0.25 : isMidPerformer ? 0.30 : 0.35)),
+        color: '#f59e0b' // amber
+      },
+      {
+        label: 'Pre-Paperwork',
+        value: Math.round(totalLost * (isHighPerformer ? 0.35 : isMidPerformer ? 0.30 : 0.25)),
+        color: '#8b5cf6' // violet
+      },
+      {
+        label: 'No-Show Session',
+        value: Math.round(totalLost * (isHighPerformer ? 0.25 : isMidPerformer ? 0.20 : 0.15)),
+        color: '#64748b' // slate
+      },
+    ];
+
+    // Distribution by affordability
+    const byAffordability = [
+      {
+        label: 'Can Afford',
+        value: Math.round(totalLost * (isHighPerformer ? 0.20 : isMidPerformer ? 0.25 : 0.30)),
+        color: '#10b981' // emerald
+      },
+      {
+        label: 'Maybe Can Pay',
+        value: Math.round(totalLost * (isHighPerformer ? 0.45 : isMidPerformer ? 0.40 : 0.35)),
+        color: '#f59e0b' // amber
+      },
+      {
+        label: "Can't Afford",
+        value: Math.round(totalLost * (isHighPerformer ? 0.35 : isMidPerformer ? 0.35 : 0.35)),
+        color: '#ef4444' // red
+      },
+    ];
+
+    return { byStage, byAffordability, totalLost };
+  }, [acquisitionData, totalConsultsBooked, totalClientsConverted, overallConversionRate]);
 
   // Get clients for this clinician (typed to match ClientRosterCard)
   const clinicianClients: ClientData[] = selectedClinician ? CLINICIAN_CLIENTS[selectedClinician.id] || [] : [];
@@ -2717,7 +2916,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                     colorEnd: '#f43f5e',
                   }}
                   height="280px"
-                  yDomain={[-(Math.max(...churnedClientsData.map(d => d.negative)) + 3), 2]}
+                  yDomain={[-(Math.max(...churnedClientsData.map(d => d.negative)) + 3), 1]}
                   formatNegativeLabel={(value) => Math.abs(value).toString()}
                 />
               </ChartCard>
@@ -2782,7 +2981,7 @@ export const ClinicianDetailsTab: React.FC = () => {
           {/* ---------------------------------------------------------
               SECTION 5: Client Acquisition
               --------------------------------------------------------- */}
-          {isSpotlightMode && selectedClinician && (
+          {isSpotlightMode && selectedClinician && acquisitionData && (
           <SectionContainer accent="cyan" index={4}>
             <SectionHeader
               number={5}
@@ -2792,41 +2991,69 @@ export const ClinicianDetailsTab: React.FC = () => {
               showAccentLine={false}
               compact
             />
-            <Grid cols={2}>
-              {/* Consults Booked vs Converted */}
-              <StatCard
-                title="Consults This Month"
-                value="6"
-                subtitle="consultations booked"
-                trend={{ value: 20, direction: 'up', label: 'vs last month' }}
-                accent="cyan"
+            {/* Full-width chart showing consults vs converted */}
+            <ChartCard
+              title="Consultation Pipeline"
+              subtitle={`${totalConsultsBooked} consults booked · ${totalClientsConverted} clients converted · ${overallConversionRate}% conversion rate`}
+              minHeight="380px"
+            >
+              <GroupedBarChart
+                data={acquisitionChartData}
+                bar1Config={{
+                  label: 'Consults Booked',
+                  color: '#22d3ee',
+                  colorEnd: '#06b6d4',
+                }}
+                bar2Config={{
+                  label: 'Clients Converted',
+                  color: '#34d399',
+                  colorEnd: '#10b981',
+                }}
+                height="300px"
               />
+            </ChartCard>
 
-              {/* Conversion Rate */}
-              <StatCard
+            {/* Row 2: Conversion Rate Line Chart */}
+            <Grid cols={2} className="mt-5 xl:mt-6 2xl:mt-8">
+              <ChartCard
                 title="Conversion Rate"
-                value="67%"
-                subtitle="consults → new clients"
-                trend={{ value: 5, direction: 'up', label: 'vs practice avg' }}
-                accent="emerald"
-              />
+                subtitle="% of consultations that convert to clients"
+                legend={[
+                  { label: selectedClinician.name.split(' ')[0], color: 'bg-cyan-500', type: 'box' },
+                  { label: 'Practice Avg', color: 'bg-stone-400', type: 'box' },
+                ]}
+                minHeight="420px"
+              >
+                <LineChart
+                  data={conversionRateLineData}
+                  xAxisKey="month"
+                  lines={[
+                    { dataKey: 'clinician', color: '#06b6d4', name: selectedClinician.name.split(' ')[0] },
+                    { dataKey: 'practice', color: '#a8a29e', name: 'Practice Avg' },
+                  ]}
+                  yDomain={[0, 100]}
+                  yTickFormatter={(v) => `${v}%`}
+                  tooltipFormatter={(value, name) => [`${value}%`, name]}
+                  height={280}
+                />
+              </ChartCard>
 
-              {/* New Clients */}
-              <StatCard
-                title="New Clients"
-                value="4"
-                subtitle="converted this month"
-                trend={{ value: 1, direction: 'up', label: 'vs last month' }}
-                accent="amber"
-              />
-
-              {/* New Client % of Caseload */}
-              <StatCard
-                title="New Client %"
-                value="18%"
-                subtitle="of active caseload"
-                trend={{ value: 3, direction: 'up', label: 'vs practice avg' }}
-                accent="indigo"
+              {/* Lost Consults Donut Chart */}
+              <DonutChartCard
+                title="Where Consults Are Lost"
+                subtitle={showLostByAffordability ? 'By affordability status' : 'By pipeline stage'}
+                headerControls={
+                  <ToggleButton
+                    label="By Affordability"
+                    active={showLostByAffordability}
+                    onToggle={() => setShowLostByAffordability(!showLostByAffordability)}
+                  />
+                }
+                segments={showLostByAffordability ? lostConsultsData.byAffordability : lostConsultsData.byStage}
+                centerLabel="Total Lost"
+                centerValue={lostConsultsData.totalLost.toString()}
+                centerValueColor="text-rose-600"
+                minHeight="420px"
               />
             </Grid>
           </SectionContainer>
@@ -3219,7 +3446,7 @@ export const ClinicianDetailsTab: React.FC = () => {
               colorEnd: '#f43f5e',
             }}
             height="400px"
-            yDomain={[-(Math.max(...churnedClientsData.map(d => d.negative)) + 3), 2]}
+            yDomain={[-(Math.max(...churnedClientsData.map(d => d.negative)) + 3), 1]}
             formatNegativeLabel={(value) => Math.abs(value).toString()}
           />
         </ExpandedChartModal>

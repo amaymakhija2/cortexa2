@@ -43,6 +43,8 @@ export interface DonutChartCardProps {
   size?: string;
   /** Minimum height for the card (for grid alignment) */
   minHeight?: string;
+  /** Custom controls in header (ToggleButton, GoalIndicator, ActionButton, etc.) */
+  headerControls?: React.ReactNode;
   /** Show expand button */
   expandable?: boolean;
   /** Expand callback */
@@ -105,6 +107,7 @@ export const DonutChartCard: React.FC<DonutChartCardProps> = ({
   currencySymbol = '$',
   size: _size, // Deprecated - ignored, layout is auto-detected
   minHeight,
+  headerControls,
   expandable = false,
   onExpand,
   onSegmentHover,
@@ -393,6 +396,12 @@ export const DonutChartCard: React.FC<DonutChartCardProps> = ({
           )}
         </div>
 
+        {/* Custom Header Controls (ToggleButton, etc.) */}
+        {headerControls && (
+          <div className="flex items-center gap-4 flex-wrap">
+            {headerControls}
+          </div>
+        )}
       </div>
 
       {/* Expand button - Absolute positioned in top right */}

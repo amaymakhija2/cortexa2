@@ -19,6 +19,8 @@ import {
   RefreshCw,
   Search,
   Filter,
+  Video,
+  ExternalLink,
 } from 'lucide-react';
 import { PageHeader } from './design-system';
 import {
@@ -513,6 +515,12 @@ const ConsultationRow: React.FC<ConsultationRowProps> = ({
   const isPast = isConsultationPast(consultation.datetime);
   const isToday = isConsultationToday(consultation.datetime);
 
+  // Meeting type helpers
+  const hasVideoLink = consultation.meetingType === 'google_meet' || consultation.meetingType === 'zoom';
+  const isPhoneCall = consultation.meetingType === 'phone';
+  // Show join for today's consultations (even if time passed - people join late) and future ones
+  const showJoinButton = consultation.stage === 'confirmed' && (isToday || !isPast);
+
   // Determine what to show in the "when" column
   const getWhenDisplay = () => {
     if (consultation.stage === 'confirmed') {
@@ -587,20 +595,41 @@ const ConsultationRow: React.FC<ConsultationRowProps> = ({
             </div>
           </div>
           {/* Action row */}
-          <div className="mt-3 flex items-center justify-between">
+          <div className="mt-3 flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 text-stone-500 text-sm">
               <Clock size={14} />
               <span>{whenDisplay.primary}</span>
             </div>
-            {nextAction && consultation.stage !== 'converted' && consultation.stage !== 'lost' && (
-              <button
-                onClick={(e) => { e.stopPropagation(); onQuickAction(nextAction); }}
-                className="px-3 py-1.5 rounded-lg text-sm font-semibold bg-stone-100 text-stone-600 hover:bg-stone-200 transition-colors flex items-center gap-1.5"
-              >
-                <Check size={14} />
-                Done
-              </button>
-            )}
+            <div className="flex items-center gap-2">
+              {/* Join button for confirmed consultations */}
+              {showJoinButton && hasVideoLink && consultation.meetingLink && (
+                <a
+                  href={consultation.meetingLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="px-3 py-1.5 rounded-lg text-sm font-semibold bg-emerald-500 text-white hover:bg-emerald-600 transition-colors flex items-center gap-1.5"
+                >
+                  <Video size={14} />
+                  Join
+                </a>
+              )}
+              {showJoinButton && isPhoneCall && consultation.meetingPhone && (
+                <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-stone-100 text-stone-600 text-sm">
+                  <Phone size={14} />
+                  <span className="font-medium">{consultation.meetingPhone}</span>
+                </div>
+              )}
+              {nextAction && consultation.stage !== 'converted' && consultation.stage !== 'lost' && !showJoinButton && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); onQuickAction(nextAction); }}
+                  className="px-3 py-1.5 rounded-lg text-sm font-semibold bg-stone-100 text-stone-600 hover:bg-stone-200 transition-colors flex items-center gap-1.5"
+                >
+                  <Check size={14} />
+                  Done
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -652,24 +681,41 @@ const ConsultationRow: React.FC<ConsultationRowProps> = ({
           </div>
 
           {/* Action button */}
-          <div className="text-right">
-            {nextAction && consultation.stage !== 'converted' && consultation.stage !== 'lost' ? (
+          <div className="flex justify-end">
+            {/* Join button for confirmed upcoming consultations */}
+            {showJoinButton && hasVideoLink && consultation.meetingLink ? (
+              <a
+                href={consultation.meetingLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-base font-semibold bg-emerald-500 text-white hover:bg-emerald-600 transition-all"
+              >
+                <Video size={18} />
+                Join
+              </a>
+            ) : showJoinButton && isPhoneCall && consultation.meetingPhone ? (
+              <div className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-stone-100 text-stone-700 whitespace-nowrap">
+                <Phone size={18} className="text-stone-500 flex-shrink-0" />
+                <span className="font-semibold">{consultation.meetingPhone}</span>
+              </div>
+            ) : nextAction && consultation.stage !== 'converted' && consultation.stage !== 'lost' ? (
               <button
                 onClick={(e) => { e.stopPropagation(); onQuickAction(nextAction); }}
-                className="px-5 py-2.5 rounded-xl text-base font-semibold bg-stone-100 text-stone-600 hover:bg-stone-200 border border-stone-200 transition-all flex items-center gap-2 ml-auto"
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-base font-semibold bg-stone-100 text-stone-600 hover:bg-stone-200 border border-stone-200 transition-all"
               >
                 <Check size={18} />
                 Done
               </button>
             ) : consultation.stage === 'converted' ? (
-              <span className="px-4 py-2 rounded-xl bg-emerald-100 text-emerald-700 font-semibold text-sm inline-flex items-center gap-2">
+              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-100 text-emerald-700 font-semibold text-sm">
                 <Check size={16} />
                 Converted
               </span>
             ) : consultation.stage === 'lost' ? (
               <span className="text-stone-400 text-sm">Lost</span>
             ) : (
-              <ChevronRight size={20} className="text-stone-300 ml-auto" />
+              <ChevronRight size={20} className="text-stone-300" />
             )}
           </div>
         </div>
@@ -1090,25 +1136,53 @@ export const Consultations: React.FC = () => {
                       minute: '2-digit',
                       hour12: true,
                     });
+                    const hasVideoLink = consultation.meetingType === 'google_meet' || consultation.meetingType === 'zoom';
+                    const isPhoneCall = consultation.meetingType === 'phone';
                     return (
-                      <button
+                      <div
                         key={consultation.id}
-                        onClick={() => setSelectedConsultation(consultation)}
-                        className="w-full p-4 rounded-xl bg-white border border-stone-200 hover:border-cyan-300 hover:shadow-md transition-all text-left flex items-center gap-4"
+                        className="w-full p-4 rounded-xl bg-white border border-stone-200 hover:border-cyan-300 hover:shadow-md transition-all flex items-center gap-4"
                       >
-                        <div className="flex-shrink-0 w-20 text-center">
+                        <button
+                          onClick={() => setSelectedConsultation(consultation)}
+                          className="flex-shrink-0 w-20 text-center"
+                        >
                           <p className="text-lg font-bold text-stone-900" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
                             {time}
                           </p>
-                        </div>
-                        <div className="flex-1 min-w-0">
+                        </button>
+                        <button
+                          onClick={() => setSelectedConsultation(consultation)}
+                          className="flex-1 min-w-0 text-left"
+                        >
                           <p className="text-stone-900 font-bold truncate" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
                             {consultation.firstName} {consultation.lastName}
                           </p>
                           <p className="text-stone-500 text-sm truncate">{consultation.clinicianName}</p>
-                        </div>
-                        <ChevronRight size={18} className="text-stone-300 flex-shrink-0" />
-                      </button>
+                        </button>
+                        {/* Join button or phone number */}
+                        {hasVideoLink && consultation.meetingLink && (
+                          <a
+                            href={consultation.meetingLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="flex-shrink-0 px-4 py-2 rounded-xl bg-emerald-500 text-white font-semibold text-sm hover:bg-emerald-600 transition-colors flex items-center gap-2"
+                          >
+                            <Video size={16} />
+                            Join
+                          </a>
+                        )}
+                        {isPhoneCall && consultation.meetingPhone && (
+                          <div className="flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl bg-stone-100 text-stone-700">
+                            <Phone size={16} className="text-stone-500" />
+                            <span className="font-medium text-sm">{consultation.meetingPhone}</span>
+                          </div>
+                        )}
+                        {!hasVideoLink && !isPhoneCall && (
+                          <ChevronRight size={18} className="text-stone-300 flex-shrink-0" />
+                        )}
+                      </div>
                     );
                   })}
                   {todaysConsultations.length > 5 && (

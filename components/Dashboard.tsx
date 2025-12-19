@@ -328,26 +328,18 @@ export const Dashboard: React.FC = () => {
     }
   };
 
-  const priorityCards = [
-    <MonthlyReviewCard
-      key="monthly-review"
-      month={10} // November (0-indexed)
-      year={2025}
-      index={0}
-    />,
-    ...allPriorityCards.map((card, idx) => (
-      <SimpleAlertCard
-        key={card.id}
-        index={idx + 1}
-        title={card.title}
-        aiGuidance={card.aiGuidance}
-        action={card.action}
-        status={card.status}
-        stats={card.stats}
-        comparisonText={card.comparisonText}
-      />
-    ))
-  ];
+  const priorityCards = allPriorityCards.map((card, idx) => (
+    <SimpleAlertCard
+      key={card.id}
+      index={idx}
+      title={card.title}
+      aiGuidance={card.aiGuidance}
+      action={card.action}
+      status={card.status}
+      stats={card.stats}
+      comparisonText={card.comparisonText}
+    />
+  ));
 
   // If compare tab is selected, render the compare component
   if (activeTab === 'compare') {

@@ -24,6 +24,20 @@ import {
   Link2,
   Wifi,
   WifiOff,
+  ArrowRight,
+  ArrowDown,
+  Mail,
+  Phone,
+  UserX,
+  UserCheck,
+  ClipboardCheck,
+  Sparkles,
+  XCircle,
+  MessageSquare,
+  Send,
+  CalendarCheck,
+  FileCheck,
+  PartyPopper,
 } from 'lucide-react';
 import { PageHeader, PageContent, Grid, AnimatedSection } from './design-system';
 import { CLINICIANS as MASTER_CLINICIANS } from '../data/clinicians';
@@ -97,7 +111,7 @@ interface EHRConnection {
 }
 
 // Tab types matching URL params
-type ConfigTab = 'locations' | 'members' | 'team' | 'clinician-goals' | 'goals' | 'thresholds' | 'ehr';
+type ConfigTab = 'locations' | 'members' | 'team' | 'clinician-goals' | 'goals' | 'thresholds' | 'consultation-flow' | 'ehr';
 
 const CONFIG_TABS: { id: ConfigTab; label: string }[] = [
   { id: 'locations', label: 'Locations' },
@@ -106,6 +120,7 @@ const CONFIG_TABS: { id: ConfigTab; label: string }[] = [
   { id: 'clinician-goals', label: 'Clinician Goals' },
   { id: 'goals', label: 'Practice Goals' },
   { id: 'thresholds', label: 'Thresholds' },
+  { id: 'consultation-flow', label: 'Consultation Flow' },
   { id: 'ehr', label: 'EHR Connection' },
 ];
 
@@ -1709,6 +1724,579 @@ const ThresholdsTab: React.FC<{
   );
 };
 
+// =============================================================================
+// CONSULTATION FLOW TAB
+// =============================================================================
+// Visual flowchart showing the complete consultation-to-conversion pipeline.
+// Displays all possible paths including happy path, no-show recovery, and loss points.
+// =============================================================================
+
+// Flow node configuration
+interface FlowNode {
+  id: string;
+  label: string;
+  sublabel?: string;
+  icon: React.ReactNode;
+  color: string;
+  bgColor: string;
+  borderColor: string;
+  action?: string;
+  type: 'stage' | 'action' | 'terminal';
+}
+
+interface FlowConnection {
+  from: string;
+  to: string;
+  label?: string;
+  type: 'primary' | 'secondary' | 'danger';
+  condition?: string;
+}
+
+const ConsultationFlowTab: React.FC = () => {
+  // Define all flow nodes
+  const nodes: Record<string, FlowNode> = {
+    // Entry point
+    booking: {
+      id: 'booking',
+      label: 'Client Books',
+      sublabel: 'via Acuity',
+      icon: <Calendar size={24} />,
+      color: 'text-sky-700',
+      bgColor: 'bg-sky-50',
+      borderColor: 'border-sky-200',
+      type: 'stage',
+    },
+    // Stage: New
+    new: {
+      id: 'new',
+      label: 'New',
+      sublabel: 'Awaiting confirmation',
+      icon: <Sparkles size={24} />,
+      color: 'text-cyan-700',
+      bgColor: 'bg-cyan-50',
+      borderColor: 'border-cyan-300',
+      action: 'Send confirmation email',
+      type: 'stage',
+    },
+    // Stage: Confirmed
+    confirmed: {
+      id: 'confirmed',
+      label: 'Confirmed',
+      sublabel: 'Consultation scheduled',
+      icon: <CalendarCheck size={24} />,
+      color: 'text-indigo-700',
+      bgColor: 'bg-indigo-50',
+      borderColor: 'border-indigo-300',
+      action: 'Wait for consultation',
+      type: 'stage',
+    },
+    // Decision: Did they attend?
+    attended_check: {
+      id: 'attended_check',
+      label: 'Did they attend?',
+      icon: <UserCheck size={24} />,
+      color: 'text-stone-600',
+      bgColor: 'bg-stone-100',
+      borderColor: 'border-stone-300',
+      type: 'action',
+    },
+    // Stage: Consult Complete
+    consult_complete: {
+      id: 'consult_complete',
+      label: 'Consult Complete',
+      sublabel: 'Attended successfully',
+      icon: <MessageSquare size={24} />,
+      color: 'text-emerald-700',
+      bgColor: 'bg-emerald-50',
+      borderColor: 'border-emerald-300',
+      action: 'Send post-consult message',
+      type: 'stage',
+    },
+    // Stage: No-Show
+    no_show: {
+      id: 'no_show',
+      label: 'No-Show',
+      sublabel: 'Missed consultation',
+      icon: <UserX size={24} />,
+      color: 'text-rose-700',
+      bgColor: 'bg-rose-50',
+      borderColor: 'border-rose-300',
+      action: 'Begin follow-up sequence',
+      type: 'stage',
+    },
+    // Follow-up sequence
+    followup_1: {
+      id: 'followup_1',
+      label: 'Follow-up #1',
+      sublabel: 'Immediate',
+      icon: <Send size={24} />,
+      color: 'text-orange-700',
+      bgColor: 'bg-orange-50',
+      borderColor: 'border-orange-300',
+      type: 'action',
+    },
+    followup_2: {
+      id: 'followup_2',
+      label: 'Follow-up #2',
+      sublabel: '24 hours later',
+      icon: <Send size={24} />,
+      color: 'text-orange-700',
+      bgColor: 'bg-orange-50',
+      borderColor: 'border-orange-300',
+      type: 'action',
+    },
+    followup_3: {
+      id: 'followup_3',
+      label: 'Follow-up #3',
+      sublabel: '72 hours later',
+      icon: <Send size={24} />,
+      color: 'text-orange-700',
+      bgColor: 'bg-orange-50',
+      borderColor: 'border-orange-300',
+      type: 'action',
+    },
+    // Stage: Intake Pending
+    intake_pending: {
+      id: 'intake_pending',
+      label: 'Intake Pending',
+      sublabel: 'Waiting for scheduling',
+      icon: <Clock size={24} />,
+      color: 'text-amber-700',
+      bgColor: 'bg-amber-50',
+      borderColor: 'border-amber-300',
+      action: 'Confirm intake scheduled',
+      type: 'stage',
+    },
+    // Stage: Intake Scheduled
+    intake_scheduled: {
+      id: 'intake_scheduled',
+      label: 'Intake Scheduled',
+      sublabel: 'Date confirmed',
+      icon: <CalendarCheck size={24} />,
+      color: 'text-amber-700',
+      bgColor: 'bg-amber-50',
+      borderColor: 'border-amber-300',
+      action: 'Send paperwork reminder',
+      type: 'stage',
+    },
+    // Stage: Paperwork Pending
+    paperwork_pending: {
+      id: 'paperwork_pending',
+      label: 'Paperwork Pending',
+      sublabel: 'Awaiting completion',
+      icon: <FileText size={24} />,
+      color: 'text-amber-700',
+      bgColor: 'bg-amber-50',
+      borderColor: 'border-amber-300',
+      action: 'Confirm paperwork complete',
+      type: 'stage',
+    },
+    // Stage: Ready for Session
+    ready_for_session: {
+      id: 'ready_for_session',
+      label: 'Ready for Session',
+      sublabel: 'All set for first appointment',
+      icon: <FileCheck size={24} />,
+      color: 'text-emerald-700',
+      bgColor: 'bg-emerald-50',
+      borderColor: 'border-emerald-300',
+      action: 'Confirm first session done',
+      type: 'stage',
+    },
+    // Terminal: Converted
+    converted: {
+      id: 'converted',
+      label: 'Converted',
+      sublabel: 'Active client!',
+      icon: <PartyPopper size={24} />,
+      color: 'text-emerald-800',
+      bgColor: 'bg-gradient-to-br from-emerald-100 to-teal-100',
+      borderColor: 'border-emerald-400',
+      type: 'terminal',
+    },
+    // Terminal: Lost
+    lost: {
+      id: 'lost',
+      label: 'Lost',
+      sublabel: 'Did not convert',
+      icon: <XCircle size={24} />,
+      color: 'text-stone-500',
+      bgColor: 'bg-stone-100',
+      borderColor: 'border-stone-300',
+      type: 'terminal',
+    },
+  };
+
+  // Render a single flow node
+  const FlowNodeComponent: React.FC<{ node: FlowNode; delay?: number }> = ({ node, delay = 0 }) => (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ delay, duration: 0.3, ease: 'easeOut' }}
+      className={`
+        relative group
+        ${node.type === 'terminal' ? 'w-44' : node.type === 'action' ? 'w-40' : 'w-52'}
+      `}
+    >
+      <div
+        className={`
+          relative p-4 rounded-2xl border-2 transition-all duration-300
+          ${node.bgColor} ${node.borderColor}
+          ${node.type === 'terminal' ? 'shadow-lg' : 'shadow-sm'}
+          group-hover:shadow-xl group-hover:scale-[1.02]
+        `}
+      >
+        {/* Icon */}
+        <div className={`flex items-center justify-center mb-3 ${node.color}`}>
+          {node.icon}
+        </div>
+
+        {/* Label */}
+        <h4
+          className={`text-center font-bold ${node.color} ${node.type === 'terminal' ? 'text-lg' : 'text-base'}`}
+          style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+        >
+          {node.label}
+        </h4>
+
+        {/* Sublabel */}
+        {node.sublabel && (
+          <p className="text-center text-xs text-stone-500 mt-1">{node.sublabel}</p>
+        )}
+
+        {/* Action badge */}
+        {node.action && (
+          <div className="mt-3 px-2 py-1.5 rounded-lg bg-white/80 border border-stone-200">
+            <p className="text-xs text-stone-600 text-center font-medium">
+              {node.action}
+            </p>
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+
+  // Arrow component
+  const Arrow: React.FC<{
+    direction: 'down' | 'right' | 'down-right' | 'down-left';
+    label?: string;
+    type?: 'primary' | 'secondary' | 'danger';
+    delay?: number;
+  }> = ({ direction, label, type = 'primary', delay = 0 }) => {
+    const colors = {
+      primary: 'text-emerald-500',
+      secondary: 'text-stone-400',
+      danger: 'text-rose-400',
+    };
+
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay, duration: 0.3 }}
+        className={`flex items-center justify-center ${colors[type]}`}
+      >
+        {direction === 'down' && (
+          <div className="flex flex-col items-center py-2">
+            <div className="w-0.5 h-6 bg-current opacity-60" />
+            <ArrowDown size={20} className="my-1" />
+            {label && <span className="text-xs font-medium mt-1 text-stone-500">{label}</span>}
+          </div>
+        )}
+        {direction === 'right' && (
+          <div className="flex items-center px-3">
+            <div className="w-8 h-0.5 bg-current opacity-60" />
+            <ArrowRight size={20} className="mx-1" />
+            {label && <span className="text-xs font-medium ml-2 text-stone-500">{label}</span>}
+          </div>
+        )}
+      </motion.div>
+    );
+  };
+
+  // Branch connector for split paths
+  const BranchConnector: React.FC<{ delay?: number }> = ({ delay = 0 }) => (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay }}
+      className="flex items-center justify-center py-3"
+    >
+      <div className="relative">
+        {/* Vertical line down */}
+        <div className="w-0.5 h-8 bg-stone-300 mx-auto" />
+        {/* Horizontal split */}
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[340px] h-0.5 bg-stone-300" />
+        {/* Left branch down */}
+        <div className="absolute bottom-0 left-1/2 -translate-x-[170px] w-0.5 h-4 bg-stone-300" />
+        {/* Right branch down */}
+        <div className="absolute bottom-0 left-1/2 translate-x-[170px] w-0.5 h-4 bg-stone-300" />
+      </div>
+    </motion.div>
+  );
+
+  return (
+    <PageContent>
+      <AnimatedSection delay={0}>
+        <div className="mb-10">
+          <h2
+            className="text-3xl font-bold text-stone-800"
+            style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+          >
+            Consultation Flow
+          </h2>
+          <p className="text-stone-500 text-lg mt-1">
+            Visual map of your client journey from booking to conversion
+          </p>
+        </div>
+      </AnimatedSection>
+
+      {/* Flow Diagram */}
+      <AnimatedSection delay={0.1}>
+        <div
+          className="relative p-8 rounded-3xl overflow-x-auto"
+          style={{
+            background: 'linear-gradient(180deg, #fafaf9 0%, #f5f5f4 100%)',
+            boxShadow: 'inset 0 2px 20px rgba(0,0,0,0.03)',
+          }}
+        >
+          {/* Decorative grid pattern */}
+          <div
+            className="absolute inset-0 opacity-[0.03]"
+            style={{
+              backgroundImage: `
+                linear-gradient(to right, #78716c 1px, transparent 1px),
+                linear-gradient(to bottom, #78716c 1px, transparent 1px)
+              `,
+              backgroundSize: '40px 40px',
+            }}
+          />
+
+          <div className="relative min-w-[1100px]">
+            {/* Row 1: Entry */}
+            <div className="flex justify-center mb-2">
+              <FlowNodeComponent node={nodes.booking} delay={0.15} />
+            </div>
+            <Arrow direction="down" delay={0.2} />
+
+            {/* Row 2: New */}
+            <div className="flex justify-center mb-2">
+              <FlowNodeComponent node={nodes.new} delay={0.25} />
+            </div>
+            <Arrow direction="down" delay={0.3} />
+
+            {/* Row 3: Confirmed */}
+            <div className="flex justify-center mb-2">
+              <FlowNodeComponent node={nodes.confirmed} delay={0.35} />
+            </div>
+            <Arrow direction="down" delay={0.4} />
+
+            {/* Row 4: Attendance Decision */}
+            <div className="flex justify-center mb-2">
+              <FlowNodeComponent node={nodes.attended_check} delay={0.45} />
+            </div>
+
+            {/* Branch: Attended vs No-Show - Two column layout */}
+            <div className="flex mt-4">
+              {/* LEFT COLUMN: Happy Path (Attended) */}
+              <div className="flex-1 flex flex-col items-center">
+                {/* Branch line down from center */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.5 }}
+                  className="flex items-center mb-4"
+                >
+                  <div className="w-[120px] h-0.5 bg-stone-300" />
+                  <div className="w-0.5 h-8 bg-emerald-400" />
+                </motion.div>
+
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.55 }}
+                  className="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-3"
+                >
+                  Yes, attended
+                </motion.p>
+
+                {/* Full happy path flows down */}
+                <FlowNodeComponent node={nodes.consult_complete} delay={0.6} />
+                <Arrow direction="down" delay={0.65} />
+                <FlowNodeComponent node={nodes.intake_pending} delay={0.7} />
+                <Arrow direction="down" delay={0.75} />
+                <FlowNodeComponent node={nodes.intake_scheduled} delay={0.8} />
+                <Arrow direction="down" delay={0.85} />
+                <FlowNodeComponent node={nodes.paperwork_pending} delay={0.9} />
+                <Arrow direction="down" delay={0.95} />
+                <FlowNodeComponent node={nodes.ready_for_session} delay={1} />
+                <Arrow direction="down" delay={1.05} />
+                <FlowNodeComponent node={nodes.converted} delay={1.1} />
+              </div>
+
+              {/* RIGHT COLUMN: No-Show Path */}
+              <div className="flex-1 flex flex-col items-center">
+                {/* Branch line down from center */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.5 }}
+                  className="flex items-center mb-4"
+                >
+                  <div className="w-0.5 h-8 bg-rose-400" />
+                  <div className="w-[120px] h-0.5 bg-stone-300" />
+                </motion.div>
+
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.55 }}
+                  className="text-xs font-bold text-rose-600 uppercase tracking-wider mb-3"
+                >
+                  No-show
+                </motion.p>
+
+                <FlowNodeComponent node={nodes.no_show} delay={0.6} />
+                <Arrow direction="down" type="danger" delay={0.65} />
+
+                {/* Follow-up sequence - horizontal */}
+                <div className="flex items-center gap-2">
+                  <FlowNodeComponent node={nodes.followup_1} delay={0.7} />
+                  <Arrow direction="right" type="danger" delay={0.75} />
+                  <FlowNodeComponent node={nodes.followup_2} delay={0.8} />
+                  <Arrow direction="right" type="danger" delay={0.85} />
+                  <FlowNodeComponent node={nodes.followup_3} delay={0.9} />
+                </div>
+
+                {/* Recovery or Lost */}
+                <div className="flex items-center gap-12 mt-6">
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.95 }}
+                    className="flex flex-col items-center"
+                  >
+                    <p className="text-xs text-emerald-600 font-medium mb-2">Reschedules</p>
+                    <div className="w-20 h-0.5 bg-emerald-300 mb-2" />
+                    <p className="text-xs text-stone-400">↩ Back to New</p>
+                  </motion.div>
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 1 }}
+                    className="flex flex-col items-center"
+                  >
+                    <p className="text-xs text-stone-500 font-medium mb-2">No response</p>
+                    <Arrow direction="down" type="secondary" delay={1.05} />
+                    <FlowNodeComponent node={nodes.lost} delay={1.1} />
+                  </motion.div>
+                </div>
+              </div>
+            </div>
+
+            {/* Lost exit points annotation */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 1.2 }}
+              className="absolute left-4 top-1/2 -translate-y-1/2"
+            >
+              <div className="p-4 rounded-xl bg-stone-800 text-white max-w-[200px]">
+                <p className="text-xs font-bold uppercase tracking-wider text-stone-400 mb-2">
+                  Loss Points
+                </p>
+                <ul className="space-y-2 text-sm">
+                  <li className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-rose-400" />
+                    <span>Pre-consult (no-show)</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-amber-400" />
+                    <span>Pre-intake</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-amber-400" />
+                    <span>Pre-paperwork</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-amber-400" />
+                    <span>Pre-first session</span>
+                  </li>
+                </ul>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </AnimatedSection>
+
+      {/* Legend */}
+      <AnimatedSection delay={1.3}>
+        <div className="mt-8 flex flex-wrap gap-6 justify-center">
+          <div className="flex items-center gap-3 px-4 py-2 rounded-xl bg-white border border-stone-200">
+            <div className="w-4 h-4 rounded-lg bg-cyan-100 border-2 border-cyan-300" />
+            <span className="text-sm font-medium text-stone-600">Initial Stage</span>
+          </div>
+          <div className="flex items-center gap-3 px-4 py-2 rounded-xl bg-white border border-stone-200">
+            <div className="w-4 h-4 rounded-lg bg-amber-100 border-2 border-amber-300" />
+            <span className="text-sm font-medium text-stone-600">In Progress</span>
+          </div>
+          <div className="flex items-center gap-3 px-4 py-2 rounded-xl bg-white border border-stone-200">
+            <div className="w-4 h-4 rounded-lg bg-emerald-100 border-2 border-emerald-300" />
+            <span className="text-sm font-medium text-stone-600">Success Path</span>
+          </div>
+          <div className="flex items-center gap-3 px-4 py-2 rounded-xl bg-white border border-stone-200">
+            <div className="w-4 h-4 rounded-lg bg-rose-100 border-2 border-rose-300" />
+            <span className="text-sm font-medium text-stone-600">Needs Attention</span>
+          </div>
+          <div className="flex items-center gap-3 px-4 py-2 rounded-xl bg-white border border-stone-200">
+            <div className="w-4 h-4 rounded-lg bg-stone-100 border-2 border-stone-300" />
+            <span className="text-sm font-medium text-stone-600">Decision Point / Terminal</span>
+          </div>
+        </div>
+      </AnimatedSection>
+
+      {/* Stage Details */}
+      <AnimatedSection delay={1.4}>
+        <div className="mt-12">
+          <h3
+            className="text-2xl font-bold text-stone-800 mb-6"
+            style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+          >
+            Stage Reference
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[
+              { stage: 'New', action: 'Send confirmation email', color: 'cyan' },
+              { stage: 'Confirmed', action: 'Client attends or no-shows', color: 'indigo' },
+              { stage: 'Consult Complete', action: 'Send post-consult message', color: 'emerald' },
+              { stage: 'No-Show', action: 'Follow-up sequence (3 attempts)', color: 'rose' },
+              { stage: 'Intake Pending', action: 'Confirm intake scheduled', color: 'amber' },
+              { stage: 'Intake Scheduled', action: 'Send paperwork reminder', color: 'amber' },
+              { stage: 'Paperwork Pending', action: 'Confirm paperwork complete', color: 'amber' },
+              { stage: 'Ready for Session', action: 'Confirm first session done', color: 'emerald' },
+              { stage: 'Converted', action: 'Client is now active!', color: 'emerald' },
+            ].map((item, idx) => (
+              <motion.div
+                key={item.stage}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.45 + idx * 0.05 }}
+                className="p-4 rounded-xl bg-white border border-stone-200 hover:shadow-md transition-shadow"
+              >
+                <div className="flex items-center gap-3 mb-2">
+                  <div className={`w-3 h-3 rounded-full bg-${item.color}-500`} />
+                  <h4 className="font-bold text-stone-800">{item.stage}</h4>
+                </div>
+                <p className="text-sm text-stone-500 ml-6">{item.action}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </AnimatedSection>
+    </PageContent>
+  );
+};
+
 // EHR Connection Tab
 const EHRConnectionTab: React.FC<{
   ehr: EHRConnection;
@@ -2012,6 +2600,11 @@ export const PracticeConfigurationPage: React.FC = () => {
         {activeTab === 'thresholds' && (
           <motion.div key="thresholds" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             <ThresholdsTab thresholds={thresholds} onUpdate={handleUpdateThresholds} />
+          </motion.div>
+        )}
+        {activeTab === 'consultation-flow' && (
+          <motion.div key="consultation-flow" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <ConsultationFlowTab />
           </motion.div>
         )}
         {activeTab === 'ehr' && (
