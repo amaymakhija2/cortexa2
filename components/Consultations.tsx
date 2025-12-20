@@ -21,6 +21,9 @@ import {
   Filter,
   Video,
   ExternalLink,
+  Zap,
+  LayoutGrid,
+  List,
 } from 'lucide-react';
 import { PageHeader } from './design-system';
 import {
@@ -37,7 +40,10 @@ import type {
   ConsultationSegment,
   ActionType,
   Clinician,
+  LostStage,
 } from '../types/consultations';
+import { TakeActionModal } from './TakeActionModal';
+import { ConsultationsKanban } from './ConsultationsKanban';
 import {
   SEGMENT_CONFIGS,
   getStageConfig,
@@ -79,13 +85,13 @@ const STAGE_COLORS: Record<string, { bg: string; text: string; dot: string; bord
 interface ConsultationDetailProps {
   consultation: Consultation;
   onClose: () => void;
-  onAction: (consultationId: string, action: ActionType) => void;
+  onTakeAction: () => void;
 }
 
 const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
   consultation,
   onClose,
-  onAction,
+  onTakeAction,
 }) => {
   const stageConfig = getStageConfig(consultation.stage);
   const stageColors = STAGE_COLORS[consultation.stage];
@@ -197,28 +203,18 @@ const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
             }}
           >
             <p className="text-amber-800 text-sm font-semibold uppercase tracking-wider mb-2">
-              Next Action
+              Needs Attention
             </p>
             <p className="text-stone-900 text-lg font-bold mb-4">
               {getActionLabel(nextAction)}
             </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => onAction(consultation.id, nextAction)}
-                className="flex-1 px-5 py-3 rounded-xl bg-stone-900 text-white font-semibold hover:bg-stone-800 transition-colors flex items-center justify-center gap-2"
-              >
-                <Check size={18} />
-                Mark Done
-              </button>
-              {consultation.stage === 'confirmed' && isPast && (
-                <button
-                  onClick={() => onAction(consultation.id, 'mark_no_show')}
-                  className="px-5 py-3 rounded-xl bg-white text-rose-600 font-semibold border border-rose-200 hover:bg-rose-50 transition-colors"
-                >
-                  No-Show
-                </button>
-              )}
-            </div>
+            <button
+              onClick={onTakeAction}
+              className="w-full px-5 py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold hover:from-amber-600 hover:to-orange-600 transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+            >
+              <Zap size={18} />
+              Take Action
+            </button>
           </div>
         </div>
       )}
@@ -304,30 +300,29 @@ const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
         </div>
       )}
 
-      {/* Quick Actions */}
-      <div className="px-6 py-5 border-t border-stone-100">
-        <h3 className="text-lg font-bold text-stone-900 mb-4" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
-          Actions
-        </h3>
-        <div className="flex flex-wrap gap-2">
-          {consultation.stage !== 'lost' && consultation.stage !== 'converted' && (
-            <button
-              onClick={() => onAction(consultation.id, 'mark_lost')}
-              className="px-4 py-2 rounded-xl bg-stone-100 text-stone-600 font-medium hover:bg-stone-200 transition-colors text-sm"
-            >
-              Mark as Lost
-            </button>
-          )}
-          {!consultation.wasTransferred && consultation.stage !== 'lost' && consultation.stage !== 'converted' && (
-            <button
-              onClick={() => onAction(consultation.id, 'transfer_clinician')}
-              className="px-4 py-2 rounded-xl bg-stone-100 text-stone-600 font-medium hover:bg-stone-200 transition-colors text-sm"
-            >
-              Transfer Clinician
-            </button>
-          )}
+      {/* Quick Actions - only show for terminal states or if no action needed */}
+      {(consultation.stage === 'lost' || consultation.stage === 'converted') && (
+        <div className="px-6 py-5 border-t border-stone-100">
+          <div className={`p-4 rounded-xl ${consultation.stage === 'converted' ? 'bg-emerald-50 border border-emerald-200' : 'bg-stone-100 border border-stone-200'}`}>
+            <div className="flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${consultation.stage === 'converted' ? 'bg-emerald-500' : 'bg-stone-400'} text-white`}>
+                <Check size={18} />
+              </div>
+              <div>
+                <p className={`font-semibold ${consultation.stage === 'converted' ? 'text-emerald-800' : 'text-stone-700'}`}>
+                  {consultation.stage === 'converted' ? 'Successfully Converted' : 'Case Closed'}
+                </p>
+                <p className={`text-sm ${consultation.stage === 'converted' ? 'text-emerald-600' : 'text-stone-500'}`}>
+                  {consultation.stage === 'converted'
+                    ? 'This client is now an active patient'
+                    : `Lost at ${consultation.lostStage?.replace('_', ' ') || 'unknown stage'}`
+                  }
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </motion.div>
   );
 };
@@ -501,13 +496,13 @@ const TransferClinicianModal: React.FC<TransferClinicianModalProps> = ({
 interface ConsultationRowProps {
   consultation: Consultation;
   onClick: () => void;
-  onQuickAction: (action: ActionType) => void;
+  onTakeAction: () => void;
 }
 
 const ConsultationRow: React.FC<ConsultationRowProps> = ({
   consultation,
   onClick,
-  onQuickAction,
+  onTakeAction,
 }) => {
   const stageConfig = getStageConfig(consultation.stage);
   const stageColors = STAGE_COLORS[consultation.stage];
@@ -622,11 +617,11 @@ const ConsultationRow: React.FC<ConsultationRowProps> = ({
               )}
               {nextAction && consultation.stage !== 'converted' && consultation.stage !== 'lost' && !showJoinButton && (
                 <button
-                  onClick={(e) => { e.stopPropagation(); onQuickAction(nextAction); }}
-                  className="px-3 py-1.5 rounded-lg text-sm font-semibold bg-stone-100 text-stone-600 hover:bg-stone-200 transition-colors flex items-center gap-1.5"
+                  onClick={(e) => { e.stopPropagation(); onTakeAction(); }}
+                  className="px-3 py-1.5 rounded-lg text-sm font-semibold bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-600 hover:to-orange-600 transition-all shadow-sm flex items-center gap-1.5"
                 >
-                  <Check size={14} />
-                  Done
+                  <Zap size={14} />
+                  Action
                 </button>
               )}
             </div>
@@ -701,11 +696,11 @@ const ConsultationRow: React.FC<ConsultationRowProps> = ({
               </div>
             ) : nextAction && consultation.stage !== 'converted' && consultation.stage !== 'lost' ? (
               <button
-                onClick={(e) => { e.stopPropagation(); onQuickAction(nextAction); }}
-                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-base font-semibold bg-stone-100 text-stone-600 hover:bg-stone-200 border border-stone-200 transition-all"
+                onClick={(e) => { e.stopPropagation(); onTakeAction(); }}
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-base font-semibold bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-600 hover:to-orange-600 shadow-md hover:shadow-lg transition-all"
               >
-                <Check size={18} />
-                Done
+                <Zap size={18} />
+                Take Action
               </button>
             ) : consultation.stage === 'converted' ? (
               <span className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-100 text-emerald-700 font-semibold text-sm">
@@ -771,14 +766,14 @@ function groupByMonth(consultations: Consultation[], dateField: 'convertedDate' 
 interface MonthGroupSectionProps {
   group: MonthGroup;
   onSelectConsultation: (c: Consultation) => void;
-  onQuickAction: (consultationId: string, action: ActionType) => void;
+  onTakeAction: (c: Consultation) => void;
   defaultExpanded?: boolean;
 }
 
 const MonthGroupSection: React.FC<MonthGroupSectionProps> = ({
   group,
   onSelectConsultation,
-  onQuickAction,
+  onTakeAction,
   defaultExpanded = true,
 }) => {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
@@ -810,7 +805,7 @@ const MonthGroupSection: React.FC<MonthGroupSectionProps> = ({
               key={consultation.id}
               consultation={consultation}
               onClick={() => onSelectConsultation(consultation)}
-              onQuickAction={(action) => onQuickAction(consultation.id, action)}
+              onTakeAction={() => onTakeAction(consultation)}
             />
           ))}
         </div>
@@ -823,6 +818,9 @@ const MonthGroupSection: React.FC<MonthGroupSectionProps> = ({
 // MAIN CONSULTATIONS COMPONENT
 // =============================================================================
 
+// View mode type
+type ViewMode = 'kanban' | 'upcoming' | 'list';
+
 export const Consultations: React.FC = () => {
   const [selectedSegment, setSelectedSegment] = useState<ConsultationSegment>('action_needed');
   const [selectedConsultation, setSelectedConsultation] = useState<Consultation | null>(null);
@@ -830,6 +828,8 @@ export const Consultations: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showAllTime, setShowAllTime] = useState(false);
   const [transferModalConsultation, setTransferModalConsultation] = useState<Consultation | null>(null);
+  const [takeActionConsultation, setTakeActionConsultation] = useState<Consultation | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>('kanban');
 
   // Check if current segment is historical (converted/lost)
   const isHistoricalSegment = selectedSegment === 'converted' || selectedSegment === 'lost';
@@ -898,7 +898,7 @@ export const Consultations: React.FC = () => {
   }, [consultations]);
 
   // Handle action on consultation
-  const handleAction = (consultationId: string, action: ActionType) => {
+  const handleAction = (consultationId: string, action: ActionType, metadata?: { lostStage?: LostStage; notes?: string; intakeScheduled?: boolean }) => {
     // Special case: transfer_clinician opens a modal instead of directly updating
     if (action === 'transfer_clinician') {
       const consultation = consultations.find(c => c.id === consultationId);
@@ -917,6 +917,10 @@ export const Consultations: React.FC = () => {
           return { ...c, stage: 'confirmed' as ConsultationStage, updatedAt: new Date().toISOString() };
         case 'mark_attended':
         case 'send_post_consult':
+          // If intake was already scheduled, go to intake_scheduled, otherwise intake_pending
+          if (metadata?.intakeScheduled) {
+            return { ...c, stage: 'intake_scheduled' as ConsultationStage, intakeScheduledDate: new Date().toISOString(), updatedAt: new Date().toISOString() };
+          }
           return { ...c, stage: 'intake_pending' as ConsultationStage, updatedAt: new Date().toISOString() };
         case 'mark_no_show':
           return { ...c, stage: 'no_show' as ConsultationStage, followUpCount: 0, updatedAt: new Date().toISOString() };
@@ -934,7 +938,13 @@ export const Consultations: React.FC = () => {
         case 'mark_first_session_done':
           return { ...c, stage: 'converted' as ConsultationStage, convertedDate: new Date().toISOString(), updatedAt: new Date().toISOString() };
         case 'mark_lost':
-          return { ...c, stage: 'lost' as ConsultationStage, lostDate: new Date().toISOString(), updatedAt: new Date().toISOString() };
+          return {
+            ...c,
+            stage: 'lost' as ConsultationStage,
+            lostDate: new Date().toISOString(),
+            lostStage: metadata?.lostStage,
+            updatedAt: new Date().toISOString()
+          };
         default:
           return c;
       }
@@ -995,6 +1005,14 @@ export const Consultations: React.FC = () => {
   const todaysConsultations = useMemo(() =>
     consultations
       .filter(c => isConsultationToday(c.datetime) && c.stage === 'confirmed')
+      .sort((a, b) => new Date(a.datetime).getTime() - new Date(b.datetime).getTime()),
+    [consultations]
+  );
+
+  // Upcoming consultations (confirmed, not past)
+  const upcomingConsultations = useMemo(() =>
+    consultations
+      .filter(c => (c.stage === 'new' || c.stage === 'confirmed') && !isConsultationPast(c.datetime))
       .sort((a, b) => new Date(a.datetime).getTime() - new Date(b.datetime).getTime()),
     [consultations]
   );
@@ -1073,216 +1091,414 @@ export const Consultations: React.FC = () => {
             </div>
           }
         >
-          {/* Segment selector label */}
-          <p className="text-stone-500 text-sm font-medium mb-4 uppercase tracking-wider">
-            Filter by stage
-          </p>
-
-          {/* Segment selector buttons */}
-          <div className="flex flex-wrap gap-3">
-            {SEGMENT_CONFIGS.map((segment) => {
-              const isSelected = selectedSegment === segment.id;
-              const count = segmentCounts[segment.id];
-
-              return (
-                <button
-                  key={segment.id}
-                  onClick={() => setSelectedSegment(segment.id)}
-                  className={`relative px-5 py-3 rounded-xl font-semibold transition-all duration-300 ${
-                    isSelected
-                      ? 'bg-white text-stone-900 shadow-lg'
-                      : 'bg-white/10 text-white/80 hover:bg-white/20 hover:text-white'
-                  }`}
-                >
-                  <span className="text-base">
-                    {segment.label}
-                    <span className={`ml-2 ${isSelected ? 'text-cyan-600' : 'text-cyan-400'}`}>
-                      {count}
-                    </span>
+          {/* View selector and segment tabs */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            {/* Segment tabs - simplified for Kanban */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  setSelectedSegment('action_needed');
+                  setViewMode('kanban');
+                }}
+                className={`px-5 py-3 rounded-xl font-semibold transition-all duration-300 ${
+                  viewMode === 'kanban'
+                    ? 'bg-white text-stone-900 shadow-lg'
+                    : 'bg-white/10 text-white/80 hover:bg-white/20 hover:text-white'
+                }`}
+              >
+                <span className="flex items-center gap-2">
+                  <LayoutGrid size={18} />
+                  Pipeline Board
+                </span>
+              </button>
+              <button
+                onClick={() => {
+                  setSelectedSegment('upcoming');
+                  setViewMode('upcoming');
+                }}
+                className={`px-5 py-3 rounded-xl font-semibold transition-all duration-300 ${
+                  viewMode === 'upcoming'
+                    ? 'bg-white text-stone-900 shadow-lg'
+                    : 'bg-white/10 text-white/80 hover:bg-white/20 hover:text-white'
+                }`}
+              >
+                <span className="flex items-center gap-2">
+                  <Calendar size={18} />
+                  Upcoming
+                  <span className={`${viewMode === 'upcoming' ? 'text-cyan-600' : 'text-cyan-400'}`}>
+                    {upcomingConsultations.length}
                   </span>
-                </button>
-              );
-            })}
+                </span>
+              </button>
+              <button
+                onClick={() => {
+                  setSelectedSegment('converted');
+                  setViewMode('list');
+                }}
+                className={`px-5 py-3 rounded-xl font-semibold transition-all duration-300 ${
+                  selectedSegment === 'converted'
+                    ? 'bg-white text-stone-900 shadow-lg'
+                    : 'bg-white/10 text-white/80 hover:bg-white/20 hover:text-white'
+                }`}
+              >
+                <span className="text-base">
+                  Converted
+                  <span className={`ml-2 ${selectedSegment === 'converted' ? 'text-emerald-600' : 'text-emerald-400'}`}>
+                    {segmentCounts.converted}
+                  </span>
+                </span>
+              </button>
+              <button
+                onClick={() => {
+                  setSelectedSegment('lost');
+                  setViewMode('list');
+                }}
+                className={`px-5 py-3 rounded-xl font-semibold transition-all duration-300 ${
+                  selectedSegment === 'lost'
+                    ? 'bg-white text-stone-900 shadow-lg'
+                    : 'bg-white/10 text-white/80 hover:bg-white/20 hover:text-white'
+                }`}
+              >
+                <span className="text-base">
+                  Lost
+                  <span className={`ml-2 ${selectedSegment === 'lost' ? 'text-stone-600' : 'text-stone-400'}`}>
+                    {segmentCounts.lost}
+                  </span>
+                </span>
+              </button>
+            </div>
           </div>
         </PageHeader>
 
         {/* =============================================
-            CONSULTATION LIST
+            MAIN CONTENT AREA
             ============================================= */}
-        <div className="px-6 sm:px-8 lg:px-12 py-6 lg:py-8">
-          {/* Today's Consultations - only on Action Needed tab */}
-          {selectedSegment === 'action_needed' && (
-            <div className="mb-8">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-bold text-stone-900" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
-                  Today
+
+        {/* KANBAN VIEW - for active pipeline */}
+        {viewMode === 'kanban' && (
+          <div className="h-[calc(100vh-280px)]">
+            <ConsultationsKanban
+              consultations={consultations.filter(c => !['converted', 'lost'].includes(c.stage))}
+              onTakeAction={setTakeActionConsultation}
+              onSelectConsultation={setSelectedConsultation}
+            />
+          </div>
+        )}
+
+        {/* UPCOMING VIEW - clean table of upcoming consultations */}
+        {viewMode === 'upcoming' && (
+          <div className="px-6 sm:px-8 lg:px-12 py-6 lg:py-8">
+            <div
+              className="rounded-2xl overflow-hidden"
+              style={{
+                background: 'linear-gradient(145deg, #ffffff 0%, #fafaf9 100%)',
+                boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)',
+              }}
+            >
+              {/* Table Header */}
+              <div className="px-6 py-5 border-b border-stone-200/80 bg-stone-50/50">
+                <h3
+                  className="text-xl font-bold text-stone-900"
+                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  Upcoming Consultations
                 </h3>
-                {totalUpcomingCount > 0 && (
-                  <button
-                    onClick={() => setSelectedSegment('upcoming')}
-                    className="text-sm font-medium text-cyan-600 hover:text-cyan-700 flex items-center gap-1 transition-colors"
-                  >
-                    View all {totalUpcomingCount} upcoming
-                    <ChevronRight size={16} />
-                  </button>
-                )}
+                <p className="text-stone-500 text-sm mt-1">
+                  {upcomingConsultations.length} consultation{upcomingConsultations.length !== 1 ? 's' : ''} scheduled
+                </p>
               </div>
 
-              {todaysConsultations.length > 0 ? (
-                <div className="space-y-2">
-                  {todaysConsultations.slice(0, 5).map(consultation => {
-                    const time = new Date(consultation.datetime).toLocaleTimeString('en-US', {
-                      hour: 'numeric',
-                      minute: '2-digit',
-                      hour12: true,
-                    });
-                    const hasVideoLink = consultation.meetingType === 'google_meet' || consultation.meetingType === 'zoom';
-                    const isPhoneCall = consultation.meetingType === 'phone';
-                    return (
-                      <div
-                        key={consultation.id}
-                        className="w-full p-4 rounded-xl bg-white border border-stone-200 hover:border-cyan-300 hover:shadow-md transition-all flex items-center gap-4"
-                      >
-                        <button
-                          onClick={() => setSelectedConsultation(consultation)}
-                          className="flex-shrink-0 w-20 text-center"
-                        >
-                          <p className="text-lg font-bold text-stone-900" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
-                            {time}
-                          </p>
-                        </button>
-                        <button
-                          onClick={() => setSelectedConsultation(consultation)}
-                          className="flex-1 min-w-0 text-left"
-                        >
-                          <p className="text-stone-900 font-bold truncate" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
-                            {consultation.firstName} {consultation.lastName}
-                          </p>
-                          <p className="text-stone-500 text-sm truncate">{consultation.clinicianName}</p>
-                        </button>
-                        {/* Join button or phone number */}
-                        {hasVideoLink && consultation.meetingLink && (
-                          <a
-                            href={consultation.meetingLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                            className="flex-shrink-0 px-4 py-2 rounded-xl bg-emerald-500 text-white font-semibold text-sm hover:bg-emerald-600 transition-colors flex items-center gap-2"
+              {/* Table */}
+              {upcomingConsultations.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-stone-200/60 bg-stone-50/30">
+                        <th className="text-left px-6 py-4 text-xs font-semibold text-stone-500 uppercase tracking-wider">
+                          Client
+                        </th>
+                        <th className="text-left px-6 py-4 text-xs font-semibold text-stone-500 uppercase tracking-wider">
+                          Date & Time
+                        </th>
+                        <th className="text-left px-6 py-4 text-xs font-semibold text-stone-500 uppercase tracking-wider">
+                          Clinician
+                        </th>
+                        <th className="text-left px-6 py-4 text-xs font-semibold text-stone-500 uppercase tracking-wider">
+                          Status
+                        </th>
+                        <th className="text-right px-6 py-4 text-xs font-semibold text-stone-500 uppercase tracking-wider">
+                          Action
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {upcomingConsultations.map((consultation, idx) => {
+                        const isToday = isConsultationToday(consultation.datetime);
+                        const stageColors = STAGE_COLORS[consultation.stage];
+                        const stageConfig = getStageConfig(consultation.stage);
+                        const hasVideoLink = consultation.meetingType === 'google_meet' || consultation.meetingType === 'zoom';
+                        const isPhoneCall = consultation.meetingType === 'phone';
+
+                        return (
+                          <tr
+                            key={consultation.id}
+                            className={`
+                              border-b border-stone-100 last:border-0 transition-colors cursor-pointer
+                              ${isToday ? 'bg-amber-50/40' : 'hover:bg-stone-50/80'}
+                            `}
+                            onClick={() => setSelectedConsultation(consultation)}
                           >
-                            <Video size={16} />
-                            Join
-                          </a>
-                        )}
-                        {isPhoneCall && consultation.meetingPhone && (
-                          <div className="flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl bg-stone-100 text-stone-700">
-                            <Phone size={16} className="text-stone-500" />
-                            <span className="font-medium text-sm">{consultation.meetingPhone}</span>
-                          </div>
-                        )}
-                        {!hasVideoLink && !isPhoneCall && (
-                          <ChevronRight size={18} className="text-stone-300 flex-shrink-0" />
-                        )}
-                      </div>
-                    );
-                  })}
-                  {todaysConsultations.length > 5 && (
-                    <p className="text-sm text-stone-500 text-center pt-2">
-                      +{todaysConsultations.length - 5} more today
-                    </p>
-                  )}
+                            {/* Client */}
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-3">
+                                <div
+                                  className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0 ${stageColors.bg} ${stageColors.text}`}
+                                >
+                                  {getClientInitials(consultation.firstName, consultation.lastName)}
+                                </div>
+                                <div>
+                                  <p
+                                    className="font-semibold text-stone-900"
+                                    style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                                  >
+                                    {consultation.firstName} {consultation.lastName}
+                                  </p>
+                                  <p className="text-stone-500 text-sm">{consultation.email}</p>
+                                </div>
+                              </div>
+                            </td>
+
+                            {/* Date & Time */}
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-2">
+                                {isToday && (
+                                  <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide bg-amber-100 text-amber-700 rounded-full">
+                                    Today
+                                  </span>
+                                )}
+                                <span className={`font-medium ${isToday ? 'text-amber-700' : 'text-stone-700'}`}>
+                                  {formatConsultationDate(consultation.datetime)}
+                                </span>
+                              </div>
+                            </td>
+
+                            {/* Clinician */}
+                            <td className="px-6 py-4">
+                              <span className="text-stone-700 font-medium">{consultation.clinicianName}</span>
+                            </td>
+
+                            {/* Status */}
+                            <td className="px-6 py-4">
+                              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold ${stageColors.bg} ${stageColors.text}`}>
+                                <div className={`w-1.5 h-1.5 rounded-full ${stageColors.dot}`} />
+                                {stageConfig.label}
+                              </span>
+                            </td>
+
+                            {/* Action */}
+                            <td className="px-6 py-4 text-right">
+                              {isToday && hasVideoLink && consultation.meetingLink ? (
+                                <a
+                                  href={consultation.meetingLink}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold bg-emerald-500 text-white hover:bg-emerald-600 transition-colors"
+                                >
+                                  <Video size={14} />
+                                  Join
+                                </a>
+                              ) : isToday && isPhoneCall && consultation.meetingPhone ? (
+                                <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-stone-100 text-stone-700 text-sm">
+                                  <Phone size={14} />
+                                  <span className="font-medium">{consultation.meetingPhone}</span>
+                                </div>
+                              ) : consultation.stage === 'new' ? (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setTakeActionConsultation(consultation);
+                                  }}
+                                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold bg-amber-500 text-white hover:bg-amber-600 transition-colors"
+                                >
+                                  <Zap size={14} />
+                                  Confirm
+                                </button>
+                              ) : (
+                                <ChevronRight size={18} className="text-stone-300 inline" />
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
               ) : (
-                <div className="p-6 rounded-xl bg-stone-50 border border-stone-200 text-center">
-                  <p className="text-stone-500">No consultations scheduled for today</p>
-                  {totalUpcomingCount > 0 && (
-                    <button
-                      onClick={() => setSelectedSegment('upcoming')}
-                      className="mt-2 text-sm font-medium text-cyan-600 hover:text-cyan-700"
-                    >
-                      View {totalUpcomingCount} upcoming
-                    </button>
-                  )}
+                <div className="text-center py-16">
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-stone-100 mb-4">
+                    <Calendar size={32} className="text-stone-400" />
+                  </div>
+                  <h4 className="text-lg font-semibold text-stone-900 mb-1">No upcoming consultations</h4>
+                  <p className="text-stone-500 text-sm">New consultations will appear here when booked</p>
                 </div>
               )}
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Search and Filter Bar for Historical Segments */}
-          {isHistoricalSegment && (
-            <div className="mb-6">
-              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-                {/* Search */}
-                <div className="relative flex-1 max-w-md">
-                  <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400" />
-                  <input
-                    type="text"
-                    placeholder="Search by name, email, or clinician..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-11 pr-4 py-3 rounded-xl bg-white border border-stone-200 text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/30 focus:border-cyan-500 transition-all"
-                  />
-                </div>
+        {/* LIST VIEW - for historical segments (converted/lost) */}
+        {isHistoricalSegment && (
+          <div className="px-6 sm:px-8 lg:px-12 py-6 lg:py-8">
+            <div
+              className="rounded-2xl overflow-hidden"
+              style={{
+                background: 'linear-gradient(145deg, #ffffff 0%, #fafaf9 100%)',
+                boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)',
+              }}
+            >
+              {/* Table Header */}
+              <div className="px-6 py-5 border-b border-stone-200/80 bg-stone-50/50">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div>
+                    <h3
+                      className="text-xl font-bold text-stone-900"
+                      style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                    >
+                      {selectedSegment === 'converted' ? 'Converted Clients' : 'Lost Cases'}
+                    </h3>
+                    <p className="text-stone-500 text-sm mt-1">
+                      {filteredConsultations.length} {selectedSegment === 'converted' ? 'conversion' : 'case'}{filteredConsultations.length !== 1 ? 's' : ''}
+                      {!showAllTime && ' in last 90 days'}
+                    </p>
+                  </div>
 
-                {/* Time Filter Toggle */}
-                <div className="flex items-center gap-3">
-                  <span className="text-sm text-stone-500">
-                    Showing {filteredConsultations.length} of {totalHistoricalCount}
-                  </span>
-                  <button
-                    onClick={() => setShowAllTime(!showAllTime)}
-                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                      showAllTime
-                        ? 'bg-cyan-100 text-cyan-700 border border-cyan-200'
-                        : 'bg-stone-100 text-stone-600 border border-stone-200 hover:bg-stone-200'
-                    }`}
-                  >
-                    {showAllTime ? 'Showing All Time' : 'Last 90 Days'}
-                  </button>
+                  {/* Search and Filters */}
+                  <div className="flex items-center gap-3">
+                    <div className="relative">
+                      <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
+                      <input
+                        type="text"
+                        placeholder="Search..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-48 pl-9 pr-3 py-2 rounded-lg bg-white border border-stone-200 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-200 focus:border-stone-300 transition-all"
+                      />
+                    </div>
+                    <button
+                      onClick={() => setShowAllTime(!showAllTime)}
+                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                        showAllTime
+                          ? 'bg-stone-800 text-white'
+                          : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                      }`}
+                    >
+                      {showAllTime ? 'All Time' : 'Last 90 Days'}
+                    </button>
+                  </div>
                 </div>
               </div>
 
-              {/* Active filter indicator */}
-              {!showAllTime && !searchQuery && filteredConsultations.length < totalHistoricalCount && (
-                <p className="mt-3 text-sm text-stone-500">
-                  {totalHistoricalCount - filteredConsultations.length} older {selectedSegment === 'converted' ? 'conversions' : 'lost cases'} hidden.{' '}
-                  <button
-                    onClick={() => setShowAllTime(true)}
-                    className="text-cyan-600 hover:text-cyan-700 font-medium"
-                  >
-                    Show all
-                  </button>
-                </p>
-              )}
-            </div>
-          )}
+              {/* Table */}
+              {filteredConsultations.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-stone-200/60 bg-stone-50/30">
+                        <th className="text-left px-6 py-4 text-xs font-semibold text-stone-500 uppercase tracking-wider">
+                          Client
+                        </th>
+                        <th className="text-left px-6 py-4 text-xs font-semibold text-stone-500 uppercase tracking-wider">
+                          {selectedSegment === 'converted' ? 'Converted' : 'Lost'}
+                        </th>
+                        <th className="text-left px-6 py-4 text-xs font-semibold text-stone-500 uppercase tracking-wider">
+                          Clinician
+                        </th>
+                        <th className="text-left px-6 py-4 text-xs font-semibold text-stone-500 uppercase tracking-wider">
+                          {selectedSegment === 'converted' ? 'Journey' : 'Lost At'}
+                        </th>
+                        <th className="text-right px-6 py-4 text-xs font-semibold text-stone-500 uppercase tracking-wider">
+                          Details
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredConsultations.map((consultation) => {
+                        const isConverted = selectedSegment === 'converted';
+                        const dateField = isConverted ? consultation.convertedDate : consultation.lostDate;
+                        const formattedDate = dateField ? formatConsultationDate(dateField) : '—';
 
-          {/* Column headers - only for non-grouped views */}
-          {!isHistoricalSegment && (
-            <div className="hidden lg:grid gap-4 py-4 px-8 text-sm font-bold text-stone-500 uppercase tracking-wide border-b border-stone-200 mb-3"
-              style={{ gridTemplateColumns: '2fr 1.2fr 1.5fr 1fr 160px' }}
-            >
-              <div>Client</div>
-              <div>Clinician</div>
-              <div>When</div>
-              <div>Next Action</div>
-              <div className="text-right">Action</div>
-            </div>
-          )}
+                        // Calculate days from consultation to outcome
+                        const consultDate = new Date(consultation.datetime);
+                        const outcomeDate = dateField ? new Date(dateField) : null;
+                        const daysDiff = outcomeDate
+                          ? Math.round((outcomeDate.getTime() - consultDate.getTime()) / (1000 * 60 * 60 * 24))
+                          : null;
 
-          {/* Consultation rows - different rendering for historical vs active */}
-          {isHistoricalSegment ? (
-            // Month-grouped view for converted/lost
-            <div>
-              {monthGroups && monthGroups.length > 0 ? (
-                monthGroups.map((group, idx) => (
-                  <MonthGroupSection
-                    key={group.key}
-                    group={group}
-                    onSelectConsultation={setSelectedConsultation}
-                    onQuickAction={handleAction}
-                    defaultExpanded={idx === 0} // Only first month expanded by default
-                  />
-                ))
+                        return (
+                          <tr
+                            key={consultation.id}
+                            className="border-b border-stone-100 last:border-0 transition-colors cursor-pointer hover:bg-stone-50/80"
+                            onClick={() => setSelectedConsultation(consultation)}
+                          >
+                            {/* Client */}
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-3">
+                                <div
+                                  className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0 ${
+                                    isConverted
+                                      ? 'bg-emerald-100 text-emerald-700'
+                                      : 'bg-stone-100 text-stone-500'
+                                  }`}
+                                >
+                                  {getClientInitials(consultation.firstName, consultation.lastName)}
+                                </div>
+                                <div>
+                                  <p
+                                    className="font-semibold text-stone-900"
+                                    style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                                  >
+                                    {consultation.firstName} {consultation.lastName}
+                                  </p>
+                                  <p className="text-stone-500 text-sm">{consultation.email}</p>
+                                </div>
+                              </div>
+                            </td>
+
+                            {/* Date */}
+                            <td className="px-6 py-4">
+                              <span className="font-medium text-stone-700">{formattedDate}</span>
+                            </td>
+
+                            {/* Clinician */}
+                            <td className="px-6 py-4">
+                              <span className="text-stone-700 font-medium">{consultation.clinicianName}</span>
+                            </td>
+
+                            {/* Journey / Lost At */}
+                            <td className="px-6 py-4">
+                              {isConverted ? (
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700">
+                                  <Check size={12} />
+                                  {daysDiff !== null ? `${daysDiff} days` : '—'}
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-stone-100 text-stone-600">
+                                  {consultation.lostStage?.replace('_', ' ') || 'Unknown'}
+                                </span>
+                              )}
+                            </td>
+
+                            {/* Details */}
+                            <td className="px-6 py-4 text-right">
+                              <ChevronRight size={18} className="text-stone-300 inline" />
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               ) : (
                 <div className="text-center py-16">
                   <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-stone-100 mb-4">
@@ -1305,64 +1521,8 @@ export const Consultations: React.FC = () => {
                 </div>
               )}
             </div>
-          ) : (
-            // Standard flat list for active segments
-            <div className="space-y-2">
-              {filteredConsultations.length === 0 ? (
-                <div className="text-center py-16">
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-stone-100 mb-4">
-                    <MessageSquare size={32} className="text-stone-400" />
-                  </div>
-                  <h4 className="text-lg font-semibold text-stone-900 mb-1">
-                    No consultations
-                  </h4>
-                  <p className="text-stone-500 text-sm">
-                    {selectedSegment === 'action_needed'
-                      ? 'All caught up! No consultations need attention right now.'
-                      : `No consultations in the "${SEGMENT_CONFIGS.find(s => s.id === selectedSegment)?.label}" stage.`}
-                  </p>
-                </div>
-              ) : (
-                filteredConsultations.map((consultation) => (
-                  <ConsultationRow
-                    key={consultation.id}
-                    consultation={consultation}
-                    onClick={() => setSelectedConsultation(consultation)}
-                    onQuickAction={(action) => handleAction(consultation.id, action)}
-                  />
-                ))
-              )}
-            </div>
-          )}
-
-          {/* Legend */}
-          <div className="mt-8 pt-6 border-t border-stone-200 flex flex-wrap items-center gap-6 text-sm text-stone-600">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-cyan-500" />
-              <span>New</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-indigo-500" />
-              <span>Confirmed</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-emerald-500" />
-              <span>Complete</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-rose-500" />
-              <span>No-show</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-amber-500" />
-              <span>In progress</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-stone-400" />
-              <span>Lost</span>
-            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Detail Panel Overlay */}
@@ -1381,7 +1541,9 @@ export const Consultations: React.FC = () => {
             <ConsultationDetail
               consultation={selectedConsultation}
               onClose={() => setSelectedConsultation(null)}
-              onAction={handleAction}
+              onTakeAction={() => {
+                setTakeActionConsultation(selectedConsultation);
+              }}
             />
           </>
         )}
@@ -1394,6 +1556,24 @@ export const Consultations: React.FC = () => {
             consultation={transferModalConsultation}
             onClose={() => setTransferModalConsultation(null)}
             onTransfer={handleTransfer}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Take Action Modal */}
+      <AnimatePresence>
+        {takeActionConsultation && (
+          <TakeActionModal
+            consultation={takeActionConsultation}
+            onClose={() => setTakeActionConsultation(null)}
+            onAction={handleAction}
+            onTransfer={(consultationId) => {
+              const consultation = consultations.find(c => c.id === consultationId);
+              if (consultation) {
+                setTakeActionConsultation(null);
+                setTransferModalConsultation(consultation);
+              }
+            }}
           />
         )}
       </AnimatePresence>

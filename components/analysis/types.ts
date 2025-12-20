@@ -411,3 +411,73 @@ export interface RetentionTabProps {
   /** Churn by frequency distribution */
   churnByFrequencyData: ChurnByFrequencyData;
 }
+
+// =============================================================================
+// CONSULTATIONS TAB DATA TYPES
+// =============================================================================
+
+/**
+ * Monthly consultation data point
+ */
+export interface ConsultationsDataPoint {
+  month: string;
+  /** Total consultations received */
+  consultations: number;
+  /** Consultations that converted to active clients */
+  converted: number;
+  /** Total days from consultation to first session (for calculating average) */
+  totalDaysToFirstSession: number;
+  /** Number of conversions with first session data (for averaging) */
+  conversionsWithFirstSession: number;
+}
+
+/**
+ * Consultation by clinician breakdown
+ */
+export interface ConsultationsByClinicianDataPoint {
+  month: string;
+  Chen: number;
+  Rodriguez: number;
+  Patel: number;
+  Kim: number;
+  Johnson: number;
+}
+
+/**
+ * Consultation source/channel data
+ */
+export interface ConsultationSourceData {
+  source: string;
+  consultations: number;
+  converted: number;
+  conversionRate: number;
+}
+
+/**
+ * Current pipeline data
+ */
+export interface ConsultationPipelineData {
+  /** Active consultations in pipeline */
+  activePipeline: number;
+  /** Consultations by stage */
+  byStage: {
+    stage: string;
+    count: number;
+    avgDaysInStage: number;
+  }[];
+}
+
+// =============================================================================
+// CONSULTATIONS TAB PROPS
+// =============================================================================
+
+export interface ConsultationsAnalysisTabProps extends BaseAnalysisTabProps {
+  /** Monthly consultations data */
+  consultationsData: ConsultationsDataPoint[];
+  /** Consultations by clinician */
+  consultationsByClinicianData: ConsultationsByClinicianDataPoint[];
+  /** Source breakdown */
+  sourceData: ConsultationSourceData[];
+  /** Current pipeline status */
+  pipelineData: ConsultationPipelineData;
+}
