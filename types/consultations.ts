@@ -171,8 +171,8 @@ export interface StageConfig {
 export const STAGE_CONFIGS: StageConfig[] = [
   {
     stage: 'new',
-    label: 'New',
-    description: 'Needs confirmation email',
+    label: 'New Booking',
+    description: 'Awaiting confirmation',
     color: 'cyan',
     pendingAction: 'send_confirmation',
     actionLabel: 'Send confirmation email',

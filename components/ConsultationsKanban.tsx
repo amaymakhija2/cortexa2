@@ -11,6 +11,8 @@ import {
   User,
   Users,
   PhoneCall,
+  Calendar,
+  ArrowRight,
 } from 'lucide-react';
 import type {
   Consultation,
@@ -115,14 +117,13 @@ interface ConsultationsKanbanProps {
 // -----------------------------------------------------------------------------
 // COLUMN CONFIGURATION
 // -----------------------------------------------------------------------------
-// Pipeline Flow:
+// Pipeline Flow (5 active columns):
 // 1. Booked: new, confirmed (pre-consult) - waiting for consultation
 // 2. Post-Consult: consult_complete, no_show - consult happened, need to mark outcome or do recovery
 // 3. Intake: intake_pending - attended but didn't book intake, need to convince them
 // 4. Paperwork: intake_scheduled, paperwork_pending - intake booked, focus on paperwork
 // 5. First Session: paperwork_complete - paperwork done, waiting for first session
-// 6. Converted: converted - success!
-// 7. Lost: lost - dropped off
+// Note: converted and lost stages are filtered out of the Kanban (they're done)
 
 const KANBAN_COLUMNS: KanbanColumn[] = [
   { id: 'booked', title: 'Booked', stages: ['new', 'confirmed'] },
@@ -130,8 +131,6 @@ const KANBAN_COLUMNS: KanbanColumn[] = [
   { id: 'intake', title: 'Intake', stages: ['intake_pending'] },
   { id: 'paperwork', title: 'Paperwork', stages: ['intake_scheduled', 'paperwork_pending'] },
   { id: 'first-session', title: 'First Session', stages: ['paperwork_complete'] },
-  { id: 'converted', title: 'Converted', stages: ['converted'], isTerminal: true, terminalType: 'success' },
-  { id: 'lost', title: 'Lost', stages: ['lost'], isTerminal: true, terminalType: 'neutral' },
 ];
 
 // -----------------------------------------------------------------------------
@@ -178,12 +177,13 @@ const getActionInfo = (consultation: Consultation): ActionInfo => {
   }
 
   // BOOKED COLUMN: new + confirmed (pre-consult)
+  // Using amber for new bookings to create a warm, inviting feel that matches the Take Action modal
   if (stage === 'new') {
     const hoursSinceCreated = (Date.now() - new Date(consultation.createdAt).getTime()) / (1000 * 60 * 60);
     if (hoursSinceCreated >= 4) {
-      return { priority: 'due', buttonLabel: 'Send Confirmation', statusLabel: 'Needs confirmation', colorScheme: 'cyan' };
+      return { priority: 'due', buttonLabel: 'Send Confirmation', statusLabel: 'Awaiting confirmation', colorScheme: 'amber' };
     }
-    return { priority: 'upcoming', buttonLabel: 'Send Confirmation', statusLabel: 'New booking', colorScheme: 'cyan' };
+    return { priority: 'upcoming', buttonLabel: 'Send Confirmation', statusLabel: 'New booking', colorScheme: 'amber' };
   }
 
   if (stage === 'confirmed') {
@@ -196,8 +196,8 @@ const getActionInfo = (consultation: Consultation): ActionInfo => {
     if (timeInfo.isActive) {
       return { priority: 'due', buttonLabel: 'Mark Outcome', statusLabel: 'In session', colorScheme: 'amber' };
     }
-    // Pre-consult: waiting for consult, show Join button (handled separately in card)
-    return { priority: null, buttonLabel: '', statusLabel: 'Scheduled', colorScheme: 'cyan' };
+    // Pre-consult: confirmed and waiting for consultation - still allow management
+    return { priority: 'reactive', buttonLabel: 'Manage', statusLabel: 'Confirmed', colorScheme: 'cyan' };
   }
 
   // POST-CONSULT COLUMN: consult_complete + no_show
@@ -404,21 +404,204 @@ const ClinicianDropdown: React.FC<ClinicianDropdownProps> = ({
 // -----------------------------------------------------------------------------
 // KANBAN CARD
 // -----------------------------------------------------------------------------
+// Redesigned with consistent date/time display:
+// - Always shows a "Context Row" with relevant date info in the same location
+// - Larger, more informative cards
+// - Clear visual hierarchy: Name → Clinician → Date/Context → Status → Action
 
 interface KanbanCardProps {
   consultation: Consultation;
   onTakeAction: () => void;
   onClick: () => void;
-  isTerminal?: boolean;
-  terminalType?: 'success' | 'neutral';
 }
+
+// Helper to get consistent date context for each stage
+// Shows WHEN THE TASK IS DUE, not historical info
+interface DateContext {
+  icon: 'calendar' | 'clock';
+  label: string;
+  sublabel?: string;
+  urgency: 'imminent' | 'urgent' | 'normal' | 'past';
+}
+
+const getDateContext = (consultation: Consultation, timeInfo: TimeUntilConsult): DateContext => {
+  const { stage, datetime, intakeScheduledDate, firstSessionDate, followUpCount, lastFollowUpDate } = consultation;
+  const consultDate = new Date(datetime);
+  const now = new Date();
+
+  // Format helpers
+  const formatDate = (d: Date) => d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  const formatTime = (d: Date) => d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+
+  const tomorrow = new Date(now);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  // Helper to format time until a due date
+  const formatDueIn = (dueDate: Date): { label: string; urgency: 'imminent' | 'urgent' | 'normal' } => {
+    const diffMs = dueDate.getTime() - now.getTime();
+    const diffHours = diffMs / (1000 * 60 * 60);
+
+    if (diffMs <= 0) {
+      return { label: 'Due now', urgency: 'imminent' };
+    }
+    if (diffHours < 1) {
+      const mins = Math.round(diffMs / (1000 * 60));
+      return { label: `Due in ${mins}m`, urgency: 'imminent' };
+    }
+    if (diffHours < 24) {
+      const hours = Math.round(diffHours);
+      return { label: `Due in ${hours}h`, urgency: 'urgent' };
+    }
+    const days = Math.round(diffHours / 24);
+    return { label: `Due in ${days}d`, urgency: 'normal' };
+  };
+
+  // BOOKED COLUMN: new - Shows consultation scheduled date with "Consult:" prefix
+  if (stage === 'new') {
+    const isToday = consultDate.toDateString() === now.toDateString();
+    const isTomorrow = consultDate.toDateString() === tomorrow.toDateString();
+
+    if (isToday) {
+      return { icon: 'calendar', label: 'Consult today', sublabel: formatTime(consultDate), urgency: 'urgent' };
+    }
+    if (isTomorrow) {
+      return { icon: 'calendar', label: 'Consult tomorrow', sublabel: formatTime(consultDate), urgency: 'normal' };
+    }
+    return { icon: 'calendar', label: `Consult ${formatDate(consultDate)}`, sublabel: formatTime(consultDate), urgency: 'normal' };
+  }
+
+  // BOOKED COLUMN: confirmed (pre-consult) - Shows the consultation date/time
+  if (stage === 'confirmed' && timeInfo.level !== 'past' && !timeInfo.isActive) {
+    const isToday = consultDate.toDateString() === now.toDateString();
+    const isTomorrow = consultDate.toDateString() === tomorrow.toDateString();
+
+    if (timeInfo.isActive) {
+      return { icon: 'clock', label: 'Happening now', urgency: 'imminent' };
+    }
+    if (timeInfo.level === 'imminent') {
+      return { icon: 'clock', label: `Starting in ${timeInfo.label}`, urgency: 'imminent' };
+    }
+    if (timeInfo.level === 'soon') {
+      return { icon: 'clock', label: `In ${timeInfo.label}`, sublabel: formatTime(consultDate), urgency: 'urgent' };
+    }
+    if (isToday) {
+      return { icon: 'calendar', label: 'Today', sublabel: formatTime(consultDate), urgency: 'urgent' };
+    }
+    if (isTomorrow) {
+      return { icon: 'calendar', label: 'Tomorrow', sublabel: formatTime(consultDate), urgency: 'normal' };
+    }
+    return { icon: 'calendar', label: formatDate(consultDate), sublabel: formatTime(consultDate), urgency: 'normal' };
+  }
+
+  // POST-CONSULT: confirmed (past) - Mark Outcome is due now
+  if (stage === 'confirmed' && (timeInfo.level === 'past' || timeInfo.isActive)) {
+    return { icon: 'clock', label: 'Due now', urgency: 'imminent' };
+  }
+
+  // POST-CONSULT: consult_complete - Follow-up is due now
+  if (stage === 'consult_complete') {
+    return { icon: 'clock', label: 'Due now', urgency: 'imminent' };
+  }
+
+  // POST-CONSULT: no_show - Recovery follow-ups have specific timing
+  // Recovery #1: Due immediately after no-show
+  // Recovery #2: Due 24h after consult
+  // Recovery #3: Due 72h after consult
+  if (stage === 'no_show') {
+    const hoursSinceConsult = (now.getTime() - consultDate.getTime()) / (1000 * 60 * 60);
+
+    if (followUpCount === 0) {
+      // Recovery #1 is due immediately
+      return { icon: 'clock', label: 'Due now', urgency: 'imminent' };
+    }
+    if (followUpCount === 1) {
+      // Recovery #2 is due at 24h after consult
+      const dueDate = new Date(consultDate.getTime() + 24 * 60 * 60 * 1000);
+      const dueInfo = formatDueIn(dueDate);
+      return { icon: 'clock', label: dueInfo.label, urgency: dueInfo.urgency };
+    }
+    if (followUpCount === 2) {
+      // Recovery #3 is due at 72h after consult
+      const dueDate = new Date(consultDate.getTime() + 72 * 60 * 60 * 1000);
+      const dueInfo = formatDueIn(dueDate);
+      return { icon: 'clock', label: dueInfo.label, urgency: dueInfo.urgency };
+    }
+    // After 3 follow-ups, Mark Lost is due
+    return { icon: 'clock', label: 'Due now', urgency: 'imminent' };
+  }
+
+  // INTAKE COLUMN: intake_pending
+  // Show when follow-up reminder is due (based on days since consult)
+  if (stage === 'intake_pending') {
+    const daysSince = getDaysSince(datetime);
+    if (daysSince >= 7) {
+      return { icon: 'clock', label: 'Due now', sublabel: 'No response', urgency: 'imminent' };
+    }
+    if (daysSince >= 3) {
+      const dueDate = new Date(consultDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+      const dueInfo = formatDueIn(dueDate);
+      return { icon: 'clock', label: dueInfo.label, urgency: dueInfo.urgency };
+    }
+    // Less than 3 days - waiting for client response
+    const dueDate = new Date(consultDate.getTime() + 3 * 24 * 60 * 60 * 1000);
+    const dueInfo = formatDueIn(dueDate);
+    return { icon: 'clock', label: dueInfo.label, sublabel: 'Awaiting response', urgency: 'normal' };
+  }
+
+  // PAPERWORK COLUMN: intake_scheduled, paperwork_pending
+  // Show the intake appointment date/time
+  if (stage === 'intake_scheduled' || stage === 'paperwork_pending') {
+    if (intakeScheduledDate) {
+      const intakeDate = new Date(intakeScheduledDate);
+      const intakeTimeInfo = getTimeUntilConsult(intakeScheduledDate);
+      const intakeIsToday = intakeDate.toDateString() === now.toDateString();
+      const intakeIsTomorrow = intakeDate.toDateString() === tomorrow.toDateString();
+
+      if (intakeTimeInfo.level === 'past') {
+        // Intake already happened - paperwork reminder is due now
+        return { icon: 'clock', label: 'Due now', sublabel: 'Intake completed', urgency: 'imminent' };
+      }
+      if (intakeIsToday) {
+        return { icon: 'calendar', label: 'Intake today', sublabel: formatTime(intakeDate), urgency: 'imminent' };
+      }
+      if (intakeIsTomorrow) {
+        return { icon: 'calendar', label: 'Intake tomorrow', sublabel: formatTime(intakeDate), urgency: 'urgent' };
+      }
+      return { icon: 'calendar', label: `Intake ${formatDate(intakeDate)}`, sublabel: formatTime(intakeDate), urgency: 'normal' };
+    }
+    return { icon: 'calendar', label: 'Intake scheduled', sublabel: 'Date pending', urgency: 'normal' };
+  }
+
+  // FIRST SESSION COLUMN: paperwork_complete
+  // Show the first session date/time
+  if (stage === 'paperwork_complete') {
+    if (firstSessionDate) {
+      const sessionDate = new Date(firstSessionDate);
+      const sessionIsToday = sessionDate.toDateString() === now.toDateString();
+      const sessionIsTomorrow = sessionDate.toDateString() === tomorrow.toDateString();
+      const sessionTimeInfo = getTimeUntilConsult(firstSessionDate);
+
+      if (sessionTimeInfo.level === 'past') {
+        return { icon: 'clock', label: 'Due now', sublabel: 'Session completed', urgency: 'imminent' };
+      }
+      if (sessionIsToday) {
+        return { icon: 'calendar', label: 'Session today', sublabel: formatTime(sessionDate), urgency: 'imminent' };
+      }
+      if (sessionIsTomorrow) {
+        return { icon: 'calendar', label: 'Session tomorrow', sublabel: formatTime(sessionDate), urgency: 'normal' };
+      }
+      return { icon: 'calendar', label: `Session ${formatDate(sessionDate)}`, sublabel: formatTime(sessionDate), urgency: 'normal' };
+    }
+    return { icon: 'calendar', label: 'Awaiting session', sublabel: 'Paperwork complete', urgency: 'normal' };
+  }
+
+  return { icon: 'calendar', label: formatDate(consultDate), urgency: 'normal' };
+};
 
 const KanbanCard: React.FC<KanbanCardProps> = ({
   consultation,
   onTakeAction,
   onClick,
-  isTerminal,
-  terminalType,
 }) => {
   const [timeInfo, setTimeInfo] = useState<TimeUntilConsult>(() =>
     getTimeUntilConsult(consultation.datetime, consultation.duration)
@@ -434,88 +617,107 @@ const KanbanCard: React.FC<KanbanCardProps> = ({
   }, [consultation.datetime, consultation.duration, consultation.stage, timeInfo.level]);
 
   const isConfirmed = consultation.stage === 'confirmed';
+  const isNewBooking = consultation.stage === 'new';
+  const isPreConsult = isConfirmed || isNewBooking;
   const isImminent = isConfirmed && (timeInfo.level === 'imminent' || timeInfo.level === 'soon');
-  const isTodayConsult = isConfirmed && timeInfo.level === 'today';
   const isConsultPast = isConfirmed && (timeInfo.level === 'past' || timeInfo.isActive);
 
   const hasVideoLink = consultation.meetingType === 'google_meet' || consultation.meetingType === 'zoom';
   const isPhoneCall = consultation.meetingType === 'phone';
-  // Only show Join button if confirmed AND consult hasn't happened yet
+  // Show join button for confirmed consultations that haven't passed
   const showJoinButton = isConfirmed && !isConsultPast;
-  const isJoinActive = isConfirmed && (isImminent || isTodayConsult || isConsultationToday(consultation.datetime));
+  // Join is always active now - let users access the link anytime
+  const isJoinActive = true;
 
   const actionInfo = getActionInfo(consultation);
   const { priority: actionPriority, buttonLabel, statusLabel, colorScheme } = actionInfo;
   const showActionButton = actionPriority !== null;
 
-  const getDisplayInfo = () => {
-    if (isConfirmed && !isConsultPast) return timeInfo.label;
-    if (consultation.stage === 'no_show') return `${getDaysSince(consultation.datetime)}d ago`;
-    if (consultation.stage === 'intake_scheduled' && consultation.intakeScheduledDate) {
-      return formatConsultationDate(consultation.intakeScheduledDate).split(',')[0];
-    }
-    if (consultation.stage === 'paperwork_complete' && consultation.firstSessionDate) {
-      return formatConsultationDate(consultation.firstSessionDate).split(',')[0];
-    }
-    return formatConsultationDate(consultation.datetime).split(',')[0];
-  };
+  const dateContext = getDateContext(consultation, timeInfo);
 
   // Card background based on colorScheme and priority
   const getCardBg = () => {
-    if (isTerminal && terminalType === 'success') return 'bg-gradient-to-br from-emerald-50/80 to-teal-50/50';
-    if (isTerminal) return 'bg-stone-50/80';
-    if (isImminent) return 'bg-gradient-to-br from-amber-50 to-orange-50/50';
+    if (dateContext.urgency === 'imminent') return 'bg-gradient-to-br from-amber-50 to-orange-50/50';
     if (actionPriority === 'due') {
-      if (colorScheme === 'rose') return 'bg-gradient-to-br from-rose-50/60 to-pink-50/40';
-      if (colorScheme === 'amber') return 'bg-gradient-to-br from-amber-50/60 to-orange-50/40';
-      if (colorScheme === 'violet') return 'bg-gradient-to-br from-violet-50/60 to-purple-50/40';
-      if (colorScheme === 'emerald') return 'bg-gradient-to-br from-emerald-50/60 to-teal-50/40';
-      if (colorScheme === 'cyan') return 'bg-gradient-to-br from-cyan-50/60 to-sky-50/40';
+      const schemes: Record<string, string> = {
+        rose: 'bg-gradient-to-br from-rose-50/60 to-pink-50/40',
+        amber: 'bg-gradient-to-br from-amber-50/60 to-orange-50/40',
+        violet: 'bg-gradient-to-br from-violet-50/60 to-purple-50/40',
+        emerald: 'bg-gradient-to-br from-emerald-50/60 to-teal-50/40',
+        cyan: 'bg-gradient-to-br from-cyan-50/60 to-sky-50/40',
+      };
+      return schemes[colorScheme] || 'bg-white';
     }
     return 'bg-white';
   };
 
   // Border color based on colorScheme
   const getBorderColor = () => {
-    if (isTerminal && terminalType === 'success') return 'border-emerald-200/60';
-    if (isTerminal) return 'border-stone-200/60';
-    if (isImminent) return 'border-amber-200/80';
+    if (dateContext.urgency === 'imminent') return 'border-amber-200/80';
     if (actionPriority === 'due') {
-      if (colorScheme === 'rose') return 'border-rose-200/60';
-      if (colorScheme === 'amber') return 'border-amber-200/60';
-      if (colorScheme === 'violet') return 'border-violet-200/60';
-      if (colorScheme === 'emerald') return 'border-emerald-200/60';
-      if (colorScheme === 'cyan') return 'border-cyan-200/60';
+      const schemes: Record<string, string> = {
+        rose: 'border-rose-200/60',
+        amber: 'border-amber-200/60',
+        violet: 'border-violet-200/60',
+        emerald: 'border-emerald-200/60',
+        cyan: 'border-cyan-200/60',
+      };
+      return schemes[colorScheme] || 'border-stone-200/80';
     }
     return 'border-stone-200/80';
   };
 
   // Get button styles based on colorScheme and priority
+  // Primary action uses dark stone gradient (design system standard)
   const getButtonStyles = () => {
     if (actionPriority === 'due') {
-      const schemes = {
+      const schemes: Record<string, string> = {
         rose: 'bg-gradient-to-r from-rose-500 to-pink-500 text-white hover:from-rose-600 hover:to-pink-600 shadow-sm shadow-rose-500/20',
         amber: 'bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-600 hover:to-orange-600 shadow-sm shadow-amber-500/20',
         violet: 'bg-gradient-to-r from-violet-500 to-purple-500 text-white hover:from-violet-600 hover:to-purple-600 shadow-sm shadow-violet-500/20',
         emerald: 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-600 hover:to-teal-600 shadow-sm shadow-emerald-500/20',
         cyan: 'bg-gradient-to-r from-cyan-500 to-sky-500 text-white hover:from-cyan-600 hover:to-sky-600 shadow-sm shadow-cyan-500/20',
-        stone: 'bg-stone-800 text-white hover:bg-stone-900',
+        stone: 'bg-stone-900 text-white hover:bg-stone-800',
       };
       return schemes[colorScheme] || schemes.stone;
     }
     if (actionPriority === 'upcoming') {
-      const schemes = {
+      const schemes: Record<string, string> = {
         rose: 'bg-rose-100 text-rose-700 hover:bg-rose-200',
         amber: 'bg-amber-100 text-amber-700 hover:bg-amber-200',
         violet: 'bg-violet-100 text-violet-700 hover:bg-violet-200',
         emerald: 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200',
         cyan: 'bg-cyan-100 text-cyan-700 hover:bg-cyan-200',
-        stone: 'bg-stone-100 text-stone-700 hover:bg-stone-200',
+        stone: 'bg-stone-900 text-white hover:bg-stone-800',
       };
       return schemes[colorScheme] || schemes.stone;
     }
-    // reactive
-    return 'bg-stone-100 text-stone-700 hover:bg-stone-200';
+    // Reactive priority - use dark design system style for primary CTA
+    return 'bg-stone-900 text-white hover:bg-stone-800';
+  };
+
+  // Get avatar styles
+  const getAvatarStyles = () => {
+    if (dateContext.urgency === 'imminent') return 'bg-amber-500 text-white shadow-sm shadow-amber-500/30';
+    if (actionPriority === 'due') {
+      const schemes: Record<string, string> = {
+        rose: 'bg-rose-100 text-rose-700',
+        amber: 'bg-amber-100 text-amber-700',
+        violet: 'bg-violet-100 text-violet-700',
+        emerald: 'bg-emerald-100 text-emerald-700',
+        cyan: 'bg-cyan-100 text-cyan-700',
+      };
+      return schemes[colorScheme] || 'bg-stone-100 text-stone-600';
+    }
+    return 'bg-stone-100 text-stone-600';
+  };
+
+  // Get date context row styles
+  const getDateContextStyles = () => {
+    if (dateContext.urgency === 'imminent') return 'bg-amber-100/80 text-amber-800 border-amber-200/60';
+    if (dateContext.urgency === 'urgent') return 'bg-stone-100 text-stone-700 border-stone-200/60';
+    if (dateContext.urgency === 'past') return 'bg-stone-50 text-stone-500 border-stone-100';
+    return 'bg-stone-50/80 text-stone-600 border-stone-100';
   };
 
   return (
@@ -532,62 +734,56 @@ const KanbanCard: React.FC<KanbanCardProps> = ({
         ${getCardBg()} ${getBorderColor()}
       `}
     >
-      <div className="p-4">
-        {/* Header */}
-        <div className="flex items-start gap-3 mb-3">
-          {/* Avatar - uses colorScheme */}
+      <div className="p-5">
+        {/* Header: Avatar + Name + Clinician */}
+        <div className="flex items-start gap-3.5 mb-4">
           <div className={`
-            w-11 h-11 rounded-xl flex items-center justify-center text-sm font-semibold flex-shrink-0 transition-colors
-            ${isTerminal && terminalType === 'success'
-              ? 'bg-emerald-100 text-emerald-700'
-              : isTerminal
-                ? 'bg-stone-200/80 text-stone-500'
-                : isImminent
-                  ? 'bg-amber-500 text-white shadow-sm shadow-amber-500/30'
-                  : actionPriority === 'due'
-                    ? colorScheme === 'rose' ? 'bg-rose-100 text-rose-700'
-                    : colorScheme === 'amber' ? 'bg-amber-100 text-amber-700'
-                    : colorScheme === 'violet' ? 'bg-violet-100 text-violet-700'
-                    : colorScheme === 'emerald' ? 'bg-emerald-100 text-emerald-700'
-                    : colorScheme === 'cyan' ? 'bg-cyan-100 text-cyan-700'
-                    : 'bg-rose-100 text-rose-700'
-                    : 'bg-stone-100 text-stone-600'
-            }
+            w-12 h-12 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0 transition-colors
+            ${getAvatarStyles()}
           `}>
             {getClientInitials(consultation.firstName, consultation.lastName)}
           </div>
 
           <div className="flex-1 min-w-0">
-            {/* Name - Serif for editorial feel */}
             <h4
-              className="text-base font-semibold text-stone-900 truncate leading-tight"
+              className="text-lg font-semibold text-stone-900 truncate leading-tight"
               style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
             >
               {consultation.firstName} {consultation.lastName}
             </h4>
-            <p className="text-sm text-stone-400 truncate mt-0.5">
+            <p className="text-sm text-stone-500 truncate mt-0.5">
               {consultation.clinicianName}
             </p>
           </div>
 
-          {/* Time pill for confirmed (pre-consult only) */}
-          {isConfirmed && !isConsultPast && (
-            <span className={`
-              flex-shrink-0 px-2.5 py-1 text-xs font-semibold rounded-full
-              ${isImminent
-                ? 'bg-amber-500 text-white'
-                : isTodayConsult
-                  ? 'bg-amber-100 text-amber-800'
-                  : 'bg-cyan-100 text-cyan-700'
-              }
-            `}>
-              {timeInfo.label}
+          {/* Transferred badge - moved to header */}
+          {consultation.wasTransferred && (
+            <span className="flex-shrink-0 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-xs font-medium">
+              Transferred
             </span>
           )}
         </div>
 
-        {/* Status line - uses colorScheme */}
-        <div className="flex items-center justify-between mb-4">
+        {/* Date Context Row - CONSISTENT across all stages */}
+        <div className={`
+          flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl mb-4 border
+          ${getDateContextStyles()}
+        `}>
+          {dateContext.icon === 'calendar' ? (
+            <Calendar size={15} strokeWidth={1.5} className="flex-shrink-0 opacity-70" />
+          ) : (
+            <Clock size={15} strokeWidth={1.5} className="flex-shrink-0 opacity-70" />
+          )}
+          <div className="flex-1 min-w-0">
+            <span className="text-sm font-medium">{dateContext.label}</span>
+            {dateContext.sublabel && (
+              <span className="text-sm opacity-70 ml-1.5">· {dateContext.sublabel}</span>
+            )}
+          </div>
+        </div>
+
+        {/* Status Row */}
+        <div className="mb-4">
           <p className={`text-sm font-medium ${
             actionPriority === 'due'
               ? colorScheme === 'rose' ? 'text-rose-700'
@@ -597,106 +793,51 @@ const KanbanCard: React.FC<KanbanCardProps> = ({
               : colorScheme === 'cyan' ? 'text-cyan-700'
               : 'text-rose-700'
               : actionPriority === 'upcoming'
-                ? colorScheme === 'rose' ? 'text-rose-600'
-                : colorScheme === 'amber' ? 'text-amber-600'
-                : colorScheme === 'violet' ? 'text-violet-600'
-                : colorScheme === 'emerald' ? 'text-emerald-600'
-                : colorScheme === 'cyan' ? 'text-cyan-600'
-                : 'text-amber-600'
+                ? 'text-amber-600'
                 : 'text-stone-500'
           }`}>
             {statusLabel || 'No action needed'}
           </p>
-
-          {/* Time for non-confirmed or post-consult */}
-          {(!isConfirmed || isConsultPast) && (
-            <div className="flex items-center gap-1.5 text-xs text-stone-400">
-              <Clock size={11} strokeWidth={1.5} />
-              <span>{getDisplayInfo()}</span>
-            </div>
-          )}
         </div>
 
-        {/* Transferred badge */}
-        {consultation.wasTransferred && (
-          <div className="mb-3">
-            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-xs font-medium">
-              Transferred
-            </span>
-          </div>
-        )}
-
-        {/* Actions */}
+        {/* Action Buttons */}
         <div className="flex items-center gap-2">
-          {/* Join button */}
+          {/* Join button for pre-consult - always clickable */}
           {showJoinButton && hasVideoLink && consultation.meetingLink && (
             <a
-              href={isJoinActive ? consultation.meetingLink : undefined}
-              target={isJoinActive ? "_blank" : undefined}
-              rel={isJoinActive ? "noopener noreferrer" : undefined}
-              onClick={(e) => { e.stopPropagation(); if (!isJoinActive) e.preventDefault(); }}
-              className={`
-                flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all
-                ${isJoinActive
-                  ? isImminent
-                    ? 'bg-amber-500 text-white hover:bg-amber-600 shadow-sm shadow-amber-500/20'
-                    : 'bg-stone-900 text-white hover:bg-stone-800'
-                  : 'bg-stone-100 text-stone-400 cursor-not-allowed'
-                }
-              `}
+              href={consultation.meetingLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="flex-1 px-4 py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all border-2 border-stone-300 text-stone-600 hover:border-stone-400 hover:bg-stone-50"
             >
-              <Video size={15} strokeWidth={1.5} />
-              Join
+              <Video size={16} strokeWidth={1.5} />
+              Join Consult
             </a>
           )}
 
           {showJoinButton && isPhoneCall && consultation.meetingPhone && (
             <a
-              href={isJoinActive ? `tel:${consultation.meetingPhone}` : undefined}
-              onClick={(e) => { e.stopPropagation(); if (!isJoinActive) e.preventDefault(); }}
-              className={`
-                flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all
-                ${isJoinActive
-                  ? isImminent
-                    ? 'bg-amber-500 text-white hover:bg-amber-600 shadow-sm shadow-amber-500/20'
-                    : 'bg-stone-900 text-white hover:bg-stone-800'
-                  : 'bg-stone-100 text-stone-400 cursor-not-allowed'
-                }
-              `}
+              href={`tel:${consultation.meetingPhone}`}
+              onClick={(e) => e.stopPropagation()}
+              className="flex-1 px-4 py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all border-2 border-stone-300 text-stone-600 hover:border-stone-400 hover:bg-stone-50"
             >
-              <PhoneCall size={15} strokeWidth={1.5} />
-              Call
+              <PhoneCall size={16} strokeWidth={1.5} />
+              Call Client
             </a>
           )}
 
-          {/* Action button - uses colorScheme */}
+          {/* Action button */}
           {showActionButton && (
             <button
               onClick={(e) => { e.stopPropagation(); onTakeAction(); }}
               className={`
-                flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-1.5 transition-all
+                flex-1 px-4 py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all
                 ${getButtonStyles()}
               `}
             >
               {buttonLabel}
-              <ChevronRight size={14} strokeWidth={2} />
-            </button>
-          )}
-
-          {/* Terminal view button */}
-          {isTerminal && (
-            <button
-              onClick={(e) => { e.stopPropagation(); onClick(); }}
-              className={`
-                flex-1 px-4 py-2.5 rounded-xl text-sm font-medium flex items-center justify-center gap-1.5 transition-colors
-                ${terminalType === 'success'
-                  ? 'bg-emerald-100/80 text-emerald-700 hover:bg-emerald-100'
-                  : 'bg-stone-100 text-stone-500 hover:bg-stone-200'
-                }
-              `}
-            >
-              View
-              <ChevronRight size={14} />
+              <ArrowRight size={15} strokeWidth={2} />
             </button>
           )}
         </div>
@@ -727,60 +868,29 @@ const KanbanColumnComponent: React.FC<KanbanColumnComponentProps> = ({
   const actionCount = dueCount + upcomingCount;
 
   return (
-    <div className={`
-      flex flex-col h-full w-[340px] min-w-[340px] rounded-2xl overflow-hidden
-      ${column.isTerminal
-        ? column.terminalType === 'success'
-          ? 'bg-gradient-to-b from-emerald-50/50 to-white/80'
-          : 'bg-gradient-to-b from-stone-100/50 to-white/80'
-        : 'bg-white/90'
-      }
-      border border-stone-200/60
-      backdrop-blur-sm
-    `}
-    style={{ boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.06)' }}
+    <div
+      className="flex flex-col h-full w-[360px] min-w-[360px] rounded-2xl overflow-hidden bg-white/90 border border-stone-200/60 backdrop-blur-sm"
+      style={{ boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.06)' }}
     >
       {/* Header */}
-      <div className={`
-        px-5 py-4 border-b
-        ${column.isTerminal && column.terminalType === 'success'
-          ? 'border-emerald-100 bg-emerald-50/50'
-          : column.isTerminal
-            ? 'border-stone-200/60 bg-stone-50/50'
-            : 'border-stone-100 bg-stone-50/30'
-        }
-      `}>
+      <div className="px-5 py-4 border-b border-stone-100 bg-stone-50/30">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <h3
-              className={`text-lg font-semibold tracking-tight ${
-                column.isTerminal && column.terminalType === 'success'
-                  ? 'text-emerald-800'
-                  : column.isTerminal
-                    ? 'text-stone-500'
-                    : 'text-stone-800'
-              }`}
+              className="text-lg font-semibold tracking-tight text-stone-800"
               style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
             >
               {column.title}
             </h3>
 
             {/* Count badge */}
-            <span className={`
-              px-2 py-0.5 text-sm font-semibold rounded-full tabular-nums
-              ${column.isTerminal && column.terminalType === 'success'
-                ? 'bg-emerald-100 text-emerald-700'
-                : column.isTerminal
-                  ? 'bg-stone-200/80 text-stone-500'
-                  : 'bg-stone-100 text-stone-600'
-              }
-            `}>
+            <span className="px-2 py-0.5 text-sm font-semibold rounded-full tabular-nums bg-stone-100 text-stone-600">
               {consultations.length}
             </span>
           </div>
 
           {/* Action indicator */}
-          {actionCount > 0 && !column.isTerminal && (
+          {actionCount > 0 && (
             <div className="flex items-center gap-1.5">
               {dueCount > 0 && (
                 <span className="w-2 h-2 rounded-full bg-rose-400" />
@@ -803,20 +913,8 @@ const KanbanColumnComponent: React.FC<KanbanColumnComponentProps> = ({
               animate={{ opacity: 1 }}
               className="flex flex-col items-center justify-center py-16 text-center"
             >
-              <div className={`
-                w-12 h-12 rounded-2xl flex items-center justify-center mb-3
-                ${column.isTerminal && column.terminalType === 'success'
-                  ? 'bg-emerald-100/80'
-                  : 'bg-stone-100'
-                }
-              `}>
-                <span className={`text-lg ${
-                  column.isTerminal && column.terminalType === 'success'
-                    ? 'text-emerald-400'
-                    : 'text-stone-300'
-                }`}>
-                  ∅
-                </span>
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-3 bg-stone-100">
+                <span className="text-lg text-stone-300">∅</span>
               </div>
               <p className="text-sm text-stone-400">No clients</p>
             </motion.div>
@@ -827,8 +925,6 @@ const KanbanColumnComponent: React.FC<KanbanColumnComponentProps> = ({
                 consultation={consultation}
                 onTakeAction={() => onTakeAction(consultation)}
                 onClick={() => onSelectConsultation(consultation)}
-                isTerminal={column.isTerminal}
-                terminalType={column.terminalType}
               />
             ))
           )}
@@ -855,20 +951,25 @@ export const ConsultationsKanban: React.FC<ConsultationsKanbanProps> = ({
     return Array.from(names).sort();
   }, [consultations]);
 
+  // Filter out converted and lost consultations - they're done and shouldn't appear in the pipeline
+  const activeConsultations = useMemo(() => {
+    return consultations.filter(c => c.stage !== 'converted' && c.stage !== 'lost');
+  }, [consultations]);
+
   const filteredConsultations = useMemo(() => {
-    let result = consultations;
+    let result = activeConsultations;
     if (selectedClinician) result = result.filter(c => c.clinicianName === selectedClinician);
     if (filterMode === 'needs_action') result = result.filter(consultationNeedsAction);
     return result;
-  }, [consultations, filterMode, selectedClinician]);
+  }, [activeConsultations, filterMode, selectedClinician]);
 
   const counts = useMemo(() => {
-    let base = selectedClinician ? consultations.filter(c => c.clinicianName === selectedClinician) : consultations;
+    let base = selectedClinician ? activeConsultations.filter(c => c.clinicianName === selectedClinician) : activeConsultations;
     return {
       all: base.length,
       needsAction: base.filter(consultationNeedsAction).length,
     };
-  }, [consultations, selectedClinician]);
+  }, [activeConsultations, selectedClinician]);
 
   // Helper to determine effective column for a consultation
   // Key logic: confirmed consultations that are past their time go to post-consult

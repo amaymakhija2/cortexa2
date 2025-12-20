@@ -99,7 +99,7 @@ const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
   const isPast = isConsultationPast(consultation.datetime);
 
   // Build timeline items
-  const timelineItems: { label: string; date?: string; status: 'done' | 'current' | 'pending' }[] = [
+  const timelineItems: { label: string; date?: string; status: 'done' | 'current' | 'next' | 'pending' }[] = [
     {
       label: 'Consultation scheduled',
       date: formatConsultationDate(consultation.datetime),
@@ -109,10 +109,10 @@ const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
 
   if (consultation.stage === 'new') {
     timelineItems.push({ label: 'Send confirmation email', status: 'current' });
-    timelineItems.push({ label: 'Consultation', status: 'pending' });
+    timelineItems.push({ label: 'Consultation upcoming', date: formatConsultationDate(consultation.datetime), status: 'next' });
   } else if (consultation.stage === 'confirmed') {
     timelineItems.push({ label: 'Confirmation sent', status: 'done' });
-    timelineItems.push({ label: 'Consultation', status: isPast ? 'current' : 'pending' });
+    timelineItems.push({ label: 'Mark consultation outcome', status: 'current' });
   } else if (consultation.stage === 'consult_complete') {
     timelineItems.push({ label: 'Confirmation sent', status: 'done' });
     timelineItems.push({ label: 'Consultation complete', status: 'done' });
@@ -228,27 +228,39 @@ const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
           {timelineItems.map((item, idx) => (
             <div key={idx} className="flex items-start gap-4">
               <div className="flex flex-col items-center">
-                <div
-                  className={`w-3 h-3 rounded-full flex-shrink-0 ${
-                    item.status === 'done' ? 'bg-emerald-500' :
-                    item.status === 'current' ? 'bg-amber-500' : 'bg-stone-300'
-                  }`}
-                />
+                {item.status === 'next' ? (
+                  <motion.div
+                    animate={{ scale: [1, 1.2, 1] }}
+                    transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                    className="w-3 h-3 rounded-full flex-shrink-0 bg-cyan-500"
+                  />
+                ) : (
+                  <div
+                    className={`w-3 h-3 rounded-full flex-shrink-0 ${
+                      item.status === 'done' ? 'bg-emerald-500' :
+                      item.status === 'current' ? 'bg-amber-500' : 'bg-stone-300'
+                    }`}
+                  />
+                )}
                 {idx < timelineItems.length - 1 && (
                   <div className={`w-0.5 h-8 ${
-                    item.status === 'done' ? 'bg-emerald-200' : 'bg-stone-200'
+                    item.status === 'done' ? 'bg-emerald-200' :
+                    item.status === 'next' ? 'bg-cyan-200' : 'bg-stone-200'
                   }`} />
                 )}
               </div>
               <div className="pb-4">
                 <p className={`font-medium ${
                   item.status === 'done' ? 'text-stone-600' :
-                  item.status === 'current' ? 'text-stone-900' : 'text-stone-400'
+                  item.status === 'current' ? 'text-stone-900' :
+                  item.status === 'next' ? 'text-cyan-700' : 'text-stone-400'
                 }`}>
                   {item.label}
                 </p>
                 {item.date && (
-                  <p className="text-stone-400 text-sm mt-0.5">{item.date}</p>
+                  <p className={`text-sm mt-0.5 ${item.status === 'next' ? 'text-cyan-600' : 'text-stone-400'}`}>
+                    {item.date}
+                  </p>
                 )}
               </div>
             </div>
@@ -821,6 +833,116 @@ const MonthGroupSection: React.FC<MonthGroupSectionProps> = ({
 // View mode type
 type ViewMode = 'kanban' | 'upcoming' | 'list';
 
+// =============================================================================
+// DEV TESTING PANEL
+// =============================================================================
+// Floating panel for testing different consultation stages
+
+const ALL_STAGES: ConsultationStage[] = [
+  'new',
+  'confirmed',
+  'consult_complete',
+  'no_show',
+  'intake_pending',
+  'intake_scheduled',
+  'paperwork_pending',
+  'paperwork_complete',
+  'converted',
+  'lost',
+];
+
+const STAGE_LABELS_DEV: Record<ConsultationStage, string> = {
+  new: 'New Booking',
+  confirmed: 'Confirmed',
+  consult_complete: 'Consult Complete',
+  no_show: 'No-Show',
+  intake_pending: 'Awaiting Intake',
+  intake_scheduled: 'Intake Scheduled',
+  paperwork_pending: 'Paperwork Pending',
+  paperwork_complete: 'Paperwork Complete',
+  converted: 'Converted',
+  lost: 'Lost',
+};
+
+interface DevTestingPanelProps {
+  currentStage: ConsultationStage;
+  onSetStage: (stage: ConsultationStage) => void;
+  onReset: () => void;
+}
+
+const DevTestingPanel: React.FC<DevTestingPanelProps> = ({ currentStage, onSetStage, onReset }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="fixed bottom-6 right-6 z-[100]">
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+            className="absolute bottom-16 right-0 w-72 bg-white rounded-2xl shadow-2xl border border-stone-200 overflow-hidden"
+          >
+            <div className="px-4 py-3 bg-stone-900 text-white">
+              <h4 className="font-bold text-sm">🧪 Dev Testing</h4>
+              <p className="text-xs text-stone-400 mt-0.5">Set Emily's stage</p>
+            </div>
+            <div className="p-3 max-h-[400px] overflow-y-auto">
+              <div className="space-y-1">
+                {ALL_STAGES.map((stage) => (
+                  <button
+                    key={stage}
+                    onClick={() => {
+                      onSetStage(stage);
+                      setIsOpen(false);
+                    }}
+                    className={`
+                      w-full text-left px-3 py-2.5 rounded-xl text-sm font-medium transition-all
+                      ${currentStage === stage
+                        ? 'bg-amber-100 text-amber-900 border-2 border-amber-300'
+                        : 'bg-stone-50 text-stone-700 hover:bg-stone-100 border-2 border-transparent'
+                      }
+                    `}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span>{STAGE_LABELS_DEV[stage]}</span>
+                      {currentStage === stage && (
+                        <span className="text-xs bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full">Current</span>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+              <div className="mt-3 pt-3 border-t border-stone-200">
+                <button
+                  onClick={() => {
+                    onReset();
+                    setIsOpen(false);
+                  }}
+                  className="w-full px-3 py-2.5 rounded-xl text-sm font-semibold bg-rose-100 text-rose-700 hover:bg-rose-200 transition-all"
+                >
+                  Reset to New Booking
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className={`
+          w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-2xl
+          transition-all hover:scale-105 active:scale-95
+          ${isOpen ? 'bg-stone-900 text-white' : 'bg-amber-500 text-white'}
+        `}
+      >
+        {isOpen ? '×' : '🧪'}
+      </button>
+    </div>
+  );
+};
+
 export const Consultations: React.FC = () => {
   const [selectedSegment, setSelectedSegment] = useState<ConsultationSegment>('action_needed');
   const [selectedConsultation, setSelectedConsultation] = useState<Consultation | null>(null);
@@ -830,6 +952,26 @@ export const Consultations: React.FC = () => {
   const [transferModalConsultation, setTransferModalConsultation] = useState<Consultation | null>(null);
   const [takeActionConsultation, setTakeActionConsultation] = useState<Consultation | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('kanban');
+
+  // Dev testing: Get Emily's current stage
+  const emilyConsultation = consultations.find(c => c.id === 'c1');
+  const currentDevStage = emilyConsultation?.stage || 'new';
+
+  // Dev testing: Set stage directly
+  const handleDevSetStage = (stage: ConsultationStage) => {
+    setConsultations(prev => prev.map(c => {
+      if (c.id !== 'c1') return c;
+      return { ...c, stage, updatedAt: new Date().toISOString() };
+    }));
+  };
+
+  // Dev testing: Reset to new
+  const handleDevReset = () => {
+    setConsultations(prev => prev.map(c => {
+      if (c.id !== 'c1') return c;
+      return { ...c, stage: 'new' as ConsultationStage, followUpCount: 0, updatedAt: new Date().toISOString() };
+    }));
+  };
 
   // Check if current segment is historical (converted/lost)
   const isHistoricalSegment = selectedSegment === 'converted' || selectedSegment === 'lost';
@@ -1577,6 +1719,13 @@ export const Consultations: React.FC = () => {
           />
         )}
       </AnimatePresence>
+
+      {/* Dev Testing Panel */}
+      <DevTestingPanel
+        currentStage={currentDevStage}
+        onSetStage={handleDevSetStage}
+        onReset={handleDevReset}
+      />
     </div>
   );
 };
