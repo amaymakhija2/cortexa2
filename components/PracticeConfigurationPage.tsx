@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -38,6 +38,7 @@ import {
   CalendarCheck,
   FileCheck,
   PartyPopper,
+  GitBranch,
 } from 'lucide-react';
 import { PageHeader, PageContent, Grid, AnimatedSection } from './design-system';
 import { CLINICIANS as MASTER_CLINICIANS } from '../data/clinicians';
@@ -81,6 +82,9 @@ type ClinicianRole =
   | 'Senior Therapist'
   | 'Therapist'
   | 'Associate';
+
+// Follow-up attempt count options
+type FollowUpAttempts = 2 | 3 | 4;
 
 interface Clinician {
   id: string;
@@ -1727,572 +1731,852 @@ const ThresholdsTab: React.FC<{
 // =============================================================================
 // CONSULTATION FLOW TAB
 // =============================================================================
-// Visual flowchart showing the complete consultation-to-conversion pipeline.
-// Displays all possible paths including happy path, no-show recovery, and loss points.
+// Configurable consultation pipeline with visual flow preview.
+// Allows practices to customize their workflow timing and follow-up sequences.
 // =============================================================================
 
-// Flow node configuration
-interface FlowNode {
-  id: string;
+// Configuration types - unified presets (each preset defines both timing AND number of attempts)
+type FollowUpPreset = 'aggressive' | 'standard' | 'relaxed';
+
+interface PipelineConfig {
+  requireConfirmation: boolean;
+  enableSecondConsult: boolean;
+  noShowPreset: FollowUpPreset;
+  intakePreset: FollowUpPreset;
+  paperworkPreset: FollowUpPreset;
+}
+
+const DEFAULT_PIPELINE_CONFIG: PipelineConfig = {
+  requireConfirmation: true,
+  enableSecondConsult: false,
+  noShowPreset: 'standard',
+  intakePreset: 'standard',
+  paperworkPreset: 'standard',
+};
+
+// Unified preset definitions - each preset has its own complete sequence
+interface PresetDetails {
   label: string;
-  sublabel?: string;
-  icon: React.ReactNode;
-  color: string;
-  bgColor: string;
-  borderColor: string;
-  action?: string;
-  type: 'stage' | 'action' | 'terminal';
+  description: string;
+  sequence: string[];
 }
 
-interface FlowConnection {
-  from: string;
-  to: string;
-  label?: string;
-  type: 'primary' | 'secondary' | 'danger';
-  condition?: string;
-}
+const NO_SHOW_PRESETS: Record<FollowUpPreset, PresetDetails> = {
+  aggressive: {
+    label: 'Aggressive',
+    description: '4 quick follow-ups',
+    sequence: ['Immediate', '6 hours', '12 hours', '24 hours']
+  },
+  standard: {
+    label: 'Standard',
+    description: '3 balanced follow-ups',
+    sequence: ['Immediate', '24 hours', '72 hours']
+  },
+  relaxed: {
+    label: 'Relaxed',
+    description: '2 gentle follow-ups',
+    sequence: ['24 hours', '1 week']
+  },
+};
 
-const ConsultationFlowTab: React.FC = () => {
-  // Define all flow nodes
-  const nodes: Record<string, FlowNode> = {
-    // Entry point
-    booking: {
-      id: 'booking',
-      label: 'Client Books',
-      sublabel: 'via Acuity',
-      icon: <Calendar size={24} />,
-      color: 'text-sky-700',
-      bgColor: 'bg-sky-50',
-      borderColor: 'border-sky-200',
-      type: 'stage',
-    },
-    // Stage: New
-    new: {
-      id: 'new',
-      label: 'New',
-      sublabel: 'Awaiting confirmation',
-      icon: <Sparkles size={24} />,
-      color: 'text-cyan-700',
-      bgColor: 'bg-cyan-50',
-      borderColor: 'border-cyan-300',
-      action: 'Send confirmation email',
-      type: 'stage',
-    },
-    // Stage: Confirmed
-    confirmed: {
-      id: 'confirmed',
-      label: 'Confirmed',
-      sublabel: 'Consultation scheduled',
-      icon: <CalendarCheck size={24} />,
-      color: 'text-indigo-700',
-      bgColor: 'bg-indigo-50',
-      borderColor: 'border-indigo-300',
-      action: 'Wait for consultation',
-      type: 'stage',
-    },
-    // Decision: Did they attend?
-    attended_check: {
-      id: 'attended_check',
-      label: 'Did they attend?',
-      icon: <UserCheck size={24} />,
-      color: 'text-stone-600',
-      bgColor: 'bg-stone-100',
-      borderColor: 'border-stone-300',
-      type: 'action',
-    },
-    // Stage: Consult Complete
-    consult_complete: {
-      id: 'consult_complete',
-      label: 'Consult Complete',
-      sublabel: 'Attended successfully',
-      icon: <MessageSquare size={24} />,
-      color: 'text-emerald-700',
-      bgColor: 'bg-emerald-50',
-      borderColor: 'border-emerald-300',
-      action: 'Send post-consult message',
-      type: 'stage',
-    },
-    // Stage: No-Show
-    no_show: {
-      id: 'no_show',
-      label: 'No-Show',
-      sublabel: 'Missed consultation',
-      icon: <UserX size={24} />,
-      color: 'text-rose-700',
-      bgColor: 'bg-rose-50',
-      borderColor: 'border-rose-300',
-      action: 'Begin follow-up sequence',
-      type: 'stage',
-    },
-    // Follow-up sequence
-    followup_1: {
-      id: 'followup_1',
-      label: 'Follow-up #1',
-      sublabel: 'Immediate',
-      icon: <Send size={24} />,
-      color: 'text-orange-700',
-      bgColor: 'bg-orange-50',
-      borderColor: 'border-orange-300',
-      type: 'action',
-    },
-    followup_2: {
-      id: 'followup_2',
-      label: 'Follow-up #2',
-      sublabel: '24 hours later',
-      icon: <Send size={24} />,
-      color: 'text-orange-700',
-      bgColor: 'bg-orange-50',
-      borderColor: 'border-orange-300',
-      type: 'action',
-    },
-    followup_3: {
-      id: 'followup_3',
-      label: 'Follow-up #3',
-      sublabel: '72 hours later',
-      icon: <Send size={24} />,
-      color: 'text-orange-700',
-      bgColor: 'bg-orange-50',
-      borderColor: 'border-orange-300',
-      type: 'action',
-    },
-    // Stage: Intake Pending
-    intake_pending: {
-      id: 'intake_pending',
-      label: 'Intake Pending',
-      sublabel: 'Waiting for scheduling',
-      icon: <Clock size={24} />,
-      color: 'text-amber-700',
-      bgColor: 'bg-amber-50',
-      borderColor: 'border-amber-300',
-      action: 'Confirm intake scheduled',
-      type: 'stage',
-    },
-    // Stage: Intake Scheduled
-    intake_scheduled: {
-      id: 'intake_scheduled',
-      label: 'Intake Scheduled',
-      sublabel: 'Date confirmed',
-      icon: <CalendarCheck size={24} />,
-      color: 'text-amber-700',
-      bgColor: 'bg-amber-50',
-      borderColor: 'border-amber-300',
-      action: 'Send paperwork reminder',
-      type: 'stage',
-    },
-    // Stage: Paperwork Pending
-    paperwork_pending: {
-      id: 'paperwork_pending',
-      label: 'Paperwork Pending',
-      sublabel: 'Awaiting completion',
-      icon: <FileText size={24} />,
-      color: 'text-amber-700',
-      bgColor: 'bg-amber-50',
-      borderColor: 'border-amber-300',
-      action: 'Confirm paperwork complete',
-      type: 'stage',
-    },
-    // Stage: Ready for Session
-    ready_for_session: {
-      id: 'ready_for_session',
-      label: 'Ready for Session',
-      sublabel: 'All set for first appointment',
-      icon: <FileCheck size={24} />,
-      color: 'text-emerald-700',
-      bgColor: 'bg-emerald-50',
-      borderColor: 'border-emerald-300',
-      action: 'Confirm first session done',
-      type: 'stage',
-    },
-    // Terminal: Converted
-    converted: {
-      id: 'converted',
-      label: 'Converted',
-      sublabel: 'Active client!',
-      icon: <PartyPopper size={24} />,
-      color: 'text-emerald-800',
-      bgColor: 'bg-gradient-to-br from-emerald-100 to-teal-100',
-      borderColor: 'border-emerald-400',
-      type: 'terminal',
-    },
-    // Terminal: Lost
-    lost: {
-      id: 'lost',
-      label: 'Lost',
-      sublabel: 'Did not convert',
-      icon: <XCircle size={24} />,
-      color: 'text-stone-500',
-      bgColor: 'bg-stone-100',
-      borderColor: 'border-stone-300',
-      type: 'terminal',
-    },
-  };
+const INTAKE_PRESETS: Record<FollowUpPreset, PresetDetails> = {
+  aggressive: {
+    label: 'Aggressive',
+    description: '4 quick reminders',
+    sequence: ['12 hours', '24 hours', '48 hours', '72 hours']
+  },
+  standard: {
+    label: 'Standard',
+    description: '3 balanced reminders',
+    sequence: ['24 hours', '72 hours', '1 week']
+  },
+  relaxed: {
+    label: 'Relaxed',
+    description: '2 gentle reminders',
+    sequence: ['48 hours', '1 week']
+  },
+};
 
-  // Render a single flow node
-  const FlowNodeComponent: React.FC<{ node: FlowNode; delay?: number }> = ({ node, delay = 0 }) => (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ delay, duration: 0.3, ease: 'easeOut' }}
+const PAPERWORK_PRESETS: Record<FollowUpPreset, PresetDetails> = {
+  aggressive: {
+    label: 'Aggressive',
+    description: '3 reminders close to intake',
+    sequence: ['T-48hr', 'T-24hr', 'T-12hr']
+  },
+  standard: {
+    label: 'Standard',
+    description: '2 balanced reminders',
+    sequence: ['T-72hr', 'T-24hr']
+  },
+  relaxed: {
+    label: 'Relaxed',
+    description: '2 early reminders',
+    sequence: ['T-1 week', 'T-48hr']
+  },
+};
+
+// Toggle Switch Component - defined outside to prevent re-creation
+const ConsultToggleSwitch: React.FC<{
+  enabled: boolean;
+  onChange: (enabled: boolean) => void;
+  label: string;
+  description?: string;
+}> = ({ enabled, onChange, label, description }) => (
+  <div className="flex items-start justify-between gap-4">
+    <div className="flex-1 min-w-0">
+      <p className="font-semibold text-base text-stone-800">{label}</p>
+      {description && <p className="text-sm text-stone-500 mt-1 leading-relaxed">{description}</p>}
+    </div>
+    <button
+      onClick={() => onChange(!enabled)}
       className={`
-        relative group
-        ${node.type === 'terminal' ? 'w-44' : node.type === 'action' ? 'w-40' : 'w-52'}
+        relative w-16 h-9 rounded-full transition-colors duration-200 flex-shrink-0 mt-0.5
+        ${enabled
+          ? 'bg-gradient-to-r from-cyan-500 to-teal-500'
+          : 'bg-stone-200'
+        }
       `}
     >
       <div
         className={`
-          relative p-4 rounded-2xl border-2 transition-all duration-300
-          ${node.bgColor} ${node.borderColor}
-          ${node.type === 'terminal' ? 'shadow-lg' : 'shadow-sm'}
-          group-hover:shadow-xl group-hover:scale-[1.02]
+          absolute top-1.5 w-6 h-6 rounded-full bg-white shadow-md
+          transition-transform duration-200 ease-out
+          ${enabled ? 'translate-x-8' : 'translate-x-1.5'}
         `}
-      >
-        {/* Icon */}
-        <div className={`flex items-center justify-center mb-3 ${node.color}`}>
-          {node.icon}
-        </div>
+      />
+    </button>
+  </div>
+);
 
-        {/* Label */}
-        <h4
-          className={`text-center font-bold ${node.color} ${node.type === 'terminal' ? 'text-lg' : 'text-base'}`}
-          style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+// Unified Preset Selector - shows label, description, and sequence in one component
+const ConsultPresetSelector: React.FC<{
+  value: FollowUpPreset;
+  onChange: (value: FollowUpPreset) => void;
+  presets: Record<FollowUpPreset, PresetDetails>;
+}> = ({ value, onChange, presets }) => (
+  <div className="space-y-3">
+    {(['aggressive', 'standard', 'relaxed'] as FollowUpPreset[]).map((preset) => {
+      const details = presets[preset];
+      const isSelected = value === preset;
+      return (
+        <button
+          key={preset}
+          onClick={() => onChange(preset)}
+          className={`
+            w-full p-4 rounded-xl text-left transition-all duration-200
+            ${isSelected
+              ? 'bg-white text-stone-900 shadow-lg ring-2 ring-stone-900 ring-offset-2'
+              : 'bg-stone-50 hover:bg-stone-100 border border-stone-200'
+            }
+          `}
         >
-          {node.label}
-        </h4>
-
-        {/* Sublabel */}
-        {node.sublabel && (
-          <p className="text-center text-xs text-stone-500 mt-1">{node.sublabel}</p>
-        )}
-
-        {/* Action badge */}
-        {node.action && (
-          <div className="mt-3 px-2 py-1.5 rounded-lg bg-white/80 border border-stone-200">
-            <p className="text-xs text-stone-600 text-center font-medium">
-              {node.action}
-            </p>
+          <div className="flex items-center justify-between mb-2">
+            <span className={`font-bold text-base ${isSelected ? 'text-stone-900' : 'text-stone-800'}`}>
+              {details.label}
+            </span>
+            <span className={`text-sm ${isSelected ? 'text-stone-600' : 'text-stone-500'}`}>
+              {details.description}
+            </span>
           </div>
-        )}
+          {/* Timing sequence */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {details.sequence.map((timing, idx, arr) => (
+              <React.Fragment key={idx}>
+                <div className="flex items-center gap-1.5">
+                  <div className={`w-2 h-2 rounded-full ${isSelected ? 'bg-stone-900' : 'bg-cyan-500'}`} />
+                  <span className={`text-sm font-medium ${isSelected ? 'text-stone-700' : 'text-stone-600'}`}>
+                    {timing}
+                  </span>
+                </div>
+                {idx < arr.length - 1 && (
+                  <ArrowRight size={14} className={isSelected ? 'text-stone-400' : 'text-stone-400'} />
+                )}
+              </React.Fragment>
+            ))}
+          </div>
+        </button>
+      );
+    })}
+  </div>
+);
+
+// Configuration Card Component - consistent height design system card
+const ConsultConfigCard: React.FC<{
+  icon: React.ReactNode;
+  title: string;
+  subtitle: string;
+  color: string;
+  children: React.ReactNode;
+}> = ({ icon, title, subtitle, color, children }) => (
+  <div className="h-full bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden flex flex-col">
+    {/* Accent bar */}
+    <div className="h-1" style={{ background: color }} />
+    <div className="p-6 flex-1 flex flex-col">
+      <div className="flex items-start gap-4 mb-5">
+        <div
+          className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+          style={{ background: `${color}15`, color }}
+        >
+          {icon}
+        </div>
+        <div className="min-w-0 flex-1">
+          <h3
+            className="text-lg font-bold text-stone-800"
+            style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+          >
+            {title}
+          </h3>
+          <p className="text-sm text-stone-500">{subtitle}</p>
+        </div>
       </div>
-    </motion.div>
-  );
+      <div className="flex-1">{children}</div>
+    </div>
+  </div>
+);
 
-  // Arrow component
-  const Arrow: React.FC<{
-    direction: 'down' | 'right' | 'down-right' | 'down-left';
-    label?: string;
-    type?: 'primary' | 'secondary' | 'danger';
-    delay?: number;
-  }> = ({ direction, label, type = 'primary', delay = 0 }) => {
-    const colors = {
-      primary: 'text-emerald-500',
-      secondary: 'text-stone-400',
-      danger: 'text-rose-400',
-    };
+const ConsultationFlowTab: React.FC = () => {
+  const [config, setConfig] = useState<PipelineConfig>(DEFAULT_PIPELINE_CONFIG);
+  const [savedConfig, setSavedConfig] = useState<PipelineConfig>(DEFAULT_PIPELINE_CONFIG);
+  const [activeView, setActiveView] = useState<'configure' | 'preview'>('configure');
 
-    return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay, duration: 0.3 }}
-        className={`flex items-center justify-center ${colors[type]}`}
-      >
-        {direction === 'down' && (
-          <div className="flex flex-col items-center py-2">
-            <div className="w-0.5 h-6 bg-current opacity-60" />
-            <ArrowDown size={20} className="my-1" />
-            {label && <span className="text-xs font-medium mt-1 text-stone-500">{label}</span>}
-          </div>
-        )}
-        {direction === 'right' && (
-          <div className="flex items-center px-3">
-            <div className="w-8 h-0.5 bg-current opacity-60" />
-            <ArrowRight size={20} className="mx-1" />
-            {label && <span className="text-xs font-medium ml-2 text-stone-500">{label}</span>}
-          </div>
-        )}
-      </motion.div>
-    );
+  // Check if current config differs from saved config
+  const hasChanges = JSON.stringify(config) !== JSON.stringify(savedConfig);
+
+  const updateConfig = useCallback(<K extends keyof PipelineConfig>(key: K, value: PipelineConfig[K]) => {
+    setConfig(prev => ({ ...prev, [key]: value }));
+  }, []);
+
+  const handleSave = () => {
+    // In a real app, this would save to backend
+    setSavedConfig(config);
   };
-
-  // Branch connector for split paths
-  const BranchConnector: React.FC<{ delay?: number }> = ({ delay = 0 }) => (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ delay }}
-      className="flex items-center justify-center py-3"
-    >
-      <div className="relative">
-        {/* Vertical line down */}
-        <div className="w-0.5 h-8 bg-stone-300 mx-auto" />
-        {/* Horizontal split */}
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[340px] h-0.5 bg-stone-300" />
-        {/* Left branch down */}
-        <div className="absolute bottom-0 left-1/2 -translate-x-[170px] w-0.5 h-4 bg-stone-300" />
-        {/* Right branch down */}
-        <div className="absolute bottom-0 left-1/2 translate-x-[170px] w-0.5 h-4 bg-stone-300" />
-      </div>
-    </motion.div>
-  );
 
   return (
     <PageContent>
-      <AnimatedSection delay={0}>
-        <div className="mb-10">
-          <h2
-            className="text-3xl font-bold text-stone-800"
-            style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-          >
-            Consultation Flow
-          </h2>
-          <p className="text-stone-500 text-lg mt-1">
-            Visual map of your client journey from booking to conversion
-          </p>
-        </div>
-      </AnimatedSection>
-
-      {/* Flow Diagram */}
-      <AnimatedSection delay={0.1}>
-        <div
-          className="relative p-8 rounded-3xl overflow-x-auto"
-          style={{
-            background: 'linear-gradient(180deg, #fafaf9 0%, #f5f5f4 100%)',
-            boxShadow: 'inset 0 2px 20px rgba(0,0,0,0.03)',
-          }}
-        >
-          {/* Decorative grid pattern */}
-          <div
-            className="absolute inset-0 opacity-[0.03]"
-            style={{
-              backgroundImage: `
-                linear-gradient(to right, #78716c 1px, transparent 1px),
-                linear-gradient(to bottom, #78716c 1px, transparent 1px)
-              `,
-              backgroundSize: '40px 40px',
-            }}
-          />
-
-          <div className="relative min-w-[1100px]">
-            {/* Row 1: Entry */}
-            <div className="flex justify-center mb-2">
-              <FlowNodeComponent node={nodes.booking} delay={0.15} />
-            </div>
-            <Arrow direction="down" delay={0.2} />
-
-            {/* Row 2: New */}
-            <div className="flex justify-center mb-2">
-              <FlowNodeComponent node={nodes.new} delay={0.25} />
-            </div>
-            <Arrow direction="down" delay={0.3} />
-
-            {/* Row 3: Confirmed */}
-            <div className="flex justify-center mb-2">
-              <FlowNodeComponent node={nodes.confirmed} delay={0.35} />
-            </div>
-            <Arrow direction="down" delay={0.4} />
-
-            {/* Row 4: Attendance Decision */}
-            <div className="flex justify-center mb-2">
-              <FlowNodeComponent node={nodes.attended_check} delay={0.45} />
-            </div>
-
-            {/* Branch: Attended vs No-Show - Two column layout */}
-            <div className="flex mt-4">
-              {/* LEFT COLUMN: Happy Path (Attended) */}
-              <div className="flex-1 flex flex-col items-center">
-                {/* Branch line down from center */}
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.5 }}
-                  className="flex items-center mb-4"
-                >
-                  <div className="w-[120px] h-0.5 bg-stone-300" />
-                  <div className="w-0.5 h-8 bg-emerald-400" />
-                </motion.div>
-
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.55 }}
-                  className="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-3"
-                >
-                  Yes, attended
-                </motion.p>
-
-                {/* Full happy path flows down */}
-                <FlowNodeComponent node={nodes.consult_complete} delay={0.6} />
-                <Arrow direction="down" delay={0.65} />
-                <FlowNodeComponent node={nodes.intake_pending} delay={0.7} />
-                <Arrow direction="down" delay={0.75} />
-                <FlowNodeComponent node={nodes.intake_scheduled} delay={0.8} />
-                <Arrow direction="down" delay={0.85} />
-                <FlowNodeComponent node={nodes.paperwork_pending} delay={0.9} />
-                <Arrow direction="down" delay={0.95} />
-                <FlowNodeComponent node={nodes.ready_for_session} delay={1} />
-                <Arrow direction="down" delay={1.05} />
-                <FlowNodeComponent node={nodes.converted} delay={1.1} />
-              </div>
-
-              {/* RIGHT COLUMN: No-Show Path */}
-              <div className="flex-1 flex flex-col items-center">
-                {/* Branch line down from center */}
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.5 }}
-                  className="flex items-center mb-4"
-                >
-                  <div className="w-0.5 h-8 bg-rose-400" />
-                  <div className="w-[120px] h-0.5 bg-stone-300" />
-                </motion.div>
-
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.55 }}
-                  className="text-xs font-bold text-rose-600 uppercase tracking-wider mb-3"
-                >
-                  No-show
-                </motion.p>
-
-                <FlowNodeComponent node={nodes.no_show} delay={0.6} />
-                <Arrow direction="down" type="danger" delay={0.65} />
-
-                {/* Follow-up sequence - horizontal */}
-                <div className="flex items-center gap-2">
-                  <FlowNodeComponent node={nodes.followup_1} delay={0.7} />
-                  <Arrow direction="right" type="danger" delay={0.75} />
-                  <FlowNodeComponent node={nodes.followup_2} delay={0.8} />
-                  <Arrow direction="right" type="danger" delay={0.85} />
-                  <FlowNodeComponent node={nodes.followup_3} delay={0.9} />
-                </div>
-
-                {/* Recovery or Lost */}
-                <div className="flex items-center gap-12 mt-6">
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.95 }}
-                    className="flex flex-col items-center"
-                  >
-                    <p className="text-xs text-emerald-600 font-medium mb-2">Reschedules</p>
-                    <div className="w-20 h-0.5 bg-emerald-300 mb-2" />
-                    <p className="text-xs text-stone-400">↩ Back to New</p>
-                  </motion.div>
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 1 }}
-                    className="flex flex-col items-center"
-                  >
-                    <p className="text-xs text-stone-500 font-medium mb-2">No response</p>
-                    <Arrow direction="down" type="secondary" delay={1.05} />
-                    <FlowNodeComponent node={nodes.lost} delay={1.1} />
-                  </motion.div>
-                </div>
-              </div>
-            </div>
-
-            {/* Lost exit points annotation */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 1.2 }}
-              className="absolute left-4 top-1/2 -translate-y-1/2"
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <h2
+              className="text-3xl font-bold text-stone-800"
+              style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
             >
-              <div className="p-4 rounded-xl bg-stone-800 text-white max-w-[200px]">
-                <p className="text-xs font-bold uppercase tracking-wider text-stone-400 mb-2">
-                  Loss Points
-                </p>
-                <ul className="space-y-2 text-sm">
-                  <li className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-rose-400" />
-                    <span>Pre-consult (no-show)</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-amber-400" />
-                    <span>Pre-intake</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-amber-400" />
-                    <span>Pre-paperwork</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-amber-400" />
-                    <span>Pre-first session</span>
-                  </li>
-                </ul>
-              </div>
-            </motion.div>
+              Consultation Pipeline
+            </h2>
+            <p className="text-stone-500 text-lg mt-1">
+              Configure how clients flow from booking to conversion
+            </p>
           </div>
-        </div>
-      </AnimatedSection>
-
-      {/* Legend */}
-      <AnimatedSection delay={1.3}>
-        <div className="mt-8 flex flex-wrap gap-6 justify-center">
-          <div className="flex items-center gap-3 px-4 py-2 rounded-xl bg-white border border-stone-200">
-            <div className="w-4 h-4 rounded-lg bg-cyan-100 border-2 border-cyan-300" />
-            <span className="text-sm font-medium text-stone-600">Initial Stage</span>
-          </div>
-          <div className="flex items-center gap-3 px-4 py-2 rounded-xl bg-white border border-stone-200">
-            <div className="w-4 h-4 rounded-lg bg-amber-100 border-2 border-amber-300" />
-            <span className="text-sm font-medium text-stone-600">In Progress</span>
-          </div>
-          <div className="flex items-center gap-3 px-4 py-2 rounded-xl bg-white border border-stone-200">
-            <div className="w-4 h-4 rounded-lg bg-emerald-100 border-2 border-emerald-300" />
-            <span className="text-sm font-medium text-stone-600">Success Path</span>
-          </div>
-          <div className="flex items-center gap-3 px-4 py-2 rounded-xl bg-white border border-stone-200">
-            <div className="w-4 h-4 rounded-lg bg-rose-100 border-2 border-rose-300" />
-            <span className="text-sm font-medium text-stone-600">Needs Attention</span>
-          </div>
-          <div className="flex items-center gap-3 px-4 py-2 rounded-xl bg-white border border-stone-200">
-            <div className="w-4 h-4 rounded-lg bg-stone-100 border-2 border-stone-300" />
-            <span className="text-sm font-medium text-stone-600">Decision Point / Terminal</span>
-          </div>
-        </div>
-      </AnimatedSection>
-
-      {/* Stage Details */}
-      <AnimatedSection delay={1.4}>
-        <div className="mt-12">
-          <h3
-            className="text-2xl font-bold text-stone-800 mb-6"
-            style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-          >
-            Stage Reference
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[
-              { stage: 'New', action: 'Send confirmation email', color: 'cyan' },
-              { stage: 'Confirmed', action: 'Client attends or no-shows', color: 'indigo' },
-              { stage: 'Consult Complete', action: 'Send post-consult message', color: 'emerald' },
-              { stage: 'No-Show', action: 'Follow-up sequence (3 attempts)', color: 'rose' },
-              { stage: 'Intake Pending', action: 'Confirm intake scheduled', color: 'amber' },
-              { stage: 'Intake Scheduled', action: 'Send paperwork reminder', color: 'amber' },
-              { stage: 'Paperwork Pending', action: 'Confirm paperwork complete', color: 'amber' },
-              { stage: 'Ready for Session', action: 'Confirm first session done', color: 'emerald' },
-              { stage: 'Converted', action: 'Client is now active!', color: 'emerald' },
-            ].map((item, idx) => (
-              <motion.div
-                key={item.stage}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1.45 + idx * 0.05 }}
-                className="p-4 rounded-xl bg-white border border-stone-200 hover:shadow-md transition-shadow"
+          <div className="flex items-center gap-4">
+            {/* Save Button */}
+            <AnimatePresence>
+              {hasChanges && (
+                <motion.button
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleSave}
+                  className="px-6 py-2.5 rounded-xl font-semibold text-white flex items-center gap-2"
+                  style={{
+                    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                    boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+                  }}
+                >
+                  <Check size={18} />
+                  Save Changes
+                </motion.button>
+              )}
+            </AnimatePresence>
+            {/* View Toggle */}
+            <div className="flex items-center gap-1 p-1 rounded-xl bg-stone-100">
+              <button
+                onClick={() => setActiveView('configure')}
+                className={`
+                  px-4 py-2 rounded-lg font-semibold text-sm transition-colors duration-200
+                  ${activeView === 'configure'
+                    ? 'bg-white text-stone-900 shadow-sm'
+                    : 'text-stone-500 hover:text-stone-700'
+                  }
+                `}
               >
-                <div className="flex items-center gap-3 mb-2">
-                  <div className={`w-3 h-3 rounded-full bg-${item.color}-500`} />
-                  <h4 className="font-bold text-stone-800">{item.stage}</h4>
-                </div>
-                <p className="text-sm text-stone-500 ml-6">{item.action}</p>
-              </motion.div>
-            ))}
+                <span className="flex items-center gap-2">
+                  <Sliders size={16} />
+                  Configure
+                </span>
+              </button>
+              <button
+                onClick={() => setActiveView('preview')}
+                className={`
+                  px-4 py-2 rounded-lg font-semibold text-sm transition-colors duration-200
+                  ${activeView === 'preview'
+                    ? 'bg-white text-stone-900 shadow-sm'
+                    : 'text-stone-500 hover:text-stone-700'
+                  }
+                `}
+              >
+                <span className="flex items-center gap-2">
+                  <ArrowRight size={16} />
+                  Preview Flow
+                </span>
+              </button>
+            </div>
           </div>
         </div>
-      </AnimatedSection>
+      </div>
+
+      {/* Content - no AnimatePresence to prevent reload effect */}
+      <div className={activeView === 'configure' ? 'block' : 'hidden'}>
+        {/* Configuration Grid - 2x2 equal height cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 auto-rows-fr">
+          {/* Pre-Consultation Settings */}
+          <ConsultConfigCard
+            icon={<CalendarCheck size={24} />}
+            title="Pre-Consultation"
+            subtitle="Settings before the consultation happens"
+            color="#06b6d4"
+          >
+            <div className="space-y-6">
+              <ConsultToggleSwitch
+                enabled={config.requireConfirmation}
+                onChange={(v) => updateConfig('requireConfirmation', v)}
+                label="Require Manual Confirmation"
+                description="Clinician manually confirms each booking. Disable if Acuity auto-confirms."
+              />
+              <div className="border-t border-stone-100 pt-6">
+                <ConsultToggleSwitch
+                  enabled={config.enableSecondConsult}
+                  onChange={(v) => updateConfig('enableSecondConsult', v)}
+                  label="Enable Second Consult Option"
+                  description="Allow clients to request a second consultation before intake."
+                />
+              </div>
+            </div>
+          </ConsultConfigCard>
+
+          {/* No-Show Recovery */}
+          <ConsultConfigCard
+            icon={<UserX size={24} />}
+            title="No-Show Recovery"
+            subtitle="When clients miss their consultation"
+            color="#f43f5e"
+          >
+            <ConsultPresetSelector
+              value={config.noShowPreset}
+              onChange={(v) => updateConfig('noShowPreset', v)}
+              presets={NO_SHOW_PRESETS}
+            />
+          </ConsultConfigCard>
+
+          {/* Intake Scheduling */}
+          <ConsultConfigCard
+            icon={<Clock size={24} />}
+            title="Intake Scheduling"
+            subtitle="When intake isn't booked during consult"
+            color="#f59e0b"
+          >
+            <ConsultPresetSelector
+              value={config.intakePreset}
+              onChange={(v) => updateConfig('intakePreset', v)}
+              presets={INTAKE_PRESETS}
+            />
+          </ConsultConfigCard>
+
+          {/* Paperwork Reminders */}
+          <ConsultConfigCard
+            icon={<FileText size={24} />}
+            title="Paperwork Reminders"
+            subtitle="Reminders before intake appointment"
+            color="#8b5cf6"
+          >
+            <div>
+              <ConsultPresetSelector
+                value={config.paperworkPreset}
+                onChange={(v) => updateConfig('paperworkPreset', v)}
+                presets={PAPERWORK_PRESETS}
+              />
+              <p className="text-sm text-stone-500 mt-4">
+                T-72hr means 72 hours before the scheduled intake
+              </p>
+            </div>
+          </ConsultConfigCard>
+        </div>
+
+        {/* Summary Card */}
+        <div className="mt-8 p-6 rounded-2xl bg-gradient-to-br from-stone-800 to-stone-900 text-white">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0">
+              <Check size={24} className="text-emerald-400" />
+            </div>
+            <div className="flex-1">
+              <h3
+                className="text-xl font-bold mb-2"
+                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+              >
+                Your Pipeline Summary
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                <div className="p-3 rounded-xl bg-white/5">
+                  <p className="text-xs text-stone-400 uppercase tracking-wider">Confirmation</p>
+                  <p className="text-lg font-semibold mt-1">
+                    {config.requireConfirmation ? 'Manual' : 'Auto'}
+                  </p>
+                </div>
+                <div className="p-3 rounded-xl bg-white/5">
+                  <p className="text-xs text-stone-400 uppercase tracking-wider">No-Show Recovery</p>
+                  <p className="text-lg font-semibold mt-1">
+                    {NO_SHOW_PRESETS[config.noShowPreset].label}
+                  </p>
+                  <p className="text-xs text-stone-400 mt-0.5">
+                    {NO_SHOW_PRESETS[config.noShowPreset].sequence.length} follow-ups
+                  </p>
+                </div>
+                <div className="p-3 rounded-xl bg-white/5">
+                  <p className="text-xs text-stone-400 uppercase tracking-wider">Intake Follow-ups</p>
+                  <p className="text-lg font-semibold mt-1">
+                    {INTAKE_PRESETS[config.intakePreset].label}
+                  </p>
+                  <p className="text-xs text-stone-400 mt-0.5">
+                    {INTAKE_PRESETS[config.intakePreset].sequence.length} reminders
+                  </p>
+                </div>
+                <div className="p-3 rounded-xl bg-white/5">
+                  <p className="text-xs text-stone-400 uppercase tracking-wider">Paperwork</p>
+                  <p className="text-lg font-semibold mt-1">
+                    {PAPERWORK_PRESETS[config.paperworkPreset].label}
+                  </p>
+                  <p className="text-xs text-stone-400 mt-0.5">
+                    {PAPERWORK_PRESETS[config.paperworkPreset].sequence.length} reminders
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Preview Flow View */}
+      <div className={activeView === 'preview' ? 'block' : 'hidden'}>
+        {/* Visual Flow Preview - Design System Aligned */}
+        <div className="space-y-8">
+
+          {/* ═══════════════════════════════════════════════════════════════════
+              PHASE 1: PRE-CONSULTATION JOURNEY
+              White card with horizontal flow, matching design system
+          ═══════════════════════════════════════════════════════════════════ */}
+          <div className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+            {/* Cyan accent bar */}
+            <div className="h-1 bg-gradient-to-r from-cyan-500 to-teal-500" />
+
+            <div className="p-8 lg:p-10">
+              {/* Section Header */}
+              <div className="flex items-center gap-4 mb-8">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-100 to-cyan-50 flex items-center justify-center">
+                  <span className="text-cyan-600 font-black text-xl">1</span>
+                </div>
+                <div>
+                  <h3
+                    className="text-2xl font-bold text-stone-800"
+                    style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                  >
+                    Pre-Consultation
+                  </h3>
+                  <p className="text-stone-500 text-base">From booking to consultation day</p>
+                </div>
+              </div>
+
+              {/* Horizontal Flow */}
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
+                {/* Step 1: Client Books */}
+                <div className="w-full sm:w-auto">
+                  <div className="p-6 rounded-2xl bg-gradient-to-br from-sky-50 to-white border-2 border-sky-200 text-center min-w-[160px]">
+                    <div className="w-14 h-14 rounded-2xl bg-sky-100 flex items-center justify-center mx-auto mb-3">
+                      <Calendar size={28} className="text-sky-600" />
+                    </div>
+                    <p className="text-stone-800 font-bold text-lg">Client Books</p>
+                    <p className="text-sky-600 text-sm font-medium mt-1">via Acuity</p>
+                    <span className="inline-block mt-3 px-3 py-1 rounded-full bg-sky-100 text-sky-700 text-xs font-bold uppercase tracking-wider">
+                      Automatic
+                    </span>
+                  </div>
+                </div>
+
+                <ArrowRight size={28} className="text-stone-300 hidden sm:block flex-shrink-0" />
+                <ArrowDown size={28} className="text-stone-300 sm:hidden flex-shrink-0" />
+
+                {/* Step 2: Confirmation (conditional) */}
+                {config.requireConfirmation && (
+                  <>
+                    <div className="w-full sm:w-auto">
+                      <div className="p-6 rounded-2xl bg-gradient-to-br from-cyan-50 to-white border-2 border-cyan-200 text-center min-w-[160px]">
+                        <div className="w-14 h-14 rounded-2xl bg-cyan-100 flex items-center justify-center mx-auto mb-3">
+                          <Mail size={28} className="text-cyan-600" />
+                        </div>
+                        <p className="text-stone-800 font-bold text-lg">Send Confirmation</p>
+                        <p className="text-cyan-600 text-sm font-medium mt-1">Email to client</p>
+                        <span className="inline-block mt-3 px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-bold uppercase tracking-wider">
+                          Manual
+                        </span>
+                      </div>
+                    </div>
+                    <ArrowRight size={28} className="text-stone-300 hidden sm:block flex-shrink-0" />
+                    <ArrowDown size={28} className="text-stone-300 sm:hidden flex-shrink-0" />
+                  </>
+                )}
+
+                {/* Step 3: Confirmed / Waiting */}
+                <div className="w-full sm:w-auto">
+                  <div className="p-6 rounded-2xl bg-gradient-to-br from-indigo-50 to-white border-2 border-indigo-200 text-center min-w-[160px]">
+                    <div className="w-14 h-14 rounded-2xl bg-indigo-100 flex items-center justify-center mx-auto mb-3">
+                      <CalendarCheck size={28} className="text-indigo-600" />
+                    </div>
+                    <p className="text-stone-800 font-bold text-lg">Confirmed</p>
+                    <p className="text-indigo-600 text-sm font-medium mt-1">Awaiting consult</p>
+                    <span className="inline-block mt-3 px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold uppercase tracking-wider">
+                      Waiting
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ═══════════════════════════════════════════════════════════════════
+              DECISION POINT: CONSULTATION OCCURS
+          ═══════════════════════════════════════════════════════════════════ */}
+          <div className="relative py-4">
+            <div className="absolute left-0 right-0 top-1/2 h-px bg-gradient-to-r from-transparent via-stone-300 to-transparent" />
+            <div className="relative flex justify-center">
+              <div className="px-8 py-4 rounded-2xl bg-gradient-to-br from-stone-800 to-stone-900 shadow-lg">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
+                    <Users size={22} className="text-white" />
+                  </div>
+                  <span className="text-white font-bold text-lg">Consultation</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ═══════════════════════════════════════════════════════════════════
+              PHASE 2: TWO OUTCOME TRACKS
+              Side by side cards - Attended vs No-Show
+          ═══════════════════════════════════════════════════════════════════ */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            {/* ─────────────────────────────────────────────────────────────────
+                LEFT TRACK: ATTENDED (Success Path)
+            ───────────────────────────────────────────────────────────────── */}
+            <div className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+              {/* Emerald accent bar */}
+              <div className="h-1 bg-gradient-to-r from-emerald-500 to-teal-500" />
+
+              <div className="p-8">
+                {/* Track Header */}
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-100 flex items-center justify-center">
+                    <Check size={24} className="text-emerald-600" />
+                  </div>
+                  <div>
+                    <h4
+                      className="text-xl font-bold text-stone-800"
+                      style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                    >
+                      Client Attended
+                    </h4>
+                    <p className="text-emerald-600 text-sm font-medium">Happy path to conversion</p>
+                  </div>
+                </div>
+
+                {/* Step: Mark Outcome */}
+                <div className="mb-6 p-5 rounded-xl bg-stone-50 border border-stone-200">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                      <MessageSquare size={22} className="text-emerald-600" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-stone-800 font-bold text-base">Mark Outcome & Follow Up</p>
+                      <p className="text-stone-500 text-sm">Record consultation result, send next steps</p>
+                    </div>
+                    <span className="px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-bold uppercase">
+                      Manual
+                    </span>
+                  </div>
+                </div>
+
+                {/* Decision: Did they book intake? */}
+                <div className="p-5 rounded-xl bg-gradient-to-br from-stone-50 to-white border border-stone-200">
+                  <p className="text-stone-600 font-bold text-sm uppercase tracking-wider mb-4 flex items-center gap-2">
+                    <GitBranch size={16} />
+                    Did they book intake during consult?
+                  </p>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* YES Branch */}
+                    <div className="p-5 rounded-xl bg-gradient-to-br from-emerald-50 to-white border-2 border-emerald-200">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center">
+                          <Check size={18} className="text-white" />
+                        </div>
+                        <span className="text-emerald-700 font-bold text-base">Yes</span>
+                      </div>
+
+                      <div className="space-y-3">
+                        <div className="flex items-start gap-3">
+                          <FileText size={18} className="text-violet-500 mt-0.5 flex-shrink-0" />
+                          <div>
+                            <p className="text-stone-700 font-semibold text-sm">Paperwork Reminders</p>
+                            <div className="flex flex-wrap gap-1.5 mt-2">
+                              {PAPERWORK_PRESETS[config.paperworkPreset].sequence.map((t, i) => (
+                                <span key={i} className="px-2 py-1 rounded-lg bg-violet-100 text-violet-700 text-xs font-bold">
+                                  {t}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="pt-3 border-t border-emerald-200 flex items-center gap-2">
+                          <PartyPopper size={18} className="text-emerald-500" />
+                          <span className="text-emerald-700 font-bold text-sm">Converted!</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* NO Branch */}
+                    <div className="p-5 rounded-xl bg-gradient-to-br from-amber-50 to-white border-2 border-amber-200">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center">
+                          <Clock size={18} className="text-white" />
+                        </div>
+                        <span className="text-amber-700 font-bold text-base">Not Yet</span>
+                      </div>
+
+                      <div className="space-y-3">
+                        <div className="flex items-start gap-3">
+                          <Send size={18} className="text-amber-500 mt-0.5 flex-shrink-0" />
+                          <div>
+                            <p className="text-stone-700 font-semibold text-sm">Scheduling Follow-ups</p>
+                            <div className="flex flex-wrap gap-1.5 mt-2">
+                              {INTAKE_PRESETS[config.intakePreset].sequence.map((t, i) => (
+                                <span key={i} className="px-2 py-1 rounded-lg bg-amber-100 text-amber-700 text-xs font-bold">
+                                  {t}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="pt-3 border-t border-amber-200 space-y-1">
+                          <div className="flex items-center gap-2">
+                            <Check size={14} className="text-emerald-500" />
+                            <span className="text-stone-600 text-xs">Books → Paperwork flow</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <XCircle size={14} className="text-stone-400" />
+                            <span className="text-stone-500 text-xs">No response → Lost</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* ─────────────────────────────────────────────────────────────────
+                RIGHT TRACK: NO-SHOW (Recovery Path)
+            ───────────────────────────────────────────────────────────────── */}
+            <div className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+              {/* Rose accent bar */}
+              <div className="h-1 bg-gradient-to-r from-rose-500 to-pink-500" />
+
+              <div className="p-8">
+                {/* Track Header */}
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-12 h-12 rounded-2xl bg-rose-100 flex items-center justify-center">
+                    <UserX size={24} className="text-rose-600" />
+                  </div>
+                  <div>
+                    <h4
+                      className="text-xl font-bold text-stone-800"
+                      style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                    >
+                      Client No-Show
+                    </h4>
+                    <p className="text-rose-600 text-sm font-medium">Recovery sequence activated</p>
+                  </div>
+                </div>
+
+                {/* Recovery Attempts */}
+                <div className="mb-6 p-5 rounded-xl bg-stone-50 border border-stone-200">
+                  <p className="text-stone-600 font-bold text-sm uppercase tracking-wider mb-4">
+                    Follow-up Attempts ({NO_SHOW_PRESETS[config.noShowPreset].sequence.length})
+                  </p>
+
+                  <div className="flex flex-wrap items-center justify-center gap-3">
+                    {NO_SHOW_PRESETS[config.noShowPreset].sequence.map((timing, idx, arr) => (
+                      <React.Fragment key={idx}>
+                        <div className="flex-shrink-0">
+                          <div className="p-4 rounded-xl bg-gradient-to-br from-orange-50 to-white border-2 border-orange-200 text-center min-w-[100px]">
+                            <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center mx-auto mb-2">
+                              <Send size={20} className="text-orange-600" />
+                            </div>
+                            <p className="text-stone-800 font-bold text-base">#{idx + 1}</p>
+                            <p className="text-orange-600 text-sm font-medium mt-0.5">{timing}</p>
+                          </div>
+                        </div>
+                        {idx < arr.length - 1 && (
+                          <ArrowRight size={24} className="text-stone-300 flex-shrink-0 hidden sm:block" />
+                        )}
+                      </React.Fragment>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Outcomes */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-5 rounded-xl bg-gradient-to-br from-emerald-50 to-white border-2 border-emerald-200 text-center">
+                    <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center mx-auto mb-3">
+                      <RefreshCw size={22} className="text-emerald-600" />
+                    </div>
+                    <p className="text-stone-800 font-bold text-base">Reschedules</p>
+                    <p className="text-emerald-600 text-sm mt-1">→ Back to Confirmed</p>
+                  </div>
+
+                  <div className="p-5 rounded-xl bg-gradient-to-br from-stone-100 to-white border-2 border-stone-200 text-center">
+                    <div className="w-12 h-12 rounded-xl bg-stone-200 flex items-center justify-center mx-auto mb-3">
+                      <XCircle size={22} className="text-stone-500" />
+                    </div>
+                    <p className="text-stone-800 font-bold text-base">No Response</p>
+                    <p className="text-stone-500 text-sm mt-1">→ Marked as Lost</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ═══════════════════════════════════════════════════════════════════
+              TERMINAL STATES
+          ═══════════════════════════════════════════════════════════════════ */}
+          <div className="bg-white rounded-2xl shadow-sm border border-stone-200 p-8">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-8">
+              {/* Converted */}
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-100 to-teal-50 border-2 border-emerald-200 flex items-center justify-center">
+                  <PartyPopper size={32} className="text-emerald-600" />
+                </div>
+                <div>
+                  <p
+                    className="text-xl font-bold text-emerald-600"
+                    style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                  >
+                    Converted
+                  </p>
+                  <p className="text-stone-500 text-sm">First session completed</p>
+                </div>
+              </div>
+
+              <div className="w-px h-16 bg-stone-200 hidden sm:block" />
+              <div className="w-full h-px bg-stone-200 sm:hidden" />
+
+              {/* Lost */}
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-stone-100 to-stone-50 border-2 border-stone-200 flex items-center justify-center">
+                  <XCircle size={32} className="text-stone-400" />
+                </div>
+                <div>
+                  <p
+                    className="text-xl font-bold text-stone-500"
+                    style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                  >
+                    Lost
+                  </p>
+                  <p className="text-stone-400 text-sm">Dropped off pipeline</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ═══════════════════════════════════════════════════════════════════
+              CONFIGURATION SUMMARY
+          ═══════════════════════════════════════════════════════════════════ */}
+          <div className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+            <div className="h-1 bg-gradient-to-r from-stone-400 to-stone-500" />
+            <div className="p-8">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-12 h-12 rounded-2xl bg-stone-100 flex items-center justify-center">
+                  <Sliders size={24} className="text-stone-600" />
+                </div>
+              <div>
+                <h3
+                  className="text-xl font-bold text-stone-800"
+                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  Configuration Summary
+                </h3>
+                <p className="text-stone-500 text-sm">Your current pipeline settings</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="p-4 rounded-xl bg-gradient-to-br from-cyan-50 to-white border border-cyan-100">
+                <div className="flex items-center gap-2 mb-2">
+                  <CalendarCheck size={16} className="text-cyan-600" />
+                  <span className="text-xs font-semibold text-cyan-800 uppercase tracking-wider">Confirmation</span>
+                </div>
+                <p className="text-stone-700 font-semibold">
+                  {config.requireConfirmation ? 'Manual' : 'Auto'}
+                </p>
+                <p className="text-stone-500 text-xs mt-0.5">
+                  {config.requireConfirmation ? 'Clinician sends email' : 'Via Acuity'}
+                </p>
+              </div>
+
+              <div className="p-4 rounded-xl bg-gradient-to-br from-rose-50 to-white border border-rose-100">
+                <div className="flex items-center gap-2 mb-2">
+                  <UserX size={16} className="text-rose-600" />
+                  <span className="text-xs font-semibold text-rose-800 uppercase tracking-wider">No-Show</span>
+                </div>
+                <p className="text-stone-700 font-semibold">
+                  {NO_SHOW_PRESETS[config.noShowPreset].label}
+                </p>
+                <p className="text-stone-500 text-xs mt-0.5">
+                  {NO_SHOW_PRESETS[config.noShowPreset].sequence.length} follow-ups
+                </p>
+              </div>
+
+              <div className="p-4 rounded-xl bg-gradient-to-br from-amber-50 to-white border border-amber-100">
+                <div className="flex items-center gap-2 mb-2">
+                  <Clock size={16} className="text-amber-600" />
+                  <span className="text-xs font-semibold text-amber-800 uppercase tracking-wider">Intake</span>
+                </div>
+                <p className="text-stone-700 font-semibold">
+                  {INTAKE_PRESETS[config.intakePreset].label}
+                </p>
+                <p className="text-stone-500 text-xs mt-0.5">
+                  {INTAKE_PRESETS[config.intakePreset].sequence.length} reminders
+                </p>
+              </div>
+
+              <div className="p-4 rounded-xl bg-gradient-to-br from-violet-50 to-white border border-violet-100">
+                <div className="flex items-center gap-2 mb-2">
+                  <FileText size={16} className="text-violet-600" />
+                  <span className="text-xs font-semibold text-violet-800 uppercase tracking-wider">Paperwork</span>
+                </div>
+                <p className="text-stone-700 font-semibold">
+                  {PAPERWORK_PRESETS[config.paperworkPreset].label}
+                </p>
+                <p className="text-stone-500 text-xs mt-0.5">
+                  {PAPERWORK_PRESETS[config.paperworkPreset].sequence.join(' → ')}
+                </p>
+              </div>
+            </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </PageContent>
   );
 };
