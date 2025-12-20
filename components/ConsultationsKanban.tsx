@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useRef, useEffect } from 'react';
+import React, { useMemo, useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Calendar,
@@ -14,6 +14,7 @@ import {
   User,
   Users,
   Zap,
+  PhoneCall,
 } from 'lucide-react';
 import type {
   Consultation,
@@ -27,6 +28,121 @@ import {
   isConsultationToday,
   getDaysSince,
 } from '../types/consultations';
+
+// -----------------------------------------------------------------------------
+// URGENCY HELPERS - Time-based visual states for confirmed consults
+// -----------------------------------------------------------------------------
+
+type UrgencyLevel = 'imminent' | 'soon' | 'today' | 'tomorrow' | 'future' | 'past';
+
+interface TimeUntilConsult {
+  level: UrgencyLevel;
+  label: string;
+  minutes: number;
+  isActive: boolean; // Whether the consult window is currently active
+}
+
+const getTimeUntilConsult = (datetime: string, duration: number = 15): TimeUntilConsult => {
+  const now = new Date();
+  const consultTime = new Date(datetime);
+  const consultEndTime = new Date(consultTime.getTime() + duration * 60 * 1000);
+  const diffMs = consultTime.getTime() - now.getTime();
+  const diffMinutes = Math.floor(diffMs / (1000 * 60));
+
+  // Check if consult is currently happening
+  if (now >= consultTime && now <= consultEndTime) {
+    return {
+      level: 'imminent',
+      label: 'Happening now',
+      minutes: 0,
+      isActive: true,
+    };
+  }
+
+  // Past consult
+  if (diffMs < 0) {
+    return {
+      level: 'past',
+      label: 'Past',
+      minutes: diffMinutes,
+      isActive: false,
+    };
+  }
+
+  // Within 15 minutes - imminent
+  if (diffMinutes <= 15) {
+    return {
+      level: 'imminent',
+      label: diffMinutes <= 1 ? 'Starting now' : `In ${diffMinutes} min`,
+      minutes: diffMinutes,
+      isActive: false,
+    };
+  }
+
+  // Within 1 hour - soon
+  if (diffMinutes <= 60) {
+    return {
+      level: 'soon',
+      label: `In ${diffMinutes} min`,
+      minutes: diffMinutes,
+      isActive: false,
+    };
+  }
+
+  // Within 4 hours - today (urgent-ish)
+  if (diffMinutes <= 240) {
+    const hours = Math.floor(diffMinutes / 60);
+    const mins = diffMinutes % 60;
+    return {
+      level: 'today',
+      label: mins > 0 ? `In ${hours}h ${mins}m` : `In ${hours}h`,
+      minutes: diffMinutes,
+      isActive: false,
+    };
+  }
+
+  // Later today
+  const isToday = consultTime.toDateString() === now.toDateString();
+  if (isToday) {
+    const timeStr = consultTime.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+    return {
+      level: 'today',
+      label: `Today, ${timeStr}`,
+      minutes: diffMinutes,
+      isActive: false,
+    };
+  }
+
+  // Tomorrow
+  const tomorrow = new Date(now);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const isTomorrow = consultTime.toDateString() === tomorrow.toDateString();
+  if (isTomorrow) {
+    const timeStr = consultTime.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+    return {
+      level: 'tomorrow',
+      label: `Tomorrow, ${timeStr}`,
+      minutes: diffMinutes,
+      isActive: false,
+    };
+  }
+
+  // Future
+  return {
+    level: 'future',
+    label: formatConsultationDate(datetime),
+    minutes: diffMinutes,
+    isActive: false,
+  };
+};
 
 // =============================================================================
 // CONSULTATIONS KANBAN BOARD
@@ -129,6 +245,7 @@ const getStageLabel = (stage: ConsultationStage, followUpCount?: number): string
 };
 
 // Helper to check if a consultation needs action
+// Note: This is used for filtering - actual priority is determined by getActionInfo
 const consultationNeedsAction = (c: Consultation): boolean => {
   if (c.stage === 'converted' || c.stage === 'lost') return false;
   if (c.stage === 'confirmed' && !isConsultationPast(c.datetime)) return false;
@@ -174,19 +291,19 @@ const ClinicianDropdown: React.FC<ClinicianDropdownProps> = ({
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={`
-          flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium transition-all duration-200
+          flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-base font-medium transition-all duration-200
           ${selectedClinician
             ? 'bg-stone-800 text-white'
             : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
           }
         `}
       >
-        <User size={14} strokeWidth={2} />
-        <span className="max-w-[120px] truncate">
+        <User size={16} strokeWidth={2} />
+        <span className="max-w-[140px] truncate">
           {selectedClinician || 'All Clinicians'}
         </span>
         <ChevronDown
-          size={14}
+          size={16}
           strokeWidth={2}
           className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
         />
@@ -199,12 +316,12 @@ const ClinicianDropdown: React.FC<ClinicianDropdownProps> = ({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.96 }}
             transition={{ duration: 0.15, ease: 'easeOut' }}
-            className="absolute top-full left-0 mt-2 z-50 min-w-[200px] max-w-[280px] rounded-xl border border-stone-200 bg-white overflow-hidden"
+            className="absolute top-full left-0 mt-2 z-50 min-w-[220px] max-w-[300px] rounded-xl border border-stone-200 bg-white overflow-hidden"
             style={{
               boxShadow: '0 12px 40px -8px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.03)',
             }}
           >
-            <div className="p-1.5">
+            <div className="p-2">
               {/* All Clinicians option */}
               <button
                 onClick={() => {
@@ -212,7 +329,7 @@ const ClinicianDropdown: React.FC<ClinicianDropdownProps> = ({
                   setIsOpen(false);
                 }}
                 className={`
-                  w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors
+                  w-full flex items-center gap-3 px-3.5 py-3 rounded-lg text-left transition-colors
                   ${!selectedClinician
                     ? 'bg-stone-100 text-stone-900'
                     : 'text-stone-600 hover:bg-stone-50'
@@ -220,23 +337,23 @@ const ClinicianDropdown: React.FC<ClinicianDropdownProps> = ({
                 `}
               >
                 <div className={`
-                  w-7 h-7 rounded-lg flex items-center justify-center
+                  w-9 h-9 rounded-lg flex items-center justify-center
                   ${!selectedClinician ? 'bg-stone-800 text-white' : 'bg-stone-100 text-stone-500'}
                 `}>
-                  <Users size={14} strokeWidth={2} />
+                  <Users size={16} strokeWidth={2} />
                 </div>
-                <span className="text-sm font-medium">All Clinicians</span>
+                <span className="text-base font-medium">All Clinicians</span>
                 {!selectedClinician && (
-                  <Check size={14} className="ml-auto text-stone-800" strokeWidth={2.5} />
+                  <Check size={16} className="ml-auto text-stone-800" strokeWidth={2.5} />
                 )}
               </button>
 
               {clinicians.length > 0 && (
-                <div className="my-1.5 mx-2 h-px bg-stone-100" />
+                <div className="my-2 mx-2 h-px bg-stone-100" />
               )}
 
               {/* Individual clinicians */}
-              <div className="max-h-[240px] overflow-y-auto">
+              <div className="max-h-[280px] overflow-y-auto">
                 {clinicians.map((clinician) => (
                   <button
                     key={clinician}
@@ -245,7 +362,7 @@ const ClinicianDropdown: React.FC<ClinicianDropdownProps> = ({
                       setIsOpen(false);
                     }}
                     className={`
-                      w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors
+                      w-full flex items-center gap-3 px-3.5 py-3 rounded-lg text-left transition-colors
                       ${selectedClinician === clinician
                         ? 'bg-stone-100 text-stone-900'
                         : 'text-stone-600 hover:bg-stone-50'
@@ -253,7 +370,7 @@ const ClinicianDropdown: React.FC<ClinicianDropdownProps> = ({
                     `}
                   >
                     <div className={`
-                      w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold
+                      w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold
                       ${selectedClinician === clinician
                         ? 'bg-stone-800 text-white'
                         : 'bg-stone-100 text-stone-600'
@@ -261,9 +378,9 @@ const ClinicianDropdown: React.FC<ClinicianDropdownProps> = ({
                     `}>
                       {clinician.split(' ').map(n => n[0]).join('').slice(0, 2)}
                     </div>
-                    <span className="text-sm font-medium truncate">{clinician}</span>
+                    <span className="text-base font-medium truncate">{clinician}</span>
                     {selectedClinician === clinician && (
-                      <Check size={14} className="ml-auto text-stone-800 flex-shrink-0" strokeWidth={2.5} />
+                      <Check size={16} className="ml-auto text-stone-800 flex-shrink-0" strokeWidth={2.5} />
                     )}
                   </button>
                 ))}
@@ -277,7 +394,261 @@ const ClinicianDropdown: React.FC<ClinicianDropdownProps> = ({
 };
 
 // -----------------------------------------------------------------------------
-// KANBAN CARD COMPONENT
+// PULSING DOT COMPONENT - For imminent consults
+// -----------------------------------------------------------------------------
+
+const PulsingDot: React.FC<{ color?: 'red' | 'amber' | 'emerald' }> = ({ color = 'red' }) => {
+  const colors = {
+    red: 'bg-red-500',
+    amber: 'bg-amber-500',
+    emerald: 'bg-emerald-500',
+  };
+
+  const ringColors = {
+    red: 'bg-red-400',
+    amber: 'bg-amber-400',
+    emerald: 'bg-emerald-400',
+  };
+
+  return (
+    <span className="relative flex h-3 w-3">
+      <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${ringColors[color]} opacity-75`} />
+      <span className={`relative inline-flex rounded-full h-3 w-3 ${colors[color]}`} />
+    </span>
+  );
+};
+
+// -----------------------------------------------------------------------------
+// ACTION PRIORITY SYSTEM
+// -----------------------------------------------------------------------------
+// Priority is based on whether YOU need to do something NOW.
+//
+// Two types of actions:
+// 1. PROACTIVE (deadline-based) - You must send/do something by a deadline
+// 2. REACTIVE (client responded) - You're recording an update, not urgent
+//
+// CRITICAL (Red): Deadline is NOW or overdue
+// URGENT (Amber): Deadline within 24-48 hours
+// WAITING (null): No action needed, waiting on client
+// REACTIVE (Stone): Client responded, just recording update - "Update" button
+// -----------------------------------------------------------------------------
+
+type ActionPriority = 'critical' | 'urgent' | 'reactive' | null;
+
+interface ActionInfo {
+  priority: ActionPriority;
+  buttonLabel: string;
+  statusLabel: string;
+}
+
+const getActionInfo = (consultation: Consultation): ActionInfo => {
+  const { stage, followUpCount, datetime, lastFollowUpDate } = consultation;
+
+  // Terminal states - no action
+  if (stage === 'converted' || stage === 'lost') {
+    return { priority: null, buttonLabel: '', statusLabel: stage === 'converted' ? 'Converted' : 'Lost' };
+  }
+
+  // =========================================================================
+  // CONFIRMED - Check if consult time has passed
+  // =========================================================================
+  if (stage === 'confirmed') {
+    const timeInfo = getTimeUntilConsult(datetime, consultation.duration);
+
+    if (timeInfo.isActive) {
+      // Consult is happening RIGHT NOW
+      return { priority: 'critical', buttonLabel: 'Mark Outcome', statusLabel: 'Happening now' };
+    }
+
+    if (timeInfo.level === 'past') {
+      // Consult ended - MUST mark outcome
+      return { priority: 'critical', buttonLabel: 'Mark Outcome', statusLabel: 'Mark attendance' };
+    }
+
+    // Future consult - no action, just waiting
+    return { priority: null, buttonLabel: '', statusLabel: 'Confirmed' };
+  }
+
+  // =========================================================================
+  // NEW - Send confirmation email (deadline: immediately)
+  // =========================================================================
+  if (stage === 'new') {
+    // New bookings should be confirmed ASAP
+    const hoursSinceCreated = (Date.now() - new Date(consultation.createdAt).getTime()) / (1000 * 60 * 60);
+
+    if (hoursSinceCreated >= 4) {
+      return { priority: 'critical', buttonLabel: 'Send Confirmation', statusLabel: 'Confirmation overdue' };
+    }
+    if (hoursSinceCreated >= 1) {
+      return { priority: 'urgent', buttonLabel: 'Send Confirmation', statusLabel: 'Send confirmation' };
+    }
+    return { priority: 'urgent', buttonLabel: 'Send Confirmation', statusLabel: 'Send confirmation' };
+  }
+
+  // =========================================================================
+  // CONSULT COMPLETE - Send post-consult message (deadline: same day ideally)
+  // =========================================================================
+  if (stage === 'consult_complete') {
+    const daysSince = getDaysSince(datetime);
+
+    if (daysSince >= 2) {
+      return { priority: 'critical', buttonLabel: 'Send Follow-up', statusLabel: 'Follow-up overdue' };
+    }
+    if (daysSince >= 1) {
+      return { priority: 'urgent', buttonLabel: 'Send Follow-up', statusLabel: 'Send follow-up' };
+    }
+    // Same day
+    return { priority: 'critical', buttonLabel: 'Send Follow-up', statusLabel: 'Send follow-up today' };
+  }
+
+  // =========================================================================
+  // NO-SHOW - Follow-up sequence with specific deadlines
+  // =========================================================================
+  if (stage === 'no_show') {
+    const consultDate = new Date(datetime);
+    const now = new Date();
+    const hoursSinceConsult = (now.getTime() - consultDate.getTime()) / (1000 * 60 * 60);
+
+    // Calculate hours since last follow-up (if any)
+    let hoursSinceLastFollowUp = hoursSinceConsult;
+    if (lastFollowUpDate) {
+      hoursSinceLastFollowUp = (now.getTime() - new Date(lastFollowUpDate).getTime()) / (1000 * 60 * 60);
+    }
+
+    if (followUpCount === 0) {
+      // Follow-up #1: Due immediately after no-show
+      if (hoursSinceConsult >= 2) {
+        return { priority: 'critical', buttonLabel: 'Send Follow-up #1', statusLabel: 'Immediate follow-up overdue' };
+      }
+      return { priority: 'critical', buttonLabel: 'Send Follow-up #1', statusLabel: 'Send immediate follow-up' };
+    }
+
+    if (followUpCount === 1) {
+      // Follow-up #2: Due 24 hours after no-show
+      if (hoursSinceConsult >= 24) {
+        if (hoursSinceLastFollowUp >= 24) {
+          return { priority: 'critical', buttonLabel: 'Send Follow-up #2', statusLabel: '24hr follow-up due' };
+        }
+        if (hoursSinceLastFollowUp >= 20) {
+          return { priority: 'urgent', buttonLabel: 'Send Follow-up #2', statusLabel: '24hr follow-up soon' };
+        }
+      }
+      // Still waiting for 24hr mark
+      return { priority: null, buttonLabel: '', statusLabel: 'Waiting for 24hr mark' };
+    }
+
+    if (followUpCount === 2) {
+      // Follow-up #3: Due 72 hours after no-show
+      if (hoursSinceConsult >= 72) {
+        if (hoursSinceLastFollowUp >= 48) {
+          return { priority: 'critical', buttonLabel: 'Send Follow-up #3', statusLabel: '72hr follow-up due' };
+        }
+        if (hoursSinceLastFollowUp >= 44) {
+          return { priority: 'urgent', buttonLabel: 'Send Follow-up #3', statusLabel: '72hr follow-up soon' };
+        }
+      }
+      // Still waiting for 72hr mark
+      return { priority: null, buttonLabel: '', statusLabel: 'Waiting for 72hr mark' };
+    }
+
+    if (followUpCount >= 3) {
+      // All follow-ups sent, should mark as lost
+      return { priority: 'reactive', buttonLabel: 'Mark Lost', statusLabel: 'No response - close case' };
+    }
+  }
+
+  // =========================================================================
+  // INTAKE PENDING - Waiting for client to schedule, REACTIVE when they do
+  // =========================================================================
+  if (stage === 'intake_pending') {
+    // This is a WAITING state - client needs to respond
+    // When they DO schedule, user updates reactively
+    const daysSince = getDaysSince(datetime);
+
+    if (daysSince >= 7) {
+      // Been waiting too long - maybe send a nudge? This could be a proactive reminder
+      return { priority: 'urgent', buttonLabel: 'Send Reminder', statusLabel: 'No intake scheduled (1 week)' };
+    }
+    if (daysSince >= 3) {
+      return { priority: 'reactive', buttonLabel: 'Send Reminder', statusLabel: 'Waiting for intake scheduling' };
+    }
+    // Recently sent post-consult, just waiting
+    return { priority: null, buttonLabel: '', statusLabel: 'Waiting for client to schedule' };
+  }
+
+  // =========================================================================
+  // INTAKE SCHEDULED - Proactive paperwork reminders based on intake date
+  // =========================================================================
+  if (stage === 'intake_scheduled') {
+    if (!consultation.intakeScheduledDate) {
+      return { priority: 'reactive', buttonLabel: 'Update', statusLabel: 'Intake scheduled' };
+    }
+
+    const intakeTime = getTimeUntilConsult(consultation.intakeScheduledDate);
+    const hoursUntilIntake = intakeTime.minutes / 60;
+
+    // T-24 hours: Send urgent paperwork reminder
+    if (hoursUntilIntake <= 24 && hoursUntilIntake > 0) {
+      return { priority: 'critical', buttonLabel: 'Send Reminder', statusLabel: 'Paperwork reminder (T-24hr)' };
+    }
+
+    // T-72 hours: Send first paperwork reminder
+    if (hoursUntilIntake <= 72 && hoursUntilIntake > 24) {
+      return { priority: 'urgent', buttonLabel: 'Send Reminder', statusLabel: 'Paperwork reminder (T-72hr)' };
+    }
+
+    // More than 72 hours out - just waiting
+    return { priority: null, buttonLabel: '', statusLabel: 'Waiting for paperwork' };
+  }
+
+  // =========================================================================
+  // PAPERWORK PENDING - Similar to above, but paperwork reminder already sent
+  // =========================================================================
+  if (stage === 'paperwork_pending') {
+    // Client needs to complete paperwork - this is reactive when they do
+    if (!consultation.intakeScheduledDate) {
+      return { priority: 'reactive', buttonLabel: 'Mark Complete', statusLabel: 'Awaiting paperwork' };
+    }
+
+    const intakeTime = getTimeUntilConsult(consultation.intakeScheduledDate);
+
+    if (intakeTime.level === 'past') {
+      // Intake passed without paperwork - critical issue
+      return { priority: 'critical', buttonLabel: 'Update Status', statusLabel: 'Intake passed - no paperwork' };
+    }
+
+    if (intakeTime.level === 'imminent' || intakeTime.level === 'soon') {
+      // Intake very soon, still no paperwork
+      return { priority: 'critical', buttonLabel: 'Send Urgent Reminder', statusLabel: 'Intake soon - no paperwork!' };
+    }
+
+    if (intakeTime.level === 'today') {
+      return { priority: 'urgent', buttonLabel: 'Send Reminder', statusLabel: 'Intake today - paperwork pending' };
+    }
+
+    // Waiting on client
+    return { priority: null, buttonLabel: '', statusLabel: 'Waiting for paperwork' };
+  }
+
+  // =========================================================================
+  // READY FOR SESSION - Reactive, just confirming when session happens
+  // =========================================================================
+  if (stage === 'ready_for_session') {
+    // This is purely reactive - confirm when first session is done
+    if (consultation.firstSessionDate) {
+      const sessionTime = getTimeUntilConsult(consultation.firstSessionDate);
+      if (sessionTime.level === 'past') {
+        return { priority: 'reactive', buttonLabel: 'Mark Complete', statusLabel: 'Confirm first session done' };
+      }
+    }
+    return { priority: null, buttonLabel: '', statusLabel: 'Ready for first session' };
+  }
+
+  return { priority: null, buttonLabel: '', statusLabel: '' };
+};
+
+// -----------------------------------------------------------------------------
+// KANBAN CARD COMPONENT - With urgency awareness
 // -----------------------------------------------------------------------------
 
 interface KanbanCardProps {
@@ -295,24 +666,62 @@ const KanbanCard: React.FC<KanbanCardProps> = ({
   isTerminal,
   terminalType,
 }) => {
-  const nextAction = getNextAction(consultation);
+  // Live countdown state for confirmed consults
+  const [timeInfo, setTimeInfo] = useState<TimeUntilConsult>(() =>
+    getTimeUntilConsult(consultation.datetime, consultation.duration)
+  );
+
+  // Update countdown every 30 seconds for confirmed consults
+  useEffect(() => {
+    if (consultation.stage !== 'confirmed') return;
+
+    const updateTime = () => {
+      setTimeInfo(getTimeUntilConsult(consultation.datetime, consultation.duration));
+    };
+
+    // Update immediately
+    updateTime();
+
+    // For imminent consults, update every 10 seconds for more responsive countdown
+    const interval = timeInfo.level === 'imminent' || timeInfo.level === 'soon'
+      ? 10000
+      : 30000;
+
+    const timer = setInterval(updateTime, interval);
+    return () => clearInterval(timer);
+  }, [consultation.datetime, consultation.duration, consultation.stage, timeInfo.level]);
+
   const isPast = isConsultationPast(consultation.datetime);
   const isToday = isConsultationToday(consultation.datetime);
+
+  // For confirmed consults, use the live timeInfo
+  const isConfirmed = consultation.stage === 'confirmed';
+  const urgencyLevel = isConfirmed ? timeInfo.level : null;
+  const isImminent = urgencyLevel === 'imminent';
+  const isSoon = urgencyLevel === 'soon';
+  const isTodayUrgent = urgencyLevel === 'today';
+  const isConsultPast = urgencyLevel === 'past';
 
   // Meeting type helpers
   const hasVideoLink = consultation.meetingType === 'google_meet' || consultation.meetingType === 'zoom';
   const isPhoneCall = consultation.meetingType === 'phone';
-  const showJoinButton = consultation.stage === 'confirmed' && (isToday || !isPast);
 
-  // Determine if action is needed
-  const needsAction = nextAction &&
-    consultation.stage !== 'converted' &&
-    consultation.stage !== 'lost' &&
-    !showJoinButton &&
-    (consultation.stage !== 'confirmed' || isPast);
+  // Show join button for confirmed consults (active when today or imminent)
+  const showJoinButton = isConfirmed && !isConsultPast;
+  const isJoinButtonActive = isConfirmed && (isImminent || isSoon || isTodayUrgent || (isToday && !isPast));
 
-  // Get display date
-  const getDisplayDate = () => {
+  // Get action info (priority, button label, status)
+  const actionInfo = getActionInfo(consultation);
+  const { priority: actionPriority, buttonLabel, statusLabel } = actionInfo;
+
+  // Determine if action button should show
+  const showActionButton = actionPriority !== null;
+
+  // Get display date/time
+  const getDisplayInfo = () => {
+    if (isConfirmed && !isConsultPast) {
+      return timeInfo.label;
+    }
     if (consultation.stage === 'no_show') {
       const daysSince = getDaysSince(consultation.datetime);
       return `${daysSince}d ago`;
@@ -334,10 +743,112 @@ const KanbanCard: React.FC<KanbanCardProps> = ({
     if (isTerminal && terminalType === 'neutral') {
       return 'bg-stone-50/80 border-stone-200/60';
     }
-    if (needsAction) {
+
+    // Confirmed consults - style by time urgency
+    if (isConfirmed && !isConsultPast) {
+      if (isImminent) {
+        return 'bg-gradient-to-br from-red-50 to-rose-50 border-red-200 ring-1 ring-red-100';
+      }
+      if (isSoon) {
+        return 'bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200 ring-1 ring-amber-100';
+      }
+      if (isTodayUrgent) {
+        return 'bg-gradient-to-br from-emerald-50/50 to-teal-50/30 border-emerald-200/80';
+      }
+      // Future consults - neutral
+      return 'bg-white border-stone-200/80';
+    }
+
+    // Non-confirmed stages - style by action priority
+    if (actionPriority === 'critical') {
+      return 'bg-gradient-to-br from-red-50 to-rose-50 border-red-200 ring-1 ring-red-100';
+    }
+    if (actionPriority === 'urgent') {
       return 'bg-white border-amber-200 ring-1 ring-amber-100';
     }
+    if (actionPriority === 'reactive') {
+      return 'bg-white border-stone-200/80';
+    }
+
     return 'bg-white border-stone-200/80';
+  };
+
+  // Avatar styling based on urgency
+  const getAvatarStyle = () => {
+    if (isTerminal && terminalType === 'success') {
+      return 'bg-emerald-100 text-emerald-700';
+    }
+    if (isTerminal && terminalType === 'neutral') {
+      return 'bg-stone-200 text-stone-500';
+    }
+
+    // Confirmed consults - style by time
+    if (isConfirmed && !isConsultPast) {
+      if (isImminent) return 'bg-red-100 text-red-700';
+      if (isSoon) return 'bg-amber-100 text-amber-700';
+      if (isTodayUrgent) return 'bg-emerald-100 text-emerald-700';
+      return 'bg-stone-100 text-stone-600';
+    }
+
+    // Non-confirmed - style by action priority
+    if (actionPriority === 'critical') {
+      return 'bg-red-100 text-red-700';
+    }
+    if (actionPriority === 'urgent') {
+      return 'bg-amber-100 text-amber-700';
+    }
+
+    return 'bg-stone-100 text-stone-600';
+  };
+
+  // Get urgency badge for confirmed consults
+  const getUrgencyBadge = () => {
+    if (!isConfirmed || isConsultPast) return null;
+
+    if (isImminent && timeInfo.isActive) {
+      return (
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-100 border border-red-200">
+          <PulsingDot color="red" />
+          <span className="text-xs font-bold uppercase tracking-wide text-red-700">Live</span>
+        </div>
+      );
+    }
+
+    if (isImminent) {
+      return (
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-100 border border-red-200">
+          <PulsingDot color="red" />
+          <span className="text-xs font-bold uppercase tracking-wide text-red-700">Soon</span>
+        </div>
+      );
+    }
+
+    if (isSoon) {
+      return (
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-100 border border-amber-200">
+          <PulsingDot color="amber" />
+          <span className="text-xs font-bold uppercase tracking-wide text-amber-700">{timeInfo.label}</span>
+        </div>
+      );
+    }
+
+    if (isTodayUrgent) {
+      return (
+        <span className="px-2.5 py-1 text-xs font-semibold uppercase tracking-wide bg-emerald-100 text-emerald-700 rounded-full border border-emerald-200">
+          Today
+        </span>
+      );
+    }
+
+    if (urgencyLevel === 'tomorrow') {
+      return (
+        <span className="px-2.5 py-1 text-xs font-medium text-stone-500 bg-stone-100 rounded-full">
+          Tomorrow
+        </span>
+      );
+    }
+
+    return null;
   };
 
   return (
@@ -348,29 +859,23 @@ const KanbanCard: React.FC<KanbanCardProps> = ({
       exit={{ opacity: 0, y: -8 }}
       transition={{ duration: 0.2, ease: 'easeOut' }}
       className={`
-        group relative rounded-xl border cursor-pointer
-        transition-shadow duration-200
-        hover:shadow-md hover:shadow-stone-900/5
+        group relative rounded-2xl border cursor-pointer
+        transition-all duration-200
+        hover:shadow-lg hover:shadow-stone-900/8
         ${getCardStyle()}
       `}
       onClick={onClick}
     >
-      <div className="p-4">
-        {/* Header: Name + Status indicator */}
-        <div className="flex items-start justify-between gap-3 mb-3">
-          <div className="flex items-center gap-3 min-w-0">
+      <div className="p-5">
+        {/* Header: Name + Urgency badge */}
+        <div className="flex items-start justify-between gap-3 mb-4">
+          <div className="flex items-center gap-4 min-w-0">
             {/* Avatar */}
             <div
               className={`
-                w-9 h-9 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0
-                ${isTerminal && terminalType === 'success'
-                  ? 'bg-emerald-100 text-emerald-700'
-                  : isTerminal && terminalType === 'neutral'
-                    ? 'bg-stone-200 text-stone-500'
-                    : consultation.stage === 'no_show'
-                      ? 'bg-rose-50 text-rose-600'
-                      : 'bg-stone-100 text-stone-600'
-                }
+                w-12 h-12 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0
+                transition-colors duration-200
+                ${getAvatarStyle()}
               `}
             >
               {getClientInitials(consultation.firstName, consultation.lastName)}
@@ -379,87 +884,157 @@ const KanbanCard: React.FC<KanbanCardProps> = ({
             <div className="min-w-0">
               {/* Name */}
               <h4
-                className="text-[15px] font-semibold text-stone-900 truncate leading-tight"
+                className="text-lg font-semibold text-stone-900 truncate leading-tight"
                 style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
               >
                 {consultation.firstName} {consultation.lastName}
               </h4>
 
               {/* Clinician */}
-              <p className="text-xs text-stone-500 truncate">
+              <p className="text-sm text-stone-500 truncate">
                 {consultation.clinicianName}
               </p>
             </div>
           </div>
 
-          {/* Action indicator dot */}
-          {needsAction && !isTerminal && (
-            <div className="flex-shrink-0 mt-1">
-              <div className="w-2.5 h-2.5 rounded-full bg-amber-400 ring-2 ring-amber-100" />
-            </div>
-          )}
-
-          {/* Today indicator */}
-          {consultation.stage === 'confirmed' && isToday && !isPast && (
-            <div className="flex-shrink-0">
-              <span className="px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-emerald-100 text-emerald-700 rounded-full">
-                Today
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Status text */}
-        <p className={`text-xs mb-3 ${needsAction ? 'text-amber-700 font-medium' : 'text-stone-500'}`}>
-          {getStageLabel(consultation.stage, consultation.followUpCount)}
-        </p>
-
-        {/* Date row */}
-        <div className="flex items-center gap-4 text-xs text-stone-400 mb-4">
-          <div className="flex items-center gap-1.5">
-            <Clock size={11} strokeWidth={2} />
-            <span>{getDisplayDate()}</span>
+          {/* Urgency badge or action indicator */}
+          <div className="flex-shrink-0">
+            {getUrgencyBadge()}
+            {/* Action priority indicator for non-confirmed stages */}
+            {!isConfirmed && !isTerminal && actionPriority === 'critical' && (
+              <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-red-100 border border-red-200">
+                <PulsingDot color="red" />
+              </div>
+            )}
+            {!isConfirmed && !isTerminal && actionPriority === 'urgent' && (
+              <div className="w-3 h-3 rounded-full bg-amber-400 ring-2 ring-amber-100 mt-1" />
+            )}
           </div>
-          {consultation.wasTransferred && (
-            <span className="text-amber-600 font-medium">Transferred</span>
+        </div>
+
+        {/* Status/Time display */}
+        <div className="mb-4">
+          {isConfirmed && !isConsultPast ? (
+            // Countdown display for confirmed consults
+            <div className={`
+              flex items-center gap-2 text-sm font-medium
+              ${isImminent ? 'text-red-700' : isSoon ? 'text-amber-700' : isTodayUrgent ? 'text-emerald-700' : 'text-stone-500'}
+            `}>
+              <Clock size={14} strokeWidth={2} />
+              <span>{timeInfo.label}</span>
+            </div>
+          ) : (
+            // Status text from action info
+            <p className={`text-sm ${
+              actionPriority === 'critical' ? 'text-red-700 font-medium' :
+              actionPriority === 'urgent' ? 'text-amber-700 font-medium' :
+              'text-stone-500'
+            }`}>
+              {statusLabel || getStageLabel(consultation.stage, consultation.followUpCount)}
+            </p>
           )}
         </div>
+
+        {/* Date row for non-confirmed or past consults */}
+        {(!isConfirmed || isConsultPast) && (
+          <div className="flex items-center gap-4 text-sm text-stone-400 mb-5">
+            <div className="flex items-center gap-2">
+              <Clock size={14} strokeWidth={2} />
+              <span>{getDisplayInfo()}</span>
+            </div>
+            {consultation.wasTransferred && (
+              <span className="text-amber-600 font-medium">Transferred</span>
+            )}
+          </div>
+        )}
+
+        {/* Transfer badge for confirmed consults */}
+        {isConfirmed && !isConsultPast && consultation.wasTransferred && (
+          <div className="mb-5">
+            <span className="text-xs text-amber-600 font-medium">Transferred from {consultation.originalClinicianName}</span>
+          </div>
+        )}
 
         {/* Action buttons */}
-        <div className="flex items-center gap-2">
-          {/* Join button for video calls */}
+        <div className="flex items-center gap-3">
+          {/* Join/Call buttons for confirmed consults */}
           {showJoinButton && hasVideoLink && consultation.meetingLink && (
             <a
-              href={consultation.meetingLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              className="flex-1 px-3 py-2 rounded-lg text-xs font-semibold bg-stone-900 text-white hover:bg-stone-800 transition-colors flex items-center justify-center gap-1.5"
+              href={isJoinButtonActive ? consultation.meetingLink : undefined}
+              target={isJoinButtonActive ? "_blank" : undefined}
+              rel={isJoinButtonActive ? "noopener noreferrer" : undefined}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!isJoinButtonActive) e.preventDefault();
+              }}
+              className={`
+                flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold
+                flex items-center justify-center gap-2 transition-all duration-200
+                ${isJoinButtonActive
+                  ? isImminent
+                    ? 'bg-red-600 text-white hover:bg-red-700 shadow-sm shadow-red-500/20'
+                    : 'bg-stone-900 text-white hover:bg-stone-800'
+                  : 'bg-stone-100 text-stone-400 cursor-not-allowed'
+                }
+              `}
             >
-              <Video size={13} strokeWidth={2} />
-              Join Call
+              <Video size={16} strokeWidth={2} />
+              {isJoinButtonActive ? 'Join Call' : 'Join Call'}
             </a>
           )}
 
-          {/* Phone number for phone calls */}
+          {/* Phone call button */}
           {showJoinButton && isPhoneCall && consultation.meetingPhone && (
-            <div className="flex-1 flex items-center gap-1.5 px-3 py-2 rounded-lg bg-stone-100 text-stone-600 text-xs">
-              <Phone size={11} strokeWidth={2} />
+            <a
+              href={isJoinButtonActive ? `tel:${consultation.meetingPhone}` : undefined}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!isJoinButtonActive) e.preventDefault();
+              }}
+              className={`
+                flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold
+                flex items-center justify-center gap-2 transition-all duration-200
+                ${isJoinButtonActive
+                  ? isImminent
+                    ? 'bg-red-600 text-white hover:bg-red-700 shadow-sm shadow-red-500/20'
+                    : 'bg-stone-900 text-white hover:bg-stone-800'
+                  : 'bg-stone-100 text-stone-400 cursor-not-allowed'
+                }
+              `}
+            >
+              <PhoneCall size={16} strokeWidth={2} />
+              {isJoinButtonActive ? 'Call Client' : 'Call Client'}
+            </a>
+          )}
+
+          {/* Phone number display when not active */}
+          {showJoinButton && isPhoneCall && consultation.meetingPhone && !isJoinButtonActive && (
+            <div className="flex-1 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-stone-50 text-stone-400 text-sm border border-stone-100">
+              <Phone size={14} strokeWidth={2} />
               <span className="font-medium truncate">{consultation.meetingPhone}</span>
             </div>
           )}
 
-          {/* Take Action button */}
-          {needsAction && (
+          {/* Action button - styled by priority */}
+          {showActionButton && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 onTakeAction();
               }}
-              className="flex-1 px-3 py-2 rounded-lg text-xs font-semibold bg-amber-500 text-white hover:bg-amber-600 transition-colors flex items-center justify-center gap-1.5 shadow-sm shadow-amber-500/20"
+              className={`
+                flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold
+                flex items-center justify-center gap-2 transition-colors
+                ${actionPriority === 'critical'
+                  ? 'bg-red-600 text-white hover:bg-red-700 shadow-sm shadow-red-500/20'
+                  : actionPriority === 'urgent'
+                    ? 'bg-amber-500 text-white hover:bg-amber-600 shadow-sm shadow-amber-500/20'
+                    : 'bg-stone-200 text-stone-700 hover:bg-stone-300'
+                }
+              `}
             >
-              Take Action
-              <ChevronRight size={12} strokeWidth={2.5} />
+              {buttonLabel}
+              <ChevronRight size={16} strokeWidth={2.5} />
             </button>
           )}
 
@@ -470,10 +1045,10 @@ const KanbanCard: React.FC<KanbanCardProps> = ({
                 e.stopPropagation();
                 onClick();
               }}
-              className="flex-1 px-3 py-2 rounded-lg text-xs font-medium bg-stone-100 text-stone-500 hover:bg-stone-200 hover:text-stone-600 transition-colors flex items-center justify-center gap-1.5"
+              className="flex-1 px-4 py-2.5 rounded-xl text-sm font-medium bg-stone-100 text-stone-500 hover:bg-stone-200 hover:text-stone-600 transition-colors flex items-center justify-center gap-2"
             >
               View Details
-              <ChevronRight size={11} strokeWidth={2} />
+              <ChevronRight size={14} strokeWidth={2} />
             </button>
           )}
         </div>
@@ -534,7 +1109,7 @@ const KanbanColumnComponent: React.FC<KanbanColumnComponentProps> = ({
   return (
     <div
       className={`
-        flex flex-col h-full min-w-[290px] w-[290px] rounded-2xl border overflow-hidden
+        flex flex-col h-full min-w-[340px] w-[340px] rounded-2xl border overflow-hidden
         ${getColumnStyle()}
       `}
       style={{
@@ -543,12 +1118,12 @@ const KanbanColumnComponent: React.FC<KanbanColumnComponentProps> = ({
     >
       {/* Column Header - Boxed and distinct */}
       <div className={`
-        flex items-center justify-between px-4 py-3.5 border-b
+        flex items-center justify-between px-5 py-4 border-b
         ${getHeaderStyle()}
       `}>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           <div className={`
-            w-8 h-8 rounded-lg flex items-center justify-center
+            w-10 h-10 rounded-xl flex items-center justify-center
             ${column.isTerminal && column.terminalType === 'success'
               ? 'bg-emerald-200/80 text-emerald-700'
               : column.isTerminal
@@ -563,7 +1138,7 @@ const KanbanColumnComponent: React.FC<KanbanColumnComponentProps> = ({
           <div>
             <h3
               className={`
-                text-[15px] font-semibold tracking-tight leading-tight
+                text-xl font-semibold tracking-tight leading-tight
                 ${column.isTerminal && column.terminalType === 'success'
                   ? 'text-emerald-800'
                   : column.isTerminal
@@ -576,7 +1151,7 @@ const KanbanColumnComponent: React.FC<KanbanColumnComponentProps> = ({
               {column.title}
             </h3>
             {actionNeededCount > 0 && !column.isTerminal && (
-              <p className="text-[11px] text-amber-700 font-medium mt-0.5">
+              <p className="text-sm text-amber-700 font-medium mt-0.5">
                 {actionNeededCount} need{actionNeededCount === 1 ? 's' : ''} action
               </p>
             )}
@@ -585,7 +1160,7 @@ const KanbanColumnComponent: React.FC<KanbanColumnComponentProps> = ({
 
         {/* Count badge */}
         <div className={`
-          min-w-[28px] h-7 px-2 rounded-lg flex items-center justify-center text-sm font-bold tabular-nums
+          min-w-[32px] h-8 px-2.5 rounded-lg flex items-center justify-center text-base font-bold tabular-nums
           ${column.isTerminal && column.terminalType === 'success'
             ? 'bg-emerald-200/80 text-emerald-800'
             : column.isTerminal
@@ -600,16 +1175,16 @@ const KanbanColumnComponent: React.FC<KanbanColumnComponentProps> = ({
       </div>
 
       {/* Cards container */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-3">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
         <AnimatePresence mode="popLayout">
           {consultations.length === 0 ? (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="flex flex-col items-center justify-center py-16 text-center"
+              className="flex flex-col items-center justify-center py-20 text-center"
             >
               <div className={`
-                w-12 h-12 rounded-xl flex items-center justify-center mb-3
+                w-14 h-14 rounded-xl flex items-center justify-center mb-4
                 ${column.isTerminal && column.terminalType === 'success'
                   ? 'bg-emerald-100 text-emerald-400'
                   : column.isTerminal
@@ -619,7 +1194,7 @@ const KanbanColumnComponent: React.FC<KanbanColumnComponentProps> = ({
               `}>
                 {column.icon}
               </div>
-              <p className="text-xs text-stone-400 font-medium">No clients</p>
+              <p className="text-sm text-stone-400 font-medium">No clients</p>
             </motion.div>
           ) : (
             consultations.map((consultation) => (
@@ -695,7 +1270,31 @@ export const ConsultationsKanban: React.FC<ConsultationsKanbanProps> = ({
       consultations: filteredConsultations
         .filter(c => column.stages.includes(c.stage))
         .sort((a, b) => {
-          // Sort by action needed first, then by date
+          // For confirmed consults, sort by urgency (imminent first)
+          if (a.stage === 'confirmed' && b.stage === 'confirmed') {
+            const aTime = getTimeUntilConsult(a.datetime, a.duration);
+            const bTime = getTimeUntilConsult(b.datetime, b.duration);
+
+            // Urgency priority: imminent > soon > today > tomorrow > future > past
+            const urgencyOrder: Record<UrgencyLevel, number> = {
+              imminent: 0,
+              soon: 1,
+              today: 2,
+              tomorrow: 3,
+              future: 4,
+              past: 5,
+            };
+
+            const aUrgency = urgencyOrder[aTime.level];
+            const bUrgency = urgencyOrder[bTime.level];
+
+            if (aUrgency !== bUrgency) return aUrgency - bUrgency;
+
+            // Within same urgency level, sort by time
+            return aTime.minutes - bTime.minutes;
+          }
+
+          // For other stages, sort by action needed first, then by date
           const aHasAction = getNextAction(a) !== null;
           const bHasAction = getNextAction(b) !== null;
           if (aHasAction && !bHasAction) return -1;
@@ -708,22 +1307,22 @@ export const ConsultationsKanban: React.FC<ConsultationsKanbanProps> = ({
   return (
     <div className="h-full flex flex-col bg-gradient-to-b from-stone-100 to-stone-50">
       {/* Board Header - Filter Bar */}
-      <div className="px-5 py-4 border-b border-stone-200/80 bg-white/90 backdrop-blur-sm flex-shrink-0 relative z-50">
-        <div className="flex items-center gap-4">
+      <div className="px-6 py-5 border-b border-stone-200/80 bg-white/90 backdrop-blur-sm flex-shrink-0 relative z-50">
+        <div className="flex items-center gap-5">
           {/* Title */}
           <h2
-            className="text-lg font-semibold text-stone-900 tracking-tight"
+            className="text-2xl font-semibold text-stone-900 tracking-tight"
             style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
           >
             Pipeline
           </h2>
 
           {/* Filter Toggle */}
-          <div className="flex items-center p-1 bg-stone-100 rounded-xl">
+          <div className="flex items-center p-1.5 bg-stone-100 rounded-xl">
             <button
               onClick={() => setFilterMode('all')}
               className={`
-                flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all duration-200
+                flex items-center gap-2.5 px-4 py-2 rounded-lg text-base font-medium transition-all duration-200
                 ${filterMode === 'all'
                   ? 'bg-white text-stone-900 shadow-sm'
                   : 'text-stone-500 hover:text-stone-700'
@@ -732,7 +1331,7 @@ export const ConsultationsKanban: React.FC<ConsultationsKanbanProps> = ({
             >
               <span>All</span>
               <span className={`
-                min-w-[20px] h-5 px-1.5 rounded-md text-xs font-bold tabular-nums flex items-center justify-center
+                min-w-[24px] h-6 px-2 rounded-md text-sm font-bold tabular-nums flex items-center justify-center
                 ${filterMode === 'all' ? 'bg-stone-100 text-stone-600' : 'bg-stone-200/60 text-stone-500'}
               `}>
                 {counts.all}
@@ -742,18 +1341,18 @@ export const ConsultationsKanban: React.FC<ConsultationsKanbanProps> = ({
             <button
               onClick={() => setFilterMode('needs_action')}
               className={`
-                flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all duration-200
+                flex items-center gap-2.5 px-4 py-2 rounded-lg text-base font-medium transition-all duration-200
                 ${filterMode === 'needs_action'
                   ? 'bg-white text-amber-700 shadow-sm'
                   : 'text-stone-500 hover:text-stone-700'
                 }
               `}
             >
-              <Zap size={13} strokeWidth={2.5} className={filterMode === 'needs_action' ? 'text-amber-500' : ''} />
+              <Zap size={16} strokeWidth={2.5} className={filterMode === 'needs_action' ? 'text-amber-500' : ''} />
               <span>Need Action</span>
               {counts.needsAction > 0 && (
                 <span className={`
-                  min-w-[20px] h-5 px-1.5 rounded-md text-xs font-bold tabular-nums flex items-center justify-center
+                  min-w-[24px] h-6 px-2 rounded-md text-sm font-bold tabular-nums flex items-center justify-center
                   ${filterMode === 'needs_action'
                     ? 'bg-amber-100 text-amber-700'
                     : 'bg-amber-100 text-amber-600'
@@ -766,7 +1365,7 @@ export const ConsultationsKanban: React.FC<ConsultationsKanbanProps> = ({
           </div>
 
           {/* Divider */}
-          <div className="w-px h-6 bg-stone-200" />
+          <div className="w-px h-8 bg-stone-200" />
 
           {/* Clinician Filter */}
           <ClinicianDropdown
@@ -778,30 +1377,30 @@ export const ConsultationsKanban: React.FC<ConsultationsKanbanProps> = ({
 
         {/* Active filter indicator */}
         {(selectedClinician || filterMode === 'needs_action') && (
-          <div className="flex items-center gap-2 mt-3 pt-3 border-t border-stone-100">
-            <span className="text-xs text-stone-400">Showing:</span>
+          <div className="flex items-center gap-3 mt-4 pt-4 border-t border-stone-100">
+            <span className="text-sm text-stone-400">Showing:</span>
             <div className="flex items-center gap-2">
               {filterMode === 'needs_action' && (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700 text-xs font-medium">
-                  <Zap size={11} strokeWidth={2.5} />
+                <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-50 text-amber-700 text-sm font-medium">
+                  <Zap size={14} strokeWidth={2.5} />
                   Needs action
                   <button
                     onClick={() => setFilterMode('all')}
                     className="ml-1 hover:bg-amber-100 rounded p-0.5 transition-colors"
                   >
-                    <X size={11} strokeWidth={2.5} />
+                    <X size={14} strokeWidth={2.5} />
                   </button>
                 </span>
               )}
               {selectedClinician && (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-stone-100 text-stone-700 text-xs font-medium">
-                  <User size={11} strokeWidth={2} />
+                <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-stone-100 text-stone-700 text-sm font-medium">
+                  <User size={14} strokeWidth={2} />
                   {selectedClinician}
                   <button
                     onClick={() => setSelectedClinician(null)}
                     className="ml-1 hover:bg-stone-200 rounded p-0.5 transition-colors"
                   >
-                    <X size={11} strokeWidth={2.5} />
+                    <X size={14} strokeWidth={2.5} />
                   </button>
                 </span>
               )}
@@ -811,7 +1410,7 @@ export const ConsultationsKanban: React.FC<ConsultationsKanbanProps> = ({
                 setFilterMode('all');
                 setSelectedClinician(null);
               }}
-              className="ml-auto text-xs text-stone-400 hover:text-stone-600 transition-colors"
+              className="ml-auto text-sm text-stone-400 hover:text-stone-600 transition-colors"
             >
               Clear all
             </button>
@@ -821,7 +1420,7 @@ export const ConsultationsKanban: React.FC<ConsultationsKanbanProps> = ({
 
       {/* Kanban Columns */}
       <div className="flex-1 overflow-x-auto overflow-y-hidden relative z-0">
-        <div className="flex gap-4 p-5 h-full min-w-max">
+        <div className="flex gap-5 p-6 h-full min-w-max">
           {columnData.map((column) => (
             <KanbanColumnComponent
               key={column.id}
