@@ -386,7 +386,7 @@ export const MOCK_CONSULTATIONS: Consultation[] = [
     clinicianName: 'James Kim',
     calendarId: 4000000,
     wasTransferred: false,
-    stage: 'ready_for_session',
+    stage: 'paperwork_complete',
     followUpCount: 0,
     intakeScheduledDate: setTime(addDays(today, -5), 10, 0).toISOString(),
     paperworkCompletedDate: addDays(today, -6).toISOString(),
@@ -858,13 +858,13 @@ export function getConsultationsBySegment(segment: string): Consultation[] {
   switch (segment) {
     case 'action_needed':
       return MOCK_CONSULTATIONS.filter(c =>
-        ['new', 'consult_complete', 'no_show', 'intake_pending', 'intake_scheduled', 'paperwork_pending', 'ready_for_session'].includes(c.stage)
+        ['new', 'consult_complete', 'no_show', 'intake_pending', 'intake_scheduled', 'paperwork_pending', 'paperwork_complete'].includes(c.stage)
       );
     case 'upcoming':
       return MOCK_CONSULTATIONS.filter(c => c.stage === 'confirmed');
     case 'in_progress':
       return MOCK_CONSULTATIONS.filter(c =>
-        ['consult_complete', 'intake_pending', 'intake_scheduled', 'paperwork_pending', 'ready_for_session'].includes(c.stage)
+        ['consult_complete', 'intake_pending', 'intake_scheduled', 'paperwork_pending', 'paperwork_complete'].includes(c.stage)
       );
     case 'converted':
       return MOCK_CONSULTATIONS.filter(c => c.stage === 'converted');
@@ -898,6 +898,6 @@ export function getTodaysConsultations(): Consultation[] {
 
 export function getActionNeededCount(): number {
   return MOCK_CONSULTATIONS.filter(c =>
-    ['new', 'consult_complete', 'no_show', 'intake_pending', 'intake_scheduled', 'paperwork_pending', 'ready_for_session'].includes(c.stage)
+    ['new', 'consult_complete', 'no_show', 'intake_pending', 'intake_scheduled', 'paperwork_pending', 'paperwork_complete'].includes(c.stage)
   ).length;
 }

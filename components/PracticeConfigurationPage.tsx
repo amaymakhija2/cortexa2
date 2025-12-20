@@ -2368,14 +2368,14 @@ const ConsultationFlowTab: React.FC = () => {
                           </div>
                         </div>
 
-                        <div className="pt-3 border-t border-amber-200 space-y-1">
+                        <div className="pt-4 border-t border-amber-200 space-y-2">
                           <div className="flex items-center gap-2">
-                            <Check size={14} className="text-emerald-500" />
-                            <span className="text-stone-600 text-xs">Books → Paperwork flow</span>
+                            <Check size={18} className="text-emerald-500" />
+                            <span className="text-stone-700 text-sm font-medium">Books → Paperwork flow</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <XCircle size={14} className="text-stone-400" />
-                            <span className="text-stone-500 text-xs">No response → Lost</span>
+                            <XCircle size={18} className="text-stone-400" />
+                            <span className="text-stone-600 text-sm font-medium">No response → Lost</span>
                           </div>
                         </div>
                       </div>
@@ -2496,83 +2496,6 @@ const ConsultationFlowTab: React.FC = () => {
                   <p className="text-stone-400 text-sm">Dropped off pipeline</p>
                 </div>
               </div>
-            </div>
-          </div>
-
-          {/* ═══════════════════════════════════════════════════════════════════
-              CONFIGURATION SUMMARY
-          ═══════════════════════════════════════════════════════════════════ */}
-          <div className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
-            <div className="h-1 bg-gradient-to-r from-stone-400 to-stone-500" />
-            <div className="p-8">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-12 h-12 rounded-2xl bg-stone-100 flex items-center justify-center">
-                  <Sliders size={24} className="text-stone-600" />
-                </div>
-              <div>
-                <h3
-                  className="text-xl font-bold text-stone-800"
-                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-                >
-                  Configuration Summary
-                </h3>
-                <p className="text-stone-500 text-sm">Your current pipeline settings</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="p-4 rounded-xl bg-gradient-to-br from-cyan-50 to-white border border-cyan-100">
-                <div className="flex items-center gap-2 mb-2">
-                  <CalendarCheck size={16} className="text-cyan-600" />
-                  <span className="text-xs font-semibold text-cyan-800 uppercase tracking-wider">Confirmation</span>
-                </div>
-                <p className="text-stone-700 font-semibold">
-                  {config.requireConfirmation ? 'Manual' : 'Auto'}
-                </p>
-                <p className="text-stone-500 text-xs mt-0.5">
-                  {config.requireConfirmation ? 'Clinician sends email' : 'Via Acuity'}
-                </p>
-              </div>
-
-              <div className="p-4 rounded-xl bg-gradient-to-br from-rose-50 to-white border border-rose-100">
-                <div className="flex items-center gap-2 mb-2">
-                  <UserX size={16} className="text-rose-600" />
-                  <span className="text-xs font-semibold text-rose-800 uppercase tracking-wider">No-Show</span>
-                </div>
-                <p className="text-stone-700 font-semibold">
-                  {NO_SHOW_PRESETS[config.noShowPreset].label}
-                </p>
-                <p className="text-stone-500 text-xs mt-0.5">
-                  {NO_SHOW_PRESETS[config.noShowPreset].sequence.length} follow-ups
-                </p>
-              </div>
-
-              <div className="p-4 rounded-xl bg-gradient-to-br from-amber-50 to-white border border-amber-100">
-                <div className="flex items-center gap-2 mb-2">
-                  <Clock size={16} className="text-amber-600" />
-                  <span className="text-xs font-semibold text-amber-800 uppercase tracking-wider">Intake</span>
-                </div>
-                <p className="text-stone-700 font-semibold">
-                  {INTAKE_PRESETS[config.intakePreset].label}
-                </p>
-                <p className="text-stone-500 text-xs mt-0.5">
-                  {INTAKE_PRESETS[config.intakePreset].sequence.length} reminders
-                </p>
-              </div>
-
-              <div className="p-4 rounded-xl bg-gradient-to-br from-violet-50 to-white border border-violet-100">
-                <div className="flex items-center gap-2 mb-2">
-                  <FileText size={16} className="text-violet-600" />
-                  <span className="text-xs font-semibold text-violet-800 uppercase tracking-wider">Paperwork</span>
-                </div>
-                <p className="text-stone-700 font-semibold">
-                  {PAPERWORK_PRESETS[config.paperworkPreset].label}
-                </p>
-                <p className="text-stone-500 text-xs mt-0.5">
-                  {PAPERWORK_PRESETS[config.paperworkPreset].sequence.join(' → ')}
-                </p>
-              </div>
-            </div>
             </div>
           </div>
         </div>

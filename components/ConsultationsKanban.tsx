@@ -115,12 +115,21 @@ interface ConsultationsKanbanProps {
 // -----------------------------------------------------------------------------
 // COLUMN CONFIGURATION
 // -----------------------------------------------------------------------------
+// Pipeline Flow:
+// 1. Booked: new, confirmed (pre-consult) - waiting for consultation
+// 2. Post-Consult: consult_complete, no_show - consult happened, need to mark outcome or do recovery
+// 3. Intake: intake_pending - attended but didn't book intake, need to convince them
+// 4. Paperwork: intake_scheduled, paperwork_pending - intake booked, focus on paperwork
+// 5. First Session: paperwork_complete - paperwork done, waiting for first session
+// 6. Converted: converted - success!
+// 7. Lost: lost - dropped off
 
 const KANBAN_COLUMNS: KanbanColumn[] = [
   { id: 'booked', title: 'Booked', stages: ['new', 'confirmed'] },
-  { id: 'complete', title: 'Post-Consult', stages: ['consult_complete', 'no_show'] },
-  { id: 'intake', title: 'Intake', stages: ['intake_pending', 'intake_scheduled'] },
-  { id: 'paperwork', title: 'Paperwork', stages: ['paperwork_pending', 'ready_for_session'] },
+  { id: 'post-consult', title: 'Post-Consult', stages: ['consult_complete', 'no_show'] },
+  { id: 'intake', title: 'Intake', stages: ['intake_pending'] },
+  { id: 'paperwork', title: 'Paperwork', stages: ['intake_scheduled', 'paperwork_pending'] },
+  { id: 'first-session', title: 'First Session', stages: ['paperwork_complete'] },
   { id: 'converted', title: 'Converted', stages: ['converted'], isTerminal: true, terminalType: 'success' },
   { id: 'lost', title: 'Lost', stages: ['lost'], isTerminal: true, terminalType: 'neutral' },
 ];
@@ -128,6 +137,25 @@ const KANBAN_COLUMNS: KanbanColumn[] = [
 // -----------------------------------------------------------------------------
 // ACTION SYSTEM
 // -----------------------------------------------------------------------------
+// Refined action logic matching the Practice Config flow:
+//
+// BOOKED COLUMN:
+//   - new: "Send Confirmation" (cyan)
+//   - confirmed (pre-consult): "Join Consult" (cyan, amber when imminent)
+//
+// POST-CONSULT COLUMN:
+//   - consult_complete: "Mark Outcome" - need to record attended/no-show (amber)
+//   - no_show: "Send Recovery #N" / "Mark Rescheduled" / "Mark Lost" (rose)
+//
+// INTAKE COLUMN:
+//   - intake_pending: "Send Reminder" / "Mark Scheduled" / "Mark Lost" (amber)
+//
+// PAPERWORK COLUMN:
+//   - intake_scheduled: "Send Paperwork Reminder" (violet)
+//   - paperwork_pending: "Send Reminder" / "Mark Complete" (violet)
+//
+// FIRST SESSION COLUMN:
+//   - paperwork_complete: "Mark Converted" (emerald)
 
 type ActionPriority = 'due' | 'upcoming' | 'reactive' | null;
 
@@ -135,37 +163,52 @@ interface ActionInfo {
   priority: ActionPriority;
   buttonLabel: string;
   statusLabel: string;
+  colorScheme: 'cyan' | 'amber' | 'rose' | 'violet' | 'emerald' | 'stone';
 }
 
 const getActionInfo = (consultation: Consultation): ActionInfo => {
   const { stage, followUpCount, datetime, lastFollowUpDate } = consultation;
 
-  if (stage === 'converted' || stage === 'lost') {
-    return { priority: null, buttonLabel: '', statusLabel: stage === 'converted' ? 'Converted' : 'Lost' };
+  // Terminal states
+  if (stage === 'converted') {
+    return { priority: null, buttonLabel: '', statusLabel: 'Converted', colorScheme: 'emerald' };
+  }
+  if (stage === 'lost') {
+    return { priority: null, buttonLabel: '', statusLabel: 'Lost', colorScheme: 'stone' };
+  }
+
+  // BOOKED COLUMN: new + confirmed (pre-consult)
+  if (stage === 'new') {
+    const hoursSinceCreated = (Date.now() - new Date(consultation.createdAt).getTime()) / (1000 * 60 * 60);
+    if (hoursSinceCreated >= 4) {
+      return { priority: 'due', buttonLabel: 'Send Confirmation', statusLabel: 'Needs confirmation', colorScheme: 'cyan' };
+    }
+    return { priority: 'upcoming', buttonLabel: 'Send Confirmation', statusLabel: 'New booking', colorScheme: 'cyan' };
   }
 
   if (stage === 'confirmed') {
     const timeInfo = getTimeUntilConsult(datetime, consultation.duration);
-    if (timeInfo.isActive || timeInfo.level === 'past') {
-      return { priority: 'due', buttonLabel: 'Mark Outcome', statusLabel: timeInfo.isActive ? 'In session' : 'Mark attendance' };
+    // Post-consult: time has passed, needs Mark Outcome
+    if (timeInfo.level === 'past') {
+      return { priority: 'due', buttonLabel: 'Mark Outcome', statusLabel: 'Consult ended', colorScheme: 'amber' };
     }
-    return { priority: null, buttonLabel: '', statusLabel: 'Scheduled' };
+    // Currently in session
+    if (timeInfo.isActive) {
+      return { priority: 'due', buttonLabel: 'Mark Outcome', statusLabel: 'In session', colorScheme: 'amber' };
+    }
+    // Pre-consult: waiting for consult, show Join button (handled separately in card)
+    return { priority: null, buttonLabel: '', statusLabel: 'Scheduled', colorScheme: 'cyan' };
   }
 
-  if (stage === 'new') {
-    const hoursSinceCreated = (Date.now() - new Date(consultation.createdAt).getTime()) / (1000 * 60 * 60);
-    if (hoursSinceCreated >= 4) {
-      return { priority: 'due', buttonLabel: 'Confirm', statusLabel: 'Needs confirmation' };
-    }
-    return { priority: 'upcoming', buttonLabel: 'Confirm', statusLabel: 'New booking' };
-  }
-
+  // POST-CONSULT COLUMN: consult_complete + no_show
   if (stage === 'consult_complete') {
+    // This shouldn't happen often as consult_complete means we need to mark outcome
+    // But if somehow here, prompt to send follow-up
     const daysSince = getDaysSince(datetime);
     if (daysSince >= 2) {
-      return { priority: 'due', buttonLabel: 'Follow up', statusLabel: 'Overdue' };
+      return { priority: 'due', buttonLabel: 'Send Follow-up', statusLabel: 'Overdue', colorScheme: 'amber' };
     }
-    return { priority: 'due', buttonLabel: 'Follow up', statusLabel: 'Send follow-up' };
+    return { priority: 'due', buttonLabel: 'Send Follow-up', statusLabel: 'Needs follow-up', colorScheme: 'amber' };
   }
 
   if (stage === 'no_show') {
@@ -178,71 +221,75 @@ const getActionInfo = (consultation: Consultation): ActionInfo => {
     }
 
     if (followUpCount === 0) {
-      return { priority: 'due', buttonLabel: `Follow up #1`, statusLabel: 'No-show' };
+      return { priority: 'due', buttonLabel: 'Send Recovery #1', statusLabel: 'No-show', colorScheme: 'rose' };
     }
     if (followUpCount === 1 && hoursSinceConsult >= 24 && hoursSinceLastFollowUp >= 20) {
-      return { priority: hoursSinceLastFollowUp >= 24 ? 'due' : 'upcoming', buttonLabel: `Follow up #2`, statusLabel: '24hr check-in' };
+      return { priority: hoursSinceLastFollowUp >= 24 ? 'due' : 'upcoming', buttonLabel: 'Send Recovery #2', statusLabel: '24hr check-in', colorScheme: 'rose' };
     }
     if (followUpCount === 2 && hoursSinceConsult >= 72 && hoursSinceLastFollowUp >= 44) {
-      return { priority: hoursSinceLastFollowUp >= 48 ? 'due' : 'upcoming', buttonLabel: `Follow up #3`, statusLabel: '72hr check-in' };
+      return { priority: hoursSinceLastFollowUp >= 48 ? 'due' : 'upcoming', buttonLabel: 'Send Recovery #3', statusLabel: '72hr check-in', colorScheme: 'rose' };
     }
     if (followUpCount >= 3) {
-      return { priority: 'reactive', buttonLabel: 'Close', statusLabel: 'No response' };
+      return { priority: 'reactive', buttonLabel: 'Mark Lost', statusLabel: 'No response', colorScheme: 'rose' };
     }
-    return { priority: null, buttonLabel: '', statusLabel: `${followUpCount}/3 sent` };
+    return { priority: null, buttonLabel: '', statusLabel: `${followUpCount}/3 sent`, colorScheme: 'rose' };
   }
 
+  // INTAKE COLUMN: intake_pending
   if (stage === 'intake_pending') {
     const daysSince = getDaysSince(datetime);
     if (daysSince >= 7) {
-      return { priority: 'upcoming', buttonLabel: 'Remind', statusLabel: 'No response' };
+      return { priority: 'due', buttonLabel: 'Send Reminder', statusLabel: 'No response', colorScheme: 'amber' };
     }
     if (daysSince >= 3) {
-      return { priority: 'reactive', buttonLabel: 'Update', statusLabel: 'Awaiting response' };
+      return { priority: 'upcoming', buttonLabel: 'Send Reminder', statusLabel: 'Awaiting response', colorScheme: 'amber' };
     }
-    return { priority: null, buttonLabel: '', statusLabel: 'Awaiting response' };
+    return { priority: 'reactive', buttonLabel: 'Mark Scheduled', statusLabel: 'Awaiting response', colorScheme: 'amber' };
   }
 
+  // PAPERWORK COLUMN: intake_scheduled + paperwork_pending
   if (stage === 'intake_scheduled') {
     if (!consultation.intakeScheduledDate) {
-      return { priority: 'reactive', buttonLabel: 'Update', statusLabel: 'Scheduled' };
+      return { priority: 'reactive', buttonLabel: 'Send Reminder', statusLabel: 'Scheduled', colorScheme: 'violet' };
     }
     const intakeTime = getTimeUntilConsult(consultation.intakeScheduledDate);
     const hoursUntil = intakeTime.minutes / 60;
     if (hoursUntil <= 24 && hoursUntil > 0) {
-      return { priority: 'due', buttonLabel: 'Remind', statusLabel: 'Paperwork due' };
+      return { priority: 'due', buttonLabel: 'Send Reminder', statusLabel: 'Paperwork due', colorScheme: 'violet' };
     }
     if (hoursUntil <= 72 && hoursUntil > 24) {
-      return { priority: 'upcoming', buttonLabel: 'Remind', statusLabel: 'Send reminder' };
+      return { priority: 'upcoming', buttonLabel: 'Send Reminder', statusLabel: 'Send reminder', colorScheme: 'violet' };
     }
-    return { priority: null, buttonLabel: '', statusLabel: 'Awaiting paperwork' };
+    return { priority: null, buttonLabel: '', statusLabel: 'Awaiting paperwork', colorScheme: 'violet' };
   }
 
   if (stage === 'paperwork_pending') {
     if (!consultation.intakeScheduledDate) {
-      return { priority: 'reactive', buttonLabel: 'Complete', statusLabel: 'Pending' };
+      return { priority: 'reactive', buttonLabel: 'Mark Complete', statusLabel: 'Pending', colorScheme: 'violet' };
     }
     const intakeTime = getTimeUntilConsult(consultation.intakeScheduledDate);
     if (intakeTime.level === 'past') {
-      return { priority: 'due', buttonLabel: 'Update', statusLabel: 'Overdue' };
+      return { priority: 'due', buttonLabel: 'Mark Complete', statusLabel: 'Overdue', colorScheme: 'violet' };
     }
     if (intakeTime.level === 'imminent' || intakeTime.level === 'soon' || intakeTime.level === 'today') {
-      return { priority: 'due', buttonLabel: 'Remind', statusLabel: 'Urgent' };
+      return { priority: 'due', buttonLabel: 'Send Reminder', statusLabel: 'Urgent', colorScheme: 'violet' };
     }
-    return { priority: null, buttonLabel: '', statusLabel: 'Pending' };
+    return { priority: 'reactive', buttonLabel: 'Mark Complete', statusLabel: 'Pending', colorScheme: 'violet' };
   }
 
-  if (stage === 'ready_for_session') {
+  // FIRST SESSION COLUMN: paperwork_complete
+  if (stage === 'paperwork_complete') {
     if (consultation.firstSessionDate) {
       const sessionTime = getTimeUntilConsult(consultation.firstSessionDate);
       if (sessionTime.level === 'past') {
-        return { priority: 'reactive', buttonLabel: 'Complete', statusLabel: 'Confirm session' };
+        return { priority: 'due', buttonLabel: 'Mark Converted', statusLabel: 'Session completed', colorScheme: 'emerald' };
       }
+      return { priority: null, buttonLabel: '', statusLabel: 'Session upcoming', colorScheme: 'emerald' };
     }
-    return { priority: null, buttonLabel: '', statusLabel: 'Ready' };
+    return { priority: 'reactive', buttonLabel: 'Mark Converted', statusLabel: 'Ready for session', colorScheme: 'emerald' };
   }
 
-  return { priority: null, buttonLabel: '', statusLabel: '' };
+  return { priority: null, buttonLabel: '', statusLabel: '', colorScheme: 'stone' };
 };
 
 const consultationNeedsAction = (c: Consultation): boolean => {
@@ -389,15 +436,16 @@ const KanbanCard: React.FC<KanbanCardProps> = ({
   const isConfirmed = consultation.stage === 'confirmed';
   const isImminent = isConfirmed && (timeInfo.level === 'imminent' || timeInfo.level === 'soon');
   const isTodayConsult = isConfirmed && timeInfo.level === 'today';
-  const isConsultPast = isConfirmed && timeInfo.level === 'past';
+  const isConsultPast = isConfirmed && (timeInfo.level === 'past' || timeInfo.isActive);
 
   const hasVideoLink = consultation.meetingType === 'google_meet' || consultation.meetingType === 'zoom';
   const isPhoneCall = consultation.meetingType === 'phone';
+  // Only show Join button if confirmed AND consult hasn't happened yet
   const showJoinButton = isConfirmed && !isConsultPast;
   const isJoinActive = isConfirmed && (isImminent || isTodayConsult || isConsultationToday(consultation.datetime));
 
   const actionInfo = getActionInfo(consultation);
-  const { priority: actionPriority, buttonLabel, statusLabel } = actionInfo;
+  const { priority: actionPriority, buttonLabel, statusLabel, colorScheme } = actionInfo;
   const showActionButton = actionPriority !== null;
 
   const getDisplayInfo = () => {
@@ -406,25 +454,68 @@ const KanbanCard: React.FC<KanbanCardProps> = ({
     if (consultation.stage === 'intake_scheduled' && consultation.intakeScheduledDate) {
       return formatConsultationDate(consultation.intakeScheduledDate).split(',')[0];
     }
+    if (consultation.stage === 'paperwork_complete' && consultation.firstSessionDate) {
+      return formatConsultationDate(consultation.firstSessionDate).split(',')[0];
+    }
     return formatConsultationDate(consultation.datetime).split(',')[0];
   };
 
-  // Card background based on state
+  // Card background based on colorScheme and priority
   const getCardBg = () => {
     if (isTerminal && terminalType === 'success') return 'bg-gradient-to-br from-emerald-50/80 to-teal-50/50';
     if (isTerminal) return 'bg-stone-50/80';
     if (isImminent) return 'bg-gradient-to-br from-amber-50 to-orange-50/50';
-    if (actionPriority === 'due') return 'bg-gradient-to-br from-rose-50/60 to-orange-50/40';
+    if (actionPriority === 'due') {
+      if (colorScheme === 'rose') return 'bg-gradient-to-br from-rose-50/60 to-pink-50/40';
+      if (colorScheme === 'amber') return 'bg-gradient-to-br from-amber-50/60 to-orange-50/40';
+      if (colorScheme === 'violet') return 'bg-gradient-to-br from-violet-50/60 to-purple-50/40';
+      if (colorScheme === 'emerald') return 'bg-gradient-to-br from-emerald-50/60 to-teal-50/40';
+      if (colorScheme === 'cyan') return 'bg-gradient-to-br from-cyan-50/60 to-sky-50/40';
+    }
     return 'bg-white';
   };
 
-  // Border color
+  // Border color based on colorScheme
   const getBorderColor = () => {
     if (isTerminal && terminalType === 'success') return 'border-emerald-200/60';
     if (isTerminal) return 'border-stone-200/60';
     if (isImminent) return 'border-amber-200/80';
-    if (actionPriority === 'due') return 'border-rose-200/60';
+    if (actionPriority === 'due') {
+      if (colorScheme === 'rose') return 'border-rose-200/60';
+      if (colorScheme === 'amber') return 'border-amber-200/60';
+      if (colorScheme === 'violet') return 'border-violet-200/60';
+      if (colorScheme === 'emerald') return 'border-emerald-200/60';
+      if (colorScheme === 'cyan') return 'border-cyan-200/60';
+    }
     return 'border-stone-200/80';
+  };
+
+  // Get button styles based on colorScheme and priority
+  const getButtonStyles = () => {
+    if (actionPriority === 'due') {
+      const schemes = {
+        rose: 'bg-gradient-to-r from-rose-500 to-pink-500 text-white hover:from-rose-600 hover:to-pink-600 shadow-sm shadow-rose-500/20',
+        amber: 'bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-600 hover:to-orange-600 shadow-sm shadow-amber-500/20',
+        violet: 'bg-gradient-to-r from-violet-500 to-purple-500 text-white hover:from-violet-600 hover:to-purple-600 shadow-sm shadow-violet-500/20',
+        emerald: 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-600 hover:to-teal-600 shadow-sm shadow-emerald-500/20',
+        cyan: 'bg-gradient-to-r from-cyan-500 to-sky-500 text-white hover:from-cyan-600 hover:to-sky-600 shadow-sm shadow-cyan-500/20',
+        stone: 'bg-stone-800 text-white hover:bg-stone-900',
+      };
+      return schemes[colorScheme] || schemes.stone;
+    }
+    if (actionPriority === 'upcoming') {
+      const schemes = {
+        rose: 'bg-rose-100 text-rose-700 hover:bg-rose-200',
+        amber: 'bg-amber-100 text-amber-700 hover:bg-amber-200',
+        violet: 'bg-violet-100 text-violet-700 hover:bg-violet-200',
+        emerald: 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200',
+        cyan: 'bg-cyan-100 text-cyan-700 hover:bg-cyan-200',
+        stone: 'bg-stone-100 text-stone-700 hover:bg-stone-200',
+      };
+      return schemes[colorScheme] || schemes.stone;
+    }
+    // reactive
+    return 'bg-stone-100 text-stone-700 hover:bg-stone-200';
   };
 
   return (
@@ -444,7 +535,7 @@ const KanbanCard: React.FC<KanbanCardProps> = ({
       <div className="p-4">
         {/* Header */}
         <div className="flex items-start gap-3 mb-3">
-          {/* Avatar */}
+          {/* Avatar - uses colorScheme */}
           <div className={`
             w-11 h-11 rounded-xl flex items-center justify-center text-sm font-semibold flex-shrink-0 transition-colors
             ${isTerminal && terminalType === 'success'
@@ -454,7 +545,12 @@ const KanbanCard: React.FC<KanbanCardProps> = ({
                 : isImminent
                   ? 'bg-amber-500 text-white shadow-sm shadow-amber-500/30'
                   : actionPriority === 'due'
-                    ? 'bg-rose-100 text-rose-700'
+                    ? colorScheme === 'rose' ? 'bg-rose-100 text-rose-700'
+                    : colorScheme === 'amber' ? 'bg-amber-100 text-amber-700'
+                    : colorScheme === 'violet' ? 'bg-violet-100 text-violet-700'
+                    : colorScheme === 'emerald' ? 'bg-emerald-100 text-emerald-700'
+                    : colorScheme === 'cyan' ? 'bg-cyan-100 text-cyan-700'
+                    : 'bg-rose-100 text-rose-700'
                     : 'bg-stone-100 text-stone-600'
             }
           `}>
@@ -474,7 +570,7 @@ const KanbanCard: React.FC<KanbanCardProps> = ({
             </p>
           </div>
 
-          {/* Time pill for confirmed */}
+          {/* Time pill for confirmed (pre-consult only) */}
           {isConfirmed && !isConsultPast && (
             <span className={`
               flex-shrink-0 px-2.5 py-1 text-xs font-semibold rounded-full
@@ -482,7 +578,7 @@ const KanbanCard: React.FC<KanbanCardProps> = ({
                 ? 'bg-amber-500 text-white'
                 : isTodayConsult
                   ? 'bg-amber-100 text-amber-800'
-                  : 'bg-stone-100 text-stone-600'
+                  : 'bg-cyan-100 text-cyan-700'
               }
             `}>
               {timeInfo.label}
@@ -490,19 +586,29 @@ const KanbanCard: React.FC<KanbanCardProps> = ({
           )}
         </div>
 
-        {/* Status line */}
+        {/* Status line - uses colorScheme */}
         <div className="flex items-center justify-between mb-4">
-          <p className={`text-sm ${
+          <p className={`text-sm font-medium ${
             actionPriority === 'due'
-              ? 'text-rose-700 font-medium'
+              ? colorScheme === 'rose' ? 'text-rose-700'
+              : colorScheme === 'amber' ? 'text-amber-700'
+              : colorScheme === 'violet' ? 'text-violet-700'
+              : colorScheme === 'emerald' ? 'text-emerald-700'
+              : colorScheme === 'cyan' ? 'text-cyan-700'
+              : 'text-rose-700'
               : actionPriority === 'upcoming'
-                ? 'text-amber-700 font-medium'
+                ? colorScheme === 'rose' ? 'text-rose-600'
+                : colorScheme === 'amber' ? 'text-amber-600'
+                : colorScheme === 'violet' ? 'text-violet-600'
+                : colorScheme === 'emerald' ? 'text-emerald-600'
+                : colorScheme === 'cyan' ? 'text-cyan-600'
+                : 'text-amber-600'
                 : 'text-stone-500'
           }`}>
             {statusLabel || 'No action needed'}
           </p>
 
-          {/* Time for non-confirmed */}
+          {/* Time for non-confirmed or post-consult */}
           {(!isConfirmed || isConsultPast) && (
             <div className="flex items-center gap-1.5 text-xs text-stone-400">
               <Clock size={11} strokeWidth={1.5} />
@@ -563,18 +669,13 @@ const KanbanCard: React.FC<KanbanCardProps> = ({
             </a>
           )}
 
-          {/* Action button */}
+          {/* Action button - uses colorScheme */}
           {showActionButton && (
             <button
               onClick={(e) => { e.stopPropagation(); onTakeAction(); }}
               className={`
                 flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-1.5 transition-all
-                ${actionPriority === 'due'
-                  ? 'bg-gradient-to-r from-rose-500 to-orange-500 text-white hover:from-rose-600 hover:to-orange-600 shadow-sm shadow-rose-500/20'
-                  : actionPriority === 'upcoming'
-                    ? 'bg-amber-500 text-white hover:bg-amber-600 shadow-sm shadow-amber-500/20'
-                    : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
-                }
+                ${getButtonStyles()}
               `}
             >
               {buttonLabel}
@@ -769,12 +870,29 @@ export const ConsultationsKanban: React.FC<ConsultationsKanbanProps> = ({
     };
   }, [consultations, selectedClinician]);
 
+  // Helper to determine effective column for a consultation
+  // Key logic: confirmed consultations that are past their time go to post-consult
+  const getEffectiveColumn = (c: Consultation): string => {
+    if (c.stage === 'confirmed') {
+      const timeInfo = getTimeUntilConsult(c.datetime, c.duration);
+      // If consult time has passed or is active, it belongs in post-consult
+      if (timeInfo.level === 'past' || timeInfo.isActive) {
+        return 'post-consult';
+      }
+      return 'booked';
+    }
+    // For all other stages, find the column that contains the stage
+    const column = KANBAN_COLUMNS.find(col => col.stages.includes(c.stage));
+    return column?.id || 'booked';
+  };
+
   const columnData = useMemo(() => {
     return KANBAN_COLUMNS.map(column => ({
       ...column,
       consultations: filteredConsultations
-        .filter(c => column.stages.includes(c.stage))
+        .filter(c => getEffectiveColumn(c) === column.id)
         .sort((a, b) => {
+          // For pre-consult confirmed, sort by urgency
           if (a.stage === 'confirmed' && b.stage === 'confirmed') {
             const aTime = getTimeUntilConsult(a.datetime, a.duration);
             const bTime = getTimeUntilConsult(b.datetime, b.duration);
@@ -782,6 +900,7 @@ export const ConsultationsKanban: React.FC<ConsultationsKanbanProps> = ({
             if (order[aTime.level] !== order[bTime.level]) return order[aTime.level] - order[bTime.level];
             return aTime.minutes - bTime.minutes;
           }
+          // For all others, sort by action priority
           const aInfo = getActionInfo(a);
           const bInfo = getActionInfo(b);
           const pOrder = { due: 0, upcoming: 1, reactive: 2, null: 3 };

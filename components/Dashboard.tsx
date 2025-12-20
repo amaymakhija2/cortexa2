@@ -53,7 +53,7 @@ const getConsultationMetrics = (month: number, year: number, consultationGoal: n
 
   // In progress (currently active in the pipeline, not yet converted/lost)
   const inProgress = MOCK_CONSULTATIONS.filter(c =>
-    ['consult_complete', 'intake_pending', 'intake_scheduled', 'paperwork_pending', 'ready_for_session'].includes(c.stage)
+    ['consult_complete', 'intake_pending', 'intake_scheduled', 'paperwork_pending', 'paperwork_complete'].includes(c.stage)
   ).length;
 
   // Determine status based on booked vs goal

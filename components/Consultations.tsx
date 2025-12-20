@@ -73,7 +73,7 @@ const STAGE_COLORS: Record<string, { bg: string; text: string; dot: string; bord
   intake_pending: { bg: 'bg-amber-50', text: 'text-amber-700', dot: 'bg-amber-500', border: 'border-amber-200' },
   intake_scheduled: { bg: 'bg-amber-50', text: 'text-amber-700', dot: 'bg-amber-500', border: 'border-amber-200' },
   paperwork_pending: { bg: 'bg-amber-50', text: 'text-amber-700', dot: 'bg-amber-500', border: 'border-amber-200' },
-  ready_for_session: { bg: 'bg-emerald-50', text: 'text-emerald-700', dot: 'bg-emerald-500', border: 'border-emerald-200' },
+  paperwork_complete: { bg: 'bg-emerald-50', text: 'text-emerald-700', dot: 'bg-emerald-500', border: 'border-emerald-200' },
   converted: { bg: 'bg-emerald-50', text: 'text-emerald-700', dot: 'bg-emerald-500', border: 'border-emerald-200' },
   lost: { bg: 'bg-stone-100', text: 'text-stone-600', dot: 'bg-stone-400', border: 'border-stone-200' },
 };
@@ -137,7 +137,7 @@ const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
   } else if (consultation.stage === 'paperwork_pending') {
     timelineItems.push({ label: 'Intake scheduled', status: 'done' });
     timelineItems.push({ label: 'Send paperwork reminder', status: 'current' });
-  } else if (consultation.stage === 'ready_for_session') {
+  } else if (consultation.stage === 'paperwork_complete') {
     timelineItems.push({ label: 'Paperwork complete', status: 'done' });
     timelineItems.push({ label: 'First session', date: consultation.firstSessionDate ? formatConsultationDate(consultation.firstSessionDate) : undefined, status: 'current' });
   } else if (consultation.stage === 'converted') {
@@ -540,7 +540,7 @@ const ConsultationRow: React.FC<ConsultationRowProps> = ({
         highlight: false,
       };
     }
-    if (consultation.stage === 'ready_for_session' && consultation.firstSessionDate) {
+    if (consultation.stage === 'paperwork_complete' && consultation.firstSessionDate) {
       return {
         primary: formatConsultationDate(consultation.firstSessionDate),
         secondary: 'First session',
@@ -934,7 +934,7 @@ export const Consultations: React.FC = () => {
         case 'send_paperwork_reminder':
           return { ...c, stage: 'paperwork_pending' as ConsultationStage, updatedAt: new Date().toISOString() };
         case 'mark_paperwork_complete':
-          return { ...c, stage: 'ready_for_session' as ConsultationStage, paperworkCompletedDate: new Date().toISOString(), updatedAt: new Date().toISOString() };
+          return { ...c, stage: 'paperwork_complete' as ConsultationStage, paperworkCompletedDate: new Date().toISOString(), updatedAt: new Date().toISOString() };
         case 'mark_first_session_done':
           return { ...c, stage: 'converted' as ConsultationStage, convertedDate: new Date().toISOString(), updatedAt: new Date().toISOString() };
         case 'mark_lost':
@@ -1039,7 +1039,7 @@ export const Consultations: React.FC = () => {
       converted: consultations.filter(c => c.stage === 'converted' && isThisMonth(c.convertedDate)).length,
       lost: consultations.filter(c => c.stage === 'lost' && isThisMonth(c.lostDate)).length,
       inProgress: consultations.filter(c =>
-        ['consult_complete', 'intake_pending', 'intake_scheduled', 'paperwork_pending', 'ready_for_session'].includes(c.stage)
+        ['consult_complete', 'intake_pending', 'intake_scheduled', 'paperwork_pending', 'paperwork_complete'].includes(c.stage)
       ).length,
     };
   }, [consultations]);

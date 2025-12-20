@@ -105,7 +105,7 @@ const STAGE_QUESTIONS: Record<ConsultationStage, string> = {
   intake_pending: 'Did they schedule their intake?',
   intake_scheduled: 'How is the paperwork coming along?',
   paperwork_pending: 'Is the paperwork complete?',
-  ready_for_session: 'How did the first session go?',
+  paperwork_complete: 'How did the first session go?',
   converted: 'This client has been converted!',
   lost: 'This case has been marked as lost.',
 };
@@ -840,7 +840,7 @@ export const TakeActionModal: React.FC<TakeActionModalProps> = ({
 
   // Build the journey steps based on current stage
   const journeySteps: JourneyStep[] = useMemo(() => {
-    const stages: ConsultationStage[] = ['new', 'confirmed', 'consult_complete', 'intake_pending', 'intake_scheduled', 'paperwork_pending', 'ready_for_session', 'converted'];
+    const stages: ConsultationStage[] = ['new', 'confirmed', 'consult_complete', 'intake_pending', 'intake_scheduled', 'paperwork_pending', 'paperwork_complete', 'converted'];
     const currentIndex = stages.indexOf(consultation.stage);
 
     // Simplified journey for display
@@ -850,7 +850,7 @@ export const TakeActionModal: React.FC<TakeActionModalProps> = ({
       { stage: 'consult_complete', label: 'Consultation', shortLabel: 'Consult' },
       { stage: 'intake_pending', label: 'Intake Pending', shortLabel: 'Follow-Up' },
       { stage: 'intake_scheduled', label: 'Intake Scheduled', shortLabel: 'Intake' },
-      { stage: 'ready_for_session', label: 'Ready', shortLabel: 'Paperwork' },
+      { stage: 'paperwork_complete', label: 'Ready', shortLabel: 'Paperwork' },
       { stage: 'converted', label: 'Converted', shortLabel: 'Converted' },
     ];
 
@@ -886,7 +886,7 @@ export const TakeActionModal: React.FC<TakeActionModalProps> = ({
       intake_pending: 3,
       intake_scheduled: 4,
       paperwork_pending: 5,
-      ready_for_session: 5,
+      paperwork_complete: 5,
       converted: 6,
       lost: 6,
     };
@@ -1123,7 +1123,7 @@ export const TakeActionModal: React.FC<TakeActionModalProps> = ({
           },
         ];
 
-      case 'ready_for_session':
+      case 'paperwork_complete':
         return [
           {
             id: 'session_done',
@@ -1220,7 +1220,7 @@ export const TakeActionModal: React.FC<TakeActionModalProps> = ({
         nextSteps = ['Reminder sent to complete forms', 'Another reminder in 24hrs if needed'];
         break;
       case 'mark_paperwork_complete':
-        toStage = 'ready_for_session';
+        toStage = 'paperwork_complete';
         toStageLabel = 'Ready for Session';
         nextSteps = ['Client is all set for first session', 'Confirmation sent for appointment'];
         break;
@@ -1315,7 +1315,7 @@ export const TakeActionModal: React.FC<TakeActionModalProps> = ({
       case 'intake_scheduled':
       case 'paperwork_pending':
         return 'pre_paperwork';
-      case 'ready_for_session':
+      case 'paperwork_complete':
         return 'pre_first_session';
       default:
         return 'pre_consult';

@@ -12,13 +12,13 @@
 
 export type ConsultationStage =
   | 'new'                    // Just booked, needs confirmation email
-  | 'confirmed'              // Confirmation sent, awaiting consult
-  | 'consult_complete'       // Attended, needs post-consult message
-  | 'no_show'                // Didn't attend, needs follow-up sequence
-  | 'intake_pending'         // Post-consult sent, waiting for intake scheduling
-  | 'intake_scheduled'       // Intake date set (from EHR)
+  | 'confirmed'              // Confirmation sent, awaiting consult (moves to post-consult after consult time passes)
+  | 'consult_complete'       // Attended, needs to mark outcome (attended/no-show)
+  | 'no_show'                // Didn't attend, needs follow-up recovery sequence
+  | 'intake_pending'         // Attended but didn't book intake during consult - need to convince them
+  | 'intake_scheduled'       // Intake booked - now focus on paperwork
   | 'paperwork_pending'      // Awaiting paperwork completion
-  | 'ready_for_session'      // Paperwork done, first session upcoming
+  | 'paperwork_complete'     // Paperwork done, waiting for first session
   | 'converted'              // First session completed - SUCCESS
   | 'lost';                  // Dropped off somewhere in the funnel
 
@@ -230,7 +230,7 @@ export const STAGE_CONFIGS: StageConfig[] = [
     actionActiveLabel: 'Confirming paperwork complete',
   },
   {
-    stage: 'ready_for_session',
+    stage: 'paperwork_complete',
     label: 'Ready',
     description: 'Ready for first session',
     color: 'emerald',
@@ -275,7 +275,7 @@ export const SEGMENT_CONFIGS: SegmentConfig[] = [
     id: 'action_needed',
     label: 'Action Needed',
     description: 'Consultations requiring your attention',
-    stages: ['new', 'consult_complete', 'no_show', 'intake_pending', 'intake_scheduled', 'paperwork_pending', 'ready_for_session'],
+    stages: ['new', 'consult_complete', 'no_show', 'intake_pending', 'intake_scheduled', 'paperwork_pending', 'paperwork_complete'],
   },
   {
     id: 'upcoming',
@@ -287,7 +287,7 @@ export const SEGMENT_CONFIGS: SegmentConfig[] = [
     id: 'in_progress',
     label: 'In Progress',
     description: 'Post-consultation, pre-conversion',
-    stages: ['consult_complete', 'intake_pending', 'intake_scheduled', 'paperwork_pending', 'ready_for_session'],
+    stages: ['consult_complete', 'intake_pending', 'intake_scheduled', 'paperwork_pending', 'paperwork_complete'],
   },
   {
     id: 'converted',
