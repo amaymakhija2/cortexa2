@@ -175,7 +175,7 @@ export const MetricsRow: React.FC<MetricsRowProps> = ({ metrics, isLive = true }
       status={metrics.consultations.status}
       tooltip={METRIC_TOOLTIPS['Consultations']}
       navigateTo={{
-        path: '#', // Will be updated later
+        path: '/clinician-overview?tab=ranking&metric=growth',
         label: 'By Clinician',
         labelMobile: 'Clinicians',
       }}

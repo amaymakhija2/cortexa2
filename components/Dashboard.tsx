@@ -5,7 +5,6 @@ import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { MetricsRow } from './MetricsRow';
 import { SimpleAlertCard } from './SimpleAlertCard';
-import { MonthlyReviewCard } from './MonthlyReviewCard';
 import { MonthPicker } from './MonthPicker';
 import { CompareTab } from './CompareTab';
 import { PageHeader, SectionHeader } from './design-system';
@@ -237,7 +236,7 @@ export const Dashboard: React.FC = () => {
   const { settings } = useSettings();
   const { practiceGoals } = settings;
 
-  const totalCards = 1 + allPriorityCards.length; // MonthlyReviewCard + priority cards
+  const totalCards = allPriorityCards.length;
 
   // Get data date range from API
   const { data: dataRange, loading: rangeLoading } = useDataDateRange();
