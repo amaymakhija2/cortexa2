@@ -861,6 +861,180 @@ const ALL_STAGES: ConsultationStage[] = [
   'lost',
 ];
 
+// =============================================================================
+// FULL KANBAN MOCK DATA GENERATOR
+// =============================================================================
+// Generates one client per stage, spread across clinicians for realistic testing
+
+const FULL_KANBAN_CLIENT_NAMES = [
+  { firstName: 'Emily', lastName: 'Thompson' },
+  { firstName: 'Marcus', lastName: 'Williams' },
+  { firstName: 'Sophia', lastName: 'Garcia' },
+  { firstName: 'David', lastName: 'Lee' },
+  { firstName: 'Olivia', lastName: 'Martinez' },
+  { firstName: 'Ethan', lastName: 'Brown' },
+  { firstName: 'Ava', lastName: 'Davis' },
+  { firstName: 'Noah', lastName: 'Wilson' },
+  { firstName: 'Isabella', lastName: 'Taylor' },
+  { firstName: 'Liam', lastName: 'Anderson' },
+];
+
+function generateFullKanbanData(): Consultation[] {
+  const now = Date.now();
+  const clinicians = CONSULTATION_CLINICIANS;
+
+  // Define representative scenarios for each stage
+  const stageScenarios: { stage: ConsultationStage; setup: (id: number, clinician: typeof clinicians[0]) => Partial<Consultation> }[] = [
+    // New booking - needs confirmation
+    {
+      stage: 'new',
+      setup: (id, clinician) => ({
+        stage: 'new',
+        datetime: new Date(now + 48 * 60 * 60 * 1000).toISOString(), // In 2 days
+        createdAt: new Date(now - 5 * 60 * 60 * 1000).toISOString(), // 5 hours ago
+        followUpCount: 0,
+      }),
+    },
+    // Confirmed - awaiting consultation
+    {
+      stage: 'confirmed',
+      setup: (id, clinician) => ({
+        stage: 'confirmed',
+        datetime: new Date(now + 4 * 60 * 60 * 1000).toISOString(), // In 4 hours
+        followUpCount: 0,
+      }),
+    },
+    // Consult complete - needs post-consult message
+    {
+      stage: 'consult_complete',
+      setup: (id, clinician) => ({
+        stage: 'consult_complete',
+        datetime: new Date(now - 1 * 60 * 60 * 1000).toISOString(), // 1 hour ago
+        followUpCount: 0,
+      }),
+    },
+    // No-show - recovery follow-up #2 due
+    {
+      stage: 'no_show',
+      setup: (id, clinician) => ({
+        stage: 'no_show',
+        datetime: new Date(now - 26 * 60 * 60 * 1000).toISOString(), // 26 hours ago
+        followUpCount: 1,
+        stageEnteredAt: new Date(now - 26 * 60 * 60 * 1000).toISOString(),
+        lastFollowUpDate: new Date(now - 25 * 60 * 60 * 1000).toISOString(), // 25h ago
+      }),
+    },
+    // Intake pending - follow-up #1 due
+    {
+      stage: 'intake_pending',
+      setup: (id, clinician) => ({
+        stage: 'intake_pending',
+        datetime: new Date(now - 48 * 60 * 60 * 1000).toISOString(), // 48 hours ago
+        followUpCount: 0,
+        stageEnteredAt: new Date(now - 26 * 60 * 60 * 1000).toISOString(), // 26h ago
+      }),
+    },
+    // Intake scheduled - paperwork reminder due (T-72h)
+    {
+      stage: 'intake_scheduled',
+      setup: (id, clinician) => ({
+        stage: 'intake_scheduled',
+        datetime: new Date(now - 72 * 60 * 60 * 1000).toISOString(),
+        intakeScheduledDate: new Date(now + 70 * 60 * 60 * 1000).toISOString(), // Intake in ~3 days
+        intakeHasTime: true,
+        followUpCount: 0,
+      }),
+    },
+    // Paperwork pending - follow-up #2 due (T-24h)
+    {
+      stage: 'paperwork_pending',
+      setup: (id, clinician) => ({
+        stage: 'paperwork_pending',
+        datetime: new Date(now - 120 * 60 * 60 * 1000).toISOString(),
+        intakeScheduledDate: new Date(now + 22 * 60 * 60 * 1000).toISOString(), // Intake in ~1 day
+        intakeHasTime: true,
+        followUpCount: 1,
+      }),
+    },
+    // Paperwork complete - ready for first session
+    {
+      stage: 'paperwork_complete',
+      setup: (id, clinician) => ({
+        stage: 'paperwork_complete',
+        datetime: new Date(now - 168 * 60 * 60 * 1000).toISOString(),
+        paperworkCompletedDate: new Date(now - 24 * 60 * 60 * 1000).toISOString(),
+        firstSessionDate: new Date(now + 48 * 60 * 60 * 1000).toISOString(),
+        followUpCount: 0,
+      }),
+    },
+    // Converted - success
+    {
+      stage: 'converted',
+      setup: (id, clinician) => ({
+        stage: 'converted',
+        datetime: new Date(now - 336 * 60 * 60 * 1000).toISOString(), // 2 weeks ago
+        convertedDate: new Date(now - 24 * 60 * 60 * 1000).toISOString(),
+        followUpCount: 0,
+      }),
+    },
+    // Lost - did not convert
+    {
+      stage: 'lost',
+      setup: (id, clinician) => ({
+        stage: 'lost',
+        datetime: new Date(now - 168 * 60 * 60 * 1000).toISOString(), // 1 week ago
+        lostStage: 'pre_intake',
+        lostDate: new Date(now - 48 * 60 * 60 * 1000).toISOString(),
+        lostReason: 'No response',
+        followUpCount: 3,
+      }),
+    },
+  ];
+
+  return stageScenarios.map((scenario, index) => {
+    const clientName = FULL_KANBAN_CLIENT_NAMES[index % FULL_KANBAN_CLIENT_NAMES.length];
+    const clinician = clinicians[index % clinicians.length];
+    const setup = scenario.setup(index, clinician);
+
+    return {
+      id: `fk-${index + 1}`,
+      firstName: clientName.firstName,
+      lastName: clientName.lastName,
+      email: `${clientName.firstName.toLowerCase()}.${clientName.lastName.toLowerCase()}@email.com`,
+      phone: `(212) 555-${String(index + 100).padStart(4, '0')}`,
+      appointmentId: 2000 + index,
+      appointmentTypeId: 1001,
+      appointmentTypeName: `New Client Consultation with ${clinician.name}`,
+      datetime: setup.datetime || new Date(now + 48 * 60 * 60 * 1000).toISOString(),
+      duration: 15,
+      meetingType: 'google_meet' as const,
+      meetingLink: `https://meet.google.com/fk-${index}-test`,
+      clinicianId: clinician.id,
+      clinicianName: clinician.name,
+      calendarId: clinician.calendarId,
+      wasTransferred: false,
+      stage: scenario.stage,
+      followUpCount: setup.followUpCount || 0,
+      stageEnteredAt: setup.stageEnteredAt,
+      lastFollowUpDate: setup.lastFollowUpDate,
+      intakeScheduledDate: setup.intakeScheduledDate,
+      intakeHasTime: setup.intakeHasTime,
+      paperworkCompletedDate: setup.paperworkCompletedDate,
+      firstSessionDate: setup.firstSessionDate,
+      convertedDate: setup.convertedDate,
+      lostStage: setup.lostStage as LostStage | undefined,
+      lostDate: setup.lostDate,
+      lostReason: setup.lostReason,
+      formResponses: [
+        { fieldId: 1, fieldName: 'Reason for seeking therapy', value: 'Anxiety and stress management' },
+        { fieldId: 2, fieldName: 'Insurance', value: 'Aetna' },
+      ],
+      createdAt: setup.createdAt || new Date(now - 72 * 60 * 60 * 1000).toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+  });
+}
+
 const STAGE_LABELS_DEV: Record<ConsultationStage, string> = {
   new: 'New Booking',
   confirmed: 'Confirmed',
@@ -969,13 +1143,17 @@ const STAGE_SCENARIOS: Record<ConsultationStage, DevScenario[]> = {
   ],
 };
 
+type DevTestMode = 'single' | 'full';
+
 interface DevTestingPanelProps {
   currentStage: ConsultationStage;
   followUpCount: number;
   stageEnteredAt: string | undefined;
   lastFollowUpDate: string | undefined;
+  testMode: DevTestMode;
   onApplyScenario: (scenario: DevScenario) => void;
   onReset: () => void;
+  onToggleMode: (mode: DevTestMode) => void;
 }
 
 const DevTestingPanel: React.FC<DevTestingPanelProps> = ({
@@ -983,8 +1161,10 @@ const DevTestingPanel: React.FC<DevTestingPanelProps> = ({
   followUpCount,
   stageEnteredAt,
   lastFollowUpDate,
+  testMode,
   onApplyScenario,
   onReset,
+  onToggleMode,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedStage, setSelectedStage] = useState<ConsultationStage>(currentStage);
@@ -1024,91 +1204,156 @@ const DevTestingPanel: React.FC<DevTestingPanelProps> = ({
           >
             <div className="px-4 py-3 bg-stone-900 text-white">
               <h4 className="font-bold text-sm">Dev Testing Panel</h4>
-              <p className="text-xs text-stone-400 mt-0.5">Select a stage, then pick a scenario</p>
+              <p className="text-xs text-stone-400 mt-0.5">
+                {testMode === 'single' ? 'Test individual scenarios' : 'Full Kanban view'}
+              </p>
             </div>
 
-            {/* Current State Display */}
-            <div className="px-4 py-3 bg-stone-50 border-b border-stone-200">
-              <div className="text-xs text-stone-500 uppercase tracking-wide mb-1">Current State</div>
-              <div className="flex items-center gap-3 text-sm">
-                <span className="font-semibold text-stone-900">{STAGE_LABELS_DEV[currentStage]}</span>
-                <span className="text-stone-400">|</span>
-                <span className="text-stone-600">Follow-ups: {followUpCount}/3</span>
-                <span className="text-stone-400">|</span>
-                <span className="text-stone-600">{getTimingDisplay()}</span>
-              </div>
-            </div>
-
-            {/* Stage Selector */}
-            <div className="px-4 py-3 border-b border-stone-200">
-              <div className="text-xs text-stone-500 uppercase tracking-wide mb-2">Select Stage</div>
-              <div className="flex flex-wrap gap-1.5">
-                {ALL_STAGES.map((stage) => (
-                  <button
-                    key={stage}
-                    onClick={() => setSelectedStage(stage)}
-                    className={`
-                      px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all
-                      ${selectedStage === stage
-                        ? 'bg-amber-500 text-white'
-                        : currentStage === stage
-                          ? 'bg-amber-100 text-amber-800 border border-amber-300'
-                          : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
-                      }
-                    `}
-                  >
-                    {STAGE_LABELS_DEV[stage]}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Scenarios for Selected Stage */}
-            <div className="p-3 max-h-[350px] overflow-y-auto">
-              <div className="text-xs text-stone-500 uppercase tracking-wide mb-2">
-                {STAGE_LABELS_DEV[selectedStage]} Scenarios
-              </div>
-              <div className="space-y-1.5">
-                {scenarios.map((scenario) => (
-                  <button
-                    key={scenario.id}
-                    onClick={() => {
-                      onApplyScenario(scenario);
-                    }}
-                    className={`
-                      w-full text-left px-3 py-2.5 rounded-xl text-sm transition-all border
-                      ${getUrgencyColor(scenario.urgency)} hover:opacity-80
-                    `}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium">{scenario.label}</span>
-                      <span className={`text-[10px] uppercase tracking-wide font-bold px-1.5 py-0.5 rounded ${
-                        scenario.urgency === 'overdue' ? 'bg-rose-200 text-rose-800' :
-                        scenario.urgency === 'due' ? 'bg-amber-200 text-amber-800' :
-                        scenario.urgency === 'upcoming' ? 'bg-sky-200 text-sky-800' :
-                        'bg-stone-200 text-stone-600'
-                      }`}>
-                        {scenario.urgency}
-                      </span>
-                    </div>
-                    <p className="text-xs opacity-75 mt-0.5">{scenario.description}</p>
-                  </button>
-                ))}
-              </div>
-
-              {/* Reset Button */}
-              <div className="mt-4 pt-3 border-t border-stone-200">
+            {/* Mode Toggle */}
+            <div className="px-4 py-3 bg-stone-800 border-b border-stone-700">
+              <div className="flex gap-2">
                 <button
-                  onClick={() => {
-                    onReset();
-                    setSelectedStage('new');
-                  }}
-                  className="w-full px-3 py-2.5 rounded-xl text-sm font-semibold bg-rose-100 text-rose-700 hover:bg-rose-200 transition-all"
+                  onClick={() => onToggleMode('single')}
+                  className={`
+                    flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all
+                    ${testMode === 'single'
+                      ? 'bg-amber-500 text-white'
+                      : 'bg-stone-700 text-stone-300 hover:bg-stone-600'
+                    }
+                  `}
                 >
-                  Reset to New Booking
+                  Single Client
+                </button>
+                <button
+                  onClick={() => onToggleMode('full')}
+                  className={`
+                    flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all
+                    ${testMode === 'full'
+                      ? 'bg-amber-500 text-white'
+                      : 'bg-stone-700 text-stone-300 hover:bg-stone-600'
+                    }
+                  `}
+                >
+                  Full Kanban
                 </button>
               </div>
             </div>
+
+            {testMode === 'single' ? (
+              <>
+                {/* Current State Display */}
+                <div className="px-4 py-3 bg-stone-50 border-b border-stone-200">
+                  <div className="text-xs text-stone-500 uppercase tracking-wide mb-1">Current State</div>
+                  <div className="flex items-center gap-3 text-sm">
+                    <span className="font-semibold text-stone-900">{STAGE_LABELS_DEV[currentStage]}</span>
+                    <span className="text-stone-400">|</span>
+                    <span className="text-stone-600">Follow-ups: {followUpCount}/3</span>
+                    <span className="text-stone-400">|</span>
+                    <span className="text-stone-600">{getTimingDisplay()}</span>
+                  </div>
+                </div>
+
+                {/* Stage Selector */}
+                <div className="px-4 py-3 border-b border-stone-200">
+                  <div className="text-xs text-stone-500 uppercase tracking-wide mb-2">Select Stage</div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {ALL_STAGES.map((stage) => (
+                      <button
+                        key={stage}
+                        onClick={() => setSelectedStage(stage)}
+                        className={`
+                          px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all
+                          ${selectedStage === stage
+                            ? 'bg-amber-500 text-white'
+                            : currentStage === stage
+                              ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                              : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                          }
+                        `}
+                      >
+                        {STAGE_LABELS_DEV[stage]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Scenarios for Selected Stage */}
+                <div className="p-3 max-h-[350px] overflow-y-auto">
+                  <div className="text-xs text-stone-500 uppercase tracking-wide mb-2">
+                    {STAGE_LABELS_DEV[selectedStage]} Scenarios
+                  </div>
+                  <div className="space-y-1.5">
+                    {scenarios.map((scenario) => (
+                      <button
+                        key={scenario.id}
+                        onClick={() => {
+                          onApplyScenario(scenario);
+                        }}
+                        className={`
+                          w-full text-left px-3 py-2.5 rounded-xl text-sm transition-all border
+                          ${getUrgencyColor(scenario.urgency)} hover:opacity-80
+                        `}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium">{scenario.label}</span>
+                          <span className={`text-[10px] uppercase tracking-wide font-bold px-1.5 py-0.5 rounded ${
+                            scenario.urgency === 'overdue' ? 'bg-rose-200 text-rose-800' :
+                            scenario.urgency === 'due' ? 'bg-amber-200 text-amber-800' :
+                            scenario.urgency === 'upcoming' ? 'bg-sky-200 text-sky-800' :
+                            'bg-stone-200 text-stone-600'
+                          }`}>
+                            {scenario.urgency}
+                          </span>
+                        </div>
+                        <p className="text-xs opacity-75 mt-0.5">{scenario.description}</p>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Reset Button */}
+                  <div className="mt-4 pt-3 border-t border-stone-200">
+                    <button
+                      onClick={() => {
+                        onReset();
+                        setSelectedStage('new');
+                      }}
+                      className="w-full px-3 py-2.5 rounded-xl text-sm font-semibold bg-rose-100 text-rose-700 hover:bg-rose-200 transition-all"
+                    >
+                      Reset to New Booking
+                    </button>
+                  </div>
+                </div>
+              </>
+            ) : (
+              /* Full Kanban Mode */
+              <div className="p-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center">
+                    <LayoutGrid size={20} className="text-white" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-stone-900">Full Kanban Active</p>
+                    <p className="text-xs text-stone-500">10 clients across all stages</p>
+                  </div>
+                </div>
+                <p className="text-sm text-stone-600 mb-4">
+                  Showing one client per stage, spread across all 5 clinicians. Interact with cards normally.
+                </p>
+                <div className="bg-stone-50 rounded-xl p-3 border border-stone-200">
+                  <p className="text-xs text-stone-500 uppercase tracking-wide mb-2">Stages covered</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {ALL_STAGES.map((stage) => (
+                      <span
+                        key={stage}
+                        className="px-2 py-1 rounded-md text-xs font-medium bg-stone-200 text-stone-700"
+                      >
+                        {STAGE_LABELS_DEV[stage]}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -1136,13 +1381,26 @@ export const Consultations: React.FC = () => {
   const [transferModalConsultation, setTransferModalConsultation] = useState<Consultation | null>(null);
   const [takeActionConsultation, setTakeActionConsultation] = useState<Consultation | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('kanban');
+  const [devTestMode, setDevTestMode] = useState<DevTestMode>('single');
 
-  // Dev testing: Get Emily's current state
+  // Dev testing: Get Emily's current state (only relevant for single client mode)
   const emilyConsultation = consultations.find(c => c.id === 'c1');
   const currentDevStage = emilyConsultation?.stage || 'new';
   const currentDevFollowUpCount = emilyConsultation?.followUpCount || 0;
   const currentDevStageEnteredAt = emilyConsultation?.stageEnteredAt;
   const currentDevLastFollowUpDate = emilyConsultation?.lastFollowUpDate;
+
+  // Handle dev test mode toggle
+  const handleDevModeToggle = (mode: DevTestMode) => {
+    setDevTestMode(mode);
+    if (mode === 'full') {
+      // Switch to full Kanban data
+      setConsultations(generateFullKanbanData());
+    } else {
+      // Switch back to single client
+      setConsultations(MOCK_CONSULTATIONS);
+    }
+  };
 
   // Dev testing: Apply a complete scenario
   const handleDevApplyScenario = (scenario: typeof STAGE_SCENARIOS[ConsultationStage][number]) => {
@@ -2038,8 +2296,10 @@ export const Consultations: React.FC = () => {
         followUpCount={currentDevFollowUpCount}
         stageEnteredAt={currentDevStageEnteredAt}
         lastFollowUpDate={currentDevLastFollowUpDate}
+        testMode={devTestMode}
         onApplyScenario={handleDevApplyScenario}
         onReset={handleDevReset}
+        onToggleMode={handleDevModeToggle}
       />
     </div>
   );

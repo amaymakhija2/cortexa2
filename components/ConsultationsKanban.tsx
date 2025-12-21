@@ -225,11 +225,11 @@ const getActionInfo = (consultation: Consultation, pipelineConfig: ConsultationP
 
     if (followUpCount >= totalFollowUps) {
       // All follow-ups exhausted
-      return { priority: 'due', buttonLabel: 'Manage', statusLabel: 'All sent', colorScheme: 'rose' };
+      return { priority: 'due', buttonLabel: 'Manage', statusLabel: 'All sent', colorScheme: 'amber' };
     }
 
     if (!dueInfo) {
-      return { priority: 'reactive', buttonLabel: 'Manage', statusLabel: `${followUpCount}/${totalFollowUps} sent`, colorScheme: 'rose' };
+      return { priority: 'reactive', buttonLabel: 'Manage', statusLabel: `${followUpCount}/${totalFollowUps} sent`, colorScheme: 'amber' };
     }
 
     // Determine priority based on due date
@@ -244,7 +244,7 @@ const getActionInfo = (consultation: Consultation, pipelineConfig: ConsultationP
         ? 'Update overdue'
         : `Due in ${roundedAbsHours}h`;
 
-    return { priority, buttonLabel: 'Manage', statusLabel, colorScheme: 'rose' };
+    return { priority, buttonLabel: 'Manage', statusLabel, colorScheme: 'amber' };
   }
 
   // INTAKE COLUMN: intake_pending
