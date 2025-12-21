@@ -926,7 +926,7 @@ const KanbanColumnComponent: React.FC<KanbanColumnComponentProps> = ({
 
   return (
     <div
-      className="flex flex-col h-full w-[360px] min-w-[360px] rounded-2xl overflow-hidden bg-white/90 border border-stone-200/60 backdrop-blur-sm"
+      className="flex flex-col h-full flex-1 min-w-[340px] rounded-2xl overflow-hidden bg-white/90 border border-stone-200/60 backdrop-blur-sm"
       style={{ boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.06)' }}
     >
       {/* Header */}
@@ -1076,7 +1076,7 @@ export const ConsultationsKanban: React.FC<ConsultationsKanbanProps> = ({
 
   return (
     <div
-      className="h-full flex flex-col"
+      className="h-full flex flex-col min-w-fit"
       style={{
         background: 'linear-gradient(180deg, #fafaf9 0%, #f5f5f4 100%)',
       }}
@@ -1177,8 +1177,8 @@ export const ConsultationsKanban: React.FC<ConsultationsKanbanProps> = ({
       </div>
 
       {/* Columns */}
-      <div className="flex-1 overflow-x-auto overflow-y-hidden">
-        <div className="flex gap-4 p-5 h-full min-w-max">
+      <div className="flex-1 overflow-y-hidden">
+        <div className="flex gap-4 p-5 h-full min-w-[1800px]">
           {columnData.map((column) => (
             <KanbanColumnComponent
               key={column.id}
