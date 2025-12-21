@@ -1040,7 +1040,7 @@ export const Consultations: React.FC = () => {
   }, [consultations]);
 
   // Handle action on consultation
-  const handleAction = (consultationId: string, action: ActionType, metadata?: { lostStage?: LostStage; notes?: string; intakeScheduled?: boolean }) => {
+  const handleAction = (consultationId: string, action: ActionType, metadata?: { lostStage?: LostStage; notes?: string; intakeScheduled?: boolean; intakeDate?: string; intakeHasTime?: boolean }) => {
     // Special case: transfer_clinician opens a modal instead of directly updating
     if (action === 'transfer_clinician') {
       const consultation = consultations.find(c => c.id === consultationId);
@@ -1061,7 +1061,15 @@ export const Consultations: React.FC = () => {
         case 'send_post_consult':
           // If intake was already scheduled, go to intake_scheduled, otherwise intake_pending
           if (metadata?.intakeScheduled) {
-            return { ...c, stage: 'intake_scheduled' as ConsultationStage, intakeScheduledDate: new Date().toISOString(), updatedAt: new Date().toISOString() };
+            // Use the selected intake date, or fall back to now if not provided
+            const intakeDate = metadata.intakeDate || new Date().toISOString();
+            return {
+              ...c,
+              stage: 'intake_scheduled' as ConsultationStage,
+              intakeScheduledDate: intakeDate,
+              intakeHasTime: metadata.intakeHasTime ?? false,
+              updatedAt: new Date().toISOString()
+            };
           }
           return { ...c, stage: 'intake_pending' as ConsultationStage, updatedAt: new Date().toISOString() };
         case 'mark_no_show':

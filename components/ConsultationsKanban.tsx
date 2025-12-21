@@ -196,19 +196,18 @@ const getActionInfo = (consultation: Consultation): ActionInfo => {
     if (timeInfo.isActive) {
       return { priority: 'due', buttonLabel: 'Mark Outcome', statusLabel: 'In session', colorScheme: 'amber' };
     }
-    // Pre-consult: confirmed and waiting for consultation - still allow management
-    return { priority: 'reactive', buttonLabel: 'Manage', statusLabel: 'Confirmed', colorScheme: 'cyan' };
+    // Pre-consult: confirmed and waiting for consultation - use upcoming priority for consistent styling
+    return { priority: 'upcoming', buttonLabel: 'Manage', statusLabel: 'Confirmed', colorScheme: 'amber' };
   }
 
   // POST-CONSULT COLUMN: consult_complete + no_show
   if (stage === 'consult_complete') {
-    // This shouldn't happen often as consult_complete means we need to mark outcome
-    // But if somehow here, prompt to send follow-up
+    // Consult time has passed - clinician needs to record did they show up or not
     const daysSince = getDaysSince(datetime);
     if (daysSince >= 2) {
-      return { priority: 'due', buttonLabel: 'Send Follow-up', statusLabel: 'Overdue', colorScheme: 'amber' };
+      return { priority: 'due', buttonLabel: 'Mark Outcome', statusLabel: 'Overdue', colorScheme: 'amber' };
     }
-    return { priority: 'due', buttonLabel: 'Send Follow-up', statusLabel: 'Needs follow-up', colorScheme: 'amber' };
+    return { priority: 'due', buttonLabel: 'Mark Outcome', statusLabel: 'Consult ended', colorScheme: 'amber' };
   }
 
   if (stage === 'no_show') {
@@ -425,7 +424,7 @@ interface DateContext {
 }
 
 const getDateContext = (consultation: Consultation, timeInfo: TimeUntilConsult): DateContext => {
-  const { stage, datetime, intakeScheduledDate, firstSessionDate, followUpCount, lastFollowUpDate } = consultation;
+  const { stage, datetime, intakeScheduledDate, intakeHasTime, firstSessionDate, followUpCount, lastFollowUpDate } = consultation;
   const consultDate = new Date(datetime);
   const now = new Date();
 
@@ -562,12 +561,12 @@ const getDateContext = (consultation: Consultation, timeInfo: TimeUntilConsult):
         return { icon: 'clock', label: 'Due now', sublabel: 'Intake completed', urgency: 'imminent' };
       }
       if (intakeIsToday) {
-        return { icon: 'calendar', label: 'Intake today', sublabel: formatTime(intakeDate), urgency: 'imminent' };
+        return { icon: 'calendar', label: 'Intake today', sublabel: intakeHasTime ? formatTime(intakeDate) : 'Time TBD', urgency: 'imminent' };
       }
       if (intakeIsTomorrow) {
-        return { icon: 'calendar', label: 'Intake tomorrow', sublabel: formatTime(intakeDate), urgency: 'urgent' };
+        return { icon: 'calendar', label: 'Intake tomorrow', sublabel: intakeHasTime ? formatTime(intakeDate) : 'Time TBD', urgency: 'urgent' };
       }
-      return { icon: 'calendar', label: `Intake ${formatDate(intakeDate)}`, sublabel: formatTime(intakeDate), urgency: 'normal' };
+      return { icon: 'calendar', label: `Intake ${formatDate(intakeDate)}`, sublabel: intakeHasTime ? formatTime(intakeDate) : undefined, urgency: 'normal' };
     }
     return { icon: 'calendar', label: 'Intake scheduled', sublabel: 'Date pending', urgency: 'normal' };
   }
@@ -635,37 +634,11 @@ const KanbanCard: React.FC<KanbanCardProps> = ({
 
   const dateContext = getDateContext(consultation, timeInfo);
 
-  // Card background based on colorScheme and priority
-  const getCardBg = () => {
-    if (dateContext.urgency === 'imminent') return 'bg-gradient-to-br from-amber-50 to-orange-50/50';
-    if (actionPriority === 'due') {
-      const schemes: Record<string, string> = {
-        rose: 'bg-gradient-to-br from-rose-50/60 to-pink-50/40',
-        amber: 'bg-gradient-to-br from-amber-50/60 to-orange-50/40',
-        violet: 'bg-gradient-to-br from-violet-50/60 to-purple-50/40',
-        emerald: 'bg-gradient-to-br from-emerald-50/60 to-teal-50/40',
-        cyan: 'bg-gradient-to-br from-cyan-50/60 to-sky-50/40',
-      };
-      return schemes[colorScheme] || 'bg-white';
-    }
-    return 'bg-white';
-  };
+  // Card background - clean white for all cards
+  const getCardBg = () => 'bg-white';
 
-  // Border color based on colorScheme
-  const getBorderColor = () => {
-    if (dateContext.urgency === 'imminent') return 'border-amber-200/80';
-    if (actionPriority === 'due') {
-      const schemes: Record<string, string> = {
-        rose: 'border-rose-200/60',
-        amber: 'border-amber-200/60',
-        violet: 'border-violet-200/60',
-        emerald: 'border-emerald-200/60',
-        cyan: 'border-cyan-200/60',
-      };
-      return schemes[colorScheme] || 'border-stone-200/80';
-    }
-    return 'border-stone-200/80';
-  };
+  // Border color - neutral for all cards
+  const getBorderColor = () => 'border-stone-200/80';
 
   // Get button styles based on colorScheme and priority
   // Primary action uses dark stone gradient (design system standard)
@@ -696,21 +669,8 @@ const KanbanCard: React.FC<KanbanCardProps> = ({
     return 'bg-stone-900 text-white hover:bg-stone-800';
   };
 
-  // Get avatar styles
-  const getAvatarStyles = () => {
-    if (dateContext.urgency === 'imminent') return 'bg-amber-500 text-white shadow-sm shadow-amber-500/30';
-    if (actionPriority === 'due') {
-      const schemes: Record<string, string> = {
-        rose: 'bg-rose-100 text-rose-700',
-        amber: 'bg-amber-100 text-amber-700',
-        violet: 'bg-violet-100 text-violet-700',
-        emerald: 'bg-emerald-100 text-emerald-700',
-        cyan: 'bg-cyan-100 text-cyan-700',
-      };
-      return schemes[colorScheme] || 'bg-stone-100 text-stone-600';
-    }
-    return 'bg-stone-100 text-stone-600';
-  };
+  // Get avatar styles - consistent neutral styling
+  const getAvatarStyles = () => 'bg-stone-100 text-stone-600';
 
   // Get date context row styles
   const getDateContextStyles = () => {

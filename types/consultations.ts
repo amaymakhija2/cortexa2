@@ -111,6 +111,7 @@ export interface Consultation {
 
   // Intake & conversion tracking
   intakeScheduledDate?: string;
+  intakeHasTime?: boolean;           // Whether a specific time was set for the intake
   paperworkCompletedDate?: string;
   firstSessionDate?: string;
   convertedDate?: string;

@@ -21,6 +21,8 @@ import {
   PartyPopper,
   Bell,
   Send,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import type {
   Consultation,
@@ -56,6 +58,7 @@ interface ActionMetadata {
   notes?: string;
   intakeDate?: string;
   intakeScheduled?: boolean;
+  intakeHasTime?: boolean;
 }
 
 interface SuccessState {
@@ -86,7 +89,7 @@ interface ActionOption {
 const STAGE_CONFIG: Record<ConsultationStage, { question: string; context?: string }> = {
   new: { question: 'Ready to confirm?', context: 'Send confirmation to finalize the booking' },
   confirmed: { question: 'Did they show up?', context: 'Record the consultation outcome' },
-  consult_complete: { question: 'How did it go?', context: 'Follow up to schedule intake' },
+  consult_complete: { question: 'Did they show up?', context: 'Record the consultation outcome' },
   no_show: { question: 'Any update?', context: 'Continue follow-up sequence' },
   intake_pending: { question: 'Intake scheduled?', context: 'Help them book their intake' },
   intake_scheduled: { question: 'Paperwork status?', context: 'Ensure forms are complete' },
@@ -302,15 +305,15 @@ const ActionOptionButton: React.FC<{
 const OutcomeOptions: React.FC<{
   onSelect: (option: ActionOption) => void;
   onBack: () => void;
-}> = ({ onSelect, onBack }) => {
+  onScheduleIntake: () => void;
+}> = ({ onSelect, onBack, onScheduleIntake }) => {
   const options: ActionOption[] = [
     {
       id: 'intake_scheduled',
       label: 'Confirmed Intake Date',
       sublabel: 'They booked their intake appointment',
       icon: <CalendarCheck size={22} />,
-      action: 'send_post_consult',
-      metadata: { intakeScheduled: true },
+      // No action - this triggers the date picker flow
       variant: 'primary',
     },
     {
@@ -376,7 +379,13 @@ const OutcomeOptions: React.FC<{
           <ActionOptionButton
             key={option.id}
             option={option}
-            onSelect={() => onSelect(option)}
+            onSelect={() => {
+              if (option.id === 'intake_scheduled') {
+                onScheduleIntake();
+              } else {
+                onSelect(option);
+              }
+            }}
             index={idx}
           />
         ))}
@@ -466,6 +475,336 @@ const FollowUpSequence: React.FC<{
           </button>
         )}
       </div>
+    </motion.div>
+  );
+};
+
+// -----------------------------------------------------------------------------
+// INTAKE DATE PICKER
+// -----------------------------------------------------------------------------
+// Editorial calendar aesthetic - clean, refined, feels like a beautiful planner
+// -----------------------------------------------------------------------------
+
+const IntakeDatePicker: React.FC<{
+  onConfirm: (date: Date, hasTime: boolean) => void;
+  onBack: () => void;
+}> = ({ onConfirm, onBack }) => {
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedHour, setSelectedHour] = useState<string>('');
+  const [selectedMinute, setSelectedMinute] = useState<string>('00');
+  const [selectedAmPm, setSelectedAmPm] = useState<'AM' | 'PM'>('AM');
+  const [includeTime, setIncludeTime] = useState(false);
+
+  // Get calendar data
+  const getDaysInMonth = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
+
+    const days: (Date | null)[] = [];
+
+    // Add empty slots for days before the first of the month
+    for (let i = 0; i < startingDayOfWeek; i++) {
+      days.push(null);
+    }
+
+    // Add all days of the month
+    for (let i = 1; i <= daysInMonth; i++) {
+      days.push(new Date(year, month, i));
+    }
+
+    return days;
+  };
+
+  const days = getDaysInMonth(currentMonth);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+
+  const dayNames = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+
+  const goToPrevMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
+  };
+
+  const goToNextMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
+  };
+
+  const isToday = (date: Date) => {
+    return date.toDateString() === today.toDateString();
+  };
+
+  const isPast = (date: Date) => {
+    return date < today;
+  };
+
+  const isSelected = (date: Date) => {
+    return selectedDate && date.toDateString() === selectedDate.toDateString();
+  };
+
+  const formatSelectedDate = (date: Date) => {
+    const options: Intl.DateTimeFormatOptions = {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    };
+    return date.toLocaleDateString('en-US', options);
+  };
+
+  const formatSelectedTime = () => {
+    if (!includeTime || !selectedHour) return null;
+    return `${selectedHour}:${selectedMinute} ${selectedAmPm}`;
+  };
+
+  const getFinalDate = (): Date | null => {
+    if (!selectedDate) return null;
+    const finalDate = new Date(selectedDate);
+    if (includeTime && selectedHour) {
+      let hour = parseInt(selectedHour);
+      if (selectedAmPm === 'PM' && hour !== 12) hour += 12;
+      if (selectedAmPm === 'AM' && hour === 12) hour = 0;
+      finalDate.setHours(hour, parseInt(selectedMinute), 0, 0);
+    } else {
+      // If no time specified, set to midnight
+      finalDate.setHours(0, 0, 0, 0);
+    }
+    return finalDate;
+  };
+
+  const hours = ['9', '10', '11', '12', '1', '2', '3', '4', '5', '6', '7', '8'];
+  const minutes = ['00', '15', '30', '45'];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 30 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -30 }}
+      transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+    >
+      {/* Back button */}
+      <button
+        onClick={onBack}
+        className="flex items-center gap-2 text-stone-500 hover:text-stone-800 mb-6 transition-colors group"
+      >
+        <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+        <span className="text-sm font-medium">Back</span>
+      </button>
+
+      {/* Context */}
+      <div className="mb-6">
+        <div className="flex items-center gap-2.5 mb-3">
+          <div className="w-6 h-6 rounded-full bg-amber-500 flex items-center justify-center">
+            <CalendarCheck size={14} className="text-white" />
+          </div>
+          <span className="text-sm font-semibold text-amber-700">Scheduling intake</span>
+        </div>
+        <h3 className="text-3xl font-bold text-stone-900" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+          When is the intake?
+        </h3>
+        <p className="text-stone-500 mt-2">Select the scheduled intake date</p>
+      </div>
+
+      {/* Calendar */}
+      <div className="bg-stone-50/80 rounded-2xl p-5 mb-6">
+        {/* Month Navigation */}
+        <div className="flex items-center justify-between mb-5">
+          <button
+            onClick={goToPrevMonth}
+            className="w-9 h-9 rounded-full flex items-center justify-center text-stone-500 hover:bg-stone-200 hover:text-stone-800 transition-all"
+          >
+            <ChevronLeft size={20} />
+          </button>
+          <h4 className="text-lg font-bold text-stone-900" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+            {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
+          </h4>
+          <button
+            onClick={goToNextMonth}
+            className="w-9 h-9 rounded-full flex items-center justify-center text-stone-500 hover:bg-stone-200 hover:text-stone-800 transition-all"
+          >
+            <ChevronRight size={20} />
+          </button>
+        </div>
+
+        {/* Day Headers */}
+        <div className="grid grid-cols-7 gap-1 mb-2">
+          {dayNames.map((day) => (
+            <div
+              key={day}
+              className="h-8 flex items-center justify-center text-xs font-semibold text-stone-400 uppercase tracking-wider"
+            >
+              {day}
+            </div>
+          ))}
+        </div>
+
+        {/* Calendar Grid */}
+        <div className="grid grid-cols-7 gap-1">
+          {days.map((date, idx) => {
+            if (!date) {
+              return <div key={`empty-${idx}`} className="h-10" />;
+            }
+
+            const past = isPast(date);
+            const todayDate = isToday(date);
+            const selected = isSelected(date);
+
+            return (
+              <motion.button
+                key={date.toISOString()}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: idx * 0.01 }}
+                onClick={() => !past && setSelectedDate(date)}
+                disabled={past}
+                className={`
+                  h-10 rounded-xl flex items-center justify-center text-sm font-medium
+                  transition-all duration-200 relative
+                  ${past
+                    ? 'text-stone-300 cursor-not-allowed'
+                    : selected
+                      ? 'bg-stone-900 text-white shadow-lg scale-105'
+                      : todayDate
+                        ? 'bg-amber-100 text-amber-800 font-bold'
+                        : 'text-stone-700 hover:bg-stone-200'
+                  }
+                `}
+              >
+                {date.getDate()}
+                {todayDate && !selected && (
+                  <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-amber-500" />
+                )}
+              </motion.button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Selected Date Display & Time Picker */}
+      <AnimatePresence mode="wait">
+        {selectedDate ? (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="space-y-4"
+          >
+            {/* Date & Time Summary */}
+            <div className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl p-4">
+              <p className="text-xs font-semibold text-amber-600 uppercase tracking-wider mb-1">Intake scheduled for</p>
+              <p className="text-lg font-bold text-stone-900" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                {formatSelectedDate(selectedDate)}
+                {formatSelectedTime() && (
+                  <span className="text-amber-700"> at {formatSelectedTime()}</span>
+                )}
+              </p>
+            </div>
+
+            {/* Time Toggle & Picker */}
+            <div className="bg-stone-50/80 rounded-2xl p-4">
+              <button
+                onClick={() => setIncludeTime(!includeTime)}
+                className="flex items-center gap-3 w-full text-left"
+              >
+                <div className={`
+                  w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all
+                  ${includeTime ? 'bg-stone-900 border-stone-900' : 'border-stone-300 bg-white'}
+                `}>
+                  {includeTime && <Check size={12} className="text-white" strokeWidth={3} />}
+                </div>
+                <span className="text-sm font-medium text-stone-700">Add specific time</span>
+                <span className="text-xs text-stone-400 ml-auto">Optional</span>
+              </button>
+
+              {/* Time Selectors */}
+              <AnimatePresence>
+                {includeTime && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="flex items-center gap-2 mt-4 pt-4 border-t border-stone-200">
+                      {/* Hour */}
+                      <select
+                        value={selectedHour}
+                        onChange={(e) => setSelectedHour(e.target.value)}
+                        className="flex-1 px-3 py-2.5 rounded-xl bg-white border-2 border-stone-200 text-stone-900 font-medium text-sm focus:outline-none focus:border-amber-400 transition-colors"
+                      >
+                        <option value="">Hour</option>
+                        {hours.map(h => <option key={h} value={h}>{h}</option>)}
+                      </select>
+
+                      <span className="text-stone-400 font-bold">:</span>
+
+                      {/* Minute */}
+                      <select
+                        value={selectedMinute}
+                        onChange={(e) => setSelectedMinute(e.target.value)}
+                        className="flex-1 px-3 py-2.5 rounded-xl bg-white border-2 border-stone-200 text-stone-900 font-medium text-sm focus:outline-none focus:border-amber-400 transition-colors"
+                      >
+                        {minutes.map(m => <option key={m} value={m}>{m}</option>)}
+                      </select>
+
+                      {/* AM/PM */}
+                      <div className="flex rounded-xl overflow-hidden border-2 border-stone-200">
+                        <button
+                          onClick={() => setSelectedAmPm('AM')}
+                          className={`px-3 py-2.5 text-sm font-semibold transition-colors ${
+                            selectedAmPm === 'AM' ? 'bg-stone-900 text-white' : 'bg-white text-stone-500 hover:bg-stone-50'
+                          }`}
+                        >
+                          AM
+                        </button>
+                        <button
+                          onClick={() => setSelectedAmPm('PM')}
+                          className={`px-3 py-2.5 text-sm font-semibold transition-colors ${
+                            selectedAmPm === 'PM' ? 'bg-stone-900 text-white' : 'bg-white text-stone-500 hover:bg-stone-50'
+                          }`}
+                        >
+                          PM
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Confirm Button */}
+            <button
+              onClick={() => {
+                const finalDate = getFinalDate();
+                if (finalDate) onConfirm(finalDate, includeTime && !!selectedHour);
+              }}
+              className="w-full p-4 rounded-2xl bg-stone-900 text-white font-semibold flex items-center justify-center gap-3 hover:bg-stone-800 transition-colors group"
+            >
+              <CalendarCheck size={20} />
+              Confirm Intake Date
+              <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+            </button>
+          </motion.div>
+        ) : (
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center text-stone-400 py-4"
+          >
+            Select a date above
+          </motion.p>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };
@@ -662,7 +1001,7 @@ export const TakeActionModal: React.FC<TakeActionModalProps> = ({
   onAction,
   onTransfer,
 }) => {
-  const [step, setStep] = useState<'main' | 'outcome' | 'lost'>('main');
+  const [step, setStep] = useState<'main' | 'outcome' | 'intake_date' | 'lost'>('main');
   const [isProcessing, setIsProcessing] = useState(false);
   const [successState, setSuccessState] = useState<SuccessState | null>(null);
 
@@ -849,22 +1188,21 @@ export const TakeActionModal: React.FC<TakeActionModalProps> = ({
         ];
 
       case 'consult_complete':
+        // Same options as 'confirmed' - asking "Did they show up?"
         return [
           {
-            id: 'send_followup',
-            label: 'Send Post-Consult Message',
-            sublabel: 'Follow up to schedule intake',
-            icon: <MessageSquare size={22} />,
-            action: 'send_post_consult',
+            id: 'showed_up',
+            label: 'They Showed Up',
+            sublabel: 'Client attended the consultation',
+            icon: <CheckCircle2 size={22} />,
             variant: 'primary',
           },
           {
-            id: 'lost',
-            label: 'Client Not Interested',
-            sublabel: 'Mark as lost',
-            icon: <UserX size={22} />,
-            action: 'mark_lost',
-            metadata: { lostStage: 'pre_intake' },
+            id: 'no_show',
+            label: "Didn't Show Up",
+            sublabel: 'Start follow-up sequence',
+            icon: <CalendarX size={22} />,
+            action: 'mark_no_show',
             variant: 'destructive',
           },
         ];
@@ -1038,11 +1376,27 @@ export const TakeActionModal: React.FC<TakeActionModalProps> = ({
                 onSelect={handleLostStageConfirm}
                 onCancel={() => setStep('main')}
               />
+            ) : step === 'intake_date' ? (
+              <IntakeDatePicker
+                key="intake_date"
+                onConfirm={(date, hasTime) => {
+                  setIsProcessing(true);
+                  onAction(consultation.id, 'send_post_consult', {
+                    intakeScheduled: true,
+                    intakeDate: date.toISOString(),
+                    intakeHasTime: hasTime,
+                  });
+                  setSuccessState(generateSuccessState('send_post_consult', 'Intake scheduled', { intakeScheduled: true, intakeDate: date.toISOString() }));
+                  setIsProcessing(false);
+                }}
+                onBack={() => setStep('outcome')}
+              />
             ) : step === 'outcome' ? (
               <OutcomeOptions
                 key="outcome"
                 onSelect={handleAction}
                 onBack={() => setStep('main')}
+                onScheduleIntake={() => setStep('intake_date')}
               />
             ) : (
               <motion.div
