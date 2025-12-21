@@ -467,6 +467,22 @@ export interface ConsultationPipelineData {
   }[];
 }
 
+/**
+ * Consultation funnel data - where people drop off
+ */
+export interface ConsultationFunnelData {
+  /** Total consultations booked */
+  booked: number;
+  /** Attended the consultation */
+  attended: number;
+  /** Booked intake after consultation */
+  bookedIntake: number;
+  /** Completed paperwork */
+  completedPaperwork: number;
+  /** Had first session (converted) */
+  firstSession: number;
+}
+
 // =============================================================================
 // CONSULTATIONS TAB PROPS
 // =============================================================================
@@ -480,4 +496,6 @@ export interface ConsultationsAnalysisTabProps extends BaseAnalysisTabProps {
   sourceData: ConsultationSourceData[];
   /** Current pipeline status */
   pipelineData: ConsultationPipelineData;
+  /** Funnel data showing drop-off at each stage */
+  funnelData: ConsultationFunnelData;
 }

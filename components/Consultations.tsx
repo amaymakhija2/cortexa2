@@ -1757,8 +1757,8 @@ export const Consultations: React.FC = () => {
   }, [consultations]);
 
   return (
-    <div className="flex-1 overflow-y-auto h-[calc(100vh-80px)] bg-gradient-to-b from-stone-100 to-stone-50">
-      <div className="min-h-full">
+    <div className="flex-1 overflow-x-auto overflow-y-auto h-[calc(100vh-80px)] bg-gradient-to-b from-stone-100 to-stone-50">
+      <div className="min-h-full min-w-fit">
         {/* =============================================
             HERO SECTION - SEGMENT SELECTOR
             ============================================= */}
@@ -1888,7 +1888,7 @@ export const Consultations: React.FC = () => {
 
         {/* KANBAN VIEW - for active pipeline */}
         {viewMode === 'kanban' && (
-          <div className="h-[calc(100vh-280px)]">
+          <div className="h-[calc(100vh-280px)] overflow-x-auto">
             <ConsultationsKanban
               consultations={consultations.filter(c => !['converted', 'lost'].includes(c.stage))}
               onTakeAction={setTakeActionConsultation}

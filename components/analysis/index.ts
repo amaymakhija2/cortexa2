@@ -38,5 +38,6 @@ export type {
   ConsultationsByClinicianDataPoint,
   ConsultationSourceData,
   ConsultationPipelineData,
+  ConsultationFunnelData,
   ConsultationsAnalysisTabProps,
 } from './types';

@@ -511,6 +511,16 @@ const CONSULTATION_PIPELINE_DATA = {
   ]
 };
 
+// Consultation funnel - where people drop off in the conversion process
+// Based on 122 total consultations in the period
+const CONSULTATION_FUNNEL_DATA = {
+  booked: 122,           // Total consultations booked
+  attended: 108,         // 89% showed up (14 no-shows)
+  bookedIntake: 94,      // 87% of attendees booked intake (14 didn't proceed)
+  completedPaperwork: 86, // 91% completed paperwork (8 dropped)
+  firstSession: 82,      // 95% made it to first session (4 dropped)
+};
+
 type TimePeriod = 'last-12-months' | 'this-year' | 'this-quarter' | 'last-quarter' | 'this-month' | 'last-month' | '2024' | '2023' | 'custom';
 
 // Month name to index mapping for date comparison
@@ -877,6 +887,7 @@ export const PracticeAnalysis: React.FC = () => {
           consultationsByClinicianData={CONSULTATIONS_BY_CLINICIAN_DATA}
           sourceData={CONSULTATION_SOURCE_DATA}
           pipelineData={CONSULTATION_PIPELINE_DATA}
+          funnelData={CONSULTATION_FUNNEL_DATA}
         />
       )}
 
