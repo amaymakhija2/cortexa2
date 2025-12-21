@@ -88,7 +88,7 @@ export { Legend, HoverInfoDisplay } from './Legend';
 export type { LegendItem as UnifiedLegendItem, LegendProps, LegendVariant, LegendSize, HoverInfoDisplayProps } from './Legend';
 
 // Chart Components
-export { BarChart, LineChart, DivergingBarChart, RetentionFunnelChart, RetentionFunnelCard } from './charts';
+export { BarChart, LineChart, DivergingBarChart, GroupedBarChart, RetentionFunnelChart, RetentionFunnelCard } from './charts';
 export type {
   BarChartProps,
   BarChartDataPoint,
@@ -102,6 +102,9 @@ export type {
   DivergingBarChartProps,
   DivergingBarDataPoint,
   DivergingBarConfig,
+  GroupedBarChartProps,
+  GroupedBarDataPoint,
+  GroupedBarConfig,
   RetentionFunnelChartProps,
   RetentionFunnelCardProps,
   RetentionFunnelData,

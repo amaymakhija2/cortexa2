@@ -79,6 +79,24 @@ const AGGREGATE_COLUMNS: TableColumn[] = [
     tooltip: 'Total revenue collected before any deductions.',
   },
   {
+    key: 'consultationsBooked',
+    header: 'Consults',
+    align: 'right',
+    tooltip: 'Total consultations booked during this time period.',
+  },
+  {
+    key: 'newClients',
+    header: 'New Clients',
+    align: 'right',
+    tooltip: 'Number of consultations that converted to new clients.',
+  },
+  {
+    key: 'conversionRate',
+    header: 'Conv %',
+    align: 'right',
+    tooltip: 'Percentage of consultations that converted to clients. Higher is better.',
+  },
+  {
     key: 'completedSessions',
     header: 'Sessions',
     align: 'right',
@@ -129,6 +147,24 @@ const POINT_IN_TIME_COLUMNS: TableColumn[] = [
     header: 'Revenue',
     align: 'right',
     tooltip: 'Total revenue collected before any deductions.',
+  },
+  {
+    key: 'consultationsBooked',
+    header: 'Consults',
+    align: 'right',
+    tooltip: 'Consultations booked this month.',
+  },
+  {
+    key: 'newClients',
+    header: 'New Clients',
+    align: 'right',
+    tooltip: 'Number of consultations that converted to new clients this month.',
+  },
+  {
+    key: 'conversionRate',
+    header: 'Conv %',
+    align: 'right',
+    tooltip: 'Percentage of consultations that converted to clients. Higher is better.',
   },
   {
     key: 'completedSessions',
@@ -188,6 +224,9 @@ function buildAggregateRows(groups: AggregateMetrics[]): TableRow[] {
     },
     values: {
       revenue: `$${(group.revenue / 1000).toFixed(0)}K`,
+      consultationsBooked: group.consultationsBooked.toString(),
+      newClients: group.newClients.toString(),
+      conversionRate: `${group.conversionRate}%`,
       completedSessions: group.completedSessions.toLocaleString(),
       avgWeeklySessions: group.avgWeeklySessions.toLocaleString(),
       sessionGoalPercent: `${group.sessionGoalPercent}%`,
@@ -209,6 +248,9 @@ function buildPointInTimeRows(groups: PointInTimeMetrics[]): TableRow[] {
     },
     values: {
       revenue: `$${(group.revenue / 1000).toFixed(0)}K`,
+      consultationsBooked: group.consultationsBooked.toString(),
+      newClients: group.newClients.toString(),
+      conversionRate: `${group.conversionRate}%`,
       completedSessions: group.completedSessions.toLocaleString(),
       activeClients: group.activeClients.toLocaleString(),
       caseloadCapacity: `${group.caseloadCapacity}%`,
@@ -330,52 +372,54 @@ export const CompareTab: React.FC = () => {
           subtitle={getDateRangeLabel()}
           showGridPattern
           actions={
-            <div className="flex items-center gap-3">
-              {/* View Mode Toggle */}
-              <div className="flex items-center gap-1 p-1 rounded-xl bg-white/10 backdrop-blur-sm">
-                <button
-                  onClick={() => setViewMode('last-12-months')}
-                  className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
-                    viewMode === 'last-12-months'
-                      ? 'bg-white text-stone-900 shadow-lg'
-                      : 'text-white/70 hover:text-white hover:bg-white/10'
-                  }`}
-                >
-                  Last 12 Months
-                </button>
-                <button
-                  onClick={() => setViewMode('live')}
-                  className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
-                    viewMode === 'live'
-                      ? 'bg-white text-stone-900 shadow-lg'
-                      : 'text-white/70 hover:text-white hover:bg-white/10'
-                  }`}
-                >
-                  Live
-                </button>
-                <button
-                  onClick={() => setViewMode('historical')}
-                  className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
-                    viewMode === 'historical'
-                      ? 'bg-white text-stone-900 shadow-lg'
-                      : 'text-white/70 hover:text-white hover:bg-white/10'
-                  }`}
-                >
-                  Historical
-                </button>
-              </div>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <div className="flex items-center gap-3">
+                {/* View Mode Toggle: Last 12 Months / Live / Historical */}
+                <div className="flex items-center gap-1 p-1 rounded-xl bg-white/10 backdrop-blur-sm">
+                  <button
+                    onClick={() => setViewMode('last-12-months')}
+                    className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
+                      viewMode === 'last-12-months'
+                        ? 'bg-white text-stone-900 shadow-lg'
+                        : 'text-white/70 hover:text-white hover:bg-white/10'
+                    }`}
+                  >
+                    Last 12 Months
+                  </button>
+                  <button
+                    onClick={() => setViewMode('live')}
+                    className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
+                      viewMode === 'live'
+                        ? 'bg-white text-stone-900 shadow-lg'
+                        : 'text-white/70 hover:text-white hover:bg-white/10'
+                    }`}
+                  >
+                    Live
+                  </button>
+                  <button
+                    onClick={() => setViewMode('historical')}
+                    className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
+                      viewMode === 'historical'
+                        ? 'bg-white text-stone-900 shadow-lg'
+                        : 'text-white/70 hover:text-white hover:bg-white/10'
+                    }`}
+                  >
+                    Historical
+                  </button>
+                </div>
 
-              {/* Month Picker - only shown in Historical mode */}
-              {viewMode === 'historical' && dataRange && (
-                <MonthPicker
-                  selectedMonth={selectedMonth}
-                  selectedYear={selectedYear}
-                  onSelect={handleMonthSelect}
-                  minYear={dataRange.earliest.getFullYear()}
-                  maxYear={dataRange.latest.getFullYear()}
-                  autoOpen={true}
-                />
-              )}
+                {/* Month Picker - only shown in Historical mode */}
+                {viewMode === 'historical' && dataRange && (
+                  <MonthPicker
+                    selectedMonth={selectedMonth}
+                    selectedYear={selectedYear}
+                    onSelect={handleMonthSelect}
+                    minYear={dataRange.earliest.getFullYear()}
+                    maxYear={dataRange.latest.getFullYear()}
+                    autoOpen={true}
+                  />
+                )}
+              </div>
             </div>
           }
         >
@@ -389,7 +433,7 @@ export const CompareTab: React.FC = () => {
         </PageHeader>
 
         {/* Table Content */}
-        <div className="px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
+        <div className="px-4 sm:px-6 lg:px-8 py-6 lg:py-8 overflow-x-auto">
           {compareData.loading ? (
             <div className="flex items-center justify-center py-24">
               <div className="flex flex-col items-center gap-4">

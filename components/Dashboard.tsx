@@ -5,12 +5,12 @@ import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { MetricsRow } from './MetricsRow';
 import { SimpleAlertCard } from './SimpleAlertCard';
-import { MonthlyReviewCard } from './MonthlyReviewCard';
 import { MonthPicker } from './MonthPicker';
 import { CompareTab } from './CompareTab';
 import { PageHeader, SectionHeader } from './design-system';
 import { ReferralBadge, ReferralModal } from './referral';
-import { PracticeMetrics } from '../types';
+import { PracticeMetrics, ConsultationMetricDetail } from '../types';
+import { MOCK_CONSULTATIONS } from '../data/consultations';
 import { useMetrics, useDataDateRange, DashboardMetrics } from '../hooks';
 import { allPriorityCards } from '../data/priorityCardsData';
 import { useSettings, PracticeGoals as PracticeGoalsSettings } from '../context/SettingsContext';
@@ -24,6 +24,57 @@ const FULL_MONTHS = [
 // Default goals (used as fallback, main goals come from SettingsContext)
 const DEFAULT_GOALS = {
   notesOverdue: 0.10,   // <10% overdue notes target (not in practice goals config)
+  monthlyConsultations: 20, // Monthly consultation booking goal
+};
+
+// Calculate consultation metrics for a given month
+const getConsultationMetrics = (month: number, year: number, consultationGoal: number): ConsultationMetricDetail => {
+  const startOfMonth = new Date(year, month, 1);
+  const endOfMonth = new Date(year, month + 1, 0, 23, 59, 59);
+
+  const isInMonth = (dateStr: string | undefined) => {
+    if (!dateStr) return false;
+    const date = new Date(dateStr);
+    return date >= startOfMonth && date <= endOfMonth;
+  };
+
+  // Consultations booked this month (by createdAt date)
+  const booked = MOCK_CONSULTATIONS.filter(c => isInMonth(c.createdAt)).length;
+
+  // Converted this month (by convertedDate)
+  const converted = MOCK_CONSULTATIONS.filter(c =>
+    c.stage === 'converted' && isInMonth(c.convertedDate)
+  ).length;
+
+  // Lost this month (by lostDate)
+  const lost = MOCK_CONSULTATIONS.filter(c =>
+    c.stage === 'lost' && isInMonth(c.lostDate)
+  ).length;
+
+  // In progress (currently active in the pipeline, not yet converted/lost)
+  const inProgress = MOCK_CONSULTATIONS.filter(c =>
+    ['consult_complete', 'intake_pending', 'intake_scheduled', 'paperwork_pending', 'paperwork_complete'].includes(c.stage)
+  ).length;
+
+  // Determine status based on booked vs goal
+  const getStatus = (): 'Healthy' | 'Needs attention' | 'Critical' => {
+    const percentOfGoal = booked / consultationGoal;
+    if (percentOfGoal >= 0.8) return 'Healthy';
+    if (percentOfGoal >= 0.5) return 'Needs attention';
+    return 'Critical';
+  };
+
+  return {
+    label: 'Consultations',
+    value: `${booked}`,
+    valueLabel: 'booked',
+    subtext: `Goal: ${consultationGoal} · ${converted} converted`,
+    status: getStatus(),
+    booked,
+    converted,
+    inProgress,
+    lost,
+  };
 };
 
 // Get progress through the month (0-1) for pro-rating goals
@@ -120,6 +171,9 @@ const buildPracticeMetrics = (calc: DashboardMetrics, month: number, year: numbe
 
   const notesSubtext = `${totalOverdueNotes} overdue · ${totalDueSoonNotes} due soon`;
 
+  // Get consultation metrics for this month
+  const consultationMetrics = getConsultationMetrics(month, year, DEFAULT_GOALS.monthlyConsultations);
+
   return {
     revenue: {
       label: "Revenue",
@@ -135,6 +189,7 @@ const buildPracticeMetrics = (calc: DashboardMetrics, month: number, year: numbe
       subtext: sessionsSubtext,
       status: getSessionsStatus()
     },
+    consultations: consultationMetrics,
     clientGrowth: {
       label: "Clients",
       value: `${calc.clients.active}`,
@@ -181,7 +236,7 @@ export const Dashboard: React.FC = () => {
   const { settings } = useSettings();
   const { practiceGoals } = settings;
 
-  const totalCards = 1 + allPriorityCards.length; // MonthlyReviewCard + priority cards
+  const totalCards = allPriorityCards.length;
 
   // Get data date range from API
   const { data: dataRange, loading: rangeLoading } = useDataDateRange();
@@ -272,26 +327,18 @@ export const Dashboard: React.FC = () => {
     }
   };
 
-  const priorityCards = [
-    <MonthlyReviewCard
-      key="monthly-review"
-      month={10} // November (0-indexed)
-      year={2025}
-      index={0}
-    />,
-    ...allPriorityCards.map((card, idx) => (
-      <SimpleAlertCard
-        key={card.id}
-        index={idx + 1}
-        title={card.title}
-        aiGuidance={card.aiGuidance}
-        action={card.action}
-        status={card.status}
-        stats={card.stats}
-        comparisonText={card.comparisonText}
-      />
-    ))
-  ];
+  const priorityCards = allPriorityCards.map((card, idx) => (
+    <SimpleAlertCard
+      key={card.id}
+      index={idx}
+      title={card.title}
+      aiGuidance={card.aiGuidance}
+      action={card.action}
+      status={card.status}
+      stats={card.stats}
+      comparisonText={card.comparisonText}
+    />
+  ));
 
   // If compare tab is selected, render the compare component
   if (activeTab === 'compare') {
@@ -435,11 +482,11 @@ export const Dashboard: React.FC = () => {
               }
             />
 
-            {/* Cards Container */}
-            <div className="relative flex-1 min-h-[560px]">
+            {/* Cards Container - breaks out of parent padding to extend to viewport edge */}
+            <div className="relative flex-1 min-h-[560px] -mr-6 sm:-mr-8 lg:-mr-12">
               <div
                 ref={scrollContainerRef}
-                className="absolute inset-0 flex gap-4 lg:gap-5 overflow-x-auto overflow-y-hidden snap-x snap-mandatory scrollbar-hide pb-2"
+                className="absolute inset-0 flex gap-4 lg:gap-5 overflow-x-auto overflow-y-hidden snap-x snap-mandatory scrollbar-hide pb-2 pr-6 sm:pr-8 lg:pr-12"
                 style={{
                   scrollbarWidth: 'none',
                   msOverflowStyle: 'none',

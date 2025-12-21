@@ -82,8 +82,10 @@ const NAVIGATION = {
     { path: '/components', label: 'Components', icon: LayoutGrid },
     { path: '/configure', label: 'Configure', icon: Sliders },
   ],
+  secondary: [
+    { path: '/consultations', label: 'Consultations', icon: MessageSquare, description: 'Client pipeline' },
+  ],
   upcoming: [
-    { label: 'Consultations', icon: MessageSquare },
     { label: 'Accounting', icon: Calculator },
     { label: 'Payroll', icon: Banknote },
   ],
@@ -165,15 +167,18 @@ const NavItem: React.FC<NavItemProps> = ({
               >
                 <div className="flex-1 min-w-0">
                   <div
-                    className={`text-[15px] font-medium whitespace-nowrap transition-colors duration-200 ${
-                      isActive ? 'text-stone-100' : 'text-stone-300 group-hover:text-white'
+                    className={`text-[18px] font-semibold tracking-[-0.01em] whitespace-nowrap transition-colors duration-200 ${
+                      isActive ? 'text-white' : 'text-stone-100 group-hover:text-white'
                     }`}
                   >
                     {label}
                   </div>
                   {/* Show description for non-active items that have no sub-items */}
                   {description && !isActive && isExpanded && (
-                    <div className="text-[13px] text-stone-600 truncate mt-0.5">
+                    <div
+                      className="text-[13px] text-stone-400 truncate mt-0.5 transition-colors duration-200 group-hover:text-stone-300"
+                      style={{ fontStyle: 'italic' }}
+                    >
                       {description}
                     </div>
                   )}
@@ -471,15 +476,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
                           <div className="flex items-center justify-between">
                             <div>
                               <div
-                                className={`text-[15px] font-medium transition-colors duration-200 ${
-                                  isActive ? 'text-stone-100' : 'text-stone-300 group-hover:text-white'
+                                className={`text-[18px] font-semibold tracking-[-0.01em] transition-colors duration-200 ${
+                                  isActive ? 'text-white' : 'text-stone-100 group-hover:text-white'
                                 }`}
                               >
                                 {item.label}
                               </div>
                               {/* Description for non-active items */}
                               {item.description && !isActive && (
-                                <div className="text-[13px] text-stone-600 mt-0.5">
+                                <div
+                                  className="text-[13px] text-stone-400 mt-0.5 transition-colors duration-200 group-hover:text-stone-300"
+                                  style={{ fontStyle: 'italic' }}
+                                >
                                   {item.description}
                                 </div>
                               )}
@@ -516,11 +524,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                                     handleSubItemClick(subItem.id);
                                   }}
                                   className={`
-                                    w-full text-left pl-4 pr-3 py-2 text-[14px]
-                                    relative whitespace-nowrap
+                                    w-full text-left pl-4 pr-3 py-2.5 text-[15px] font-medium
+                                    relative whitespace-nowrap tracking-[-0.01em]
+                                    transition-colors duration-150
                                     ${isSubActive
-                                      ? 'text-stone-100'
-                                      : 'text-stone-500 hover:text-stone-200'
+                                      ? 'text-stone-50'
+                                      : 'text-stone-400 hover:text-stone-100'
                                     }
                                   `}
                                   style={{
@@ -542,6 +551,40 @@ export const Sidebar: React.FC<SidebarProps> = ({
             })}
           </div>
 
+          {/* Operations section */}
+          <div className="mt-6 pt-4 border-t border-stone-800/50">
+            {/* Section label */}
+            <div
+              className="h-10 flex items-center mx-6 mb-3"
+              style={{
+                opacity: isExpanded ? 1 : 0,
+                transition: `opacity ${TRANSITION_DURATION} ${TRANSITION_EASING}`,
+              }}
+            >
+              <span
+                className="text-[12px] font-semibold uppercase tracking-[0.2em]"
+                style={{ color: 'rgb(6, 182, 212)' }}
+              >
+                Operations
+              </span>
+            </div>
+
+            {/* Secondary nav items */}
+            <div className="space-y-1">
+              {NAVIGATION.secondary.map((item) => (
+                <NavItem
+                  key={item.path}
+                  path={item.path}
+                  label={item.label}
+                  icon={item.icon}
+                  description={item.description}
+                  isExpanded={isExpanded}
+                  onMobileClose={closeMobile}
+                />
+              ))}
+            </div>
+          </div>
+
           {/* Coming Soon section */}
           <div
             className="mt-6 pt-4 border-t border-stone-800/50"
@@ -554,10 +597,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <div className="h-8 flex items-center mx-3 mb-2">
               <div className="w-12 flex-shrink-0" />
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-bold uppercase tracking-[0.15em] text-stone-600">
+                <span className="text-[11px] font-bold uppercase tracking-[0.15em] text-stone-500">
                   Coming Soon
                 </span>
-                <Lock size={12} className="text-stone-700" />
+                <Lock size={12} className="text-stone-500" />
               </div>
             </div>
 
@@ -567,12 +610,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 return (
                   <div
                     key={item.label}
-                    className="flex items-center h-10 mx-3 rounded-lg opacity-40 cursor-not-allowed"
+                    className="flex items-center h-10 mx-3 rounded-lg cursor-not-allowed hover:bg-white/[0.02] transition-colors"
                   >
                     <div className="w-12 h-10 flex items-center justify-center flex-shrink-0">
-                      <Icon size={18} strokeWidth={1.5} className="text-stone-600" />
+                      <Icon size={18} strokeWidth={1.5} className="text-stone-500" />
                     </div>
-                    <span className="text-[14px] text-stone-600">{item.label}</span>
+                    <span className="text-[14px] text-stone-400">{item.label}</span>
                   </div>
                 );
               })}

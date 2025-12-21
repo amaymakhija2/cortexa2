@@ -221,8 +221,9 @@ export interface ClinicianSyntheticMetrics {
   overdueNotes: number;       // Notes past the practice's deadline
   dueWithin48hNotes: number;  // Notes due within 48 hours (not yet overdue)
 
-  // Growth
-  newClientsThisMonth: number; // New clients added this month
+  // Growth (Consultation Pipeline)
+  newClientsThisMonth: number; // New clients added this month (converted from consults)
+  consultsBookedThisMonth: number; // Consultations booked this month
 }
 
 // Per-clinician metrics - each has a distinct performance story
@@ -244,6 +245,7 @@ export const CLINICIAN_SYNTHETIC_METRICS: Record<string, ClinicianSyntheticMetri
     overdueNotes: 0,
     dueWithin48hNotes: 2,
     newClientsThisMonth: 3,
+    consultsBookedThisMonth: 4, // 75% conversion rate - excellent
   },
   '2': { // Maria Rodriguez - Strong performer, consistent
     showRate: 85,
@@ -262,6 +264,7 @@ export const CLINICIAN_SYNTHETIC_METRICS: Record<string, ClinicianSyntheticMetri
     overdueNotes: 1,
     dueWithin48hNotes: 3,
     newClientsThisMonth: 2,
+    consultsBookedThisMonth: 3, // 67% conversion rate - good
   },
   '3': { // Priya Patel - Needs attention, high cancellations
     showRate: 72,
@@ -280,6 +283,7 @@ export const CLINICIAN_SYNTHETIC_METRICS: Record<string, ClinicianSyntheticMetri
     overdueNotes: 5,
     dueWithin48hNotes: 7,
     newClientsThisMonth: 1,
+    consultsBookedThisMonth: 3, // 33% conversion rate - poor
   },
   '4': { // James Kim - Growing, great potential
     showRate: 88,
@@ -298,6 +302,7 @@ export const CLINICIAN_SYNTHETIC_METRICS: Record<string, ClinicianSyntheticMetri
     overdueNotes: 0,
     dueWithin48hNotes: 3,
     newClientsThisMonth: 4,
+    consultsBookedThisMonth: 6, // 67% conversion rate - good, high volume
   },
   '5': { // Michael Johnson - Critical, needs intervention
     showRate: 64,
@@ -316,6 +321,7 @@ export const CLINICIAN_SYNTHETIC_METRICS: Record<string, ClinicianSyntheticMetri
     overdueNotes: 8,
     dueWithin48hNotes: 10,
     newClientsThisMonth: 1,
+    consultsBookedThisMonth: 4, // 25% conversion rate - very poor
   },
 };
 

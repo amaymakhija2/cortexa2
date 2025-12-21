@@ -77,6 +77,10 @@ const METRIC_TOOLTIPS: Record<string, { title: string; description: string }> = 
     title: 'Completed Sessions',
     description: 'Number of sessions completed for the selected time period. Session Goal % shows completed sessions as a percentage of your session goal.'
   },
+  'Consultations': {
+    title: 'Consultations',
+    description: 'New client consultations booked this month. Track your pipeline from initial consultation through conversion to active client.'
+  },
   'Clients': {
     title: 'Active Clients',
     description: 'Clients with active status (not discharged). Client Openings shows capacity for new clients.'
@@ -161,6 +165,20 @@ export const MetricsRow: React.FC<MetricsRowProps> = ({ metrics, isLive = true }
       expandableContent={revenueExpandableContent}
       expandButtonLabel="Weekly Breakdown"
       expandButtonLabelMobile="Weekly"
+    />,
+    <MetricCard
+      key="consultations"
+      label={metrics.consultations.label}
+      value={metrics.consultations.value}
+      valueLabel={metrics.consultations.valueLabel}
+      subtext={metrics.consultations.subtext}
+      status={metrics.consultations.status}
+      tooltip={METRIC_TOOLTIPS['Consultations']}
+      navigateTo={{
+        path: '/clinician-overview?tab=ranking&metric=growth',
+        label: 'By Clinician',
+        labelMobile: 'Clinicians',
+      }}
     />,
     <MetricCard
       key="sessions"

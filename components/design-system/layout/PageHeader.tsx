@@ -163,7 +163,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
       <div className="relative px-6 sm:px-8 lg:px-12 py-8 lg:py-10">
         {/* Header row */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
-          <div>
+          <div className="min-w-0 flex-shrink">
             {label && (
               <p className={`${accentConfig.labelClass} text-sm font-semibold tracking-widest uppercase mb-2`}>
                 {label}

@@ -5,12 +5,12 @@ import { ResponsiveContainer, LineChart, Line, BarChart, Bar, PieChart, Pie, Cel
 import { Info, X, ArrowRight, Calendar, ChevronLeft, ChevronRight, Maximize2, Minimize2, Users } from 'lucide-react';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { ToggleButton, GoalIndicator, ActionButton } from './design-system';
-import { FinancialAnalysisTab, SessionsAnalysisTab, CapacityClientTab, RetentionTab, InsuranceTab, AdminTab } from './analysis';
+import { FinancialAnalysisTab, SessionsAnalysisTab, CapacityClientTab, RetentionTab, InsuranceTab, AdminTab, ConsultationsAnalysisTab } from './analysis';
 import { ClientRoster } from './ClientRoster';
 // Note: Clinician last names in chart data (Chen, Rodriguez, Patel, Kim, Johnson)
 // match master list in data/clinicians.ts
 
-type TabType = 'clients' | 'financial' | 'sessions' | 'capacity-client' | 'retention' | 'insurance' | 'admin';
+type TabType = 'clients' | 'financial' | 'sessions' | 'capacity-client' | 'retention' | 'consultations' | 'insurance' | 'admin';
 
 // Full data set for all time periods
 const ALL_REVENUE_DATA = [
@@ -454,6 +454,63 @@ const ALL_REMINDER_DELIVERY_DATA = [
   { month: 'Dec', sent: 1423, failed: 19 }
 ];
 
+// =============================================================================
+// CONSULTATIONS DATA
+// =============================================================================
+
+// Monthly consultations data
+// Realistic for a 5-clinician practice: ~10-15 consultations/month, ~60-70% conversion
+const ALL_CONSULTATIONS_DATA = [
+  { month: 'Jan', consultations: 11, converted: 7, totalDaysToFirstSession: 42, conversionsWithFirstSession: 7 },
+  { month: 'Feb', consultations: 8, converted: 5, totalDaysToFirstSession: 30, conversionsWithFirstSession: 5 },
+  { month: 'Mar', consultations: 9, converted: 5, totalDaysToFirstSession: 35, conversionsWithFirstSession: 5 },
+  { month: 'Apr', consultations: 13, converted: 8, totalDaysToFirstSession: 48, conversionsWithFirstSession: 8 },
+  { month: 'May', consultations: 6, converted: 3, totalDaysToFirstSession: 18, conversionsWithFirstSession: 3 },
+  { month: 'Jun', consultations: 14, converted: 8, totalDaysToFirstSession: 56, conversionsWithFirstSession: 8 },
+  { month: 'Jul', consultations: 7, converted: 3, totalDaysToFirstSession: 21, conversionsWithFirstSession: 3 },
+  { month: 'Aug', consultations: 12, converted: 7, totalDaysToFirstSession: 49, conversionsWithFirstSession: 7 },
+  { month: 'Sep', consultations: 8, converted: 4, totalDaysToFirstSession: 24, conversionsWithFirstSession: 4 },
+  { month: 'Oct', consultations: 18, converted: 13, totalDaysToFirstSession: 78, conversionsWithFirstSession: 13 },
+  { month: 'Nov', consultations: 5, converted: 2, totalDaysToFirstSession: 14, conversionsWithFirstSession: 2 },
+  { month: 'Dec', consultations: 11, converted: 7, totalDaysToFirstSession: 49, conversionsWithFirstSession: 7 }
+];
+
+// Consultations by clinician (who they were assigned to)
+const ALL_CONSULTATIONS_BY_CLINICIAN_DATA = [
+  { month: 'Jan', Chen: 3, Rodriguez: 2, Patel: 2, Kim: 2, Johnson: 2 },
+  { month: 'Feb', Chen: 2, Rodriguez: 2, Patel: 1, Kim: 2, Johnson: 1 },
+  { month: 'Mar', Chen: 2, Rodriguez: 2, Patel: 2, Kim: 1, Johnson: 2 },
+  { month: 'Apr', Chen: 3, Rodriguez: 3, Patel: 2, Kim: 3, Johnson: 2 },
+  { month: 'May', Chen: 2, Rodriguez: 1, Patel: 1, Kim: 1, Johnson: 1 },
+  { month: 'Jun', Chen: 3, Rodriguez: 3, Patel: 3, Kim: 2, Johnson: 3 },
+  { month: 'Jul', Chen: 2, Rodriguez: 1, Patel: 1, Kim: 2, Johnson: 1 },
+  { month: 'Aug', Chen: 3, Rodriguez: 2, Patel: 2, Kim: 3, Johnson: 2 },
+  { month: 'Sep', Chen: 2, Rodriguez: 2, Patel: 1, Kim: 2, Johnson: 1 },
+  { month: 'Oct', Chen: 4, Rodriguez: 4, Patel: 3, Kim: 4, Johnson: 3 },
+  { month: 'Nov', Chen: 1, Rodriguez: 1, Patel: 1, Kim: 1, Johnson: 1 },
+  { month: 'Dec', Chen: 3, Rodriguez: 2, Patel: 2, Kim: 2, Johnson: 2 }
+];
+
+// Consultation sources
+const CONSULTATION_SOURCE_DATA = [
+  { source: 'Psychology Today', consultations: 42, converted: 28, conversionRate: 66.7 },
+  { source: 'Insurance Directory', consultations: 31, converted: 22, conversionRate: 71.0 },
+  { source: 'Referral', consultations: 24, converted: 18, conversionRate: 75.0 },
+  { source: 'Website', consultations: 15, converted: 8, conversionRate: 53.3 },
+  { source: 'Other', consultations: 10, converted: 6, conversionRate: 60.0 }
+];
+
+// Current pipeline status
+const CONSULTATION_PIPELINE_DATA = {
+  activePipeline: 8,
+  byStage: [
+    { stage: 'New Inquiry', count: 3, avgDaysInStage: 1.2 },
+    { stage: 'Awaiting Response', count: 2, avgDaysInStage: 2.8 },
+    { stage: 'Scheduling', count: 2, avgDaysInStage: 3.5 },
+    { stage: 'Scheduled', count: 1, avgDaysInStage: 5.0 }
+  ]
+};
+
 type TimePeriod = 'last-12-months' | 'this-year' | 'this-quarter' | 'last-quarter' | 'this-month' | 'last-month' | '2024' | '2023' | 'custom';
 
 // Month name to index mapping for date comparison
@@ -508,6 +565,7 @@ export const PracticeAnalysis: React.FC = () => {
     { id: 'sessions', label: 'Sessions Analysis', shortLabel: 'Sessions' },
     { id: 'capacity-client', label: 'Client & Capacity Analysis', shortLabel: 'Client & Capacity' },
     { id: 'retention', label: 'Retention Analysis', shortLabel: 'Retention' },
+    { id: 'consultations', label: 'Consultations Analysis', shortLabel: 'Consultations' },
     { id: 'insurance', label: 'Insurance Analysis', shortLabel: 'Insurance' },
     { id: 'admin', label: 'Admin Analysis', shortLabel: 'Admin' }
   ];
@@ -627,6 +685,10 @@ export const PracticeAnalysis: React.FC = () => {
   const NOTES_STATUS_DATA = useMemo(() => getDataForPeriod(ALL_NOTES_STATUS_DATA, timePeriod), [timePeriod, customStartMonth, customEndMonth, customStartYear, customEndYear]);
   const REMINDER_DELIVERY_DATA = useMemo(() => getDataForPeriod(ALL_REMINDER_DELIVERY_DATA, timePeriod), [timePeriod, customStartMonth, customEndMonth, customStartYear, customEndYear]);
 
+  // Consultations memoized data
+  const CONSULTATIONS_DATA = useMemo(() => getDataForPeriod(ALL_CONSULTATIONS_DATA, timePeriod), [timePeriod, customStartMonth, customEndMonth, customStartYear, customEndYear]);
+  const CONSULTATIONS_BY_CLINICIAN_DATA = useMemo(() => getDataForPeriod(ALL_CONSULTATIONS_BY_CLINICIAN_DATA, timePeriod), [timePeriod, customStartMonth, customEndMonth, customStartYear, customEndYear]);
+
   // Calculate session value and cumulative revenue for charts
   const SESSION_VALUE_DATA = useMemo(() =>
     REVENUE_DATA.map((rev, idx) => ({
@@ -715,11 +777,12 @@ export const PracticeAnalysis: React.FC = () => {
   const isSessionsTab = activeTab === 'sessions';
   const isCapacityClientTab = activeTab === 'capacity-client';
   const isRetentionTab = activeTab === 'retention';
+  const isConsultationsTab = activeTab === 'consultations';
   const isInsuranceTab = activeTab === 'insurance';
   const isAdminTab = activeTab === 'admin';
 
   // All tabs now use the design system
-  const usesDesignSystem = isClientsTab || isFinancialTab || isSessionsTab || isCapacityClientTab || isRetentionTab || isInsuranceTab || isAdminTab;
+  const usesDesignSystem = isClientsTab || isFinancialTab || isSessionsTab || isCapacityClientTab || isRetentionTab || isConsultationsTab || isInsuranceTab || isAdminTab;
 
   // Client Roster tab - render directly without wrapper div
   if (isClientsTab) {
@@ -798,6 +861,22 @@ export const PracticeAnalysis: React.FC = () => {
           churnByGenderData={CHURN_BY_GENDER_DATA}
           clientFrequencyData={SESSION_FREQUENCY_DATA}
           churnByFrequencyData={CHURN_BY_FREQUENCY_DATA}
+        />
+      )}
+
+      {isConsultationsTab && (
+        <ConsultationsAnalysisTab
+          timePeriod={timePeriod}
+          onTimePeriodChange={setTimePeriod}
+          timePeriods={timePeriods}
+          tabs={tabs}
+          activeTab={activeTab}
+          onTabChange={() => {}}
+          getDateRangeLabel={getDateRangeLabel}
+          consultationsData={CONSULTATIONS_DATA}
+          consultationsByClinicianData={CONSULTATIONS_BY_CLINICIAN_DATA}
+          sourceData={CONSULTATION_SOURCE_DATA}
+          pipelineData={CONSULTATION_PIPELINE_DATA}
         />
       )}
 

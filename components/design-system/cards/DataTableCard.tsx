@@ -246,7 +246,7 @@ export const DataTableCard: React.FC<DataTableCardProps> = ({
 
   return (
     <div
-      className={`${size === 'lg' ? '' : 'rounded-2xl xl:rounded-3xl'} ${sizeConfig.containerPadding} overflow-hidden ${className}`}
+      className={`${size === 'lg' ? '' : 'rounded-2xl xl:rounded-3xl'} ${sizeConfig.containerPadding} overflow-x-auto ${className}`}
       style={containerStyle}
     >
       {/* Header */}
@@ -285,7 +285,7 @@ export const DataTableCard: React.FC<DataTableCardProps> = ({
             boxShadow: 'inset 0 0 0 1px rgba(0, 0, 0, 0.04)',
           }}
         >
-          <table className="w-full">
+          <table className="w-full min-w-max">
             <thead>
               <tr
                 style={{
@@ -294,10 +294,9 @@ export const DataTableCard: React.FC<DataTableCardProps> = ({
               >
                 {/* Header for label column */}
                 <th
-                  className={`text-left ${sizeConfig.thFirstClass} font-semibold text-stone-600 uppercase tracking-wider`}
+                  className={`text-left ${sizeConfig.thFirstClass} font-semibold text-stone-600 uppercase tracking-wider whitespace-nowrap`}
                   style={{
                     borderBottom: '2px solid rgba(214, 211, 209, 0.5)',
-                    width: '40%',
                   }}
                 >
                   Metric
@@ -311,7 +310,6 @@ export const DataTableCard: React.FC<DataTableCardProps> = ({
                     style={{
                       borderBottom: '2px solid rgba(214, 211, 209, 0.5)',
                       textAlign: col.align || 'left',
-                      width: `${60 / columns.length}%`,
                       ...(col.isTotals && {
                         background: 'rgba(245, 245, 244, 0.6)',
                       }),
@@ -342,7 +340,6 @@ export const DataTableCard: React.FC<DataTableCardProps> = ({
                     {/* Row label with optional indicator */}
                     <td
                       className={`${sizeConfig.tdPadding} group-hover:bg-stone-50/50 whitespace-nowrap`}
-                      style={{ width: '40%' }}
                     >
                       <div className={`flex items-center ${sizeConfig.indicatorGap}`}>
                         {row.indicator && (

@@ -24,6 +24,13 @@ export type {
   DivergingBarConfig,
 } from './DivergingBarChart';
 
+export { GroupedBarChart } from './GroupedBarChart';
+export type {
+  GroupedBarChartProps,
+  GroupedBarDataPoint,
+  GroupedBarConfig,
+} from './GroupedBarChart';
+
 export { RetentionFunnelChart, RetentionFunnelCard } from './RetentionFunnelChart';
 export type {
   RetentionFunnelChartProps,

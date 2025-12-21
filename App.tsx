@@ -14,6 +14,7 @@ import { ClinicianDetails } from './components/ClinicianDetails';
 import { SettingsPage } from './components/SettingsPage';
 import { PracticeConfigurationPage } from './components/PracticeConfigurationPage';
 import { SessionHistoryPage } from './components/SessionHistoryPage';
+import { Consultations } from './components/Consultations';
 import { Reference as Components } from './components/design-system';
 import { Menu } from 'lucide-react';
 
@@ -28,6 +29,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/clinician-overview': 'Clinicians',
   '/practice-analysis': 'Practice Details',
   '/clinician-details': 'Clinician Details',
+  '/consultations': 'Consultations',
   '/configure': 'Configure',
   '/components': 'Components',
   '/settings': 'Settings',
@@ -163,6 +165,7 @@ const ProtectedApp: React.FC = () => {
               <Route path="/clinician-overview" element={<ClinicianOverview />} />
               <Route path="/clinician-details" element={<ClinicianDetails />} />
               <Route path="/clinician/:clinicianId/session-history" element={<SessionHistoryPage />} />
+              <Route path="/consultations" element={<Consultations />} />
               <Route path="/configure" element={<PracticeConfigurationPage />} />
               <Route path="/components" element={<Components />} />
               <Route path="/settings" element={<SettingsPage />} />
