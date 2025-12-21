@@ -34,6 +34,7 @@ import {
   formatConsultationDate,
   getClientInitials,
 } from '../types/consultations';
+import { useSettings, getFollowUpIntervals } from '../context/SettingsContext';
 
 // =============================================================================
 // TAKE ACTION MODAL - REDESIGNED
@@ -395,15 +396,17 @@ const OutcomeOptions: React.FC<{
 };
 
 // -----------------------------------------------------------------------------
-// FOLLOW-UP SEQUENCE (No-Show)
+// NO-SHOW RECOVERY (Redesigned for "report" model)
 // -----------------------------------------------------------------------------
 
-const FollowUpSequence: React.FC<{
+const NoShowRecovery: React.FC<{
   currentCount: number;
-  onContinue: () => void;
+  onRecoverySent: () => void;
+  onRescheduled: () => void;
   onMarkLost: () => void;
-}> = ({ currentCount, onContinue, onMarkLost }) => {
+}> = ({ currentCount, onRecoverySent, onRescheduled, onMarkLost }) => {
   const steps = ['Immediate', '24 Hours', '72 Hours'];
+  const allSent = currentCount >= 3;
 
   return (
     <motion.div
@@ -412,10 +415,10 @@ const FollowUpSequence: React.FC<{
     >
       <div className="mb-6">
         <h3 className="text-2xl font-bold text-stone-900 mb-1" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
-          Follow-Up Sequence
+          No-Show Recovery
         </h3>
         <p className="text-stone-500">
-          {currentCount === 0 ? 'Start the recovery sequence' : `${currentCount} of 3 follow-ups sent`}
+          {currentCount === 0 ? 'Track your recovery efforts' : `${currentCount} of 3 follow-ups sent`}
         </p>
       </div>
 
@@ -447,33 +450,35 @@ const FollowUpSequence: React.FC<{
         </div>
       </div>
 
-      {/* Actions */}
-      <div className="space-y-2">
-        {currentCount < 3 ? (
-          <>
-            <button
-              onClick={onContinue}
-              className="w-full p-4 rounded-2xl bg-stone-900 text-white font-semibold flex items-center justify-center gap-3 hover:bg-stone-800 transition-colors"
-            >
-              <MessageSquare size={18} />
-              Send Follow-Up #{currentCount + 1}
-            </button>
-            <button
-              onClick={onMarkLost}
-              className="w-full p-4 rounded-2xl bg-white border border-stone-200 text-stone-600 font-semibold hover:bg-stone-50 transition-colors"
-            >
-              Give Up & Mark Lost
-            </button>
-          </>
-        ) : (
+      {/* Actions - using "report" model */}
+      <div className="space-y-3">
+        {/* Primary: Rescheduled - always show */}
+        <button
+          onClick={onRescheduled}
+          className="w-full p-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold flex items-center justify-center gap-3 hover:from-emerald-600 hover:to-teal-600 transition-colors shadow-sm"
+        >
+          <CalendarCheck size={18} />
+          They Rescheduled
+        </button>
+
+        {/* Recovery sent - only if not all sent */}
+        {!allSent && (
           <button
-            onClick={onMarkLost}
+            onClick={onRecoverySent}
             className="w-full p-4 rounded-2xl bg-stone-900 text-white font-semibold flex items-center justify-center gap-3 hover:bg-stone-800 transition-colors"
           >
-            <AlertTriangle size={18} />
-            Mark as Lost
+            <MessageSquare size={18} />
+            Recovery #{currentCount + 1} Sent
           </button>
         )}
+
+        {/* Mark Lost */}
+        <button
+          onClick={onMarkLost}
+          className="w-full p-4 rounded-2xl bg-white border border-stone-200 text-stone-600 font-semibold hover:bg-rose-50 hover:border-rose-200 hover:text-rose-700 transition-colors"
+        >
+          {allSent ? 'All Follow-ups Exhausted — Mark Lost' : 'Give Up & Mark Lost'}
+        </button>
       </div>
     </motion.div>
   );
@@ -813,12 +818,25 @@ const IntakeDatePicker: React.FC<{
 // LOST STAGE SELECTOR
 // -----------------------------------------------------------------------------
 
+// Preset reasons for why a client dropped off
+const LOST_REASONS = [
+  { id: 'no_response', label: 'No response', description: 'Client stopped responding' },
+  { id: 'found_other', label: 'Found another provider', description: 'Went with a different therapist' },
+  { id: 'cost', label: 'Cost concerns', description: 'Couldn\'t afford services' },
+  { id: 'not_ready', label: 'Not ready', description: 'Decided not to pursue therapy now' },
+  { id: 'scheduling', label: 'Scheduling issues', description: 'Couldn\'t find a time that works' },
+  { id: 'bad_fit', label: 'Not a good fit', description: 'Client/clinician mismatch' },
+  { id: 'other', label: 'Other', description: 'Different reason' },
+];
+
 const LostStageSelector: React.FC<{
   suggestedStage: LostStage;
-  onSelect: (stage: LostStage) => void;
+  onSelect: (stage: LostStage, reason?: string) => void;
   onCancel: () => void;
 }> = ({ suggestedStage, onSelect, onCancel }) => {
-  const [selected, setSelected] = useState<LostStage>(suggestedStage);
+  const [step, setStep] = useState<'stage' | 'reason'>('stage');
+  const [selectedStage, setSelectedStage] = useState<LostStage>(suggestedStage);
+  const [selectedReason, setSelectedReason] = useState<string | null>(null);
 
   const stages: { id: LostStage; label: string; description: string }[] = [
     { id: 'pre_consult', label: 'Before Consultation', description: 'Never made it to the consult' },
@@ -826,6 +844,83 @@ const LostStageSelector: React.FC<{
     { id: 'pre_paperwork', label: 'Before Paperwork', description: 'Booked but didn\'t complete forms' },
     { id: 'pre_first_session', label: 'Before First Session', description: 'Forms done but didn\'t attend' },
   ];
+
+  if (step === 'reason') {
+    return (
+      <motion.div
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: -20 }}
+      >
+        {/* Back button */}
+        <button
+          onClick={() => setStep('stage')}
+          className="flex items-center gap-2 text-stone-500 hover:text-stone-800 mb-6 transition-colors group"
+        >
+          <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+          <span className="text-sm font-medium">Back</span>
+        </button>
+
+        <div className="mb-6">
+          <h3 className="text-2xl font-bold text-stone-900 mb-1" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+            Why did they drop off?
+          </h3>
+          <p className="text-stone-500">Select the primary reason (optional but helpful)</p>
+        </div>
+
+        <div className="space-y-2 mb-6 max-h-[280px] overflow-y-auto">
+          {LOST_REASONS.map((reason) => (
+            <button
+              key={reason.id}
+              onClick={() => setSelectedReason(reason.id)}
+              className={`
+                w-full text-left p-4 rounded-2xl border-2 transition-all duration-200
+                ${selectedReason === reason.id
+                  ? 'bg-stone-900 border-stone-900 text-white'
+                  : 'bg-white border-stone-200 hover:border-stone-300'
+                }
+              `}
+            >
+              <div className="flex items-center gap-3">
+                <div className={`
+                  w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0
+                  ${selectedReason === reason.id ? 'border-white' : 'border-stone-300'}
+                `}>
+                  {selectedReason === reason.id && <div className="w-2 h-2 rounded-full bg-white" />}
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold">{reason.label}</p>
+                  <p className={`text-sm ${selectedReason === reason.id ? 'text-stone-300' : 'text-stone-500'}`}>
+                    {reason.description}
+                  </p>
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+
+        <div className="flex gap-3">
+          <button
+            onClick={() => onSelect(selectedStage, undefined)}
+            className="flex-1 p-4 rounded-2xl bg-white border border-stone-200 text-stone-600 font-semibold hover:bg-stone-50 transition-colors"
+          >
+            Skip
+          </button>
+          <button
+            onClick={() => onSelect(selectedStage, selectedReason || undefined)}
+            disabled={!selectedReason}
+            className={`flex-1 p-4 rounded-2xl font-semibold transition-colors ${
+              selectedReason
+                ? 'bg-stone-900 text-white hover:bg-stone-800'
+                : 'bg-stone-200 text-stone-400 cursor-not-allowed'
+            }`}
+          >
+            Confirm
+          </button>
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div
@@ -844,10 +939,10 @@ const LostStageSelector: React.FC<{
         {stages.map((stage) => (
           <button
             key={stage.id}
-            onClick={() => setSelected(stage.id)}
+            onClick={() => setSelectedStage(stage.id)}
             className={`
               w-full text-left p-4 rounded-2xl border-2 transition-all duration-200
-              ${selected === stage.id
+              ${selectedStage === stage.id
                 ? 'bg-stone-900 border-stone-900 text-white'
                 : 'bg-white border-stone-200 hover:border-stone-300'
               }
@@ -856,19 +951,19 @@ const LostStageSelector: React.FC<{
             <div className="flex items-center gap-3">
               <div className={`
                 w-5 h-5 rounded-full border-2 flex items-center justify-center
-                ${selected === stage.id ? 'border-white' : 'border-stone-300'}
+                ${selectedStage === stage.id ? 'border-white' : 'border-stone-300'}
               `}>
-                {selected === stage.id && <div className="w-2 h-2 rounded-full bg-white" />}
+                {selectedStage === stage.id && <div className="w-2 h-2 rounded-full bg-white" />}
               </div>
               <div className="flex-1">
                 <p className="font-semibold">{stage.label}</p>
-                <p className={`text-sm ${selected === stage.id ? 'text-stone-300' : 'text-stone-500'}`}>
+                <p className={`text-sm ${selectedStage === stage.id ? 'text-stone-300' : 'text-stone-500'}`}>
                   {stage.description}
                 </p>
               </div>
               {stage.id === suggestedStage && (
                 <span className={`text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                  selected === stage.id ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-700'
+                  selectedStage === stage.id ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-700'
                 }`}>
                   Suggested
                 </span>
@@ -886,10 +981,11 @@ const LostStageSelector: React.FC<{
           Go Back
         </button>
         <button
-          onClick={() => onSelect(selected)}
-          className="flex-1 p-4 rounded-2xl bg-stone-900 text-white font-semibold hover:bg-stone-800 transition-colors"
+          onClick={() => setStep('reason')}
+          className="flex-1 p-4 rounded-2xl bg-stone-900 text-white font-semibold hover:bg-stone-800 transition-colors flex items-center justify-center gap-2"
         >
-          Confirm
+          Next
+          <ArrowRight size={18} />
         </button>
       </div>
     </motion.div>
@@ -1004,6 +1100,8 @@ export const TakeActionModal: React.FC<TakeActionModalProps> = ({
   const [step, setStep] = useState<'main' | 'outcome' | 'intake_date' | 'lost'>('main');
   const [isProcessing, setIsProcessing] = useState(false);
   const [successState, setSuccessState] = useState<SuccessState | null>(null);
+  const { settings } = useSettings();
+  const pipelineConfig = settings.consultationPipeline;
 
   // Progress stages with labels
   const progressStages = [
@@ -1053,11 +1151,17 @@ export const TakeActionModal: React.FC<TakeActionModalProps> = ({
         toStage = 'no_show';
         toStageLabel = 'No-Show';
         break;
-      case 'send_followup_1':
-      case 'send_followup_2':
-      case 'send_followup_3':
+      case 'report_recovery_sent':
         toStage = 'no_show';
-        toStageLabel = 'No-Show (Follow-Up Sent)';
+        toStageLabel = 'No-Show (Recovery Logged)';
+        break;
+      case 'mark_rescheduled':
+        toStage = 'confirmed';
+        toStageLabel = 'Rescheduled';
+        break;
+      case 'report_intake_reminder':
+        toStage = 'intake_pending';
+        toStageLabel = 'Awaiting Intake (Reminder Logged)';
         break;
       case 'mark_intake_scheduled':
         toStage = 'intake_scheduled';
@@ -1067,9 +1171,10 @@ export const TakeActionModal: React.FC<TakeActionModalProps> = ({
         toStage = 'paperwork_complete';
         toStageLabel = 'Paperwork Complete';
         break;
-      case 'send_paperwork_reminder':
-        toStage = 'paperwork_pending';
-        toStageLabel = 'Paperwork Pending';
+      case 'report_paperwork_reminder':
+        // Stay in current stage (intake_scheduled or paperwork_pending)
+        toStage = consultation.stage;
+        toStageLabel = 'Reminder Logged';
         break;
       case 'mark_lost':
         toStage = 'lost';
@@ -1112,10 +1217,10 @@ export const TakeActionModal: React.FC<TakeActionModalProps> = ({
   };
 
   // Handle lost stage confirm
-  const handleLostStageConfirm = (stage: LostStage) => {
+  const handleLostStageConfirm = (stage: LostStage, reason?: string) => {
     setIsProcessing(true);
-    onAction(consultation.id, 'mark_lost', { lostStage: stage });
-    setSuccessState(generateSuccessState('mark_lost', 'Marked as lost', { lostStage: stage }));
+    onAction(consultation.id, 'mark_lost', { lostStage: stage, notes: reason });
+    setSuccessState(generateSuccessState('mark_lost', 'Marked as lost', { lostStage: stage, notes: reason }));
     setIsProcessing(false);
   };
 
@@ -1207,33 +1312,46 @@ export const TakeActionModal: React.FC<TakeActionModalProps> = ({
           },
         ];
 
-      case 'intake_pending':
-        return [
+      case 'intake_pending': {
+        // Check if all follow-ups are exhausted
+        const intakeIntervals = getFollowUpIntervals('intake_pending', pipelineConfig);
+        const allIntakeFollowUpsSent = consultation.followUpCount >= intakeIntervals.length;
+
+        const intakeOptions: ActionOption[] = [
           {
             id: 'scheduled',
             label: 'Intake Scheduled',
-            sublabel: 'Client has booked',
+            sublabel: 'Client has booked their intake',
             icon: <CalendarCheck size={22} />,
             action: 'mark_intake_scheduled',
             variant: 'primary',
           },
-          {
-            id: 'still_waiting',
-            label: 'Send Reminder',
-            sublabel: 'Another nudge to schedule',
-            icon: <Clock size={22} />,
-            variant: 'secondary',
-          },
-          {
-            id: 'lost',
-            label: 'Client Unresponsive',
-            sublabel: 'Mark as lost',
-            icon: <UserX size={22} />,
-            action: 'mark_lost',
-            metadata: { lostStage: 'pre_intake' },
-            variant: 'destructive',
-          },
         ];
+
+        // Only show "Reminder Sent" if there are still follow-ups remaining
+        if (!allIntakeFollowUpsSent) {
+          intakeOptions.push({
+            id: 'reminder_sent',
+            label: 'Reminder Sent',
+            sublabel: 'I followed up with them',
+            icon: <MessageSquare size={22} />,
+            action: 'report_intake_reminder',
+            variant: 'secondary',
+          });
+        }
+
+        intakeOptions.push({
+          id: 'lost',
+          label: 'Client Unresponsive',
+          sublabel: 'Mark as lost',
+          icon: <UserX size={22} />,
+          action: 'mark_lost',
+          metadata: { lostStage: 'pre_intake' },
+          variant: 'destructive',
+        });
+
+        return intakeOptions;
+      }
 
       case 'intake_scheduled':
       case 'paperwork_pending':
@@ -1241,17 +1359,17 @@ export const TakeActionModal: React.FC<TakeActionModalProps> = ({
           {
             id: 'paperwork_done',
             label: 'Paperwork Complete',
-            sublabel: 'All forms submitted',
+            sublabel: 'Client submitted all forms',
             icon: <FileText size={22} />,
             action: 'mark_paperwork_complete',
             variant: 'primary',
           },
           {
-            id: 'send_reminder',
-            label: 'Send Reminder',
-            sublabel: 'Nudge to complete forms',
+            id: 'reminder_sent',
+            label: 'Reminder Sent',
+            sublabel: 'I followed up about forms',
             icon: <MessageSquare size={22} />,
-            action: 'send_paperwork_reminder',
+            action: 'report_paperwork_reminder',
             variant: 'secondary',
           },
           {
@@ -1289,7 +1407,7 @@ export const TakeActionModal: React.FC<TakeActionModalProps> = ({
       default:
         return [];
     }
-  }, [consultation.stage]);
+  }, [consultation.stage, consultation.followUpCount, pipelineConfig]);
 
   return (
     <motion.div
@@ -1358,14 +1476,16 @@ export const TakeActionModal: React.FC<TakeActionModalProps> = ({
                 onClose={onClose}
               />
             ) : consultation.stage === 'no_show' && step === 'main' ? (
-              <FollowUpSequence
-                key="followup"
+              <NoShowRecovery
+                key="noshow"
                 currentCount={consultation.followUpCount}
-                onContinue={() => {
-                  const action = consultation.followUpCount === 0 ? 'send_followup_1' :
-                                 consultation.followUpCount === 1 ? 'send_followup_2' : 'send_followup_3';
-                  onAction(consultation.id, action);
-                  setSuccessState(generateSuccessState(action, `Follow-up #${consultation.followUpCount + 1} sent`));
+                onRecoverySent={() => {
+                  onAction(consultation.id, 'report_recovery_sent');
+                  setSuccessState(generateSuccessState('report_recovery_sent', `Recovery #${consultation.followUpCount + 1} logged`));
+                }}
+                onRescheduled={() => {
+                  onAction(consultation.id, 'mark_rescheduled');
+                  setSuccessState(generateSuccessState('mark_rescheduled', 'Client rescheduled'));
                 }}
                 onMarkLost={() => setStep('lost')}
               />

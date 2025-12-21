@@ -25,7 +25,14 @@ import {
   isConsultationPast,
   isConsultationToday,
   getDaysSince,
+  getNextFollowUpDue,
+  getFollowUpLabel,
 } from '../types/consultations';
+import {
+  useSettings,
+  getFollowUpIntervals,
+  ConsultationPipelineConfig,
+} from '../context/SettingsContext';
 
 // =============================================================================
 // CONSULTATIONS KANBAN BOARD
@@ -165,7 +172,7 @@ interface ActionInfo {
   colorScheme: 'cyan' | 'amber' | 'rose' | 'violet' | 'emerald' | 'stone';
 }
 
-const getActionInfo = (consultation: Consultation): ActionInfo => {
+const getActionInfo = (consultation: Consultation, pipelineConfig: ConsultationPipelineConfig): ActionInfo => {
   const { stage, followUpCount, datetime, lastFollowUpDate } = consultation;
 
   // Terminal states
@@ -211,69 +218,107 @@ const getActionInfo = (consultation: Consultation): ActionInfo => {
   }
 
   if (stage === 'no_show') {
-    const consultDate = new Date(datetime);
-    const now = new Date();
-    const hoursSinceConsult = (now.getTime() - consultDate.getTime()) / (1000 * 60 * 60);
-    let hoursSinceLastFollowUp = hoursSinceConsult;
-    if (lastFollowUpDate) {
-      hoursSinceLastFollowUp = (now.getTime() - new Date(lastFollowUpDate).getTime()) / (1000 * 60 * 60);
+    // Use config-based intervals from settings
+    const intervals = getFollowUpIntervals('no_show', pipelineConfig);
+    const dueInfo = getNextFollowUpDue(intervals, followUpCount, lastFollowUpDate, consultation.stageEnteredAt);
+    const totalFollowUps = intervals.length;
+
+    if (followUpCount >= totalFollowUps) {
+      // All follow-ups exhausted
+      return { priority: 'due', buttonLabel: 'Manage', statusLabel: 'All sent', colorScheme: 'rose' };
     }
 
-    if (followUpCount === 0) {
-      return { priority: 'due', buttonLabel: 'Send Recovery #1', statusLabel: 'No-show', colorScheme: 'rose' };
+    if (!dueInfo) {
+      return { priority: 'reactive', buttonLabel: 'Manage', statusLabel: `${followUpCount}/${totalFollowUps} sent`, colorScheme: 'rose' };
     }
-    if (followUpCount === 1 && hoursSinceConsult >= 24 && hoursSinceLastFollowUp >= 20) {
-      return { priority: hoursSinceLastFollowUp >= 24 ? 'due' : 'upcoming', buttonLabel: 'Send Recovery #2', statusLabel: '24hr check-in', colorScheme: 'rose' };
-    }
-    if (followUpCount === 2 && hoursSinceConsult >= 72 && hoursSinceLastFollowUp >= 44) {
-      return { priority: hoursSinceLastFollowUp >= 48 ? 'due' : 'upcoming', buttonLabel: 'Send Recovery #3', statusLabel: '72hr check-in', colorScheme: 'rose' };
-    }
-    if (followUpCount >= 3) {
-      return { priority: 'reactive', buttonLabel: 'Mark Lost', statusLabel: 'No response', colorScheme: 'rose' };
-    }
-    return { priority: null, buttonLabel: '', statusLabel: `${followUpCount}/3 sent`, colorScheme: 'rose' };
+
+    // Determine priority based on due date
+    const priority = dueInfo.isOverdue ? 'due' : (dueInfo.hoursUntilDue < 4 ? 'due' : 'upcoming');
+    const absHours = Math.abs(dueInfo.hoursUntilDue);
+    const roundedAbsHours = Math.round(absHours);
+
+    // If within ~30 min of due time, show "Due now" regardless of slight over/under
+    const statusLabel = roundedAbsHours < 1
+      ? 'Due now'
+      : dueInfo.isOverdue
+        ? 'Update overdue'
+        : `Due in ${roundedAbsHours}h`;
+
+    return { priority, buttonLabel: 'Manage', statusLabel, colorScheme: 'rose' };
   }
 
   // INTAKE COLUMN: intake_pending
+  // Use config-based intervals from settings
   if (stage === 'intake_pending') {
-    const daysSince = getDaysSince(datetime);
-    if (daysSince >= 7) {
-      return { priority: 'due', buttonLabel: 'Send Reminder', statusLabel: 'No response', colorScheme: 'amber' };
+    const intervals = getFollowUpIntervals('intake_pending', pipelineConfig);
+    const dueInfo = getNextFollowUpDue(intervals, followUpCount, lastFollowUpDate, consultation.stageEnteredAt);
+    const totalFollowUps = intervals.length;
+
+    if (followUpCount >= totalFollowUps) {
+      // All follow-ups exhausted
+      return { priority: 'due', buttonLabel: 'Manage', statusLabel: 'All sent', colorScheme: 'amber' };
     }
-    if (daysSince >= 3) {
-      return { priority: 'upcoming', buttonLabel: 'Send Reminder', statusLabel: 'Awaiting response', colorScheme: 'amber' };
+
+    if (!dueInfo) {
+      return { priority: 'reactive', buttonLabel: 'Manage', statusLabel: `${followUpCount}/${totalFollowUps} sent`, colorScheme: 'amber' };
     }
-    return { priority: 'reactive', buttonLabel: 'Mark Scheduled', statusLabel: 'Awaiting response', colorScheme: 'amber' };
+
+    // Determine priority based on due date
+    const priority = dueInfo.isOverdue ? 'due' : (dueInfo.hoursUntilDue < 4 ? 'due' : 'upcoming');
+    const absHours = Math.abs(dueInfo.hoursUntilDue);
+    const roundedAbsHours = Math.round(absHours);
+
+    // If within ~30 min of due time, show "Due now" regardless of slight over/under
+    const statusLabel = roundedAbsHours < 1
+      ? 'Due now'
+      : dueInfo.isOverdue
+        ? 'Update overdue'
+        : absHours < 24
+          ? `Due in ${roundedAbsHours}h`
+          : `Due in ${Math.round(absHours / 24)}d`;
+
+    return { priority, buttonLabel: 'Manage', statusLabel, colorScheme: 'amber' };
   }
 
   // PAPERWORK COLUMN: intake_scheduled + paperwork_pending
-  if (stage === 'intake_scheduled') {
+  // Paperwork reminders are relative to intake date (T-72hr, T-24hr, etc.)
+  // These intervals count DOWN to intake, not up from stage entry
+  if (stage === 'intake_scheduled' || stage === 'paperwork_pending') {
     if (!consultation.intakeScheduledDate) {
-      return { priority: 'reactive', buttonLabel: 'Send Reminder', statusLabel: 'Scheduled', colorScheme: 'violet' };
+      return { priority: 'reactive', buttonLabel: 'Manage', statusLabel: 'Scheduled', colorScheme: 'amber' };
     }
-    const intakeTime = getTimeUntilConsult(consultation.intakeScheduledDate);
-    const hoursUntil = intakeTime.minutes / 60;
-    if (hoursUntil <= 24 && hoursUntil > 0) {
-      return { priority: 'due', buttonLabel: 'Send Reminder', statusLabel: 'Paperwork due', colorScheme: 'violet' };
-    }
-    if (hoursUntil <= 72 && hoursUntil > 24) {
-      return { priority: 'upcoming', buttonLabel: 'Send Reminder', statusLabel: 'Send reminder', colorScheme: 'violet' };
-    }
-    return { priority: null, buttonLabel: '', statusLabel: 'Awaiting paperwork', colorScheme: 'violet' };
-  }
 
-  if (stage === 'paperwork_pending') {
-    if (!consultation.intakeScheduledDate) {
-      return { priority: 'reactive', buttonLabel: 'Mark Complete', statusLabel: 'Pending', colorScheme: 'violet' };
+    const intervals = getFollowUpIntervals('paperwork', pipelineConfig);
+    const totalReminders = intervals.length;
+    const intakeDate = new Date(consultation.intakeScheduledDate);
+    const now = new Date();
+    const hoursUntilIntake = (intakeDate.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+    // Intake already passed
+    if (hoursUntilIntake <= 0) {
+      return { priority: 'due', buttonLabel: 'Manage', statusLabel: 'Intake completed', colorScheme: 'amber' };
     }
-    const intakeTime = getTimeUntilConsult(consultation.intakeScheduledDate);
-    if (intakeTime.level === 'past') {
-      return { priority: 'due', buttonLabel: 'Mark Complete', statusLabel: 'Overdue', colorScheme: 'violet' };
+
+    // All reminders sent - just waiting
+    if (followUpCount >= totalReminders) {
+      return { priority: 'reactive', buttonLabel: 'Manage', statusLabel: 'All reminders sent', colorScheme: 'amber' };
     }
-    if (intakeTime.level === 'imminent' || intakeTime.level === 'soon' || intakeTime.level === 'today') {
-      return { priority: 'due', buttonLabel: 'Send Reminder', statusLabel: 'Urgent', colorScheme: 'violet' };
+
+    // Find the next reminder threshold (e.g., 72hr, then 24hr before intake)
+    const nextReminderThreshold = intervals[followUpCount]; // hours before intake
+
+    // Is this reminder due? (current time is past the threshold)
+    if (hoursUntilIntake <= nextReminderThreshold) {
+      return { priority: 'due', buttonLabel: 'Manage', statusLabel: 'Due now', colorScheme: 'amber' };
     }
-    return { priority: 'reactive', buttonLabel: 'Mark Complete', statusLabel: 'Pending', colorScheme: 'violet' };
+
+    // Upcoming - next reminder is within 12 hours of being due
+    const hoursUntilReminderDue = hoursUntilIntake - nextReminderThreshold;
+    if (hoursUntilReminderDue <= 12) {
+      return { priority: 'upcoming', buttonLabel: 'Manage', statusLabel: `Due in ${Math.round(hoursUntilReminderDue)}h`, colorScheme: 'amber' };
+    }
+
+    return { priority: 'reactive', buttonLabel: 'Manage', statusLabel: 'Awaiting paperwork', colorScheme: 'amber' };
   }
 
   // FIRST SESSION COLUMN: paperwork_complete
@@ -412,6 +457,7 @@ interface KanbanCardProps {
   consultation: Consultation;
   onTakeAction: () => void;
   onClick: () => void;
+  pipelineConfig: ConsultationPipelineConfig;
 }
 
 // Helper to get consistent date context for each stage
@@ -423,7 +469,7 @@ interface DateContext {
   urgency: 'imminent' | 'urgent' | 'normal' | 'past';
 }
 
-const getDateContext = (consultation: Consultation, timeInfo: TimeUntilConsult): DateContext => {
+const getDateContext = (consultation: Consultation, timeInfo: TimeUntilConsult, pipelineConfig: ConsultationPipelineConfig): DateContext => {
   const { stage, datetime, intakeScheduledDate, intakeHasTime, firstSessionDate, followUpCount, lastFollowUpDate } = consultation;
   const consultDate = new Date(datetime);
   const now = new Date();
@@ -502,73 +548,121 @@ const getDateContext = (consultation: Consultation, timeInfo: TimeUntilConsult):
     return { icon: 'clock', label: 'Due now', urgency: 'imminent' };
   }
 
-  // POST-CONSULT: no_show - Recovery follow-ups have specific timing
-  // Recovery #1: Due immediately after no-show
-  // Recovery #2: Due 24h after consult
-  // Recovery #3: Due 72h after consult
+  // POST-CONSULT: no_show - Use config-based recovery schedule
   if (stage === 'no_show') {
-    const hoursSinceConsult = (now.getTime() - consultDate.getTime()) / (1000 * 60 * 60);
+    const intervals = getFollowUpIntervals('no_show', pipelineConfig);
+    const dueInfo = getNextFollowUpDue(intervals, followUpCount, lastFollowUpDate, consultation.stageEnteredAt);
+    const totalRecovery = intervals.length;
 
-    if (followUpCount === 0) {
-      // Recovery #1 is due immediately
-      return { icon: 'clock', label: 'Due now', urgency: 'imminent' };
+    if (followUpCount >= totalRecovery) {
+      // All recovery attempts exhausted - decision time
+      return { icon: 'clock', label: 'Decision needed', sublabel: 'All recovery sent', urgency: 'imminent' };
     }
-    if (followUpCount === 1) {
-      // Recovery #2 is due at 24h after consult
-      const dueDate = new Date(consultDate.getTime() + 24 * 60 * 60 * 1000);
-      const dueInfo = formatDueIn(dueDate);
-      return { icon: 'clock', label: dueInfo.label, urgency: dueInfo.urgency };
+
+    if (!dueInfo) {
+      return { icon: 'clock', label: 'Recovery pending', urgency: 'normal' };
     }
-    if (followUpCount === 2) {
-      // Recovery #3 is due at 72h after consult
-      const dueDate = new Date(consultDate.getTime() + 72 * 60 * 60 * 1000);
-      const dueInfo = formatDueIn(dueDate);
-      return { icon: 'clock', label: dueInfo.label, urgency: dueInfo.urgency };
+
+    const recoveryNumber = followUpCount + 1;
+    const sublabel = `Recovery ${recoveryNumber} of ${totalRecovery}`;
+    const absHours = Math.abs(dueInfo.hoursUntilDue);
+    const roundedAbsHours = Math.round(absHours);
+
+    // If within ~30 min of due time, show "Due now" regardless of slight over/under
+    if (roundedAbsHours < 1) {
+      return { icon: 'clock', label: 'Due now', sublabel, urgency: 'imminent' };
     }
-    // After 3 follow-ups, Mark Lost is due
-    return { icon: 'clock', label: 'Due now', urgency: 'imminent' };
+    if (dueInfo.isOverdue) {
+      return { icon: 'clock', label: 'Update overdue', sublabel, urgency: 'imminent' };
+    }
+    if (absHours < 24) {
+      return { icon: 'clock', label: `Due in ${roundedAbsHours}h`, sublabel, urgency: 'urgent' };
+    }
+    return { icon: 'clock', label: `Due in ${Math.round(absHours / 24)}d`, sublabel, urgency: 'normal' };
   }
 
   // INTAKE COLUMN: intake_pending
-  // Show when follow-up reminder is due (based on days since consult)
+  // Use config-based follow-up schedule
   if (stage === 'intake_pending') {
-    const daysSince = getDaysSince(datetime);
-    if (daysSince >= 7) {
-      return { icon: 'clock', label: 'Due now', sublabel: 'No response', urgency: 'imminent' };
+    const intervals = getFollowUpIntervals('intake_pending', pipelineConfig);
+    const dueInfo = getNextFollowUpDue(intervals, followUpCount, lastFollowUpDate, consultation.stageEnteredAt);
+    const totalFollowUps = intervals.length;
+
+    if (followUpCount >= totalFollowUps) {
+      // All follow-ups exhausted - decision time
+      return { icon: 'clock', label: 'Decision needed', sublabel: 'All reminders sent', urgency: 'imminent' };
     }
-    if (daysSince >= 3) {
-      const dueDate = new Date(consultDate.getTime() + 7 * 24 * 60 * 60 * 1000);
-      const dueInfo = formatDueIn(dueDate);
-      return { icon: 'clock', label: dueInfo.label, urgency: dueInfo.urgency };
+
+    if (!dueInfo) {
+      return { icon: 'clock', label: 'Follow up pending', urgency: 'normal' };
     }
-    // Less than 3 days - waiting for client response
-    const dueDate = new Date(consultDate.getTime() + 3 * 24 * 60 * 60 * 1000);
-    const dueInfo = formatDueIn(dueDate);
-    return { icon: 'clock', label: dueInfo.label, sublabel: 'Awaiting response', urgency: 'normal' };
+
+    const followUpNumber = followUpCount + 1;
+    const sublabel = `Follow-up ${followUpNumber} of ${totalFollowUps}`;
+    const absHours = Math.abs(dueInfo.hoursUntilDue);
+    const roundedAbsHours = Math.round(absHours);
+
+    // If within ~30 min of due time, show "Due now" regardless of slight over/under
+    if (roundedAbsHours < 1) {
+      return { icon: 'clock', label: 'Due now', sublabel, urgency: 'imminent' };
+    }
+    if (dueInfo.isOverdue) {
+      return { icon: 'clock', label: 'Update overdue', sublabel, urgency: 'imminent' };
+    }
+    if (absHours < 24) {
+      return { icon: 'clock', label: `Due in ${roundedAbsHours}h`, sublabel, urgency: 'urgent' };
+    }
+    return { icon: 'clock', label: `Due in ${Math.round(absHours / 24)}d`, sublabel, urgency: 'normal' };
   }
 
   // PAPERWORK COLUMN: intake_scheduled, paperwork_pending
-  // Show the intake appointment date/time
+  // Paperwork reminders count DOWN to intake (T-72hr, T-24hr, etc.)
   if (stage === 'intake_scheduled' || stage === 'paperwork_pending') {
-    if (intakeScheduledDate) {
-      const intakeDate = new Date(intakeScheduledDate);
-      const intakeTimeInfo = getTimeUntilConsult(intakeScheduledDate);
+    if (!intakeScheduledDate) {
+      return { icon: 'calendar', label: 'Intake scheduled', sublabel: 'Date pending', urgency: 'normal' };
+    }
+
+    const intervals = getFollowUpIntervals('paperwork', pipelineConfig);
+    const totalReminders = intervals.length;
+    const intakeDate = new Date(intakeScheduledDate);
+    const hoursUntilIntake = (intakeDate.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+    // Intake already passed
+    if (hoursUntilIntake <= 0) {
+      return { icon: 'clock', label: 'Intake completed', sublabel: 'Mark paperwork done', urgency: 'imminent' };
+    }
+
+    // All reminders sent
+    if (followUpCount >= totalReminders) {
       const intakeIsToday = intakeDate.toDateString() === now.toDateString();
       const intakeIsTomorrow = intakeDate.toDateString() === tomorrow.toDateString();
-
-      if (intakeTimeInfo.level === 'past') {
-        // Intake already happened - paperwork reminder is due now
-        return { icon: 'clock', label: 'Due now', sublabel: 'Intake completed', urgency: 'imminent' };
-      }
       if (intakeIsToday) {
         return { icon: 'calendar', label: 'Intake today', sublabel: intakeHasTime ? formatTime(intakeDate) : 'Time TBD', urgency: 'imminent' };
       }
       if (intakeIsTomorrow) {
         return { icon: 'calendar', label: 'Intake tomorrow', sublabel: intakeHasTime ? formatTime(intakeDate) : 'Time TBD', urgency: 'urgent' };
       }
-      return { icon: 'calendar', label: `Intake ${formatDate(intakeDate)}`, sublabel: intakeHasTime ? formatTime(intakeDate) : undefined, urgency: 'normal' };
+      return { icon: 'calendar', label: `Intake ${formatDate(intakeDate)}`, sublabel: 'All reminders sent', urgency: 'normal' };
     }
-    return { icon: 'calendar', label: 'Intake scheduled', sublabel: 'Date pending', urgency: 'normal' };
+
+    // Check if current reminder is due
+    const nextReminderThreshold = intervals[followUpCount];
+    const sublabel = `Follow-up ${followUpCount + 1} of ${totalReminders}`;
+
+    if (hoursUntilIntake <= nextReminderThreshold) {
+      // Reminder is due now
+      return { icon: 'clock', label: 'Due now', sublabel, urgency: 'imminent' };
+    }
+
+    // Show time until reminder is due
+    const hoursUntilReminderDue = hoursUntilIntake - nextReminderThreshold;
+    if (hoursUntilReminderDue < 1) {
+      return { icon: 'clock', label: 'Due now', sublabel, urgency: 'imminent' };
+    }
+    if (hoursUntilReminderDue < 24) {
+      return { icon: 'clock', label: `Due in ${Math.round(hoursUntilReminderDue)}h`, sublabel, urgency: 'urgent' };
+    }
+    return { icon: 'clock', label: `Due in ${Math.round(hoursUntilReminderDue / 24)}d`, sublabel, urgency: 'normal' };
   }
 
   // FIRST SESSION COLUMN: paperwork_complete
@@ -601,6 +695,7 @@ const KanbanCard: React.FC<KanbanCardProps> = ({
   consultation,
   onTakeAction,
   onClick,
+  pipelineConfig,
 }) => {
   const [timeInfo, setTimeInfo] = useState<TimeUntilConsult>(() =>
     getTimeUntilConsult(consultation.datetime, consultation.duration)
@@ -628,11 +723,11 @@ const KanbanCard: React.FC<KanbanCardProps> = ({
   // Join is always active now - let users access the link anytime
   const isJoinActive = true;
 
-  const actionInfo = getActionInfo(consultation);
+  const actionInfo = getActionInfo(consultation, pipelineConfig);
   const { priority: actionPriority, buttonLabel, statusLabel, colorScheme } = actionInfo;
   const showActionButton = actionPriority !== null;
 
-  const dateContext = getDateContext(consultation, timeInfo);
+  const dateContext = getDateContext(consultation, timeInfo, pipelineConfig);
 
   // Card background - clean white for all cards
   const getCardBg = () => 'bg-white';
@@ -815,6 +910,7 @@ interface KanbanColumnComponentProps {
   consultations: Consultation[];
   onTakeAction: (consultation: Consultation) => void;
   onSelectConsultation: (consultation: Consultation) => void;
+  pipelineConfig: ConsultationPipelineConfig;
 }
 
 const KanbanColumnComponent: React.FC<KanbanColumnComponentProps> = ({
@@ -822,9 +918,10 @@ const KanbanColumnComponent: React.FC<KanbanColumnComponentProps> = ({
   consultations,
   onTakeAction,
   onSelectConsultation,
+  pipelineConfig,
 }) => {
-  const dueCount = consultations.filter(c => getActionInfo(c).priority === 'due').length;
-  const upcomingCount = consultations.filter(c => getActionInfo(c).priority === 'upcoming').length;
+  const dueCount = consultations.filter(c => getActionInfo(c, pipelineConfig).priority === 'due').length;
+  const upcomingCount = consultations.filter(c => getActionInfo(c, pipelineConfig).priority === 'upcoming').length;
   const actionCount = dueCount + upcomingCount;
 
   return (
@@ -885,6 +982,7 @@ const KanbanColumnComponent: React.FC<KanbanColumnComponentProps> = ({
                 consultation={consultation}
                 onTakeAction={() => onTakeAction(consultation)}
                 onClick={() => onSelectConsultation(consultation)}
+                pipelineConfig={pipelineConfig}
               />
             ))
           )}
@@ -903,6 +1001,9 @@ export const ConsultationsKanban: React.FC<ConsultationsKanbanProps> = ({
   onTakeAction,
   onSelectConsultation,
 }) => {
+  const { settings } = useSettings();
+  const pipelineConfig = settings.consultationPipeline;
+
   const [filterMode, setFilterMode] = useState<FilterMode>('all');
   const [selectedClinician, setSelectedClinician] = useState<string | null>(null);
 
@@ -962,8 +1063,8 @@ export const ConsultationsKanban: React.FC<ConsultationsKanbanProps> = ({
             return aTime.minutes - bTime.minutes;
           }
           // For all others, sort by action priority
-          const aInfo = getActionInfo(a);
-          const bInfo = getActionInfo(b);
+          const aInfo = getActionInfo(a, pipelineConfig);
+          const bInfo = getActionInfo(b, pipelineConfig);
           const pOrder = { due: 0, upcoming: 1, reactive: 2, null: 3 };
           const aPriority = pOrder[aInfo.priority ?? 'null'];
           const bPriority = pOrder[bInfo.priority ?? 'null'];
@@ -971,7 +1072,7 @@ export const ConsultationsKanban: React.FC<ConsultationsKanbanProps> = ({
           return new Date(a.datetime).getTime() - new Date(b.datetime).getTime();
         }),
     }));
-  }, [filteredConsultations]);
+  }, [filteredConsultations, pipelineConfig]);
 
   return (
     <div
@@ -1085,6 +1186,7 @@ export const ConsultationsKanban: React.FC<ConsultationsKanbanProps> = ({
               consultations={column.consultations}
               onTakeAction={onTakeAction}
               onSelectConsultation={onSelectConsultation}
+              pipelineConfig={pipelineConfig}
             />
           ))}
         </div>

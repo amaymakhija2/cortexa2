@@ -35,19 +35,19 @@ export type LostStage =
 // Actions the user can take at each stage
 
 export type ActionType =
-  | 'send_confirmation'      // Send consultation confirmation email
-  | 'mark_attended'          // Mark that they showed up
-  | 'mark_no_show'           // Mark as no-show
-  | 'send_post_consult'      // Send post-consultation message
-  | 'send_followup_1'        // First follow-up (immediate after no-show)
-  | 'send_followup_2'        // Second follow-up (24hr)
-  | 'send_followup_3'        // Third follow-up (72hr)
-  | 'mark_intake_scheduled'  // Confirm intake was scheduled
-  | 'send_paperwork_reminder'// Remind to complete paperwork
-  | 'mark_paperwork_complete'// Confirm paperwork is done
-  | 'mark_first_session_done'// Confirm first therapy session completed
-  | 'mark_lost'              // Mark as lost
-  | 'transfer_clinician';    // Transfer to different clinician
+  | 'send_confirmation'       // Report: confirmation email sent
+  | 'mark_attended'           // Mark that they showed up
+  | 'mark_no_show'            // Mark as no-show
+  | 'send_post_consult'       // Report: post-consultation message sent (with intake outcome)
+  | 'report_recovery_sent'    // Report: no-show recovery follow-up sent
+  | 'mark_rescheduled'        // Client rescheduled after no-show
+  | 'report_intake_reminder'  // Report: intake scheduling reminder sent
+  | 'mark_intake_scheduled'   // Confirm intake was scheduled
+  | 'report_paperwork_reminder'// Report: paperwork reminder sent
+  | 'mark_paperwork_complete' // Confirm paperwork is done
+  | 'mark_first_session_done' // Confirm first therapy session completed
+  | 'mark_lost'               // Mark as lost
+  | 'transfer_clinician';     // Transfer to different clinician
 
 // -----------------------------------------------------------------------------
 // CLINICIAN
@@ -105,9 +105,10 @@ export interface Consultation {
   pendingAction?: ActionType;
   actionDueDate?: string;    // When the action should be taken
 
-  // Follow-up tracking (for no-shows)
-  followUpCount: number;     // 0, 1, 2, or 3
-  lastFollowUpDate?: string;
+  // Follow-up tracking (shared across stages that need follow-ups)
+  followUpCount: number;     // Number of follow-ups sent in current stage
+  lastFollowUpDate?: string; // When the last follow-up was sent
+  stageEnteredAt?: string;   // When the current stage was entered (for due date calculation)
 
   // Intake & conversion tracking
   intakeScheduledDate?: string;
@@ -199,27 +200,27 @@ export const STAGE_CONFIGS: StageConfig[] = [
     label: 'No-Show',
     description: 'Needs follow-up',
     color: 'rose',
-    pendingAction: 'send_followup_1',
-    actionLabel: 'Send follow-up',
-    actionActiveLabel: 'Sending follow-up',
+    pendingAction: 'report_recovery_sent',
+    actionLabel: 'Log recovery attempt',
+    actionActiveLabel: 'Logging recovery attempt',
   },
   {
     stage: 'intake_pending',
     label: 'Intake Pending',
     description: 'Waiting for intake scheduling',
     color: 'amber',
-    pendingAction: 'mark_intake_scheduled',
-    actionLabel: 'Confirm intake scheduled',
-    actionActiveLabel: 'Confirming intake scheduled',
+    pendingAction: 'report_intake_reminder',
+    actionLabel: 'Log reminder sent',
+    actionActiveLabel: 'Logging reminder sent',
   },
   {
     stage: 'intake_scheduled',
     label: 'Intake Scheduled',
     description: 'Waiting for paperwork',
     color: 'amber',
-    pendingAction: 'send_paperwork_reminder',
-    actionLabel: 'Send paperwork reminder',
-    actionActiveLabel: 'Sending paperwork reminder',
+    pendingAction: 'report_paperwork_reminder',
+    actionLabel: 'Log paperwork reminder',
+    actionActiveLabel: 'Logging paperwork reminder',
   },
   {
     stage: 'paperwork_pending',
@@ -315,11 +316,14 @@ export function getStageConfig(stage: ConsultationStage): StageConfig {
 export function getNextAction(consultation: Consultation): ActionType | null {
   const config = getStageConfig(consultation.stage);
 
-  // Special case for no-show follow-ups
+  // For stages with follow-up sequences, check if there are more to send
   if (consultation.stage === 'no_show') {
-    if (consultation.followUpCount === 0) return 'send_followup_1';
-    if (consultation.followUpCount === 1) return 'send_followup_2';
-    if (consultation.followUpCount === 2) return 'send_followup_3';
+    if (consultation.followUpCount < 3) return 'report_recovery_sent';
+    return 'mark_lost'; // After 3 follow-ups
+  }
+
+  if (consultation.stage === 'intake_pending') {
+    if (consultation.followUpCount < 3) return 'report_intake_reminder';
     return 'mark_lost'; // After 3 follow-ups
   }
 
@@ -332,15 +336,15 @@ export function getActionLabel(action: ActionType): string {
     mark_attended: 'Mark as attended',
     mark_no_show: 'Mark as no-show',
     send_post_consult: 'Send post-consult message',
-    send_followup_1: 'Send follow-up #1',
-    send_followup_2: 'Send follow-up #2 (24hr)',
-    send_followup_3: 'Send follow-up #3 (72hr)',
-    mark_intake_scheduled: 'Confirm intake scheduled',
-    send_paperwork_reminder: 'Send paperwork reminder',
-    mark_paperwork_complete: 'Confirm paperwork complete',
-    mark_first_session_done: 'Confirm first session done',
+    report_recovery_sent: 'Log recovery attempt',
+    mark_rescheduled: 'Client rescheduled',
+    report_intake_reminder: 'Log intake reminder',
+    mark_intake_scheduled: 'Intake scheduled',
+    report_paperwork_reminder: 'Log paperwork reminder',
+    mark_paperwork_complete: 'Paperwork complete',
+    mark_first_session_done: 'First session done',
     mark_lost: 'Mark as lost',
-    transfer_clinician: 'Transfer to another clinician',
+    transfer_clinician: 'Transfer clinician',
   };
   return labels[action];
 }
@@ -392,4 +396,65 @@ export function getDaysSince(dateStr: string): number {
   const now = new Date();
   const diffTime = Math.abs(now.getTime() - date.getTime());
   return Math.floor(diffTime / (1000 * 60 * 60 * 24));
+}
+
+// -----------------------------------------------------------------------------
+// FOLLOW-UP INTERVAL HELPERS
+// -----------------------------------------------------------------------------
+// These functions work with intervals from SettingsContext.
+// Use getFollowUpIntervals() from SettingsContext to get the intervals based on config.
+
+// Get the next due date based on follow-up count and last action
+// Pass intervals from getFollowUpIntervals(stage, config)
+export function getNextFollowUpDue(
+  intervals: number[],
+  followUpCount: number,
+  lastFollowUpDate: string | undefined,
+  stageEnteredAt: string | undefined
+): { dueDate: Date; isOverdue: boolean; hoursUntilDue: number } | null {
+  // If we've exhausted all follow-ups, no more due
+  if (followUpCount >= intervals.length) {
+    return null;
+  }
+
+  const intervalHours = intervals[followUpCount];
+  const baseDate = new Date(lastFollowUpDate || stageEnteredAt || new Date());
+  const dueDate = new Date(baseDate.getTime() + intervalHours * 60 * 60 * 1000);
+  const now = new Date();
+  const hoursUntilDue = (dueDate.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+  return {
+    dueDate,
+    isOverdue: now > dueDate,
+    hoursUntilDue
+  };
+}
+
+// Format the due date for display
+export function formatDueDate(dueInfo: { dueDate: Date; isOverdue: boolean; hoursUntilDue: number }): string {
+  const { isOverdue, hoursUntilDue } = dueInfo;
+
+  if (isOverdue) {
+    const hoursOverdue = Math.abs(hoursUntilDue);
+    if (hoursOverdue < 1) return 'Due now';
+    if (hoursOverdue < 24) return `${Math.round(hoursOverdue)}h overdue`;
+    return `${Math.round(hoursOverdue / 24)}d overdue`;
+  }
+
+  if (hoursUntilDue < 1) return 'Due now';
+  if (hoursUntilDue < 24) return `Due in ${Math.round(hoursUntilDue)}h`;
+  if (hoursUntilDue < 48) return 'Due tomorrow';
+  return `Due in ${Math.round(hoursUntilDue / 24)}d`;
+}
+
+// Get the follow-up sequence label (e.g., "Follow-up 1 of 3")
+// Pass intervals from getFollowUpIntervals(stage, config)
+export function getFollowUpLabel(intervals: number[], followUpCount: number, labelType: 'follow-up' | 'recovery' = 'follow-up'): string {
+  const total = intervals.length;
+  const next = followUpCount + 1;
+
+  if (next > total) return labelType === 'recovery' ? 'All recovery sent' : 'All follow-ups sent';
+  return labelType === 'recovery'
+    ? `Recovery ${next} of ${total}`
+    : `Follow-up ${next} of ${total}`;
 }

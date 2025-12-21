@@ -42,7 +42,18 @@ import {
 } from 'lucide-react';
 import { PageHeader, PageContent, Grid, AnimatedSection } from './design-system';
 import { CLINICIANS as MASTER_CLINICIANS } from '../data/clinicians';
-import { useSettings, PracticeGoals, MetricThresholds, ClinicianGoalOverrides } from '../context/SettingsContext';
+import {
+  useSettings,
+  PracticeGoals,
+  MetricThresholds,
+  ClinicianGoalOverrides,
+  FollowUpPreset,
+  ConsultationPipelineConfig,
+  PresetDetails,
+  NO_SHOW_PRESETS,
+  INTAKE_PRESETS,
+  PAPERWORK_PRESETS,
+} from '../context/SettingsContext';
 
 // =============================================================================
 // PRACTICE CONFIGURATION PAGE
@@ -1733,87 +1744,8 @@ const ThresholdsTab: React.FC<{
 // =============================================================================
 // Configurable consultation pipeline with visual flow preview.
 // Allows practices to customize their workflow timing and follow-up sequences.
+// Uses SettingsContext for persistence (types imported at top of file).
 // =============================================================================
-
-// Configuration types - unified presets (each preset defines both timing AND number of attempts)
-type FollowUpPreset = 'aggressive' | 'standard' | 'relaxed';
-
-interface PipelineConfig {
-  requireConfirmation: boolean;
-  enableSecondConsult: boolean;
-  noShowPreset: FollowUpPreset;
-  intakePreset: FollowUpPreset;
-  paperworkPreset: FollowUpPreset;
-}
-
-const DEFAULT_PIPELINE_CONFIG: PipelineConfig = {
-  requireConfirmation: true,
-  enableSecondConsult: false,
-  noShowPreset: 'standard',
-  intakePreset: 'standard',
-  paperworkPreset: 'standard',
-};
-
-// Unified preset definitions - each preset has its own complete sequence
-interface PresetDetails {
-  label: string;
-  description: string;
-  sequence: string[];
-}
-
-const NO_SHOW_PRESETS: Record<FollowUpPreset, PresetDetails> = {
-  aggressive: {
-    label: 'Aggressive',
-    description: '4 quick follow-ups',
-    sequence: ['Immediate', '6 hours', '12 hours', '24 hours']
-  },
-  standard: {
-    label: 'Standard',
-    description: '3 balanced follow-ups',
-    sequence: ['Immediate', '24 hours', '72 hours']
-  },
-  relaxed: {
-    label: 'Relaxed',
-    description: '2 gentle follow-ups',
-    sequence: ['24 hours', '1 week']
-  },
-};
-
-const INTAKE_PRESETS: Record<FollowUpPreset, PresetDetails> = {
-  aggressive: {
-    label: 'Aggressive',
-    description: '4 quick reminders',
-    sequence: ['12 hours', '24 hours', '48 hours', '72 hours']
-  },
-  standard: {
-    label: 'Standard',
-    description: '3 balanced reminders',
-    sequence: ['24 hours', '72 hours', '1 week']
-  },
-  relaxed: {
-    label: 'Relaxed',
-    description: '2 gentle reminders',
-    sequence: ['48 hours', '1 week']
-  },
-};
-
-const PAPERWORK_PRESETS: Record<FollowUpPreset, PresetDetails> = {
-  aggressive: {
-    label: 'Aggressive',
-    description: '3 reminders close to intake',
-    sequence: ['T-48hr', 'T-24hr', 'T-12hr']
-  },
-  standard: {
-    label: 'Standard',
-    description: '2 balanced reminders',
-    sequence: ['T-72hr', 'T-24hr']
-  },
-  relaxed: {
-    label: 'Relaxed',
-    description: '2 early reminders',
-    sequence: ['T-1 week', 'T-48hr']
-  },
-};
 
 // Toggle Switch Component - defined outside to prevent re-creation
 const ConsultToggleSwitch: React.FC<{
@@ -1935,20 +1867,21 @@ const ConsultConfigCard: React.FC<{
 );
 
 const ConsultationFlowTab: React.FC = () => {
-  const [config, setConfig] = useState<PipelineConfig>(DEFAULT_PIPELINE_CONFIG);
-  const [savedConfig, setSavedConfig] = useState<PipelineConfig>(DEFAULT_PIPELINE_CONFIG);
+  const { settings, updateSettings } = useSettings();
+  const savedConfig = settings.consultationPipeline;
+  const [config, setConfig] = useState<ConsultationPipelineConfig>(savedConfig);
   const [activeView, setActiveView] = useState<'configure' | 'preview'>('configure');
 
   // Check if current config differs from saved config
   const hasChanges = JSON.stringify(config) !== JSON.stringify(savedConfig);
 
-  const updateConfig = useCallback(<K extends keyof PipelineConfig>(key: K, value: PipelineConfig[K]) => {
+  const updateConfig = useCallback(<K extends keyof ConsultationPipelineConfig>(key: K, value: ConsultationPipelineConfig[K]) => {
     setConfig(prev => ({ ...prev, [key]: value }));
   }, []);
 
   const handleSave = () => {
-    // In a real app, this would save to backend
-    setSavedConfig(config);
+    // Persist to SettingsContext (which saves to localStorage)
+    updateSettings({ consultationPipeline: config });
   };
 
   return (

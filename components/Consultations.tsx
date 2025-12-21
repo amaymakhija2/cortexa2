@@ -836,7 +836,17 @@ type ViewMode = 'kanban' | 'upcoming' | 'list';
 // =============================================================================
 // DEV TESTING PANEL
 // =============================================================================
-// Floating panel for testing different consultation stages
+// Floating panel for testing different consultation stages and timing scenarios
+//
+// STAGE TIMING LOGIC:
+// -------------------
+// 1. intake_pending: Follow-up intervals 24h → 72h → 168h from stageEnteredAt/lastFollowUpDate
+// 2. no_show: Recovery intervals 0h → 24h → 72h from stageEnteredAt/lastFollowUpDate
+// 3. new: Based on createdAt (>4h = overdue)
+// 4. confirmed: Based on consultation datetime
+// 5. consult_complete: Always due now
+// 6. intake_scheduled/paperwork_pending: Based on intakeScheduledDate
+// 7. paperwork_complete: Based on firstSessionDate
 
 const ALL_STAGES: ConsultationStage[] = [
   'new',
@@ -864,14 +874,143 @@ const STAGE_LABELS_DEV: Record<ConsultationStage, string> = {
   lost: 'Lost',
 };
 
+// Stage-specific scenarios with all the data they need to set
+interface DevScenario {
+  id: string;
+  label: string;
+  description: string;
+  urgency: 'overdue' | 'due' | 'upcoming' | 'normal';
+  // What to set
+  stage: ConsultationStage;
+  followUpCount?: number;
+  stageEnteredAtHoursAgo?: number;
+  lastFollowUpHoursAgo?: number;
+  consultHoursFromNow?: number; // positive = future, negative = past
+  intakeDateHoursFromNow?: number;
+  createdAtHoursAgo?: number;
+}
+
+// Organized by stage with all possible scenarios
+const STAGE_SCENARIOS: Record<ConsultationStage, DevScenario[]> = {
+  new: [
+    { id: 'new_fresh', label: 'Just booked', description: 'New booking, no urgency yet', urgency: 'normal', stage: 'new', createdAtHoursAgo: 1, consultHoursFromNow: 48 },
+    { id: 'new_needs_confirm', label: 'Needs confirmation', description: '4+ hours, should confirm', urgency: 'due', stage: 'new', createdAtHoursAgo: 5, consultHoursFromNow: 48 },
+    { id: 'new_overdue', label: 'Overdue confirmation', description: '24h+ no confirmation', urgency: 'overdue', stage: 'new', createdAtHoursAgo: 25, consultHoursFromNow: 24 },
+  ],
+  confirmed: [
+    { id: 'confirmed_future', label: 'Future consult', description: 'Consult in 3 days', urgency: 'normal', stage: 'confirmed', consultHoursFromNow: 72 },
+    { id: 'confirmed_tomorrow', label: 'Tomorrow', description: 'Consult tomorrow', urgency: 'upcoming', stage: 'confirmed', consultHoursFromNow: 24 },
+    { id: 'confirmed_today', label: 'Today', description: 'Consult in 4 hours', urgency: 'due', stage: 'confirmed', consultHoursFromNow: 4 },
+    { id: 'confirmed_imminent', label: 'Starting soon', description: 'Consult in 15 mins', urgency: 'due', stage: 'confirmed', consultHoursFromNow: 0.25 },
+    { id: 'confirmed_past', label: 'Consult ended', description: 'Time passed, need outcome', urgency: 'overdue', stage: 'confirmed', consultHoursFromNow: -1 },
+  ],
+  consult_complete: [
+    { id: 'consult_complete_now', label: 'Just completed', description: 'Need to record outcome', urgency: 'due', stage: 'consult_complete', consultHoursFromNow: -0.5 },
+    { id: 'consult_complete_overdue', label: 'Overdue outcome', description: '2 days no outcome recorded', urgency: 'overdue', stage: 'consult_complete', consultHoursFromNow: -48 },
+  ],
+  no_show: [
+    // Recovery sequence: Immediate → 24h → 72h
+    { id: 'noshow_1_due', label: 'Recovery #1 due', description: 'Just marked no-show', urgency: 'due', stage: 'no_show', followUpCount: 0, stageEnteredAtHoursAgo: 0 },
+    { id: 'noshow_1_overdue', label: 'Recovery #1 overdue', description: '2h since no-show', urgency: 'overdue', stage: 'no_show', followUpCount: 0, stageEnteredAtHoursAgo: 2 },
+    { id: 'noshow_2_upcoming', label: 'Recovery #2 upcoming', description: '#1 sent, #2 in 12h', urgency: 'upcoming', stage: 'no_show', followUpCount: 1, lastFollowUpHoursAgo: 12 },
+    { id: 'noshow_2_due', label: 'Recovery #2 due', description: '#1 sent 24h ago', urgency: 'due', stage: 'no_show', followUpCount: 1, lastFollowUpHoursAgo: 24 },
+    { id: 'noshow_2_overdue', label: 'Recovery #2 overdue', description: '#1 sent 30h ago', urgency: 'overdue', stage: 'no_show', followUpCount: 1, lastFollowUpHoursAgo: 30 },
+    { id: 'noshow_3_upcoming', label: 'Recovery #3 upcoming', description: '#2 sent, #3 in 24h', urgency: 'upcoming', stage: 'no_show', followUpCount: 2, lastFollowUpHoursAgo: 48 },
+    { id: 'noshow_3_due', label: 'Recovery #3 due', description: '#2 sent 72h ago', urgency: 'due', stage: 'no_show', followUpCount: 2, lastFollowUpHoursAgo: 72 },
+    { id: 'noshow_3_overdue', label: 'Recovery #3 overdue', description: '#2 sent 96h ago', urgency: 'overdue', stage: 'no_show', followUpCount: 2, lastFollowUpHoursAgo: 96 },
+    { id: 'noshow_exhausted', label: 'All sent - decide', description: 'All 3 sent, need decision', urgency: 'overdue', stage: 'no_show', followUpCount: 3, lastFollowUpHoursAgo: 24 },
+  ],
+  intake_pending: [
+    // Follow-up sequence: 24h → 72h → 168h
+    { id: 'intake_1_upcoming', label: 'Follow-up #1 upcoming', description: 'Just entered, due in 24h', urgency: 'upcoming', stage: 'intake_pending', followUpCount: 0, stageEnteredAtHoursAgo: 0 },
+    { id: 'intake_1_soon', label: 'Follow-up #1 soon', description: 'Due in 4h', urgency: 'due', stage: 'intake_pending', followUpCount: 0, stageEnteredAtHoursAgo: 20 },
+    { id: 'intake_1_due', label: 'Follow-up #1 due', description: '24h passed', urgency: 'due', stage: 'intake_pending', followUpCount: 0, stageEnteredAtHoursAgo: 24 },
+    { id: 'intake_1_overdue', label: 'Follow-up #1 overdue', description: '30h passed', urgency: 'overdue', stage: 'intake_pending', followUpCount: 0, stageEnteredAtHoursAgo: 30 },
+    { id: 'intake_2_upcoming', label: 'Follow-up #2 upcoming', description: '#1 sent, #2 in 48h', urgency: 'upcoming', stage: 'intake_pending', followUpCount: 1, lastFollowUpHoursAgo: 24 },
+    { id: 'intake_2_due', label: 'Follow-up #2 due', description: '#1 sent 72h ago', urgency: 'due', stage: 'intake_pending', followUpCount: 1, lastFollowUpHoursAgo: 72 },
+    { id: 'intake_2_overdue', label: 'Follow-up #2 overdue', description: '#1 sent 96h ago', urgency: 'overdue', stage: 'intake_pending', followUpCount: 1, lastFollowUpHoursAgo: 96 },
+    { id: 'intake_3_upcoming', label: 'Follow-up #3 upcoming', description: '#2 sent, #3 in 4d', urgency: 'upcoming', stage: 'intake_pending', followUpCount: 2, lastFollowUpHoursAgo: 72 },
+    { id: 'intake_3_due', label: 'Follow-up #3 due', description: '#2 sent 168h ago', urgency: 'due', stage: 'intake_pending', followUpCount: 2, lastFollowUpHoursAgo: 168 },
+    { id: 'intake_3_overdue', label: 'Follow-up #3 overdue', description: '#2 sent 192h ago', urgency: 'overdue', stage: 'intake_pending', followUpCount: 2, lastFollowUpHoursAgo: 192 },
+    { id: 'intake_exhausted', label: 'All sent - decide', description: 'All 3 sent, need decision', urgency: 'overdue', stage: 'intake_pending', followUpCount: 3, lastFollowUpHoursAgo: 24 },
+  ],
+  intake_scheduled: [
+    // Paperwork reminders relative to intake date: T-72h, T-24h (standard preset)
+    // Follow-up 1 is due when intake is 72h away, Follow-up 2 when 24h away
+    { id: 'intake_sched_far', label: 'Intake far away', description: 'Intake in 1 week, no follow-up due yet', urgency: 'normal', stage: 'intake_scheduled', intakeDateHoursFromNow: 168, followUpCount: 0 },
+    { id: 'intake_sched_fu1_upcoming', label: 'Follow-up #1 upcoming', description: 'Intake in 80h, due in 8h', urgency: 'upcoming', stage: 'intake_scheduled', intakeDateHoursFromNow: 80, followUpCount: 0 },
+    { id: 'intake_sched_fu1_due', label: 'Follow-up #1 due', description: 'Intake in 72h (T-72h)', urgency: 'due', stage: 'intake_scheduled', intakeDateHoursFromNow: 72, followUpCount: 0 },
+    { id: 'intake_sched_fu1_overdue', label: 'Follow-up #1 overdue', description: 'Intake in 48h, should have sent at T-72h', urgency: 'overdue', stage: 'intake_scheduled', intakeDateHoursFromNow: 48, followUpCount: 0 },
+    { id: 'intake_sched_fu2_upcoming', label: 'Follow-up #2 upcoming', description: '#1 sent, intake in 30h', urgency: 'upcoming', stage: 'intake_scheduled', intakeDateHoursFromNow: 30, followUpCount: 1 },
+    { id: 'intake_sched_fu2_due', label: 'Follow-up #2 due', description: '#1 sent, intake in 24h (T-24h)', urgency: 'due', stage: 'intake_scheduled', intakeDateHoursFromNow: 24, followUpCount: 1 },
+    { id: 'intake_sched_fu2_overdue', label: 'Follow-up #2 overdue', description: '#1 sent, intake in 12h', urgency: 'overdue', stage: 'intake_scheduled', intakeDateHoursFromNow: 12, followUpCount: 1 },
+    { id: 'intake_sched_all_sent', label: 'All sent - waiting', description: 'Both sent, intake in 4h', urgency: 'due', stage: 'intake_scheduled', intakeDateHoursFromNow: 4, followUpCount: 2 },
+    { id: 'intake_sched_passed', label: 'Intake completed', description: 'Intake was 2h ago', urgency: 'overdue', stage: 'intake_scheduled', intakeDateHoursFromNow: -2, followUpCount: 2 },
+  ],
+  paperwork_pending: [
+    // Same logic as intake_scheduled - uses T-72h, T-24h reminders
+    { id: 'paperwork_far', label: 'Intake far away', description: 'Intake in 1 week', urgency: 'normal', stage: 'paperwork_pending', intakeDateHoursFromNow: 168, followUpCount: 0 },
+    { id: 'paperwork_fu1_due', label: 'Follow-up #1 due', description: 'Intake in 72h (T-72h)', urgency: 'due', stage: 'paperwork_pending', intakeDateHoursFromNow: 72, followUpCount: 0 },
+    { id: 'paperwork_fu2_due', label: 'Follow-up #2 due', description: '#1 sent, intake in 24h', urgency: 'due', stage: 'paperwork_pending', intakeDateHoursFromNow: 24, followUpCount: 1 },
+    { id: 'paperwork_all_sent', label: 'All sent - waiting', description: 'Both sent, intake in 4h', urgency: 'due', stage: 'paperwork_pending', intakeDateHoursFromNow: 4, followUpCount: 2 },
+    { id: 'paperwork_past', label: 'Intake completed', description: 'Intake was yesterday', urgency: 'overdue', stage: 'paperwork_pending', intakeDateHoursFromNow: -24, followUpCount: 2 },
+  ],
+  paperwork_complete: [
+    { id: 'ready_no_session', label: 'Ready, no session', description: 'Awaiting first session', urgency: 'normal', stage: 'paperwork_complete' },
+    { id: 'session_upcoming', label: 'Session upcoming', description: 'First session in 2 days', urgency: 'upcoming', stage: 'paperwork_complete', intakeDateHoursFromNow: 48 },
+    { id: 'session_today', label: 'Session today', description: 'First session in 4h', urgency: 'due', stage: 'paperwork_complete', intakeDateHoursFromNow: 4 },
+    { id: 'session_done', label: 'Session completed', description: 'Ready to mark converted', urgency: 'overdue', stage: 'paperwork_complete', intakeDateHoursFromNow: -2 },
+  ],
+  converted: [
+    { id: 'converted', label: 'Converted', description: 'Successfully converted', urgency: 'normal', stage: 'converted' },
+  ],
+  lost: [
+    { id: 'lost', label: 'Lost', description: 'Did not convert', urgency: 'normal', stage: 'lost' },
+  ],
+};
+
 interface DevTestingPanelProps {
   currentStage: ConsultationStage;
-  onSetStage: (stage: ConsultationStage) => void;
+  followUpCount: number;
+  stageEnteredAt: string | undefined;
+  lastFollowUpDate: string | undefined;
+  onApplyScenario: (scenario: DevScenario) => void;
   onReset: () => void;
 }
 
-const DevTestingPanel: React.FC<DevTestingPanelProps> = ({ currentStage, onSetStage, onReset }) => {
+const DevTestingPanel: React.FC<DevTestingPanelProps> = ({
+  currentStage,
+  followUpCount,
+  stageEnteredAt,
+  lastFollowUpDate,
+  onApplyScenario,
+  onReset,
+}) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [selectedStage, setSelectedStage] = useState<ConsultationStage>(currentStage);
+
+  // Get scenarios for selected stage
+  const scenarios = STAGE_SCENARIOS[selectedStage] || [];
+
+  // Calculate current timing display
+  const getTimingDisplay = () => {
+    const baseDate = lastFollowUpDate || stageEnteredAt;
+    if (!baseDate) return 'Not set';
+    const hoursAgo = Math.round((Date.now() - new Date(baseDate).getTime()) / (1000 * 60 * 60));
+    if (hoursAgo < 0) return `In ${Math.abs(hoursAgo)}h`;
+    if (hoursAgo < 1) return 'Just now';
+    if (hoursAgo < 24) return `${hoursAgo}h ago`;
+    return `${Math.round(hoursAgo / 24)}d ago`;
+  };
+
+  const getUrgencyColor = (urgency: DevScenario['urgency']) => {
+    switch (urgency) {
+      case 'overdue': return 'bg-rose-100 text-rose-700 border-rose-200';
+      case 'due': return 'bg-amber-100 text-amber-700 border-amber-200';
+      case 'upcoming': return 'bg-sky-100 text-sky-700 border-sky-200';
+      default: return 'bg-stone-100 text-stone-700 border-stone-200';
+    }
+  };
 
   return (
     <div className="fixed bottom-6 right-6 z-[100]">
@@ -881,43 +1020,88 @@ const DevTestingPanel: React.FC<DevTestingPanelProps> = ({ currentStage, onSetSt
             initial={{ opacity: 0, y: 10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            className="absolute bottom-16 right-0 w-72 bg-white rounded-2xl shadow-2xl border border-stone-200 overflow-hidden"
+            className="absolute bottom-16 right-0 w-96 bg-white rounded-2xl shadow-2xl border border-stone-200 overflow-hidden"
           >
             <div className="px-4 py-3 bg-stone-900 text-white">
-              <h4 className="font-bold text-sm">🧪 Dev Testing</h4>
-              <p className="text-xs text-stone-400 mt-0.5">Set Emily's stage</p>
+              <h4 className="font-bold text-sm">Dev Testing Panel</h4>
+              <p className="text-xs text-stone-400 mt-0.5">Select a stage, then pick a scenario</p>
             </div>
-            <div className="p-3 max-h-[400px] overflow-y-auto">
-              <div className="space-y-1">
+
+            {/* Current State Display */}
+            <div className="px-4 py-3 bg-stone-50 border-b border-stone-200">
+              <div className="text-xs text-stone-500 uppercase tracking-wide mb-1">Current State</div>
+              <div className="flex items-center gap-3 text-sm">
+                <span className="font-semibold text-stone-900">{STAGE_LABELS_DEV[currentStage]}</span>
+                <span className="text-stone-400">|</span>
+                <span className="text-stone-600">Follow-ups: {followUpCount}/3</span>
+                <span className="text-stone-400">|</span>
+                <span className="text-stone-600">{getTimingDisplay()}</span>
+              </div>
+            </div>
+
+            {/* Stage Selector */}
+            <div className="px-4 py-3 border-b border-stone-200">
+              <div className="text-xs text-stone-500 uppercase tracking-wide mb-2">Select Stage</div>
+              <div className="flex flex-wrap gap-1.5">
                 {ALL_STAGES.map((stage) => (
                   <button
                     key={stage}
-                    onClick={() => {
-                      onSetStage(stage);
-                      setIsOpen(false);
-                    }}
+                    onClick={() => setSelectedStage(stage)}
                     className={`
-                      w-full text-left px-3 py-2.5 rounded-xl text-sm font-medium transition-all
-                      ${currentStage === stage
-                        ? 'bg-amber-100 text-amber-900 border-2 border-amber-300'
-                        : 'bg-stone-50 text-stone-700 hover:bg-stone-100 border-2 border-transparent'
+                      px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all
+                      ${selectedStage === stage
+                        ? 'bg-amber-500 text-white'
+                        : currentStage === stage
+                          ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                          : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
                       }
                     `}
                   >
-                    <div className="flex items-center justify-between">
-                      <span>{STAGE_LABELS_DEV[stage]}</span>
-                      {currentStage === stage && (
-                        <span className="text-xs bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full">Current</span>
-                      )}
-                    </div>
+                    {STAGE_LABELS_DEV[stage]}
                   </button>
                 ))}
               </div>
-              <div className="mt-3 pt-3 border-t border-stone-200">
+            </div>
+
+            {/* Scenarios for Selected Stage */}
+            <div className="p-3 max-h-[350px] overflow-y-auto">
+              <div className="text-xs text-stone-500 uppercase tracking-wide mb-2">
+                {STAGE_LABELS_DEV[selectedStage]} Scenarios
+              </div>
+              <div className="space-y-1.5">
+                {scenarios.map((scenario) => (
+                  <button
+                    key={scenario.id}
+                    onClick={() => {
+                      onApplyScenario(scenario);
+                    }}
+                    className={`
+                      w-full text-left px-3 py-2.5 rounded-xl text-sm transition-all border
+                      ${getUrgencyColor(scenario.urgency)} hover:opacity-80
+                    `}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">{scenario.label}</span>
+                      <span className={`text-[10px] uppercase tracking-wide font-bold px-1.5 py-0.5 rounded ${
+                        scenario.urgency === 'overdue' ? 'bg-rose-200 text-rose-800' :
+                        scenario.urgency === 'due' ? 'bg-amber-200 text-amber-800' :
+                        scenario.urgency === 'upcoming' ? 'bg-sky-200 text-sky-800' :
+                        'bg-stone-200 text-stone-600'
+                      }`}>
+                        {scenario.urgency}
+                      </span>
+                    </div>
+                    <p className="text-xs opacity-75 mt-0.5">{scenario.description}</p>
+                  </button>
+                ))}
+              </div>
+
+              {/* Reset Button */}
+              <div className="mt-4 pt-3 border-t border-stone-200">
                 <button
                   onClick={() => {
                     onReset();
-                    setIsOpen(false);
+                    setSelectedStage('new');
                   }}
                   className="w-full px-3 py-2.5 rounded-xl text-sm font-semibold bg-rose-100 text-rose-700 hover:bg-rose-200 transition-all"
                 >
@@ -953,23 +1137,92 @@ export const Consultations: React.FC = () => {
   const [takeActionConsultation, setTakeActionConsultation] = useState<Consultation | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('kanban');
 
-  // Dev testing: Get Emily's current stage
+  // Dev testing: Get Emily's current state
   const emilyConsultation = consultations.find(c => c.id === 'c1');
   const currentDevStage = emilyConsultation?.stage || 'new';
+  const currentDevFollowUpCount = emilyConsultation?.followUpCount || 0;
+  const currentDevStageEnteredAt = emilyConsultation?.stageEnteredAt;
+  const currentDevLastFollowUpDate = emilyConsultation?.lastFollowUpDate;
 
-  // Dev testing: Set stage directly
-  const handleDevSetStage = (stage: ConsultationStage) => {
+  // Dev testing: Apply a complete scenario
+  const handleDevApplyScenario = (scenario: typeof STAGE_SCENARIOS[ConsultationStage][number]) => {
+    const now = Date.now();
+
     setConsultations(prev => prev.map(c => {
       if (c.id !== 'c1') return c;
-      return { ...c, stage, updatedAt: new Date().toISOString() };
+
+      const updates: Partial<Consultation> = {
+        stage: scenario.stage,
+        updatedAt: new Date().toISOString(),
+      };
+
+      // Set follow-up count if specified
+      if (scenario.followUpCount !== undefined) {
+        updates.followUpCount = scenario.followUpCount;
+      } else {
+        updates.followUpCount = 0;
+      }
+
+      // Set stageEnteredAt if specified
+      if (scenario.stageEnteredAtHoursAgo !== undefined) {
+        updates.stageEnteredAt = new Date(now - scenario.stageEnteredAtHoursAgo * 60 * 60 * 1000).toISOString();
+      } else {
+        updates.stageEnteredAt = new Date().toISOString();
+      }
+
+      // Set lastFollowUpDate if specified
+      if (scenario.lastFollowUpHoursAgo !== undefined) {
+        updates.lastFollowUpDate = new Date(now - scenario.lastFollowUpHoursAgo * 60 * 60 * 1000).toISOString();
+      } else {
+        updates.lastFollowUpDate = undefined;
+      }
+
+      // Set consultation datetime if specified
+      if (scenario.consultHoursFromNow !== undefined) {
+        updates.datetime = new Date(now + scenario.consultHoursFromNow * 60 * 60 * 1000).toISOString();
+      }
+
+      // Set intake date if specified (for intake_scheduled, paperwork_pending, paperwork_complete)
+      if (scenario.intakeDateHoursFromNow !== undefined) {
+        const intakeDate = new Date(now + scenario.intakeDateHoursFromNow * 60 * 60 * 1000).toISOString();
+        // For paperwork_complete, this is the first session date
+        if (scenario.stage === 'paperwork_complete') {
+          updates.firstSessionDate = intakeDate;
+        } else {
+          updates.intakeScheduledDate = intakeDate;
+          updates.intakeHasTime = true;
+        }
+      }
+
+      // Set createdAt if specified (for new stage)
+      if (scenario.createdAtHoursAgo !== undefined) {
+        updates.createdAt = new Date(now - scenario.createdAtHoursAgo * 60 * 60 * 1000).toISOString();
+      }
+
+      return { ...c, ...updates };
     }));
   };
 
   // Dev testing: Reset to new
   const handleDevReset = () => {
+    const now = new Date();
+    const twoDaysFromNow = new Date(now.getTime() + 48 * 60 * 60 * 1000);
+
     setConsultations(prev => prev.map(c => {
       if (c.id !== 'c1') return c;
-      return { ...c, stage: 'new' as ConsultationStage, followUpCount: 0, updatedAt: new Date().toISOString() };
+      return {
+        ...c,
+        stage: 'new' as ConsultationStage,
+        followUpCount: 0,
+        stageEnteredAt: undefined,
+        lastFollowUpDate: undefined,
+        intakeScheduledDate: undefined,
+        intakeHasTime: undefined,
+        firstSessionDate: undefined,
+        datetime: twoDaysFromNow.toISOString(),
+        createdAt: now.toISOString(),
+        updatedAt: now.toISOString()
+      };
     }));
   };
 
@@ -1071,18 +1324,69 @@ export const Consultations: React.FC = () => {
               updatedAt: new Date().toISOString()
             };
           }
-          return { ...c, stage: 'intake_pending' as ConsultationStage, updatedAt: new Date().toISOString() };
+          return {
+            ...c,
+            stage: 'intake_pending' as ConsultationStage,
+            followUpCount: 0,
+            stageEnteredAt: new Date().toISOString(),
+            lastFollowUpDate: undefined,
+            updatedAt: new Date().toISOString()
+          };
         case 'mark_no_show':
-          return { ...c, stage: 'no_show' as ConsultationStage, followUpCount: 0, updatedAt: new Date().toISOString() };
-        case 'send_followup_1':
-        case 'send_followup_2':
-          return { ...c, followUpCount: c.followUpCount + 1, lastFollowUpDate: new Date().toISOString(), updatedAt: new Date().toISOString() };
-        case 'send_followup_3':
-          return { ...c, followUpCount: 3, lastFollowUpDate: new Date().toISOString(), updatedAt: new Date().toISOString() };
+          // Enter no-show stage, reset follow-up count, record when stage was entered
+          return {
+            ...c,
+            stage: 'no_show' as ConsultationStage,
+            followUpCount: 0,
+            stageEnteredAt: new Date().toISOString(),
+            lastFollowUpDate: undefined,
+            updatedAt: new Date().toISOString()
+          };
+        case 'report_recovery_sent':
+          // Log that a recovery attempt was made
+          return {
+            ...c,
+            followUpCount: c.followUpCount + 1,
+            lastFollowUpDate: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          };
+        case 'mark_rescheduled':
+          // Client rescheduled - move back to confirmed
+          return {
+            ...c,
+            stage: 'confirmed' as ConsultationStage,
+            followUpCount: 0,
+            stageEnteredAt: undefined,
+            lastFollowUpDate: undefined,
+            updatedAt: new Date().toISOString()
+          };
+        case 'report_intake_reminder':
+          // Log that a reminder was sent for intake scheduling
+          return {
+            ...c,
+            followUpCount: c.followUpCount + 1,
+            lastFollowUpDate: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          };
         case 'mark_intake_scheduled':
-          return { ...c, stage: 'intake_scheduled' as ConsultationStage, intakeScheduledDate: new Date().toISOString(), updatedAt: new Date().toISOString() };
-        case 'send_paperwork_reminder':
-          return { ...c, stage: 'paperwork_pending' as ConsultationStage, updatedAt: new Date().toISOString() };
+          // Intake was scheduled - need to pick date via modal, so this might need metadata
+          return {
+            ...c,
+            stage: 'intake_scheduled' as ConsultationStage,
+            followUpCount: 0,
+            stageEnteredAt: new Date().toISOString(),
+            intakeScheduledDate: metadata?.intakeDate || new Date().toISOString(),
+            intakeHasTime: metadata?.intakeHasTime ?? false,
+            updatedAt: new Date().toISOString()
+          };
+        case 'report_paperwork_reminder':
+          // Log that a paperwork reminder was sent
+          return {
+            ...c,
+            followUpCount: c.followUpCount + 1,
+            lastFollowUpDate: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          };
         case 'mark_paperwork_complete':
           return { ...c, stage: 'paperwork_complete' as ConsultationStage, paperworkCompletedDate: new Date().toISOString(), updatedAt: new Date().toISOString() };
         case 'mark_first_session_done':
@@ -1731,7 +2035,10 @@ export const Consultations: React.FC = () => {
       {/* Dev Testing Panel */}
       <DevTestingPanel
         currentStage={currentDevStage}
-        onSetStage={handleDevSetStage}
+        followUpCount={currentDevFollowUpCount}
+        stageEnteredAt={currentDevStageEnteredAt}
+        lastFollowUpDate={currentDevLastFollowUpDate}
+        onApplyScenario={handleDevApplyScenario}
         onReset={handleDevReset}
       />
     </div>
