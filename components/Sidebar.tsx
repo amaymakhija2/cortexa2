@@ -69,6 +69,7 @@ const NAVIGATION = {
       description: 'Operations & analytics',
       subItems: [
         { id: 'clients', label: 'Client Roster' },
+        { id: 'consultations', label: 'Consultations' },
         { id: 'financial', label: 'Financial' },
         { id: 'sessions', label: 'Sessions' },
         { id: 'capacity-client', label: 'Clients' },
