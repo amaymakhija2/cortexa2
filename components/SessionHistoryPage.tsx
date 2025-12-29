@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { CLINICIANS } from '../data/clinicians';
+import { formatFullName } from '../types/consultations';
 
 // =============================================================================
 // SESSION HISTORY PAGE
@@ -275,7 +276,7 @@ export const SessionHistoryPage: React.FC = () => {
                           clientIdx % 2 === 0 ? 'bg-white' : 'bg-stone-50/50'
                         }`}
                       >
-                        {client.name}
+                        {formatFullName(client.name)}
                       </td>
 
                       {/* Session cells */}

@@ -138,7 +138,39 @@ export interface PracticeGoals {
   noteDeadlineHours: number;
 }
 
-// Per-clinician goal overrides (keyed by clinician ID)
+// Goal types that can be tracked independently
+export type GoalType = 'sessionGoal' | 'clientGoal' | 'takeRate';
+
+// A single value period for one goal type
+// endDate of null means "current" (ongoing)
+export interface SingleGoalPeriod {
+  id: string;           // Unique ID for this period
+  startDate: string;    // ISO date string (YYYY-MM-DD)
+  endDate: string | null; // ISO date string or null for current/ongoing
+  value: number;        // The goal value
+}
+
+// Per-clinician goal history for each goal type
+// Each goal type has its own independent history
+export interface ClinicianGoalHistory {
+  [clinicianId: string]: {
+    sessionGoal?: SingleGoalPeriod[];  // Sessions per week history
+    clientGoal?: SingleGoalPeriod[];   // Target active clients history
+    takeRate?: SingleGoalPeriod[];     // Take rate percentage history
+  };
+}
+
+// Legacy combined period (kept for reference but not used in new code)
+export interface GoalPeriod {
+  id: string;
+  startDate: string;
+  endDate: string | null;
+  sessionGoal: number;
+  clientGoal: number;
+  takeRate: number;
+}
+
+// Legacy format for backward compatibility
 export interface ClinicianGoalOverrides {
   [clinicianId: string]: {
     sessionGoal?: number;
@@ -177,7 +209,8 @@ interface AppSettings {
   anonymizeClinicianNames: boolean;
   practiceGoals: PracticeGoals;
   thresholds: MetricThresholds;
-  clinicianGoals: ClinicianGoalOverrides;
+  clinicianGoals: ClinicianGoalOverrides; // Legacy, kept for backward compatibility
+  clinicianGoalHistory: ClinicianGoalHistory; // New date-ranged goals
   consultationPipeline: ConsultationPipelineConfig;
 }
 
@@ -190,7 +223,7 @@ export const getDisplayName = (name: string, _anonymize: boolean): string => {
   return name;
 };
 
-// Helper to get clinician goals with overrides applied
+// Helper to get clinician goals with overrides applied (legacy - uses simple overrides)
 export const getClinicianGoals = (
   clinicianId: string,
   defaults: { sessionGoal: number; clientGoal: number; takeRate: number },
@@ -201,6 +234,83 @@ export const getClinicianGoals = (
     sessionGoal: override?.sessionGoal ?? defaults.sessionGoal,
     clientGoal: override?.clientGoal ?? defaults.clientGoal,
     takeRate: override?.takeRate ?? defaults.takeRate,
+  };
+};
+
+// Generate a unique ID for a goal period
+export const generateGoalPeriodId = (): string => {
+  return `gp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+};
+
+// =============================================================================
+// NEW GOAL HISTORY HELPERS (per-goal-type)
+// =============================================================================
+
+// Get all periods for a specific goal type, sorted by startDate descending
+export const getGoalTypePeriods = (
+  clinicianId: string,
+  goalType: GoalType,
+  goalHistory: ClinicianGoalHistory
+): SingleGoalPeriod[] => {
+  const clinicianHistory = goalHistory[clinicianId];
+  if (!clinicianHistory) return [];
+  const periods = clinicianHistory[goalType];
+  if (!periods) return [];
+  return [...periods].sort((a, b) => b.startDate.localeCompare(a.startDate));
+};
+
+// Get the current period for a specific goal type (endDate = null)
+export const getCurrentGoalTypePeriod = (
+  clinicianId: string,
+  goalType: GoalType,
+  goalHistory: ClinicianGoalHistory
+): SingleGoalPeriod | null => {
+  const periods = getGoalTypePeriods(clinicianId, goalType, goalHistory);
+  return periods.find(p => p.endDate === null) || null;
+};
+
+// Get the value for a specific goal type at a specific date
+export const getGoalTypeValueForDate = (
+  clinicianId: string,
+  goalType: GoalType,
+  date: Date | null, // null means current
+  goalHistory: ClinicianGoalHistory,
+  defaultValue: number
+): number => {
+  const periods = getGoalTypePeriods(clinicianId, goalType, goalHistory);
+  if (periods.length === 0) return defaultValue;
+
+  if (date === null) {
+    // Get current value
+    const current = periods.find(p => p.endDate === null);
+    return current?.value ?? defaultValue;
+  }
+
+  const dateStr = date.toISOString().split('T')[0];
+
+  // Find the period that contains this date
+  const period = periods.find(p => {
+    const afterStart = dateStr >= p.startDate;
+    const beforeEnd = p.endDate === null || dateStr <= p.endDate;
+    return afterStart && beforeEnd;
+  });
+
+  return period?.value ?? defaultValue;
+};
+
+// Get all current goal values for a clinician
+export const getClinicianGoalsForDate = (
+  clinicianId: string,
+  date: Date | null, // null means "current"
+  defaults: { sessionGoal: number; clientGoal: number; takeRate: number },
+  goalHistory?: ClinicianGoalHistory
+): { sessionGoal: number; clientGoal: number; takeRate: number } => {
+  if (!goalHistory) return defaults;
+
+  return {
+    sessionGoal: getGoalTypeValueForDate(clinicianId, 'sessionGoal', date, goalHistory, defaults.sessionGoal),
+    clientGoal: getGoalTypeValueForDate(clinicianId, 'clientGoal', date, goalHistory, defaults.clientGoal),
+    takeRate: getGoalTypeValueForDate(clinicianId, 'takeRate', date, goalHistory, defaults.takeRate),
   };
 };
 
@@ -249,7 +359,8 @@ const DEFAULT_SETTINGS: AppSettings = {
   anonymizeClinicianNames: false,
   practiceGoals: DEFAULT_PRACTICE_GOALS,
   thresholds: DEFAULT_THRESHOLDS,
-  clinicianGoals: {}, // Empty = use defaults from data/clinicians.ts
+  clinicianGoals: {}, // Legacy, kept for backward compatibility
+  clinicianGoalHistory: {}, // New date-ranged goals
   consultationPipeline: DEFAULT_CONSULTATION_PIPELINE,
 };
 
@@ -267,6 +378,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
           practiceGoals: { ...DEFAULT_PRACTICE_GOALS, ...parsed.practiceGoals },
           thresholds: { ...DEFAULT_THRESHOLDS, ...parsed.thresholds },
           consultationPipeline: { ...DEFAULT_CONSULTATION_PIPELINE, ...parsed.consultationPipeline },
+          clinicianGoalHistory: parsed.clinicianGoalHistory || {},
         };
       } catch {
         return DEFAULT_SETTINGS;

@@ -51,6 +51,7 @@ import {
   getActionLabel,
   formatConsultationDate,
   getClientInitials,
+  formatClientName,
   isConsultationPast,
   isConsultationToday,
   getDaysSince,
@@ -181,7 +182,7 @@ const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
             className="text-3xl font-bold text-stone-900"
             style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
           >
-            {consultation.firstName} {consultation.lastName}
+            {formatClientName(consultation.firstName, consultation.lastName)}
           </h2>
           <p className="text-stone-500 mt-1">
             with {consultation.clinicianName}
@@ -407,7 +408,7 @@ const TransferClinicianModal: React.FC<TransferClinicianModalProps> = ({
                   Transfer Client
                 </h2>
                 <p className="text-stone-500 text-sm">
-                  {consultation.firstName} {consultation.lastName}
+                  {formatClientName(consultation.firstName, consultation.lastName)}
                 </p>
               </div>
             </div>
@@ -591,7 +592,7 @@ const ConsultationRow: React.FC<ConsultationRowProps> = ({
               {/* Name & clinician */}
               <div className="min-w-0">
                 <h3 className="text-base text-stone-900 font-bold truncate" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
-                  {consultation.firstName} {consultation.lastName}
+                  {formatClientName(consultation.firstName, consultation.lastName)}
                 </h3>
                 <p className="text-stone-500 text-xs truncate">{consultation.clinicianName}</p>
               </div>
@@ -653,7 +654,7 @@ const ConsultationRow: React.FC<ConsultationRowProps> = ({
             </div>
             <div className="min-w-0">
               <h3 className="text-lg text-stone-900 font-bold truncate" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
-                {consultation.firstName} {consultation.lastName}
+                {formatClientName(consultation.firstName, consultation.lastName)}
               </h3>
               <div className="flex items-center gap-2 mt-0.5">
                 <div className={`w-2.5 h-2.5 rounded-full ${stageColors.dot}`} />
@@ -1973,7 +1974,7 @@ export const Consultations: React.FC = () => {
                                     className="font-semibold text-stone-900"
                                     style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                                   >
-                                    {consultation.firstName} {consultation.lastName}
+                                    {formatClientName(consultation.firstName, consultation.lastName)}
                                   </p>
                                   <p className="text-stone-500 text-sm">{consultation.email}</p>
                                 </div>
@@ -2170,7 +2171,7 @@ export const Consultations: React.FC = () => {
                                     className="font-semibold text-stone-900"
                                     style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                                   >
-                                    {consultation.firstName} {consultation.lastName}
+                                    {formatClientName(consultation.firstName, consultation.lastName)}
                                   </p>
                                   <p className="text-stone-500 text-sm">{consultation.email}</p>
                                 </div>

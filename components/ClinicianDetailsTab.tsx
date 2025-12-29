@@ -1,6 +1,8 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ChevronDown, Check, Calendar, ChevronLeft, ChevronRight, X, TrendingUp, TrendingDown, Users, DollarSign, Activity, FileText, ArrowRight, Settings } from 'lucide-react';
+import { ChevronDown, Check, Calendar, ChevronLeft, ChevronRight, X, TrendingUp, TrendingDown, Users, DollarSign, Activity, FileText, ArrowRight, Settings, Pencil, Sparkles, AlertTriangle, Target, Zap, Calculator } from 'lucide-react';
+import * as chrono from 'chrono-node';
+import { formatFullName } from '../types/consultations';
 import {
   SectionHeader,
   SectionContainer,
@@ -35,7 +37,15 @@ import type { ClientData } from './design-system';
 // =============================================================================
 
 import { CLINICIANS as MASTER_CLINICIANS } from '../data/clinicians';
-import { useSettings, getClinicianGoals } from '../context/SettingsContext';
+import {
+  useSettings,
+  getClinicianGoalsForDate,
+  getGoalTypePeriods,
+  generateGoalPeriodId,
+  GoalType,
+  SingleGoalPeriod,
+  ClinicianGoalHistory,
+} from '../context/SettingsContext';
 
 // Health status type
 type HealthStatus = 'healthy' | 'attention' | 'critical';
@@ -963,11 +973,173 @@ const HEALTH_CONFIG: Record<HealthStatus, { label: string; color: string; bg: st
   },
 };
 
+// =============================================================================
+// SMART DATE INPUT COMPONENT
+// =============================================================================
+// Accepts natural language date input like "jan 25 2025", "1/25/2025", "next monday"
+// and converts it to a proper date. Premium editorial styling with refined feedback.
+
+interface SmartDateInputProps {
+  value: string; // ISO date string (YYYY-MM-DD) or empty
+  onChange: (isoDate: string) => void;
+  placeholder?: string;
+  label?: string;
+  hint?: string;
+  allowEmpty?: boolean;
+}
+
+const SmartDateInput: React.FC<SmartDateInputProps> = ({
+  value,
+  onChange,
+  placeholder = 'e.g., Jan 25 2025',
+  label,
+  hint,
+  allowEmpty = false,
+}) => {
+  const [displayValue, setDisplayValue] = useState('');
+  const [parsedDate, setParsedDate] = useState<Date | null>(null);
+  const [isFocused, setIsFocused] = useState(false);
+  const [isValid, setIsValid] = useState(true);
+
+  const formatDisplayDate = (date: Date): string => {
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  };
+
+  useEffect(() => {
+    if (value && !isFocused) {
+      const date = new Date(value + 'T00:00:00');
+      if (!isNaN(date.getTime())) {
+        setDisplayValue(formatDisplayDate(date));
+        setParsedDate(date);
+        setIsValid(true);
+      }
+    } else if (!value && !isFocused) {
+      setDisplayValue('');
+      setParsedDate(null);
+      setIsValid(true);
+    }
+  }, [value, isFocused]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target.value;
+    setDisplayValue(input);
+
+    if (!input.trim()) {
+      setParsedDate(null);
+      setIsValid(allowEmpty);
+      if (allowEmpty) onChange('');
+      return;
+    }
+
+    const parsed = chrono.parseDate(input);
+    if (parsed) {
+      setParsedDate(parsed);
+      setIsValid(true);
+      onChange(parsed.toISOString().split('T')[0]);
+    } else {
+      setParsedDate(null);
+      setIsValid(false);
+    }
+  };
+
+  const handleBlur = () => {
+    setIsFocused(false);
+    if (parsedDate) {
+      setDisplayValue(formatDisplayDate(parsedDate));
+    } else if (!displayValue.trim() && allowEmpty) {
+      setDisplayValue('');
+    }
+  };
+
+  return (
+    <div className="relative group">
+      {label && (
+        <label className="block text-[11px] font-medium text-stone-500 uppercase tracking-wider mb-1.5">
+          {label}
+          {hint && <span className="text-stone-400 normal-case tracking-normal font-normal"> {hint}</span>}
+        </label>
+      )}
+      <div className="relative">
+        <input
+          type="text"
+          value={displayValue}
+          onChange={handleInputChange}
+          onFocus={() => setIsFocused(true)}
+          onBlur={handleBlur}
+          placeholder={placeholder}
+          style={{
+            background: isFocused
+              ? 'linear-gradient(180deg, #FFFBF5 0%, #FFF 100%)'
+              : 'linear-gradient(180deg, #FAFAF9 0%, #FFF 100%)',
+          }}
+          className={`w-full pl-3 pr-9 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 outline-none ${
+            !isValid && displayValue
+              ? 'text-red-700 ring-1 ring-red-200 shadow-[0_0_0_3px_rgba(239,68,68,0.08)]'
+              : isFocused
+                ? 'text-stone-800 ring-1 ring-amber-300 shadow-[0_0_0_3px_rgba(251,191,36,0.12)]'
+                : 'text-stone-700 ring-1 ring-stone-200 hover:ring-stone-300'
+          }`}
+        />
+        {/* Status indicator with animation */}
+        <div className="absolute right-3 top-1/2 -translate-y-1/2 transition-all duration-200">
+          {displayValue && !isValid ? (
+            <div className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center">
+              <span className="text-red-500 text-xs font-bold">?</span>
+            </div>
+          ) : parsedDate ? (
+            <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center animate-[scale-in_0.15s_ease-out]">
+              <Check size={12} className="text-emerald-600" strokeWidth={3} />
+            </div>
+          ) : (
+            <Calendar size={15} className="text-stone-400 group-hover:text-stone-500 transition-colors" />
+          )}
+        </div>
+      </div>
+      {/* Floating preview tooltip */}
+      {isFocused && parsedDate && displayValue !== formatDisplayDate(parsedDate) && (
+        <div
+          className="absolute left-0 right-0 z-20 mt-2 animate-[fade-slide-up_0.15s_ease-out]"
+          style={{
+            animation: 'fade-slide-up 0.15s ease-out',
+          }}
+        >
+          <div
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm"
+            style={{
+              background: 'linear-gradient(135deg, #1c1917 0%, #292524 100%)',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.05) inset',
+            }}
+          >
+            <span className="text-amber-400">→</span>
+            <span className="text-white font-medium">{formatDisplayDate(parsedDate)}</span>
+          </div>
+        </div>
+      )}
+      {/* Error tooltip */}
+      {isFocused && !isValid && displayValue && (
+        <div className="absolute left-0 right-0 z-20 mt-2 animate-[fade-slide-up_0.15s_ease-out]">
+          <div
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm bg-red-50 border border-red-100"
+            style={{ boxShadow: '0 4px 12px rgba(239,68,68,0.1)' }}
+          >
+            <span className="text-red-400 text-xs">✕</span>
+            <span className="text-red-600">Try "Jan 25 2025" or "1/25/25"</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 export const ClinicianDetailsTab: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { settings } = useSettings();
-  const { clinicianGoals } = settings;
+  const { settings, updateSettings } = useSettings();
+  const { clinicianGoalHistory } = settings;
 
   // Get clinician from URL if provided (for back navigation from session history)
   const clinicianIdFromUrl = searchParams.get('clinician');
@@ -1006,6 +1178,24 @@ export const ClinicianDetailsTab: React.FC = () => {
 
   // Toggle for sessions view (monthly total vs weekly average)
   const [showWeeklyAvg, setShowWeeklyAvg] = useState(false);
+
+  // Goal editor modal state - now handles one goal type at a time
+  const [showGoalEditor, setShowGoalEditor] = useState(false);
+  const [editingGoalType, setEditingGoalType] = useState<GoalType | null>(null);
+  const [editingPeriodId, setEditingPeriodId] = useState<string | null>(null);
+  const [goalFormData, setGoalFormData] = useState({
+    startDate: '',
+    endDate: '',
+    value: '',
+  });
+
+  // AI Insight modal state
+  const [showInsightModal, setShowInsightModal] = useState(false);
+
+  // Goals Panel modal state
+  const [showGoalsPanel, setShowGoalsPanel] = useState(false);
+  const [goalsMode, setGoalsMode] = useState<'view' | 'helper'>('view');
+  const [earningsGoalInput, setEarningsGoalInput] = useState('');
 
   // Track if we're in spotlight mode (clinician has been selected)
   const isSpotlightMode = selectedClinician !== null;
@@ -1084,6 +1274,162 @@ export const ClinicianDetailsTab: React.FC = () => {
   const handlePeriodSelect = (periodId: TimePeriod) => {
     setTimePeriod(periodId);
     setIsTimeDropdownOpen(false);
+  };
+
+  // ==========================================================================
+  // GOAL EDITOR HANDLERS (per-goal-type)
+  // ==========================================================================
+
+  // Goal type display names and units
+  const goalTypeConfig: Record<GoalType, { label: string; unit: string; unitSuffix: string }> = {
+    sessionGoal: { label: 'Session Goal', unit: 'sessions', unitSuffix: '/week' },
+    clientGoal: { label: 'Caseload Goal', unit: 'clients', unitSuffix: '' },
+    takeRate: { label: 'Take Rate', unit: '%', unitSuffix: '' },
+  };
+
+  // Get current value for a goal type
+  const getCurrentGoalValue = (goalType: GoalType): number => {
+    if (!masterClinicianData) return 0;
+    switch (goalType) {
+      case 'sessionGoal': return masterClinicianData.sessionGoal;
+      case 'clientGoal': return masterClinicianData.clientGoal;
+      case 'takeRate': return masterClinicianData.takeRate;
+    }
+  };
+
+  // Get periods for a specific goal type
+  const getPeriodsForGoalType = (goalType: GoalType): SingleGoalPeriod[] => {
+    if (!masterClinicianData) return [];
+    return getGoalTypePeriods(masterClinicianData.id, goalType, clinicianGoalHistory);
+  };
+
+  // Open goal editor for a specific goal type (new period)
+  const openGoalEditor = (goalType: GoalType) => {
+    if (!masterClinicianData) return;
+    const today = new Date().toISOString().split('T')[0];
+    setEditingGoalType(goalType);
+    setEditingPeriodId(null);
+    setGoalFormData({
+      startDate: today,
+      endDate: '',
+      value: String(getCurrentGoalValue(goalType)),
+    });
+    setShowGoalEditor(true);
+  };
+
+  // Open goal editor to edit an existing period
+  const openGoalEditorForEdit = (goalType: GoalType, period: SingleGoalPeriod) => {
+    setEditingGoalType(goalType);
+    setEditingPeriodId(period.id);
+    setGoalFormData({
+      startDate: period.startDate,
+      endDate: period.endDate || '',
+      value: String(period.value),
+    });
+    setShowGoalEditor(true);
+  };
+
+  // Save goal period (create new or update existing)
+  const saveGoalPeriod = () => {
+    if (!masterClinicianData || !editingGoalType) return;
+
+    const value = editingGoalType === 'takeRate'
+      ? parseFloat(goalFormData.value)
+      : parseInt(goalFormData.value, 10);
+
+    if (isNaN(value)) return;
+    if (!goalFormData.startDate) return;
+
+    const clinicianId = masterClinicianData.id;
+    const clinicianHistory = clinicianGoalHistory[clinicianId] || {};
+    const existingPeriods = clinicianHistory[editingGoalType] || [];
+
+    const newPeriod: SingleGoalPeriod = {
+      id: editingPeriodId || generateGoalPeriodId(),
+      startDate: goalFormData.startDate,
+      endDate: goalFormData.endDate || null,
+      value,
+    };
+
+    let updatedPeriods: SingleGoalPeriod[];
+
+    if (editingPeriodId) {
+      // Update existing period
+      updatedPeriods = existingPeriods.map(p =>
+        p.id === editingPeriodId ? newPeriod : p
+      );
+    } else {
+      // Adding new period - close the previous current period if exists
+      updatedPeriods = existingPeriods.map(p => {
+        if (p.endDate === null && newPeriod.endDate === null) {
+          // Close the old current period at the day before new one starts
+          const endDate = new Date(newPeriod.startDate);
+          endDate.setDate(endDate.getDate() - 1);
+          return { ...p, endDate: endDate.toISOString().split('T')[0] };
+        }
+        return p;
+      });
+      updatedPeriods.push(newPeriod);
+    }
+
+    // Sort by startDate descending
+    updatedPeriods.sort((a, b) => b.startDate.localeCompare(a.startDate));
+
+    const updatedHistory: ClinicianGoalHistory = {
+      ...clinicianGoalHistory,
+      [clinicianId]: {
+        ...clinicianHistory,
+        [editingGoalType]: updatedPeriods,
+      },
+    };
+
+    updateSettings({ clinicianGoalHistory: updatedHistory });
+    setShowGoalEditor(false);
+    setEditingPeriodId(null);
+    setEditingGoalType(null);
+  };
+
+  // Delete a goal period
+  const deleteGoalPeriod = (goalType: GoalType, periodId: string) => {
+    if (!masterClinicianData) return;
+
+    const clinicianId = masterClinicianData.id;
+    const clinicianHistory = clinicianGoalHistory[clinicianId] || {};
+    const existingPeriods = clinicianHistory[goalType] || [];
+    const updatedPeriods = existingPeriods.filter(p => p.id !== periodId);
+
+    const updatedHistory: ClinicianGoalHistory = {
+      ...clinicianGoalHistory,
+      [clinicianId]: {
+        ...clinicianHistory,
+        [goalType]: updatedPeriods,
+      },
+    };
+
+    updateSettings({ clinicianGoalHistory: updatedHistory });
+  };
+
+  // Close goal editor
+  const closeGoalEditor = () => {
+    setShowGoalEditor(false);
+    setEditingPeriodId(null);
+    setEditingGoalType(null);
+  };
+
+  // Format date for display
+  const formatDateDisplay = (dateStr: string | null): string => {
+    if (!dateStr) return 'Present';
+    const date = new Date(dateStr + 'T00:00:00');
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
+  // Format value based on goal type
+  const formatGoalValue = (goalType: GoalType, value: number): string => {
+    const config = goalTypeConfig[goalType];
+    if (goalType === 'takeRate') {
+      return `${value}%`;
+    }
+    return `${value}${config.unitSuffix}`;
   };
 
   const healthConfig = selectedClinician ? HEALTH_CONFIG[selectedClinician.healthStatus] : null;
@@ -1198,18 +1544,20 @@ export const ClinicianDetailsTab: React.FC = () => {
   const sessionData = selectedClinician ? CLINICIAN_SESSION_DATA[selectedClinician.id] : null;
 
   // Get master clinician data for goals (sessionGoal = weekly, clientGoal = caseload target)
-  // Merge with any overrides from settings context
+  // Uses new goal history format with date ranges, falls back to defaults
   const masterClinicianData = useMemo(() => {
     if (!selectedClinician) return null;
     const master = MASTER_CLINICIANS.find(c => c.id === String(selectedClinician.id));
     if (!master) return null;
-    const goals = getClinicianGoals(
+    // Get current goals (date = null means current)
+    const goals = getClinicianGoalsForDate(
       master.id,
+      null, // current
       { sessionGoal: master.sessionGoal, clientGoal: master.clientGoal, takeRate: master.takeRate },
-      clinicianGoals
+      clinicianGoalHistory
     );
     return { ...master, ...goals };
-  }, [selectedClinician, clinicianGoals]);
+  }, [selectedClinician, clinicianGoalHistory]);
 
   // Session bar chart data (monthly totals)
   const sessionBarData = useMemo(() => {
@@ -1756,6 +2104,154 @@ export const ClinicianDetailsTab: React.FC = () => {
       },
     ];
   }, [retentionData]);
+
+  // ==========================================================================
+  // DYNAMIC AI INSIGHT GENERATOR
+  // ==========================================================================
+  // Generates context-aware insights based on health status and specific metrics
+
+  const dynamicInsight = useMemo(() => {
+    if (!selectedClinician || !sessionData || !caseloadData || !retentionData || !complianceData) {
+      return selectedClinician?.insight || '';
+    }
+
+    const healthStatus = selectedClinician.healthStatus;
+    const issues: string[] = [];
+    const strengths: string[] = [];
+
+    // Analyze key metrics
+    const rebookRate = retentionData.currentRebookRate;
+    const practiceAvgRebook = retentionData.practiceAvgRebookRate;
+    const overdueNotes = complianceData.overdueNotes;
+    const avgWeekly = avgWeeklySessions;
+    const goalWeekly = masterClinicianData?.sessionGoal ? Math.round(masterClinicianData.sessionGoal / 4.33) : 20;
+    const sessionGoalPercent = goalWeekly > 0 ? Math.round((avgWeekly / goalWeekly) * 100) : 100;
+    const clientGoal = masterClinicianData?.clientGoal || 30;
+    const caseloadPercent = Math.round((currentActiveClients / clientGoal) * 100);
+    const conversionRate = overallConversionRate;
+    const practiceAvgConversion = 60; // Practice average
+    const month3Retention = retentionData.month3ReturnRate;
+    const practiceMonth3 = retentionData.practiceAvgMonth3Return;
+
+    // Calculate trends (comparing last 3 months to previous 3)
+    const recentSessions = sessionData.monthlySessions.slice(-3);
+    const previousSessions = sessionData.monthlySessions.slice(-6, -3);
+    const recentAvg = recentSessions.reduce((sum, m) => sum + m.completed, 0) / 3;
+    const previousAvg = previousSessions.length > 0
+      ? previousSessions.reduce((sum, m) => sum + m.completed, 0) / 3
+      : recentAvg;
+    const sessionTrend = previousAvg > 0 ? Math.round(((recentAvg - previousAvg) / previousAvg) * 100) : 0;
+
+    // Identify issues (ordered by severity)
+    if (overdueNotes >= 15) {
+      issues.push(`${overdueNotes} notes overdue—compliance risk`);
+    } else if (overdueNotes >= 8) {
+      issues.push(`${overdueNotes} notes need attention`);
+    }
+
+    if (rebookRate < practiceAvgRebook - 10) {
+      issues.push(`Rebook rate ${rebookRate}% is ${practiceAvgRebook - rebookRate}% below average`);
+    } else if (rebookRate < practiceAvgRebook - 5) {
+      issues.push(`Rebook rate slightly below practice average`);
+    }
+
+    if (sessionGoalPercent < 70) {
+      issues.push(`Session volume at ${sessionGoalPercent}% of goal`);
+    } else if (sessionGoalPercent < 85) {
+      issues.push(`Sessions trending ${100 - sessionGoalPercent}% below target`);
+    }
+
+    if (caseloadPercent < 70) {
+      issues.push(`Caseload at ${caseloadPercent}% capacity`);
+    }
+
+    if (conversionRate < practiceAvgConversion - 15) {
+      issues.push(`Conversion rate ${conversionRate}% needs improvement`);
+    }
+
+    if (month3Retention < practiceMonth3 - 10) {
+      issues.push(`Early retention dropping at month 3`);
+    }
+
+    if (sessionTrend < -15) {
+      issues.push(`Session volume down ${Math.abs(sessionTrend)}% vs prior quarter`);
+    }
+
+    // Identify strengths
+    if (rebookRate >= practiceAvgRebook + 5) {
+      strengths.push(`Rebook rate ${rebookRate}% exceeds practice by ${rebookRate - practiceAvgRebook}%`);
+    }
+
+    if (sessionGoalPercent >= 105) {
+      strengths.push(`Exceeding session goal by ${sessionGoalPercent - 100}%`);
+    } else if (sessionGoalPercent >= 95) {
+      strengths.push(`Consistently hitting session targets`);
+    }
+
+    if (caseloadPercent >= 95) {
+      strengths.push(`Caseload at full capacity`);
+    } else if (caseloadPercent >= 85) {
+      strengths.push(`Strong caseload utilization`);
+    }
+
+    if (conversionRate >= practiceAvgConversion + 10) {
+      strengths.push(`${conversionRate}% conversion rate—top performer`);
+    }
+
+    if (overdueNotes <= 2) {
+      strengths.push(`Excellent note compliance`);
+    }
+
+    if (month3Retention >= practiceMonth3 + 8) {
+      strengths.push(`Strong early client retention`);
+    }
+
+    if (sessionTrend > 10) {
+      strengths.push(`Session volume up ${sessionTrend}% this quarter`);
+    }
+
+    // Generate verbose, narrative insight based on health status
+    const clinicianFirstName = selectedClinician.name.split(' ')[0];
+
+    if (healthStatus === 'critical') {
+      // Critical: Urgent, detailed narrative about what's wrong and what to do
+      if (issues.length >= 3) {
+        return `${clinicianFirstName} requires immediate attention. Primary concerns include ${issues[0].toLowerCase()}, ${issues[1].toLowerCase()}, and ${issues[2].toLowerCase()}. This combination of factors suggests systemic challenges that need to be addressed through a structured improvement plan. Recommend scheduling a one-on-one within the next 48 hours to discuss workload, support needs, and establish clear milestones for the next 30 days.`;
+      } else if (issues.length >= 2) {
+        return `${clinicianFirstName}'s performance metrics indicate urgent intervention is needed. Specifically, ${issues[0].toLowerCase()} and ${issues[1].toLowerCase()}. These issues are compounding and affecting overall productivity. A direct conversation this week is essential to understand root causes and create an actionable recovery plan with weekly check-ins.`;
+      } else if (issues.length === 1) {
+        return `${clinicianFirstName} has a critical flag that needs immediate attention: ${issues[0].toLowerCase()}. While other metrics may be acceptable, this issue alone warrants a focused intervention. Schedule time this week to discuss barriers and develop a concrete plan to address this within the next two weeks.`;
+      }
+      return `${clinicianFirstName}'s overall performance has fallen below acceptable thresholds across multiple dimensions. A comprehensive review is recommended to identify systemic issues and create a structured improvement plan with clear milestones and regular accountability check-ins.`;
+    }
+
+    if (healthStatus === 'attention') {
+      // Attention: Balanced narrative acknowledging concerns while noting positives
+      const mainIssue = issues[0] || 'some metrics are trending below expectations';
+      if (strengths.length > 0 && issues.length > 1) {
+        return `${clinicianFirstName} shows mixed performance this period. On the concern side, ${mainIssue.toLowerCase()} and ${issues[1].toLowerCase()}. However, there are bright spots: ${strengths[0].toLowerCase()}. The recommended approach is to have a supportive check-in focused on understanding what's driving the dip and whether additional resources or schedule adjustments could help. Monitor weekly for the next month.`;
+      } else if (strengths.length > 0) {
+        return `${clinicianFirstName} has an area requiring attention: ${mainIssue.toLowerCase()}. That said, ${strengths[0].toLowerCase()}, which demonstrates underlying capability. This suggests the issue may be situational rather than systemic. A brief touchpoint to understand context and offer support would be valuable. Keep monitoring over the next 2-3 weeks.`;
+      }
+      return `${clinicianFirstName} needs monitoring. ${mainIssue.charAt(0).toUpperCase() + mainIssue.slice(1)}${issues[1] ? `, and ${issues[1].toLowerCase()}` : ''}. While not yet critical, these trends warrant attention before they escalate. Consider a casual check-in to assess workload and well-being, with follow-up in two weeks to review progress.`;
+    }
+
+    // Healthy: Celebratory, detailed narrative about what's going well
+    if (strengths.length >= 3) {
+      const watchNote = issues.length > 0 ? ` One minor area to keep an eye on: ${issues[0].toLowerCase()}.` : '';
+      return `${clinicianFirstName} is performing exceptionally well. ${strengths[0]}, ${strengths[1].toLowerCase()}, and ${strengths[2].toLowerCase()}. This consistent excellence across multiple dimensions makes ${clinicianFirstName} a valuable team contributor and potential mentor for newer clinicians.${watchNote}`;
+    } else if (strengths.length >= 2) {
+      const watchNote = issues.length > 0 ? ` Minor watch item: ${issues[0].toLowerCase()}.` : '';
+      return `${clinicianFirstName} continues to deliver strong results. Notably, ${strengths[0].toLowerCase()} and ${strengths[1].toLowerCase()}. This sustained performance reflects good clinical practices and client relationship management. Keep up the positive momentum.${watchNote}`;
+    } else if (strengths.length === 1) {
+      return `${clinicianFirstName} is performing well overall, with particular strength in: ${strengths[0].toLowerCase()}. All other metrics are within healthy ranges. Continue current approach and consider sharing successful strategies with the broader team.`;
+    }
+
+    return `${clinicianFirstName} is maintaining solid, consistent performance across all key metrics. No immediate concerns or interventions needed. Continue regular supervision cadence and acknowledge steady contribution to the practice.`;
+  }, [
+    selectedClinician, sessionData, caseloadData, retentionData, complianceData,
+    avgWeeklySessions, masterClinicianData, currentActiveClients, overallConversionRate
+  ]);
 
   return (
     <>
@@ -2305,105 +2801,31 @@ export const ClinicianDetailsTab: React.FC = () => {
                         </div>
                       )}
                     </div>
-                  </div>
-                </div>
 
-                {/* ROW 2: Metadata Cards + AI Insight */}
-                <div className="flex flex-col lg:flex-row items-stretch gap-6 lg:gap-8">
-
-                  {/* Metadata Cards - Clean grid layout (4 items) */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 lg:gap-4">
-                    {/* Tenure */}
-                    <div
-                      className="px-5 py-5 rounded-2xl flex flex-col"
-                      style={{
-                        background: 'rgba(255, 255, 255, 0.06)',
-                        border: '1px solid rgba(255, 255, 255, 0.08)',
-                      }}
-                    >
-                      <div className="flex items-center justify-between h-5 mb-2">
-                        <p className="text-stone-400 text-sm uppercase tracking-wider">Tenure</p>
-                      </div>
-                      <p className="text-white text-lg lg:text-xl font-semibold">{selectedClinician.tenure}</p>
-                    </div>
-
-                    {/* Take Rate */}
-                    <div
-                      className="px-5 py-5 rounded-2xl flex flex-col"
-                      style={{
-                        background: 'rgba(255, 255, 255, 0.06)',
-                        border: '1px solid rgba(255, 255, 255, 0.08)',
-                      }}
-                    >
-                      <div className="flex items-center justify-between h-5 mb-2">
-                        <p className="text-stone-400 text-sm uppercase tracking-wider">Take Rate</p>
-                      </div>
-                      <p className="text-white text-lg lg:text-xl font-semibold">{selectedClinician.takeRate}%</p>
-                    </div>
-
-                    {/* Session Goal - Clickable */}
+                    {/* Goals Button */}
                     <button
-                      onClick={() => navigate('/configure?tab=clinician-goals')}
-                      className="px-5 py-5 rounded-2xl text-left transition-all duration-200 hover:scale-[1.02] group flex flex-col"
+                      onClick={() => {
+                        setGoalsMode('view');
+                        setShowGoalsPanel(true);
+                      }}
+                      className="group flex items-center gap-2.5 px-5 py-3 rounded-2xl transition-all duration-300 hover:scale-[1.02]"
                       style={{
-                        background: 'rgba(251, 191, 36, 0.1)',
-                        border: '1px solid rgba(251, 191, 36, 0.2)',
+                        background: 'linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(251, 191, 36, 0.08) 100%)',
+                        border: '1px solid rgba(251, 191, 36, 0.25)',
+                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255,255,255,0.05)',
                       }}
                     >
-                      <div className="flex items-center justify-between h-5 mb-2">
-                        <p className="text-amber-400/80 text-sm uppercase tracking-wider">Session Goal</p>
-                        <Settings size={14} className="text-amber-400/60 group-hover:text-amber-400 transition-colors" />
-                      </div>
-                      <p className="text-amber-100 text-lg lg:text-xl font-semibold">
-                        {masterClinicianData?.sessionGoal || '-'}/week
-                      </p>
-                    </button>
-
-                    {/* Caseload Goal - Clickable */}
-                    <button
-                      onClick={() => navigate('/configure?tab=clinician-goals')}
-                      className="px-5 py-5 rounded-2xl text-left transition-all duration-200 hover:scale-[1.02] group flex flex-col"
-                      style={{
-                        background: 'rgba(251, 191, 36, 0.1)',
-                        border: '1px solid rgba(251, 191, 36, 0.2)',
-                      }}
-                    >
-                      <div className="flex items-center justify-between h-5 mb-2">
-                        <p className="text-amber-400/80 text-sm uppercase tracking-wider">Caseload Goal</p>
-                        <Settings size={14} className="text-amber-400/60 group-hover:text-amber-400 transition-colors" />
-                      </div>
-                      <p className="text-amber-100 text-lg lg:text-xl font-semibold">
-                        {masterClinicianData?.clientGoal || '-'} clients
-                      </p>
-                    </button>
-                  </div>
-
-                  {/* AI Insight - Editorial quote style */}
-                  <div
-                    className="flex-1 px-6 py-5 rounded-2xl relative overflow-hidden"
-                    style={{
-                      background: 'linear-gradient(135deg, rgba(251, 191, 36, 0.08) 0%, rgba(251, 191, 36, 0.03) 100%)',
-                      border: '1px solid rgba(251, 191, 36, 0.15)',
-                    }}
-                  >
-                    {/* Decorative quote mark */}
-                    <div
-                      className="absolute -top-2 left-4 text-7xl leading-none opacity-20 pointer-events-none"
-                      style={{ fontFamily: "'DM Serif Display', Georgia, serif", color: '#f59e0b' }}
-                    >
-                      "
-                    </div>
-                    <div className="relative">
-                      <p className="text-amber-100/60 text-xs uppercase tracking-wider mb-2">AI Insight</p>
-                      <p
-                        className="text-stone-200 text-lg lg:text-xl leading-relaxed"
+                      <Target size={18} className="text-amber-400" strokeWidth={1.5} />
+                      <span
+                        className="text-amber-100 text-[15px] font-semibold tracking-[-0.01em]"
                         style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                       >
-                        {selectedClinician.insight}
-                      </p>
-                    </div>
+                        Goals
+                      </span>
+                    </button>
                   </div>
                 </div>
+
               </div>
             </>
           )}
@@ -2714,20 +3136,11 @@ export const ClinicianDetailsTab: React.FC = () => {
                 <BarChart
                   data={clinicianCancellationsBarData}
                   mode="single"
-                  getBarColor={(value) => {
-                    const avg = totalClinicianCancelled / 12;
-                    return value > avg * 1.5
-                      ? {
-                          gradient: 'linear-gradient(180deg, #f87171 0%, #dc2626 100%)',
-                          shadow: '0 4px 12px -2px rgba(220, 38, 38, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
-                          textColor: 'text-red-600',
-                        }
-                      : {
-                          gradient: 'linear-gradient(180deg, #60a5fa 0%, #2563eb 100%)',
-                          shadow: '0 4px 12px -2px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
-                          textColor: 'text-blue-600',
-                        };
-                  }}
+                  getBarColor={() => ({
+                    gradient: 'linear-gradient(180deg, #f87171 0%, #dc2626 100%)',
+                    shadow: '0 4px 12px -2px rgba(220, 38, 38, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
+                    textColor: 'text-red-600',
+                  })}
                   formatValue={(v) => Math.round(v).toString()}
                   yAxisLabels={(maxVal) => {
                     const max = Math.ceil(maxVal);
@@ -3166,7 +3579,7 @@ export const ClinicianDetailsTab: React.FC = () => {
 
                         {/* Client Info */}
                         <div className="flex-1 min-w-0">
-                          <p className="text-stone-900 font-semibold text-base truncate">{note.clientName}</p>
+                          <p className="text-stone-900 font-semibold text-base truncate">{formatFullName(note.clientName)}</p>
                           <p className="text-stone-600 text-sm">{note.sessionDate} · {note.sessionType}</p>
                         </div>
 
@@ -3531,6 +3944,919 @@ export const ClinicianDetailsTab: React.FC = () => {
             size="lg"
           />
         </ExpandedChartModal>
+      )}
+
+      {/* AI Insight Modal - Dark Editorial Design */}
+      {showInsightModal && selectedClinician && (
+        <div
+          className="fixed inset-0 z-[100000] flex items-center justify-center p-4 sm:p-6"
+          style={{ animation: 'fade-in 0.2s ease-out' }}
+        >
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0"
+            onClick={() => setShowInsightModal(false)}
+            style={{
+              background: 'rgba(12, 10, 9, 0.9)',
+              backdropFilter: 'blur(16px)',
+            }}
+          />
+
+          {/* Modal */}
+          <div
+            className="relative w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col"
+            style={{
+              background: 'linear-gradient(180deg, #292524 0%, #1c1917 100%)',
+              borderRadius: '24px',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              boxShadow: '0 25px 60px -12px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255,255,255,0.05) inset',
+              animation: 'scale-fade-in 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+            }}
+          >
+            {/* Ambient glow based on health status */}
+            <div
+              className="absolute top-0 left-0 w-64 h-64 opacity-30 pointer-events-none"
+              style={{
+                background: selectedClinician.healthStatus === 'critical'
+                  ? 'radial-gradient(ellipse at 0% 0%, rgba(239,68,68,0.4) 0%, transparent 60%)'
+                  : selectedClinician.healthStatus === 'attention'
+                    ? 'radial-gradient(ellipse at 0% 0%, rgba(251,191,36,0.3) 0%, transparent 60%)'
+                    : 'radial-gradient(ellipse at 0% 0%, rgba(16,185,129,0.3) 0%, transparent 60%)',
+              }}
+            />
+
+            {/* Header */}
+            <div className="relative px-6 sm:px-8 pt-6 pb-4 flex-shrink-0">
+              <button
+                onClick={() => setShowInsightModal(false)}
+                className="absolute top-5 right-5 p-2 rounded-full hover:bg-white/10 transition-all duration-200 group"
+              >
+                <X size={18} className="text-stone-500 group-hover:text-white transition-colors" />
+              </button>
+
+              {/* Status badge */}
+              <div
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-4"
+                style={{
+                  background: selectedClinician.healthStatus === 'critical'
+                    ? 'rgba(239, 68, 68, 0.15)'
+                    : selectedClinician.healthStatus === 'attention'
+                      ? 'rgba(251, 191, 36, 0.15)'
+                      : 'rgba(16, 185, 129, 0.15)',
+                  boxShadow: `0 0 20px ${
+                    selectedClinician.healthStatus === 'critical'
+                      ? 'rgba(239,68,68,0.2)'
+                      : selectedClinician.healthStatus === 'attention'
+                        ? 'rgba(251,191,36,0.15)'
+                        : 'rgba(16,185,129,0.15)'
+                  }`,
+                }}
+              >
+                <div
+                  className="w-2 h-2 rounded-full"
+                  style={{
+                    background: selectedClinician.healthStatus === 'critical'
+                      ? '#ef4444'
+                      : selectedClinician.healthStatus === 'attention'
+                        ? '#fbbf24'
+                        : '#10b981',
+                    boxShadow: `0 0 8px ${
+                      selectedClinician.healthStatus === 'critical'
+                        ? 'rgba(239,68,68,0.6)'
+                        : selectedClinician.healthStatus === 'attention'
+                          ? 'rgba(251,191,36,0.5)'
+                          : 'rgba(16,185,129,0.5)'
+                    }`,
+                  }}
+                />
+                <span
+                  className="text-[11px] font-semibold uppercase tracking-wider"
+                  style={{
+                    color: selectedClinician.healthStatus === 'critical'
+                      ? '#fca5a5'
+                      : selectedClinician.healthStatus === 'attention'
+                        ? '#fcd34d'
+                        : '#6ee7b7',
+                  }}
+                >
+                  {selectedClinician.healthStatus === 'critical'
+                    ? 'Action Required'
+                    : selectedClinician.healthStatus === 'attention'
+                      ? 'Needs Attention'
+                      : 'Performing Well'}
+                </span>
+              </div>
+
+              {/* Title */}
+              <h2
+                className="text-2xl sm:text-3xl text-white tracking-tight"
+                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+              >
+                {selectedClinician.name.split(' ')[0]}'s Performance
+              </h2>
+              <p className="text-stone-500 text-sm mt-1">
+                AI-generated analysis · {getCurrentPeriodLabel()}
+              </p>
+            </div>
+
+            {/* Content - scrollable */}
+            <div className="relative flex-1 overflow-y-auto px-6 sm:px-8 pb-6">
+              {/* Main insight text */}
+              <div
+                className="rounded-2xl p-5 sm:p-6"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.03)',
+                  border: '1px solid rgba(255, 255, 255, 0.06)',
+                }}
+              >
+                <p
+                  className="text-stone-200 leading-[1.9] text-[16px] sm:text-[17px]"
+                  style={{ letterSpacing: '0.015em' }}
+                >
+                  {dynamicInsight}
+                </p>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div
+              className="px-6 sm:px-8 py-4 flex-shrink-0"
+              style={{
+                background: 'rgba(0, 0, 0, 0.2)',
+                borderTop: '1px solid rgba(255, 255, 255, 0.05)',
+              }}
+            >
+              <p className="text-stone-600 text-xs text-center">
+                Analysis based on current period data
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Goals Panel Modal - Cortexa Design System Compliant */}
+      {showGoalsPanel && selectedClinician && financialData && (
+        <div
+          className="fixed inset-0 z-[100000] flex items-center justify-center p-4"
+          style={{ animation: 'fade-in 0.2s ease-out' }}
+        >
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0"
+            onClick={() => setShowGoalsPanel(false)}
+            style={{
+              background: 'rgba(28, 25, 23, 0.75)',
+              backdropFilter: 'blur(8px)',
+            }}
+          />
+
+          {/* Modal - Expanded width for better readability */}
+          <div
+            className="relative w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col bg-white"
+            style={{
+              borderRadius: '20px',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              animation: 'scale-fade-in 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+            }}
+          >
+            {/* Amber accent bar - per design system */}
+            <div
+              className="absolute top-0 left-0 right-0 h-1"
+              style={{
+                background: 'linear-gradient(90deg, #f59e0b 0%, #fbbf24 50%, #f59e0b 100%)',
+              }}
+            />
+
+            {/* Header */}
+            <div className="relative px-8 pt-8 pb-5">
+              <button
+                onClick={() => setShowGoalsPanel(false)}
+                className="absolute top-5 right-5 p-2.5 rounded-full hover:bg-stone-100 transition-all duration-200"
+              >
+                <X size={20} className="text-stone-400 hover:text-stone-600 transition-colors" />
+              </button>
+
+              <div
+                className="w-12 h-12 rounded-xl flex items-center justify-center mb-4"
+                style={{
+                  background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+                  boxShadow: '0 2px 8px rgba(251, 191, 36, 0.25)',
+                }}
+              >
+                <Target size={24} className="text-amber-700" />
+              </div>
+
+              <h2
+                className="text-3xl font-bold text-stone-900 tracking-tight"
+                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+              >
+                Goals
+              </h2>
+              <p className="text-stone-500 text-base mt-1">{selectedClinician.name}</p>
+            </div>
+
+            {/* Mode Toggle - larger and more prominent */}
+            <div className="px-8 pb-5">
+              <div
+                className="flex p-1.5 rounded-xl"
+                style={{ background: 'rgba(0, 0, 0, 0.05)' }}
+              >
+                <button
+                  onClick={() => setGoalsMode('view')}
+                  className={`flex-1 flex items-center justify-center gap-2.5 py-3 px-5 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                    goalsMode === 'view'
+                      ? 'bg-white text-stone-900 shadow-sm'
+                      : 'text-stone-500 hover:text-stone-700'
+                  }`}
+                >
+                  <Target size={16} />
+                  Current Goals
+                </button>
+                <button
+                  onClick={() => setGoalsMode('helper')}
+                  className={`flex-1 flex items-center justify-center gap-2.5 py-3 px-5 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                    goalsMode === 'helper'
+                      ? 'bg-white text-stone-900 shadow-sm'
+                      : 'text-stone-500 hover:text-stone-700'
+                  }`}
+                >
+                  <Calculator size={16} />
+                  Goal Helper
+                </button>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto px-8 pb-8">
+              {goalsMode === 'view' ? (
+                <div className="space-y-4">
+                  {/* Sessions Goal - White card with blue accent */}
+                  <button
+                    onClick={() => {
+                      setShowGoalsPanel(false);
+                      openGoalEditor('sessionGoal');
+                    }}
+                    className="w-full group"
+                  >
+                    <div
+                      className="relative p-5 rounded-2xl text-left transition-all duration-200 hover:shadow-lg hover:scale-[1.01] overflow-hidden"
+                      style={{
+                        background: 'white',
+                        boxShadow: '0 2px 12px -2px rgba(0, 0, 0, 0.08)',
+                        border: '1px solid rgba(0, 0, 0, 0.06)',
+                      }}
+                    >
+                      {/* Left accent bar */}
+                      <div
+                        className="absolute left-0 top-0 bottom-0 w-1.5 rounded-l-2xl"
+                        style={{ background: '#3b82f6' }}
+                      />
+                      <div className="flex items-center justify-between pl-4">
+                        <div className="flex items-center gap-5">
+                          <div
+                            className="w-14 h-14 rounded-xl flex items-center justify-center"
+                            style={{ background: '#eff6ff' }}
+                          >
+                            <Activity size={24} className="text-blue-600" />
+                          </div>
+                          <div>
+                            <p className="text-stone-500 text-sm font-semibold uppercase tracking-wide mb-1">Sessions</p>
+                            <div className="flex items-baseline gap-2">
+                              <span
+                                className="text-stone-900 text-3xl font-bold"
+                                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                              >
+                                {masterClinicianData?.sessionGoal || '-'}
+                              </span>
+                              <span className="text-stone-500 text-base font-medium">per week</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Pencil size={18} className="text-stone-400" />
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+
+                  {/* Caseload Goal - White card with emerald accent */}
+                  <button
+                    onClick={() => {
+                      setShowGoalsPanel(false);
+                      openGoalEditor('clientGoal');
+                    }}
+                    className="w-full group"
+                  >
+                    <div
+                      className="relative p-5 rounded-2xl text-left transition-all duration-200 hover:shadow-lg hover:scale-[1.01] overflow-hidden"
+                      style={{
+                        background: 'white',
+                        boxShadow: '0 2px 12px -2px rgba(0, 0, 0, 0.08)',
+                        border: '1px solid rgba(0, 0, 0, 0.06)',
+                      }}
+                    >
+                      {/* Left accent bar */}
+                      <div
+                        className="absolute left-0 top-0 bottom-0 w-1.5 rounded-l-2xl"
+                        style={{ background: '#10b981' }}
+                      />
+                      <div className="flex items-center justify-between pl-4">
+                        <div className="flex items-center gap-5">
+                          <div
+                            className="w-14 h-14 rounded-xl flex items-center justify-center"
+                            style={{ background: '#ecfdf5' }}
+                          >
+                            <Users size={24} className="text-emerald-600" />
+                          </div>
+                          <div>
+                            <p className="text-stone-500 text-sm font-semibold uppercase tracking-wide mb-1">Caseload</p>
+                            <div className="flex items-baseline gap-2">
+                              <span
+                                className="text-stone-900 text-3xl font-bold"
+                                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                              >
+                                {masterClinicianData?.clientGoal || '-'}
+                              </span>
+                              <span className="text-stone-500 text-base font-medium">clients</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Pencil size={18} className="text-stone-400" />
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+
+                  {/* Take Rate - White card with violet accent */}
+                  <button
+                    onClick={() => {
+                      setShowGoalsPanel(false);
+                      openGoalEditor('takeRate');
+                    }}
+                    className="w-full group"
+                  >
+                    <div
+                      className="relative p-5 rounded-2xl text-left transition-all duration-200 hover:shadow-lg hover:scale-[1.01] overflow-hidden"
+                      style={{
+                        background: 'white',
+                        boxShadow: '0 2px 12px -2px rgba(0, 0, 0, 0.08)',
+                        border: '1px solid rgba(0, 0, 0, 0.06)',
+                      }}
+                    >
+                      {/* Left accent bar */}
+                      <div
+                        className="absolute left-0 top-0 bottom-0 w-1.5 rounded-l-2xl"
+                        style={{ background: '#8b5cf6' }}
+                      />
+                      <div className="flex items-center justify-between pl-4">
+                        <div className="flex items-center gap-5">
+                          <div
+                            className="w-14 h-14 rounded-xl flex items-center justify-center"
+                            style={{ background: '#f5f3ff' }}
+                          >
+                            <TrendingUp size={24} className="text-violet-600" />
+                          </div>
+                          <div>
+                            <p className="text-stone-500 text-sm font-semibold uppercase tracking-wide mb-1">Take Rate</p>
+                            <div className="flex items-baseline gap-2">
+                              <span
+                                className="text-stone-900 text-3xl font-bold"
+                                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                              >
+                                {masterClinicianData?.takeRate || '-'}
+                              </span>
+                              <span className="text-stone-500 text-base font-medium">%</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Pencil size={18} className="text-stone-400" />
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+
+                  {/* Helper prompt - subtle stone background */}
+                  <div
+                    className="mt-5 p-5 rounded-xl text-center"
+                    style={{
+                      background: '#fafaf9',
+                      border: '1px dashed #d6d3d1',
+                    }}
+                  >
+                    <Zap size={24} className="text-amber-500 mx-auto mb-2" />
+                    <p className="text-stone-600 text-base">
+                      Want to calculate goals from an earnings target?
+                    </p>
+                    <button
+                      onClick={() => setGoalsMode('helper')}
+                      className="text-amber-600 text-base font-semibold mt-2 hover:text-amber-700 transition-colors inline-flex items-center gap-1.5"
+                    >
+                      Try the Goal Helper
+                      <ArrowRight size={16} />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* HELPER MODE: Earnings-based goal calculator */
+                <div>
+                  {/* Reference Values - Clear pill badges */}
+                  <div className="flex gap-3 mb-5">
+                    <div
+                      className="flex-1 px-4 py-3 rounded-xl"
+                      style={{
+                        background: 'white',
+                        boxShadow: '0 1px 4px rgba(0, 0, 0, 0.06)',
+                        border: '1px solid rgba(0, 0, 0, 0.06)',
+                      }}
+                    >
+                      <p className="text-stone-400 text-xs font-medium uppercase tracking-wide mb-1">Take Rate</p>
+                      <p className="text-stone-900 text-xl font-bold">{masterClinicianData?.takeRate || 50}%</p>
+                    </div>
+                    <div
+                      className="flex-1 px-4 py-3 rounded-xl"
+                      style={{
+                        background: 'white',
+                        boxShadow: '0 1px 4px rgba(0, 0, 0, 0.06)',
+                        border: '1px solid rgba(0, 0, 0, 0.06)',
+                      }}
+                    >
+                      <p className="text-stone-400 text-xs font-medium uppercase tracking-wide mb-1">Avg Session</p>
+                      <p className="text-stone-900 text-xl font-bold">${financialData.avgRevenuePerSession}</p>
+                    </div>
+                  </div>
+
+                  {/* Earnings Input Card - Warm amber tint */}
+                  <div
+                    className="p-6 rounded-2xl mb-6"
+                    style={{
+                      background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)',
+                      border: '1px solid #fde68a',
+                    }}
+                  >
+                    <p className="text-amber-800 text-base font-semibold mb-4">
+                      Monthly Earnings Target
+                    </p>
+
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-amber-600 text-3xl font-bold">$</span>
+                      <input
+                        type="number"
+                        value={earningsGoalInput}
+                        onChange={(e) => setEarningsGoalInput(e.target.value)}
+                        placeholder="8,000"
+                        className="flex-1 bg-transparent text-5xl font-bold text-stone-900 outline-none placeholder:text-amber-300/60 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                      />
+                      <span className="text-amber-700 text-xl font-medium">/mo</span>
+                    </div>
+                  </div>
+
+                  {/* Calculated Goals */}
+                  {earningsGoalInput && parseFloat(earningsGoalInput) > 0 && (() => {
+                    const earningsGoal = parseFloat(earningsGoalInput);
+                    const takeRate = (masterClinicianData?.takeRate || 50) / 100;
+                    const avgSessionValue = financialData.avgRevenuePerSession;
+                    const avgSessionsPerClient = caseloadData?.sessionFrequency
+                      ? (caseloadData.sessionFrequency.weekly * 4 + caseloadData.sessionFrequency.biweekly * 2 + caseloadData.sessionFrequency.monthly * 1) /
+                        (caseloadData.sessionFrequency.weekly + caseloadData.sessionFrequency.biweekly + caseloadData.sessionFrequency.monthly + caseloadData.sessionFrequency.inconsistent || 1)
+                      : 2.5;
+
+                    const grossRevenue = earningsGoal / takeRate;
+                    const sessionsPerMonth = Math.ceil(grossRevenue / avgSessionValue);
+                    const sessionsPerWeek = Math.ceil(sessionsPerMonth / 4.33);
+                    const clientsNeeded = Math.ceil(sessionsPerMonth / avgSessionsPerClient);
+
+                    return (
+                      <div className="space-y-4">
+                        <p className="text-stone-500 text-sm font-semibold uppercase tracking-wide">Calculated Goals</p>
+
+                        {/* Sessions per Week - Primary result with blue accent */}
+                        <div
+                          className="relative p-5 rounded-2xl flex items-center justify-between overflow-hidden"
+                          style={{
+                            background: 'white',
+                            boxShadow: '0 2px 12px -2px rgba(0, 0, 0, 0.08)',
+                            border: '1px solid rgba(0, 0, 0, 0.06)',
+                          }}
+                        >
+                          <div
+                            className="absolute left-0 top-0 bottom-0 w-1.5"
+                            style={{ background: '#3b82f6' }}
+                          />
+                          <div className="flex items-center gap-4 pl-3">
+                            <div
+                              className="w-12 h-12 rounded-xl flex items-center justify-center"
+                              style={{ background: '#eff6ff' }}
+                            >
+                              <Activity size={22} className="text-blue-600" />
+                            </div>
+                            <span className="text-stone-700 text-base font-medium">Sessions per Week</span>
+                          </div>
+                          <span
+                            className="text-stone-900 text-3xl font-bold"
+                            style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                          >
+                            {sessionsPerWeek}
+                          </span>
+                        </div>
+
+                        {/* Sessions per Month - Secondary */}
+                        <div
+                          className="relative p-5 rounded-2xl flex items-center justify-between overflow-hidden"
+                          style={{
+                            background: 'white',
+                            boxShadow: '0 2px 12px -2px rgba(0, 0, 0, 0.08)',
+                            border: '1px solid rgba(0, 0, 0, 0.06)',
+                          }}
+                        >
+                          <div
+                            className="absolute left-0 top-0 bottom-0 w-1.5"
+                            style={{ background: '#3b82f6' }}
+                          />
+                          <div className="flex items-center gap-4 pl-3">
+                            <div
+                              className="w-12 h-12 rounded-xl flex items-center justify-center"
+                              style={{ background: '#eff6ff' }}
+                            >
+                              <Activity size={22} className="text-blue-600" />
+                            </div>
+                            <span className="text-stone-700 text-base font-medium">Sessions per Month</span>
+                          </div>
+                          <span
+                            className="text-stone-900 text-3xl font-bold"
+                            style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                          >
+                            {sessionsPerMonth}
+                          </span>
+                        </div>
+
+                        {/* Clients Needed - Primary result with emerald accent */}
+                        <div
+                          className="relative p-5 rounded-2xl flex items-center justify-between overflow-hidden"
+                          style={{
+                            background: 'white',
+                            boxShadow: '0 2px 12px -2px rgba(0, 0, 0, 0.08)',
+                            border: '1px solid rgba(0, 0, 0, 0.06)',
+                          }}
+                        >
+                          <div
+                            className="absolute left-0 top-0 bottom-0 w-1.5"
+                            style={{ background: '#10b981' }}
+                          />
+                          <div className="flex items-center gap-4 pl-3">
+                            <div
+                              className="w-12 h-12 rounded-xl flex items-center justify-center"
+                              style={{ background: '#ecfdf5' }}
+                            >
+                              <Users size={22} className="text-emerald-600" />
+                            </div>
+                            <span className="text-stone-700 text-base font-medium">Minimum Clients</span>
+                          </div>
+                          <span
+                            className="text-stone-900 text-3xl font-bold"
+                            style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                          >
+                            {clientsNeeded}
+                          </span>
+                        </div>
+
+                        {/* Apply Button */}
+                        <button
+                          onClick={() => {
+                            const clinicianId = selectedClinician.id.toString();
+                            const todayStr = new Date().toISOString().split('T')[0];
+                            const clinicianHistory = settings.clinicianGoalHistory[clinicianId] || {};
+
+                            // Close any existing current periods (set endDate)
+                            const existingSessionPeriods = (clinicianHistory.sessionGoal || []).map(p =>
+                              p.endDate === null ? { ...p, endDate: todayStr } : p
+                            );
+                            const existingClientPeriods = (clinicianHistory.clientGoal || []).map(p =>
+                              p.endDate === null ? { ...p, endDate: todayStr } : p
+                            );
+
+                            // Create new periods
+                            const sessionGoalPeriod: SingleGoalPeriod = {
+                              id: generateGoalPeriodId(),
+                              startDate: todayStr,
+                              endDate: null,
+                              value: sessionsPerWeek,
+                            };
+                            const clientGoalPeriod: SingleGoalPeriod = {
+                              id: generateGoalPeriodId(),
+                              startDate: todayStr,
+                              endDate: null,
+                              value: clientsNeeded,
+                            };
+
+                            // Update settings
+                            const updatedHistory: ClinicianGoalHistory = {
+                              ...settings.clinicianGoalHistory,
+                              [clinicianId]: {
+                                ...clinicianHistory,
+                                sessionGoal: [...existingSessionPeriods, sessionGoalPeriod],
+                                clientGoal: [...existingClientPeriods, clientGoalPeriod],
+                              },
+                            };
+
+                            updateSettings({ clinicianGoalHistory: updatedHistory });
+                            setShowGoalsPanel(false);
+                            setEarningsGoalInput('');
+                          }}
+                          className="w-full mt-5 py-4 rounded-xl font-semibold text-base transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                          style={{
+                            background: 'linear-gradient(180deg, #f59e0b 0%, #d97706 100%)',
+                            color: 'white',
+                            boxShadow: '0 4px 12px rgba(217, 119, 6, 0.3), inset 0 1px 0 rgba(255,255,255,0.2)',
+                          }}
+                        >
+                          Apply These Goals
+                        </button>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Empty state */}
+                  {(!earningsGoalInput || parseFloat(earningsGoalInput) <= 0) && (
+                    <div
+                      className="py-16 px-6 rounded-2xl text-center"
+                      style={{ background: '#fafaf9' }}
+                    >
+                      <Calculator size={40} className="text-stone-300 mx-auto mb-4" />
+                      <p className="text-stone-500 text-base">
+                        Enter an earnings target above to calculate goals
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Goal Editor Modal - Premium Editorial Design */}
+      {showGoalEditor && editingGoalType && (
+        <div
+          className="fixed inset-0 z-[100000] flex items-center justify-center p-4"
+          style={{ animation: 'fade-in 0.2s ease-out' }}
+        >
+          {/* Backdrop with subtle pattern */}
+          <div
+            className="absolute inset-0"
+            onClick={closeGoalEditor}
+            style={{
+              background: 'rgba(12, 10, 9, 0.75)',
+              backdropFilter: 'blur(8px)',
+            }}
+          />
+
+          {/* Modal */}
+          <div
+            className="relative w-full max-w-md max-h-[85vh] overflow-hidden flex flex-col"
+            style={{
+              background: 'linear-gradient(180deg, #FAFAF9 0%, #FFFFFF 100%)',
+              borderRadius: '20px',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(0,0,0,0.05)',
+              animation: 'scale-fade-in 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+            }}
+          >
+            {/* Decorative top accent */}
+            <div
+              className="absolute top-0 left-0 right-0 h-1"
+              style={{
+                background: 'linear-gradient(90deg, #f59e0b 0%, #fbbf24 50%, #f59e0b 100%)',
+              }}
+            />
+
+            {/* Header */}
+            <div className="relative px-6 pt-6 pb-4">
+              <button
+                onClick={closeGoalEditor}
+                className="absolute top-4 right-4 p-2 rounded-full hover:bg-stone-100 transition-all duration-200 group"
+              >
+                <X size={18} className="text-stone-400 group-hover:text-stone-600 transition-colors" />
+              </button>
+
+              {/* Goal type icon */}
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center mb-3"
+                style={{
+                  background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+                  boxShadow: '0 2px 8px rgba(251, 191, 36, 0.25)',
+                }}
+              >
+                {editingGoalType === 'sessionGoal' && <Activity size={20} className="text-amber-700" />}
+                {editingGoalType === 'clientGoal' && <Users size={20} className="text-amber-700" />}
+                {editingGoalType === 'takeRate' && <TrendingUp size={20} className="text-amber-700" />}
+              </div>
+
+              <h2
+                className="text-2xl font-bold text-stone-900 tracking-tight"
+                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+              >
+                {goalTypeConfig[editingGoalType].label}
+              </h2>
+              <p className="text-stone-500 text-sm mt-0.5">
+                {masterClinicianData?.name}
+              </p>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto px-6 pb-6">
+              {/* Goal Input Card */}
+              <div
+                className="rounded-2xl p-5 mb-6"
+                style={{
+                  background: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.5), 0 1px 3px rgba(0,0,0,0.05)',
+                }}
+              >
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                  <span className="text-[11px] font-semibold text-amber-700 uppercase tracking-wider">
+                    {editingPeriodId ? 'Edit Period' : 'New Goal'}
+                  </span>
+                </div>
+
+                {/* Big Value Input */}
+                <div className="mb-5">
+                  <div className="flex items-baseline gap-2">
+                    <div className="relative inline-flex">
+                      <span
+                        className="invisible text-4xl font-bold px-1"
+                        style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                      >
+                        {goalFormData.value || '0'}
+                      </span>
+                      <input
+                        type="number"
+                        min={editingGoalType === 'takeRate' ? '0' : '1'}
+                        max={editingGoalType === 'takeRate' ? '100' : undefined}
+                        step={editingGoalType === 'takeRate' ? '0.1' : '1'}
+                        value={goalFormData.value}
+                        onChange={(e) => setGoalFormData({ ...goalFormData, value: e.target.value })}
+                        placeholder="0"
+                        className="absolute inset-0 w-full bg-transparent text-4xl font-bold text-stone-900 outline-none placeholder:text-stone-300 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                      />
+                    </div>
+                    <span className="text-lg text-amber-700/70 font-medium">
+                      {editingGoalType === 'sessionGoal' && '/week'}
+                      {editingGoalType === 'clientGoal' && 'clients'}
+                      {editingGoalType === 'takeRate' && '%'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Date Range */}
+                <div className="grid grid-cols-2 gap-3">
+                  <SmartDateInput
+                    value={goalFormData.startDate}
+                    onChange={(date) => setGoalFormData({ ...goalFormData, startDate: date })}
+                    label="From"
+                    placeholder="Jan 1, 2025"
+                  />
+                  <SmartDateInput
+                    value={goalFormData.endDate}
+                    onChange={(date) => setGoalFormData({ ...goalFormData, endDate: date })}
+                    label="Until"
+                    hint="(optional)"
+                    placeholder="Ongoing"
+                    allowEmpty
+                  />
+                </div>
+
+                {/* Save Button */}
+                <button
+                  onClick={saveGoalPeriod}
+                  className="w-full mt-5 py-3 rounded-xl font-semibold text-sm transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                  style={{
+                    background: 'linear-gradient(180deg, #f59e0b 0%, #d97706 100%)',
+                    color: 'white',
+                    boxShadow: '0 2px 8px rgba(217, 119, 6, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
+                  }}
+                >
+                  {editingPeriodId ? 'Update Goal' : 'Save Goal'}
+                </button>
+              </div>
+
+              {/* History Section */}
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-[11px] font-semibold text-stone-500 uppercase tracking-wider">History</span>
+                  <div className="flex-1 h-px bg-stone-200" />
+                </div>
+
+                {(() => {
+                  const periods = getPeriodsForGoalType(editingGoalType);
+                  if (periods.length === 0) {
+                    return (
+                      <div
+                        className="py-8 px-4 rounded-xl text-center"
+                        style={{ background: 'linear-gradient(180deg, #FAFAF9 0%, #F5F5F4 100%)' }}
+                      >
+                        <div className="w-10 h-10 rounded-full bg-stone-200 flex items-center justify-center mx-auto mb-3">
+                          <Calendar size={18} className="text-stone-400" />
+                        </div>
+                        <p className="text-stone-500 text-sm">No history yet</p>
+                        <p className="text-stone-400 text-xs mt-1">Using default from profile</p>
+                      </div>
+                    );
+                  }
+                  return (
+                    <div className="space-y-2">
+                      {periods.map((period, index) => (
+                        <div
+                          key={period.id}
+                          className="group relative"
+                          style={{ animationDelay: `${index * 50}ms` }}
+                        >
+                          {/* Connector line */}
+                          {index < periods.length - 1 && (
+                            <div
+                              className="absolute left-[11px] top-8 bottom-0 w-0.5"
+                              style={{ background: 'linear-gradient(180deg, #e7e5e4 0%, #d6d3d1 100%)' }}
+                            />
+                          )}
+
+                          <div className="flex items-start gap-3">
+                            {/* Timeline dot */}
+                            <div
+                              className={`relative z-10 mt-1.5 w-[22px] h-[22px] rounded-full flex items-center justify-center flex-shrink-0 ${
+                                period.endDate === null
+                                  ? 'bg-gradient-to-br from-amber-400 to-amber-500 shadow-[0_2px_8px_rgba(251,191,36,0.4)]'
+                                  : 'bg-stone-200'
+                              }`}
+                            >
+                              {period.endDate === null && (
+                                <div className="w-2 h-2 rounded-full bg-white" />
+                              )}
+                            </div>
+
+                            {/* Content card */}
+                            <div
+                              className={`flex-1 p-3 rounded-xl transition-all duration-200 ${
+                                period.endDate === null
+                                  ? 'bg-gradient-to-br from-amber-50 to-orange-50 ring-1 ring-amber-200/50'
+                                  : 'bg-stone-50 ring-1 ring-stone-200/50 hover:ring-stone-300/50'
+                              }`}
+                            >
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span
+                                      className="text-xl font-bold text-stone-900"
+                                      style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                                    >
+                                      {formatGoalValue(editingGoalType, period.value)}
+                                    </span>
+                                    {period.endDate === null && (
+                                      <span
+                                        className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full"
+                                        style={{
+                                          background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
+                                          color: '#78350f',
+                                        }}
+                                      >
+                                        Active
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="text-xs text-stone-500 mt-0.5">
+                                    {formatDateDisplay(period.startDate)} → {formatDateDisplay(period.endDate)}
+                                  </p>
+                                </div>
+
+                                {/* Actions */}
+                                <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <button
+                                    onClick={() => openGoalEditorForEdit(editingGoalType, period)}
+                                    className="p-1.5 rounded-lg hover:bg-white/80 transition-colors"
+                                  >
+                                    <Pencil size={13} className="text-stone-400 hover:text-stone-600" />
+                                  </button>
+                                  <button
+                                    onClick={() => deleteGoalPeriod(editingGoalType, period.id)}
+                                    className="p-1.5 rounded-lg hover:bg-red-50 transition-colors"
+                                  >
+                                    <X size={13} className="text-stone-400 hover:text-red-500" />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );

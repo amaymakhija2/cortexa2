@@ -22,6 +22,7 @@ import {
   formatConsultationDate,
   getNextAction,
   getClientInitials,
+  formatClientName,
   isConsultationPast,
   isConsultationToday,
   getDaysSince,
@@ -804,7 +805,7 @@ const KanbanCard: React.FC<KanbanCardProps> = ({
               className="text-lg font-semibold text-stone-900 truncate leading-tight"
               style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
             >
-              {consultation.firstName} {consultation.lastName}
+              {formatClientName(consultation.firstName, consultation.lastName)}
             </h4>
             <p className="text-sm text-stone-500 truncate mt-0.5">
               {consultation.clinicianName}

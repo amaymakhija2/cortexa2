@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Calendar, Check } from 'lucide-react';
 import { PageHeader } from './design-system';
 import { CLINICIANS as MASTER_CLINICIANS } from '../data/clinicians';
+import { formatFullName } from '../types/consultations';
 
 // =============================================================================
 // CLIENT ROSTER COMPONENT
@@ -307,7 +308,7 @@ export const ClientRoster: React.FC = () => {
                           {/* Name & clinician */}
                           <div className="min-w-0">
                             <h3 className="text-base text-stone-900 font-bold truncate" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
-                              {client.name}
+                              {formatFullName(client.name)}
                             </h3>
                             <p className="text-stone-500 text-xs truncate">{client.clinicianShort}</p>
                           </div>
@@ -364,7 +365,7 @@ export const ClientRoster: React.FC = () => {
                         </div>
                         <div className="min-w-0">
                           <h3 className="text-lg text-stone-900 font-bold truncate" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
-                            {client.name}
+                            {formatFullName(client.name)}
                           </h3>
                           <div className="flex items-center gap-2 mt-0.5">
                             <div className={`w-2.5 h-2.5 rounded-full ${statusColor.dot}`} />

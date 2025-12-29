@@ -381,6 +381,21 @@ export function getClientInitials(firstName: string, lastName: string): string {
   return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
 }
 
+// Format client name as "FirstName L." for privacy-conscious display
+export function formatClientName(firstName: string, lastName: string): string {
+  const lastInitial = lastName.charAt(0).toUpperCase();
+  return `${firstName} ${lastInitial}.`;
+}
+
+// Format a full name string (e.g., "John Doe") as "FirstName L."
+export function formatFullName(fullName: string): string {
+  const parts = fullName.trim().split(/\s+/);
+  if (parts.length < 2) return fullName;
+  const firstName = parts[0];
+  const lastName = parts[parts.length - 1];
+  return `${firstName} ${lastName.charAt(0).toUpperCase()}.`;
+}
+
 export function isConsultationPast(datetime: string): boolean {
   return new Date(datetime) < new Date();
 }

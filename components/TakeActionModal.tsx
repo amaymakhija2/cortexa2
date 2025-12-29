@@ -33,6 +33,7 @@ import type {
 import {
   formatConsultationDate,
   getClientInitials,
+  formatClientName,
 } from '../types/consultations';
 import { useSettings, getFollowUpIntervals } from '../context/SettingsContext';
 
@@ -1450,7 +1451,7 @@ export const TakeActionModal: React.FC<TakeActionModalProps> = ({
             </div>
             <div>
               <h2 className="text-xl font-bold text-stone-900" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
-                {consultation.firstName} {consultation.lastName}
+                {formatClientName(consultation.firstName, consultation.lastName)}
               </h2>
               <p className="text-sm text-stone-500 mt-0.5">with {consultation.clinicianName}</p>
             </div>
@@ -1472,7 +1473,7 @@ export const TakeActionModal: React.FC<TakeActionModalProps> = ({
               <SuccessConfirmation
                 key="success"
                 success={successState}
-                clientName={`${consultation.firstName} ${consultation.lastName}`}
+                clientName={formatClientName(consultation.firstName, consultation.lastName)}
                 onClose={onClose}
               />
             ) : consultation.stage === 'no_show' && step === 'main' ? (

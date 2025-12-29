@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Maximize2 } from 'lucide-react';
+import { formatFullName } from '../../../types/consultations';
 
 // =============================================================================
 // CLIENT ROSTER CARD COMPONENT
@@ -238,7 +239,7 @@ export const ClientRosterCard: React.FC<ClientRosterCardProps> = ({
                         className="text-lg font-semibold text-stone-900"
                         style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                       >
-                        {client.name}
+                        {formatFullName(client.name)}
                       </h4>
                       <div className="flex items-center gap-2 mt-1">
                         <div className={`w-2 h-2 rounded-full ${statusColor.dot}`}></div>

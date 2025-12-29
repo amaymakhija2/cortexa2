@@ -1,6 +1,7 @@
 import React from 'react';
 import { ChevronRight, Phone } from 'lucide-react';
 import { ActionableClientListCard, Badge, ClientRowProps } from './ActionableClientListCard';
+import { formatFullName } from '../../../types/consultations';
 
 // =============================================================================
 // AT-RISK CLIENTS CARD
@@ -94,7 +95,7 @@ const AtRiskClientRow: React.FC<ClientRowProps<AtRiskClient>> = ({
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <span className="font-semibold text-stone-900 truncate">
-              {client.name}
+              {formatFullName(client.name)}
             </span>
             <span
               className={`text-xs px-2 py-0.5 rounded-full ${riskConfig.bgColor} ${riskConfig.textColor} font-medium`}
