@@ -7,6 +7,7 @@ import { useIsMobile } from '../hooks/useIsMobile';
 import { ToggleButton, GoalIndicator, ActionButton } from './design-system';
 import { FinancialAnalysisTab, SessionsAnalysisTab, CapacityClientTab, RetentionTab, InsuranceTab, AdminTab, ConsultationsAnalysisTab } from './analysis';
 import { ClientRoster } from './ClientRoster';
+import { useDemoData } from '../context/DemoContext';
 // Note: Clinician last names in chart data (Chen, Rodriguez, Patel, Kim, Johnson)
 // match master list in data/clinicians.ts
 
@@ -533,6 +534,9 @@ export const PracticeAnalysis: React.FC = () => {
   const isMobile = useIsMobile(1024);
   const [searchParams] = useSearchParams();
 
+  // Get demo data from context
+  const demoData = useDemoData();
+
   // Read active tab from URL search params (managed by UnifiedNavigation)
   const activeTab = (searchParams.get('tab') || 'clients') as TabType;
   const [hoveredSessionValue, setHoveredSessionValue] = useState<number | null>(null);
@@ -679,25 +683,43 @@ export const PracticeAnalysis: React.FC = () => {
   };
 
 
+  // ==========================================================================
+  // DATA SOURCE: Use demo data when available, fall back to inline constants
+  // ==========================================================================
+  const sourceRevenueData = demoData?.monthlyData?.revenue ?? ALL_REVENUE_DATA;
+  const sourceSessionsData = demoData?.monthlyData?.sessions ?? ALL_SESSIONS_DATA;
+  const sourceClinicianRevenueData = demoData?.monthlyData?.clinicianRevenue ?? ALL_CLINICIAN_REVENUE_DATA;
+  const sourceClinicianSessionsData = demoData?.monthlyData?.clinicianSessions ?? ALL_CLINICIAN_SESSIONS_DATA;
+  const sourceRevenueBreakdownData = demoData?.monthlyData?.revenueBreakdown ?? ALL_REVENUE_BREAKDOWN_DATA;
+  const sourceClientGrowthData = demoData?.monthlyData?.clientGrowth ?? ALL_CLIENT_GROWTH_DATA;
+  const sourceChurnByClinicianData = demoData?.monthlyData?.churnByClinician ?? ALL_CHURN_BY_CLINICIAN_DATA;
+  const sourceChurnTimingData = demoData?.monthlyData?.churn ?? ALL_CHURN_TIMING_DATA;
+  const sourceARAgingData = demoData?.monthlyData?.arAging ?? ALL_CLIENT_BALANCE_AGING_DATA;
+  const sourceClaimsStatusData = demoData?.monthlyData?.claimsStatus ?? ALL_CLAIMS_STATUS_DATA;
+  const sourceNotesStatusData = demoData?.monthlyData?.notesStatus ?? ALL_NOTES_STATUS_DATA;
+  const sourceReminderDeliveryData = demoData?.monthlyData?.reminderDelivery ?? ALL_REMINDER_DELIVERY_DATA;
+  const sourceConsultationsData = demoData?.monthlyData?.consultations ?? ALL_CONSULTATIONS_DATA;
+  const sourceConsultationsByClinicianData = demoData?.monthlyData?.consultationsByClinician ?? ALL_CONSULTATIONS_BY_CLINICIAN_DATA;
+
   // Memoized filtered data
-  const REVENUE_DATA = useMemo(() => getDataForPeriod(ALL_REVENUE_DATA, timePeriod), [timePeriod, customStartMonth, customEndMonth, customStartYear, customEndYear]);
-  const SESSIONS_DATA = useMemo(() => getDataForPeriod(ALL_SESSIONS_DATA, timePeriod), [timePeriod, customStartMonth, customEndMonth, customStartYear, customEndYear]);
-  const CLINICIAN_REVENUE_DATA = useMemo(() => getDataForPeriod(ALL_CLINICIAN_REVENUE_DATA, timePeriod), [timePeriod, customStartMonth, customEndMonth, customStartYear, customEndYear]);
-  const CLINICIAN_SESSIONS_DATA = useMemo(() => getDataForPeriod(ALL_CLINICIAN_SESSIONS_DATA, timePeriod), [timePeriod, customStartMonth, customEndMonth, customStartYear, customEndYear]);
-  const REVENUE_BREAKDOWN_DATA = useMemo(() => getDataForPeriod(ALL_REVENUE_BREAKDOWN_DATA, timePeriod), [timePeriod, customStartMonth, customEndMonth, customStartYear, customEndYear]);
-  const CLIENT_GROWTH_DATA = useMemo(() => getDataForPeriod(ALL_CLIENT_GROWTH_DATA, timePeriod), [timePeriod, customStartMonth, customEndMonth, customStartYear, customEndYear]);
-  const CHURN_BY_CLINICIAN_DATA = useMemo(() => getDataForPeriod(ALL_CHURN_BY_CLINICIAN_DATA, timePeriod), [timePeriod, customStartMonth, customEndMonth, customStartYear, customEndYear]);
-  const CHURN_TIMING_DATA = useMemo(() => getDataForPeriod(ALL_CHURN_TIMING_DATA, timePeriod), [timePeriod, customStartMonth, customEndMonth, customStartYear, customEndYear]);
+  const REVENUE_DATA = useMemo(() => getDataForPeriod(sourceRevenueData as typeof ALL_REVENUE_DATA, timePeriod), [sourceRevenueData, timePeriod, customStartMonth, customEndMonth, customStartYear, customEndYear]);
+  const SESSIONS_DATA = useMemo(() => getDataForPeriod(sourceSessionsData as typeof ALL_SESSIONS_DATA, timePeriod), [sourceSessionsData, timePeriod, customStartMonth, customEndMonth, customStartYear, customEndYear]);
+  const CLINICIAN_REVENUE_DATA = useMemo(() => getDataForPeriod(sourceClinicianRevenueData as typeof ALL_CLINICIAN_REVENUE_DATA, timePeriod), [sourceClinicianRevenueData, timePeriod, customStartMonth, customEndMonth, customStartYear, customEndYear]);
+  const CLINICIAN_SESSIONS_DATA = useMemo(() => getDataForPeriod(sourceClinicianSessionsData as typeof ALL_CLINICIAN_SESSIONS_DATA, timePeriod), [sourceClinicianSessionsData, timePeriod, customStartMonth, customEndMonth, customStartYear, customEndYear]);
+  const REVENUE_BREAKDOWN_DATA = useMemo(() => getDataForPeriod(sourceRevenueBreakdownData as typeof ALL_REVENUE_BREAKDOWN_DATA, timePeriod), [sourceRevenueBreakdownData, timePeriod, customStartMonth, customEndMonth, customStartYear, customEndYear]);
+  const CLIENT_GROWTH_DATA = useMemo(() => getDataForPeriod(sourceClientGrowthData as typeof ALL_CLIENT_GROWTH_DATA, timePeriod), [sourceClientGrowthData, timePeriod, customStartMonth, customEndMonth, customStartYear, customEndYear]);
+  const CHURN_BY_CLINICIAN_DATA = useMemo(() => getDataForPeriod(sourceChurnByClinicianData as typeof ALL_CHURN_BY_CLINICIAN_DATA, timePeriod), [sourceChurnByClinicianData, timePeriod, customStartMonth, customEndMonth, customStartYear, customEndYear]);
+  const CHURN_TIMING_DATA = useMemo(() => getDataForPeriod(sourceChurnTimingData as typeof ALL_CHURN_TIMING_DATA, timePeriod), [sourceChurnTimingData, timePeriod, customStartMonth, customEndMonth, customStartYear, customEndYear]);
 
   // Admin Analytics memoized data
-  const CLIENT_BALANCE_AGING_DATA = useMemo(() => getDataForPeriod(ALL_CLIENT_BALANCE_AGING_DATA, timePeriod), [timePeriod, customStartMonth, customEndMonth, customStartYear, customEndYear]);
-  const CLAIMS_STATUS_DATA = useMemo(() => getDataForPeriod(ALL_CLAIMS_STATUS_DATA, timePeriod), [timePeriod, customStartMonth, customEndMonth, customStartYear, customEndYear]);
-  const NOTES_STATUS_DATA = useMemo(() => getDataForPeriod(ALL_NOTES_STATUS_DATA, timePeriod), [timePeriod, customStartMonth, customEndMonth, customStartYear, customEndYear]);
-  const REMINDER_DELIVERY_DATA = useMemo(() => getDataForPeriod(ALL_REMINDER_DELIVERY_DATA, timePeriod), [timePeriod, customStartMonth, customEndMonth, customStartYear, customEndYear]);
+  const CLIENT_BALANCE_AGING_DATA = useMemo(() => getDataForPeriod(sourceARAgingData as typeof ALL_CLIENT_BALANCE_AGING_DATA, timePeriod), [sourceARAgingData, timePeriod, customStartMonth, customEndMonth, customStartYear, customEndYear]);
+  const CLAIMS_STATUS_DATA = useMemo(() => getDataForPeriod(sourceClaimsStatusData as typeof ALL_CLAIMS_STATUS_DATA, timePeriod), [sourceClaimsStatusData, timePeriod, customStartMonth, customEndMonth, customStartYear, customEndYear]);
+  const NOTES_STATUS_DATA = useMemo(() => getDataForPeriod(sourceNotesStatusData as typeof ALL_NOTES_STATUS_DATA, timePeriod), [sourceNotesStatusData, timePeriod, customStartMonth, customEndMonth, customStartYear, customEndYear]);
+  const REMINDER_DELIVERY_DATA = useMemo(() => getDataForPeriod(sourceReminderDeliveryData as typeof ALL_REMINDER_DELIVERY_DATA, timePeriod), [sourceReminderDeliveryData, timePeriod, customStartMonth, customEndMonth, customStartYear, customEndYear]);
 
   // Consultations memoized data
-  const CONSULTATIONS_DATA = useMemo(() => getDataForPeriod(ALL_CONSULTATIONS_DATA, timePeriod), [timePeriod, customStartMonth, customEndMonth, customStartYear, customEndYear]);
-  const CONSULTATIONS_BY_CLINICIAN_DATA = useMemo(() => getDataForPeriod(ALL_CONSULTATIONS_BY_CLINICIAN_DATA, timePeriod), [timePeriod, customStartMonth, customEndMonth, customStartYear, customEndYear]);
+  const CONSULTATIONS_DATA = useMemo(() => getDataForPeriod(sourceConsultationsData as typeof ALL_CONSULTATIONS_DATA, timePeriod), [sourceConsultationsData, timePeriod, customStartMonth, customEndMonth, customStartYear, customEndYear]);
+  const CONSULTATIONS_BY_CLINICIAN_DATA = useMemo(() => getDataForPeriod(sourceConsultationsByClinicianData as typeof ALL_CONSULTATIONS_BY_CLINICIAN_DATA, timePeriod), [sourceConsultationsByClinicianData, timePeriod, customStartMonth, customEndMonth, customStartYear, customEndYear]);
 
   // Calculate session value and cumulative revenue for charts
   const SESSION_VALUE_DATA = useMemo(() =>
@@ -733,16 +755,16 @@ export const PracticeAnalysis: React.FC = () => {
     [SESSIONS_DATA]
   );
 
-  // Client demographics - Gender breakdown
-  const CLIENT_GENDER_DATA = {
+  // Client demographics - Gender breakdown (use demo data or fallback)
+  const CLIENT_GENDER_DATA = demoData?.clients?.demographics?.gender ?? {
     male: 127,
     female: 241,
     other: 18,
     total: 386
   };
 
-  // Session frequency breakdown
-  const SESSION_FREQUENCY_DATA = {
+  // Session frequency breakdown (use demo data or fallback)
+  const SESSION_FREQUENCY_DATA = demoData?.clients?.demographics?.frequency ?? {
     weekly: 198,
     biweekly: 156,
     monthly: 32,

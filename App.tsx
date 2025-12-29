@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { SettingsProvider } from './context/SettingsContext';
+import { DemoProvider } from './context/DemoContext';
 import { ReferralProvider } from './components/referral';
 import { LoginPage } from './components/LoginPage';
 import { OnboardingFlow } from './components/OnboardingFlow';
@@ -17,6 +18,11 @@ import { SessionHistoryPage } from './components/SessionHistoryPage';
 import { Consultations } from './components/Consultations';
 import { Reference as Components } from './components/design-system';
 import { Menu } from 'lucide-react';
+
+// Lazy load DemoManagerPanel for performance - only loaded when needed
+const DemoManagerPanel = lazy(() =>
+  import('./components/DemoManager').then(module => ({ default: module.DemoManagerPanel }))
+);
 
 // =============================================================================
 // MOBILE HEADER COMPONENT
@@ -187,9 +193,14 @@ const App: React.FC = () => {
     <Router>
       <AuthProvider>
         <SettingsProvider>
-          <ReferralProvider>
-            <ProtectedApp />
-          </ReferralProvider>
+          <DemoProvider>
+            <ReferralProvider>
+              <ProtectedApp />
+              <Suspense fallback={null}>
+                <DemoManagerPanel />
+              </Suspense>
+            </ReferralProvider>
+          </DemoProvider>
         </SettingsProvider>
       </AuthProvider>
     </Router>

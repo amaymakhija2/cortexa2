@@ -34,6 +34,7 @@ import {
   getTodaysConsultations,
   getUpcomingConsultations,
 } from '../data/consultations';
+import { useDemoData } from '../context/DemoContext';
 import type {
   Consultation,
   ConsultationStage,
@@ -1375,13 +1376,33 @@ const DevTestingPanel: React.FC<DevTestingPanelProps> = ({
 export const Consultations: React.FC = () => {
   const [selectedSegment, setSelectedSegment] = useState<ConsultationSegment>('action_needed');
   const [selectedConsultation, setSelectedConsultation] = useState<Consultation | null>(null);
-  const [consultations, setConsultations] = useState(MOCK_CONSULTATIONS);
   const [searchQuery, setSearchQuery] = useState('');
   const [showAllTime, setShowAllTime] = useState(false);
   const [transferModalConsultation, setTransferModalConsultation] = useState<Consultation | null>(null);
   const [takeActionConsultation, setTakeActionConsultation] = useState<Consultation | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('kanban');
   const [devTestMode, setDevTestMode] = useState<DevTestMode>('single');
+
+  // Get demo data from context
+  const demoData = useDemoData();
+  const demoPipeline = demoData?.consultations?.pipeline ?? [];
+
+  // Use demo data when available, with type conversion to match component Consultation type
+  const initialConsultations = useMemo(() => {
+    if (demoPipeline.length > 0) {
+      return demoPipeline as unknown as Consultation[];
+    }
+    return MOCK_CONSULTATIONS;
+  }, [demoPipeline]);
+
+  const [consultations, setConsultations] = useState(MOCK_CONSULTATIONS);
+
+  // Sync state when demo data changes
+  React.useEffect(() => {
+    if (demoPipeline.length > 0) {
+      setConsultations(demoPipeline as unknown as Consultation[]);
+    }
+  }, [demoPipeline]);
 
   // Dev testing: Get Emily's current state (only relevant for single client mode)
   const emilyConsultation = consultations.find(c => c.id === 'c1');
@@ -1397,8 +1418,8 @@ export const Consultations: React.FC = () => {
       // Switch to full Kanban data
       setConsultations(generateFullKanbanData());
     } else {
-      // Switch back to single client
-      setConsultations(MOCK_CONSULTATIONS);
+      // Switch back to single client - use demo data if available
+      setConsultations(demoPipeline.length > 0 ? demoPipeline as unknown as Consultation[] : MOCK_CONSULTATIONS);
     }
   };
 

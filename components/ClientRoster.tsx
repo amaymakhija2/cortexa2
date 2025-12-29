@@ -2,6 +2,8 @@ import React, { useState, useMemo } from 'react';
 import { Calendar, Check } from 'lucide-react';
 import { PageHeader } from './design-system';
 import { CLINICIANS as MASTER_CLINICIANS } from '../data/clinicians';
+import { useDemoData } from '../context/DemoContext';
+import type { ClientRosterEntry } from '../data/generators/types';
 
 // =============================================================================
 // CLIENT ROSTER COMPONENT
@@ -132,11 +134,38 @@ const MOCK_CLIENTS: Client[] = [
   { id: 'c3', name: 'Victor Nguyen', initials: 'VN', clinician: 'Dr. James Kim', clinicianShort: 'J. Kim', totalSessions: 15, lastSeenDays: 78, nextAppointment: null, status: 'churned', churnedDate: 'Sep 22' },
 ];
 
+// Helper to convert demo ClientRosterEntry to component Client type
+const mapRosterEntryToClient = (entry: ClientRosterEntry): Client => ({
+  id: entry.id,
+  name: entry.name,
+  initials: entry.initials,
+  clinician: entry.clinician,
+  clinicianShort: entry.clinicianShort,
+  totalSessions: entry.totalSessions,
+  lastSeenDays: entry.lastSeenDays,
+  nextAppointment: entry.nextAppointment,
+  status: entry.status as ClientStatus,
+  milestone: entry.milestone,
+  churnedDate: entry.churnedDate,
+});
+
 export const ClientRoster: React.FC = () => {
   const [selectedSegment, setSelectedSegment] = useState<ClientSegmentId>('at-risk');
 
   // Track which clients have been contacted (email sent)
   const [contactedClients, setContactedClients] = useState<Set<string>>(new Set());
+
+  // Get demo data from context
+  const demoData = useDemoData();
+  const demoRoster = demoData?.clients?.roster ?? [];
+
+  // Use demo data when available, falling back to mock data
+  const allClients = useMemo(() => {
+    if (demoRoster.length > 0) {
+      return demoRoster.map(mapRosterEntryToClient);
+    }
+    return MOCK_CLIENTS;
+  }, [demoRoster]);
 
   const selectedConfig = CLIENT_SEGMENTS.find(s => s.id === selectedSegment)!;
 
@@ -155,24 +184,24 @@ export const ClientRoster: React.FC = () => {
 
   // Filter clients based on selected segment (no reordering on contact status change)
   const filteredClients = useMemo(() => {
-    if (selectedSegment === 'all') return MOCK_CLIENTS;
-    if (selectedSegment === 'healthy') return MOCK_CLIENTS.filter(c => c.status === 'healthy');
-    if (selectedSegment === 'at-risk') return MOCK_CLIENTS.filter(c => c.status === 'at-risk');
-    if (selectedSegment === 'new') return MOCK_CLIENTS.filter(c => c.status === 'new');
-    if (selectedSegment === 'milestone') return MOCK_CLIENTS.filter(c => c.status === 'milestone');
-    if (selectedSegment === 'churned') return MOCK_CLIENTS.filter(c => c.status === 'churned');
-    return MOCK_CLIENTS;
-  }, [selectedSegment]);
+    if (selectedSegment === 'all') return allClients;
+    if (selectedSegment === 'healthy') return allClients.filter(c => c.status === 'healthy');
+    if (selectedSegment === 'at-risk') return allClients.filter(c => c.status === 'at-risk');
+    if (selectedSegment === 'new') return allClients.filter(c => c.status === 'new');
+    if (selectedSegment === 'milestone') return allClients.filter(c => c.status === 'milestone');
+    if (selectedSegment === 'churned') return allClients.filter(c => c.status === 'churned');
+    return allClients;
+  }, [selectedSegment, allClients]);
 
   // Calculate segment counts from actual data
   const segmentCounts: Record<ClientSegmentId, number> = useMemo(() => ({
-    'all': MOCK_CLIENTS.length,
-    'healthy': MOCK_CLIENTS.filter(c => c.status === 'healthy').length,
-    'at-risk': MOCK_CLIENTS.filter(c => c.status === 'at-risk').length,
-    'new': MOCK_CLIENTS.filter(c => c.status === 'new').length,
-    'milestone': MOCK_CLIENTS.filter(c => c.status === 'milestone').length,
-    'churned': MOCK_CLIENTS.filter(c => c.status === 'churned').length,
-  }), []);
+    'all': allClients.length,
+    'healthy': allClients.filter(c => c.status === 'healthy').length,
+    'at-risk': allClients.filter(c => c.status === 'at-risk').length,
+    'new': allClients.filter(c => c.status === 'new').length,
+    'milestone': allClients.filter(c => c.status === 'milestone').length,
+    'churned': allClients.filter(c => c.status === 'churned').length,
+  }), [allClients]);
 
   // Format last seen
   const formatLastSeen = (days: number) => {

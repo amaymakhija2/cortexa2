@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Users, Loader2, Info } from 'lucide-react';
 import {
@@ -11,7 +11,9 @@ import { MonthPicker } from './MonthPicker';
 import { useSettings, getDisplayName } from '../context/SettingsContext';
 import { ClinicianDetailsTab } from './ClinicianDetailsTab';
 import { PageHeader } from './design-system';
-import { CLINICIAN_SYNTHETIC_METRICS, getSyntheticMetricsByName } from '../data/clinicians';
+import { getSyntheticMetricsByName } from '../data/clinicians';
+import { useDemoData } from '../context/DemoContext';
+import type { ClinicianSyntheticMetrics } from '../data/generators/types';
 
 // =============================================================================
 // INFO TOOLTIP COMPONENT
@@ -471,7 +473,12 @@ interface ClinicianData {
 }
 
 // Build clinician data from real calculated metrics
-function buildClinicianData(calculated: ClinicianMetricsCalculated[], periodId: string, anonymize: boolean): ClinicianData[] {
+function buildClinicianData(
+  calculated: ClinicianMetricsCalculated[],
+  periodId: string,
+  anonymize: boolean,
+  getSyntheticMetrics: (name: string) => ClinicianSyntheticMetrics | null = getSyntheticMetricsByName
+): ClinicianData[] {
   // Sort by revenue to assign roles
   const sorted = [...calculated].sort((a, b) => b.revenue - a.revenue);
 
@@ -517,8 +524,8 @@ function buildClinicianData(calculated: ClinicianMetricsCalculated[], periodId: 
     const biweeklyClients = Math.round(activeClients * 0.25);
     const monthlyClients = Math.round(activeClients * 0.15);
 
-    // Get per-clinician synthetic metrics (falls back to defaults if not found)
-    const syntheticMetrics = getSyntheticMetricsByName(calc.clinicianName);
+    // Get per-clinician synthetic metrics (uses demo data when available, falls back to defaults)
+    const syntheticMetrics = getSyntheticMetrics(calc.clinicianName);
 
     // Use per-clinician metrics for attendance, engagement, and retention
     const showRate = syntheticMetrics?.showRate ?? 71;
@@ -642,6 +649,22 @@ export const ClinicianOverview: React.FC = () => {
   // Get settings for demo mode
   const { settings } = useSettings();
 
+  // Get demo data from context
+  const demoData = useDemoData();
+  const demoClinicianMetrics = demoData?.clinicianSyntheticMetrics ?? {};
+  const demoClinicians = demoData?.clinicians ?? [];
+
+  // Helper to get synthetic metrics by clinician name - uses demo data when available
+  const getDemoSyntheticMetrics = useCallback((clinicianName: string): ClinicianSyntheticMetrics | null => {
+    // Try to find clinician in demo data by matching last name
+    const clinician = demoClinicians.find(c => c.lastName === clinicianName || `${c.firstName} ${c.lastName}` === clinicianName);
+    if (clinician && demoClinicianMetrics[clinician.id]) {
+      return demoClinicianMetrics[clinician.id];
+    }
+    // Fall back to original lookup
+    return getSyntheticMetricsByName(clinicianName);
+  }, [demoClinicians, demoClinicianMetrics]);
+
   // For historical view - month/year selection
   const now = new Date();
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
@@ -677,8 +700,8 @@ export const ClinicianOverview: React.FC = () => {
     const calculatedMetrics = clinicianApiData;
     const periodId = viewMode === 'last-12-months' ? 'last-12-months' : 'this-month';
 
-    return buildClinicianData(calculatedMetrics, periodId, settings.anonymizeClinicianNames);
-  }, [clinicianApiData, viewMode, settings.anonymizeClinicianNames]);
+    return buildClinicianData(calculatedMetrics, periodId, settings.anonymizeClinicianNames, getDemoSyntheticMetrics);
+  }, [clinicianApiData, viewMode, settings.anonymizeClinicianNames, getDemoSyntheticMetrics]);
 
   // Switch tabs - keep same view mode except Notes (always live) and Retention (default to last-12-months)
   const handleGroupChange = (groupId: MetricGroupId) => {

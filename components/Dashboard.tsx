@@ -10,11 +10,10 @@ import { CompareTab } from './CompareTab';
 import { PageHeader, SectionHeader } from './design-system';
 import { ReferralBadge, ReferralModal } from './referral';
 import { PracticeMetrics, ConsultationMetricDetail } from '../types';
-import { MOCK_CONSULTATIONS } from '../data/consultations';
 import { useMetrics, useDataDateRange, DashboardMetrics } from '../hooks';
-import { allPriorityCards } from '../data/priorityCardsData';
 import { useSettings, PracticeGoals as PracticeGoalsSettings } from '../context/SettingsContext';
-import { CLINICIANS, CLINICIAN_SYNTHETIC_METRICS } from '../data/clinicians';
+import { useDemoData, useDemoStatus } from '../context/DemoContext';
+import type { Clinician, ClinicianSyntheticMetrics, Consultation, PriorityCard } from '../data/generators/types';
 
 const FULL_MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -28,7 +27,12 @@ const DEFAULT_GOALS = {
 };
 
 // Calculate consultation metrics for a given month
-const getConsultationMetrics = (month: number, year: number, consultationGoal: number): ConsultationMetricDetail => {
+const getConsultationMetrics = (
+  month: number,
+  year: number,
+  consultationGoal: number,
+  consultations: Consultation[]
+): ConsultationMetricDetail => {
   const startOfMonth = new Date(year, month, 1);
   const endOfMonth = new Date(year, month + 1, 0, 23, 59, 59);
 
@@ -39,20 +43,20 @@ const getConsultationMetrics = (month: number, year: number, consultationGoal: n
   };
 
   // Consultations booked this month (by createdAt date)
-  const booked = MOCK_CONSULTATIONS.filter(c => isInMonth(c.createdAt)).length;
+  const booked = consultations.filter(c => isInMonth(c.createdAt)).length;
 
   // Converted this month (by convertedDate)
-  const converted = MOCK_CONSULTATIONS.filter(c =>
+  const converted = consultations.filter(c =>
     c.stage === 'converted' && isInMonth(c.convertedDate)
   ).length;
 
   // Lost this month (by lostDate)
-  const lost = MOCK_CONSULTATIONS.filter(c =>
+  const lost = consultations.filter(c =>
     c.stage === 'lost' && isInMonth(c.lostDate)
   ).length;
 
   // In progress (currently active in the pipeline, not yet converted/lost)
-  const inProgress = MOCK_CONSULTATIONS.filter(c =>
+  const inProgress = consultations.filter(c =>
     ['consult_complete', 'intake_pending', 'intake_scheduled', 'paperwork_pending', 'paperwork_complete'].includes(c.stage)
   ).length;
 
@@ -92,7 +96,15 @@ const getMonthProgress = (month: number, year: number): number => {
 };
 
 // Convert API metrics to PracticeMetrics format for display
-const buildPracticeMetrics = (calc: DashboardMetrics, month: number, year: number, practiceGoals: PracticeGoalsSettings): PracticeMetrics => {
+const buildPracticeMetrics = (
+  calc: DashboardMetrics,
+  month: number,
+  year: number,
+  practiceGoals: PracticeGoalsSettings,
+  clinicians: Clinician[],
+  clinicianSyntheticMetrics: Record<string, ClinicianSyntheticMetrics>,
+  consultations: Consultation[]
+): PracticeMetrics => {
   const monthProgress = getMonthProgress(month, year);
 
   // Use practice goals from settings
@@ -140,13 +152,13 @@ const buildPracticeMetrics = (calc: DashboardMetrics, month: number, year: numbe
   };
 
   // Notes compliance calculations - use actual count from clinician data
-  const activeClinicians = CLINICIANS.filter(c => c.isActive);
+  const activeClinicians = clinicians.filter(c => c.isActive);
   const totalOutstandingNotes = activeClinicians.reduce((sum, c) => {
-    const metrics = CLINICIAN_SYNTHETIC_METRICS[c.id];
+    const metrics = clinicianSyntheticMetrics[c.id];
     return sum + (metrics?.outstandingNotes ?? 0);
   }, 0);
   const totalOverdueNotes = activeClinicians.reduce((sum, c) => {
-    const metrics = CLINICIAN_SYNTHETIC_METRICS[c.id];
+    const metrics = clinicianSyntheticMetrics[c.id];
     return sum + (metrics?.overdueNotes ?? 0);
   }, 0);
   const totalDueSoonNotes = totalOutstandingNotes - totalOverdueNotes;
@@ -172,7 +184,7 @@ const buildPracticeMetrics = (calc: DashboardMetrics, month: number, year: numbe
   const notesSubtext = `${totalOverdueNotes} overdue · ${totalDueSoonNotes} due soon`;
 
   // Get consultation metrics for this month
-  const consultationMetrics = getConsultationMetrics(month, year, DEFAULT_GOALS.monthlyConsultations);
+  const consultationMetrics = getConsultationMetrics(month, year, DEFAULT_GOALS.monthlyConsultations, consultations);
 
   return {
     revenue: {
@@ -236,7 +248,15 @@ export const Dashboard: React.FC = () => {
   const { settings } = useSettings();
   const { practiceGoals } = settings;
 
-  const totalCards = allPriorityCards.length;
+  // Get demo data from context
+  const demoData = useDemoData();
+  const { isLoading: demoLoading } = useDemoStatus();
+  const demoClinicians = demoData?.clinicians ?? [];
+  const demoClinicianMetrics = demoData?.clinicianSyntheticMetrics ?? {};
+  const demoConsultations = demoData?.consultations?.pipeline ?? [];
+  const demoPriorityCards = demoData?.priorityCards ?? [];
+
+  const totalCards = demoPriorityCards.length;
 
   // Get data date range from API
   const { data: dataRange, loading: rangeLoading } = useDataDateRange();
@@ -251,10 +271,18 @@ export const Dashboard: React.FC = () => {
   // Build display metrics when API data is available
   const metrics = useMemo(() => {
     if (!apiMetrics) return null;
-    return buildPracticeMetrics(apiMetrics, activeMonth, activeYear, practiceGoals);
-  }, [apiMetrics, activeMonth, activeYear, practiceGoals]);
+    return buildPracticeMetrics(
+      apiMetrics,
+      activeMonth,
+      activeYear,
+      practiceGoals,
+      demoClinicians,
+      demoClinicianMetrics,
+      demoConsultations
+    );
+  }, [apiMetrics, activeMonth, activeYear, practiceGoals, demoClinicians, demoClinicianMetrics, demoConsultations]);
 
-  const isLoading = metricsLoading || rangeLoading;
+  const isLoading = metricsLoading || rangeLoading || demoLoading;
 
   // Handle month selection from picker
   const handleMonthSelect = (month: number, year: number) => {
@@ -327,7 +355,7 @@ export const Dashboard: React.FC = () => {
     }
   };
 
-  const priorityCards = allPriorityCards.map((card, idx) => (
+  const priorityCards = demoPriorityCards.map((card, idx) => (
     <SimpleAlertCard
       key={card.id}
       index={idx}
