@@ -369,7 +369,7 @@ const OutcomeOptions: React.FC<{
           </div>
           <span className="text-sm font-semibold text-emerald-700">They showed up</span>
         </div>
-        <h3 className="text-3xl font-bold text-stone-900" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+        <h3 className="text-3xl font-bold text-stone-900" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
           What was the outcome?
         </h3>
         <p className="text-stone-500 mt-2">Select what happened during the consultation</p>
@@ -415,7 +415,7 @@ const NoShowRecovery: React.FC<{
       animate={{ opacity: 1, y: 0 }}
     >
       <div className="mb-6">
-        <h3 className="text-2xl font-bold text-stone-900 mb-1" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+        <h3 className="text-2xl font-bold text-stone-900 mb-1" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
           No-Show Recovery
         </h3>
         <p className="text-stone-500">
@@ -614,7 +614,7 @@ const IntakeDatePicker: React.FC<{
           </div>
           <span className="text-sm font-semibold text-amber-700">Scheduling intake</span>
         </div>
-        <h3 className="text-3xl font-bold text-stone-900" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+        <h3 className="text-3xl font-bold text-stone-900" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
           When is the intake?
         </h3>
         <p className="text-stone-500 mt-2">Select the scheduled intake date</p>
@@ -630,7 +630,7 @@ const IntakeDatePicker: React.FC<{
           >
             <ChevronLeft size={20} />
           </button>
-          <h4 className="text-lg font-bold text-stone-900" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+          <h4 className="text-lg font-bold text-stone-900" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
             {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
           </h4>
           <button
@@ -707,7 +707,7 @@ const IntakeDatePicker: React.FC<{
             {/* Date & Time Summary */}
             <div className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl p-4">
               <p className="text-xs font-semibold text-amber-600 uppercase tracking-wider mb-1">Intake scheduled for</p>
-              <p className="text-lg font-bold text-stone-900" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+              <p className="text-lg font-bold text-stone-900" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                 {formatSelectedDate(selectedDate)}
                 {formatSelectedTime() && (
                   <span className="text-amber-700"> at {formatSelectedTime()}</span>
@@ -863,7 +863,7 @@ const LostStageSelector: React.FC<{
         </button>
 
         <div className="mb-6">
-          <h3 className="text-2xl font-bold text-stone-900 mb-1" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+          <h3 className="text-2xl font-bold text-stone-900 mb-1" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
             Why did they drop off?
           </h3>
           <p className="text-stone-500">Select the primary reason (optional but helpful)</p>
@@ -930,7 +930,7 @@ const LostStageSelector: React.FC<{
       exit={{ opacity: 0, scale: 0.98 }}
     >
       <div className="mb-6">
-        <h3 className="text-2xl font-bold text-stone-900 mb-1" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+        <h3 className="text-2xl font-bold text-stone-900 mb-1" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
           Where did they drop off?
         </h3>
         <p className="text-stone-500">This helps us understand conversion patterns</p>
@@ -1039,7 +1039,7 @@ const SuccessConfirmation: React.FC<{
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
         className="text-2xl font-bold text-stone-900 mb-2"
-        style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+        style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
       >
         {success.isConversion ? 'Converted!' : success.isLost ? 'Case Closed' : 'Done'}
       </motion.h3>
@@ -1450,7 +1450,7 @@ export const TakeActionModal: React.FC<TakeActionModalProps> = ({
               {getClientInitials(consultation.firstName, consultation.lastName)}
             </div>
             <div>
-              <h2 className="text-xl font-bold text-stone-900" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+              <h2 className="text-xl font-bold text-stone-900" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                 {formatClientName(consultation.firstName, consultation.lastName)}
               </h2>
               <p className="text-sm text-stone-500 mt-0.5">with {consultation.clinicianName}</p>
@@ -1529,7 +1529,7 @@ export const TakeActionModal: React.FC<TakeActionModalProps> = ({
               >
                 {/* Question */}
                 <div className="mb-8">
-                  <h3 className="text-3xl font-bold text-stone-900" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                  <h3 className="text-3xl font-bold text-stone-900" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                     {config.question}
                   </h3>
                   {config.context && (

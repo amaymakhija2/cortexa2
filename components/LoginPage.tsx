@@ -267,10 +267,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignUp }) => {
 
   return (
     <div className="h-screen w-full flex overflow-hidden">
-      {/* Fonts - using DM Serif Display + DM Sans to match app */}
+      {/* Fonts - using Tiempos Headline + Suisse Intl to match app */}
       <style>{`
         .font-display {
-          font-family: 'DM Serif Display', Georgia, serif;
+          font-family: 'Tiempos Headline', Georgia, serif;
         }
 
         .input-glow:focus {

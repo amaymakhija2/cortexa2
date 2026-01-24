@@ -435,7 +435,6 @@ export const Dashboard: React.FC = () => {
           <div className="flex flex-col pb-4 sm:pb-6 flex-1">
             <SectionHeader
               question="Priority Tasks"
-              description={`${totalCards} items`}
               accent="amber"
               showAccentLine={false}
               compact

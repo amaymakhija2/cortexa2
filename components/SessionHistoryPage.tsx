@@ -183,7 +183,7 @@ export const SessionHistoryPage: React.FC = () => {
               <div>
                 <h1
                   className="text-2xl sm:text-3xl font-bold text-stone-900"
-                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                  style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                 >
                   Session History
                 </h1>

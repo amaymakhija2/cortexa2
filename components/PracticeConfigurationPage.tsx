@@ -294,7 +294,7 @@ const InputField: React.FC<{
           ${prefix ? 'pl-8' : ''}
           ${suffix ? 'pr-12' : ''}
         `}
-        style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+        style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
       />
       {suffix && (
         <span className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 font-medium">
@@ -325,7 +325,7 @@ const SliderInput: React.FC<{
         <span
           className="text-lg font-bold"
           style={{
-            fontFamily: "'DM Serif Display', Georgia, serif",
+            fontFamily: "'Tiempos Headline', Georgia, serif",
             color: `color-mix(in srgb, ${colorStart} ${100 - percentage}%, ${colorEnd})`,
           }}
         >
@@ -406,7 +406,7 @@ const LocationsTab: React.FC<{
           <div>
             <h2
               className="text-3xl font-bold text-stone-800"
-              style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+              style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
             >
               Practice Locations
             </h2>
@@ -461,7 +461,7 @@ const LocationsTab: React.FC<{
                       <div className="flex items-center gap-3 mb-2">
                         <h3
                           className="text-xl font-bold text-stone-800"
-                          style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                          style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                         >
                           {location.name}
                         </h3>
@@ -517,7 +517,7 @@ const LocationsTab: React.FC<{
                 <div className="p-6">
                   <h3
                     className="text-xl font-bold text-stone-800 mb-6"
-                    style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                    style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                   >
                     Add New Location
                   </h3>
@@ -576,7 +576,7 @@ const LocationsTab: React.FC<{
             </div>
             <h3
               className="text-2xl font-bold text-stone-600 mb-2"
-              style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+              style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
             >
               No locations yet
             </h3>
@@ -612,7 +612,7 @@ const TeamMembersTab: React.FC<{
         <div className="mb-8">
           <h2
             className="text-3xl font-bold text-stone-800"
-            style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+            style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
           >
             Team Members
           </h2>
@@ -652,7 +652,7 @@ const TeamMembersTab: React.FC<{
                 <div>
                   <p
                     className="font-semibold text-stone-800"
-                    style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                    style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                   >
                     {clinician.name}
                   </p>
@@ -767,7 +767,7 @@ const TeamStructureTab: React.FC<{
         <div className="mb-8">
           <h2
             className="text-3xl font-bold text-stone-800"
-            style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+            style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
           >
             Team Structure
           </h2>
@@ -839,7 +839,7 @@ const TeamStructureTab: React.FC<{
                       <div>
                         <p
                           className="font-semibold text-stone-800"
-                          style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                          style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                         >
                           {clinician.name}
                         </p>
@@ -911,7 +911,7 @@ const TeamStructureTab: React.FC<{
             </div>
             <h3
               className="text-xl font-bold text-stone-700 mb-2"
-              style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+              style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
             >
               No supervision assignments needed
             </h3>
@@ -961,7 +961,7 @@ const ClinicianGoalsTab: React.FC<{
           <div>
             <h2
               className="text-3xl font-bold text-stone-800"
-              style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+              style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
             >
               Clinician Goals
             </h2>
@@ -1039,7 +1039,7 @@ const ClinicianGoalsTab: React.FC<{
                     <div className="flex-1 min-w-0">
                       <h3
                         className="text-lg font-bold text-stone-800"
-                        style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                        style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                       >
                         {clinician.name}
                       </h3>
@@ -1061,7 +1061,7 @@ const ClinicianGoalsTab: React.FC<{
                             handleUpdateClinician(clinician.id, { sessionGoal: val === '' ? 0 : parseInt(val, 10) });
                           }}
                           className="w-12 bg-transparent text-blue-700 font-bold text-lg text-center focus:outline-none"
-                          style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                          style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                         />
                         <span className="text-blue-400 text-xs font-medium">/wk</span>
                       </div>
@@ -1079,7 +1079,7 @@ const ClinicianGoalsTab: React.FC<{
                             handleUpdateClinician(clinician.id, { clientGoal: val === '' ? 0 : parseInt(val, 10) });
                           }}
                           className="w-12 bg-transparent text-emerald-700 font-bold text-lg text-center focus:outline-none"
-                          style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                          style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                         />
                         <span className="text-emerald-400 text-xs font-medium">clients</span>
                       </div>
@@ -1098,7 +1098,7 @@ const ClinicianGoalsTab: React.FC<{
                             handleUpdateClinician(clinician.id, { takeRate: num });
                           }}
                           className="w-12 bg-transparent text-amber-700 font-bold text-lg text-center focus:outline-none"
-                          style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                          style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                         />
                         <span className="text-amber-400 text-xs font-medium">%</span>
                       </div>
@@ -1122,7 +1122,7 @@ const ClinicianGoalsTab: React.FC<{
             </div>
             <h3
               className="text-2xl font-bold text-stone-600 mb-2"
-              style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+              style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
             >
               No active clinicians
             </h3>
@@ -1159,7 +1159,7 @@ const PracticeGoalsTab: React.FC<{
           <div>
             <h2
               className="text-3xl font-bold text-stone-800"
-              style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+              style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
             >
               Practice Goals
             </h2>
@@ -1214,7 +1214,7 @@ const PracticeGoalsTab: React.FC<{
                     handleChange('monthlyRevenue', val === '' ? 0 : parseInt(val, 10));
                   }}
                   className="w-full pl-12 pr-5 py-5 rounded-xl bg-stone-50 border-2 border-transparent text-4xl font-bold text-stone-800 focus:outline-none focus:border-emerald-300 focus:bg-white transition-all"
-                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                  style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                 />
               </div>
               <p className="text-stone-400 mt-4">
@@ -1247,7 +1247,7 @@ const PracticeGoalsTab: React.FC<{
                   handleChange('monthlySessions', val === '' ? 0 : parseInt(val, 10));
                 }}
                 className="w-full px-5 py-5 rounded-xl bg-stone-50 border-2 border-transparent text-4xl font-bold text-stone-800 focus:outline-none focus:border-blue-300 focus:bg-white transition-all"
-                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
               />
               <p className="text-stone-400 mt-4">
                 That's {Math.round(localGoals.monthlySessions / 4)} sessions/week
@@ -1310,7 +1310,7 @@ const PracticeGoalsTab: React.FC<{
                         : 'bg-stone-50 text-stone-600 hover:bg-stone-100'}
                     `}
                     style={{
-                      fontFamily: "'DM Serif Display', Georgia, serif",
+                      fontFamily: "'Tiempos Headline', Georgia, serif",
                       boxShadow: localGoals.noteDeadlineHours === hours ? '0 4px 16px rgba(139, 92, 246, 0.3)' : 'none',
                     }}
                   >
@@ -1357,7 +1357,7 @@ const ThresholdsTab: React.FC<{
           <div>
             <h2
               className="text-3xl font-bold text-stone-800"
-              style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+              style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
             >
               Metric Definitions
             </h2>
@@ -1475,7 +1475,7 @@ const ThresholdsTab: React.FC<{
                         value={localThresholds.activityThresholdDays}
                         onChange={(e) => handleChange('activityThresholdDays', Math.max(7, Math.min(90, Number(e.target.value))))}
                         className="w-20 px-3 py-2.5 rounded-xl bg-stone-50 border-2 border-transparent text-center text-lg font-bold text-stone-800 focus:outline-none focus:border-amber-300 focus:bg-white transition-all"
-                        style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                        style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                       />
                       <span className="text-stone-500 font-medium">days</span>
                     </div>
@@ -1509,7 +1509,7 @@ const ThresholdsTab: React.FC<{
                       value={localThresholds.atRiskLow}
                       onChange={(e) => handleChange('atRiskLow', Number(e.target.value))}
                       className="w-20 bg-white rounded-xl px-4 py-3 text-3xl font-bold text-emerald-700 border-0 focus:outline-none focus:ring-2 focus:ring-emerald-300"
-                      style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                      style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                     />
                     <span className="text-emerald-600 font-medium">days</span>
                   </div>
@@ -1523,7 +1523,7 @@ const ThresholdsTab: React.FC<{
                       value={localThresholds.atRiskMedium}
                       onChange={(e) => handleChange('atRiskMedium', Number(e.target.value))}
                       className="w-20 bg-white rounded-xl px-4 py-3 text-3xl font-bold text-amber-700 border-0 focus:outline-none focus:ring-2 focus:ring-amber-300"
-                      style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                      style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                     />
                     <span className="text-amber-600 font-medium">days</span>
                   </div>
@@ -1537,7 +1537,7 @@ const ThresholdsTab: React.FC<{
                       value={localThresholds.atRiskHigh}
                       onChange={(e) => handleChange('atRiskHigh', Number(e.target.value))}
                       className="w-20 bg-white rounded-xl px-4 py-3 text-3xl font-bold text-rose-700 border-0 focus:outline-none focus:ring-2 focus:ring-rose-300"
-                      style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                      style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                     />
                     <span className="text-rose-600 font-medium">days</span>
                   </div>
@@ -1572,7 +1572,7 @@ const ThresholdsTab: React.FC<{
                       value={localThresholds.earlyChurnSessions}
                       onChange={(e) => handleChange('earlyChurnSessions', Math.max(1, Number(e.target.value)))}
                       className="w-16 bg-white rounded-lg px-3 py-2 text-xl font-bold text-rose-700 border-0 focus:outline-none focus:ring-2 focus:ring-rose-300 text-center"
-                      style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                      style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                     />
                     <span className="text-rose-500 text-sm">sessions</span>
                   </div>
@@ -1581,7 +1581,7 @@ const ThresholdsTab: React.FC<{
                 <div className="p-5 rounded-xl bg-amber-50 border-2 border-amber-100">
                   <p className="text-sm font-bold text-amber-700 mb-1 uppercase tracking-wide">Medium Churn</p>
                   <p className="text-xs text-amber-500 mb-3">Treatment plateau</p>
-                  <p className="text-xl font-bold text-amber-700" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                  <p className="text-xl font-bold text-amber-700" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                     {localThresholds.earlyChurnSessions} – {localThresholds.lateChurnSessions}
                   </p>
                   <span className="text-amber-500 text-sm">sessions</span>
@@ -1597,7 +1597,7 @@ const ThresholdsTab: React.FC<{
                       value={localThresholds.lateChurnSessions}
                       onChange={(e) => handleChange('lateChurnSessions', Math.max(localThresholds.earlyChurnSessions + 1, Number(e.target.value)))}
                       className="w-16 bg-white rounded-lg px-3 py-2 text-xl font-bold text-emerald-700 border-0 focus:outline-none focus:ring-2 focus:ring-emerald-300 text-center"
-                      style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                      style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                     />
                     <span className="text-emerald-500 text-sm">sessions</span>
                   </div>
@@ -1628,7 +1628,7 @@ const ThresholdsTab: React.FC<{
                     value={localThresholds.lateCancelHours}
                     onChange={(e) => handleChange('lateCancelHours', Math.max(1, Math.min(72, Number(e.target.value))))}
                     className="w-24 bg-stone-50 rounded-xl px-4 py-4 text-3xl font-bold text-stone-800 border-2 border-transparent focus:outline-none focus:border-amber-300 focus:bg-white transition-all text-center"
-                    style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                    style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                   />
                   <span className="text-stone-500 font-medium text-lg">hours before</span>
                 </div>
@@ -1655,7 +1655,7 @@ const ThresholdsTab: React.FC<{
                     value={localThresholds.noteDeadlineDays}
                     onChange={(e) => handleChange('noteDeadlineDays', Math.max(1, Math.min(14, Number(e.target.value))))}
                     className="w-24 bg-stone-50 rounded-xl px-4 py-4 text-3xl font-bold text-stone-800 border-2 border-transparent focus:outline-none focus:border-amber-300 focus:bg-white transition-all text-center"
-                    style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                    style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                   />
                   <span className="text-stone-500 font-medium text-lg">days after session</span>
                 </div>
@@ -1854,7 +1854,7 @@ const ConsultConfigCard: React.FC<{
         <div className="min-w-0 flex-1">
           <h3
             className="text-lg font-bold text-stone-800"
-            style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+            style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
           >
             {title}
           </h3>
@@ -1892,7 +1892,7 @@ const ConsultationFlowTab: React.FC = () => {
           <div>
             <h2
               className="text-3xl font-bold text-stone-800"
-              style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+              style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
             >
               Consultation Pipeline
             </h2>
@@ -2045,7 +2045,7 @@ const ConsultationFlowTab: React.FC = () => {
             <div className="flex-1">
               <h3
                 className="text-xl font-bold mb-2"
-                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
               >
                 Your Pipeline Summary
               </h3>
@@ -2111,7 +2111,7 @@ const ConsultationFlowTab: React.FC = () => {
                 <div>
                   <h3
                     className="text-2xl font-bold text-stone-800"
-                    style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                    style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                   >
                     Pre-Consultation
                   </h3>
@@ -2214,7 +2214,7 @@ const ConsultationFlowTab: React.FC = () => {
                   <div>
                     <h4
                       className="text-xl font-bold text-stone-800"
-                      style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                      style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                     >
                       Client Attended
                     </h4>
@@ -2334,7 +2334,7 @@ const ConsultationFlowTab: React.FC = () => {
                   <div>
                     <h4
                       className="text-xl font-bold text-stone-800"
-                      style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                      style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                     >
                       Client No-Show
                     </h4>
@@ -2403,7 +2403,7 @@ const ConsultationFlowTab: React.FC = () => {
                 <div>
                   <p
                     className="text-xl font-bold text-emerald-600"
-                    style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                    style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                   >
                     Converted
                   </p>
@@ -2422,7 +2422,7 @@ const ConsultationFlowTab: React.FC = () => {
                 <div>
                   <p
                     className="text-xl font-bold text-stone-500"
-                    style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                    style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                   >
                     Lost
                   </p>
@@ -2479,7 +2479,7 @@ const EHRConnectionTab: React.FC<{
         <div className="mb-8">
           <h2
             className="text-3xl font-bold text-stone-800"
-            style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+            style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
           >
             EHR Connection
           </h2>
@@ -2512,7 +2512,7 @@ const EHRConnectionTab: React.FC<{
                     <div className="flex items-center gap-4">
                       <h3
                         className="text-2xl font-bold text-stone-800"
-                        style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                        style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                       >
                         {ehr.provider}
                       </h3>
@@ -2572,7 +2572,7 @@ const EHRConnectionTab: React.FC<{
                 <div className="p-5 rounded-xl bg-stone-50 text-center">
                   <p
                     className="text-4xl font-bold text-stone-800"
-                    style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                    style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                   >
                     {ehr.totalClients}
                   </p>
@@ -2581,7 +2581,7 @@ const EHRConnectionTab: React.FC<{
                 <div className="p-5 rounded-xl bg-stone-50 text-center">
                   <p
                     className="text-4xl font-bold text-stone-800"
-                    style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                    style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                   >
                     {ehr.totalClinicians}
                   </p>
@@ -2606,7 +2606,7 @@ const EHRConnectionTab: React.FC<{
               <div className="p-5 rounded-xl bg-amber-50 text-center">
                 <p
                   className="text-4xl font-bold text-amber-700"
-                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                  style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                 >
                   {getTimeUntilNextSync()}
                 </p>

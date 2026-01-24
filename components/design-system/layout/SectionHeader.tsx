@@ -143,7 +143,7 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
               <span
                 className={`text-2xl xl:text-3xl font-bold relative z-10 ${colors.number}`}
                 style={{
-                  fontFamily: "'DM Serif Display', Georgia, serif",
+                  fontFamily: "'Tiempos Headline', Georgia, serif",
                 }}
               >
                 {number}
@@ -162,7 +162,7 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
           <div className="pt-1">
             <h3
               className="text-2xl sm:text-3xl xl:text-[2.5rem] font-bold tracking-tight text-stone-900 leading-tight"
-              style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+              style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
             >
               {question}
             </h3>

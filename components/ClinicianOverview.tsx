@@ -1253,13 +1253,13 @@ export const ClinicianOverview: React.FC = () => {
                         </div>
                       </div>
                       <div className="col-span-6">
-                        <h3 className="text-base text-stone-700 font-bold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                        <h3 className="text-base text-stone-700 font-bold" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                           Team Average
                         </h3>
                         <p className="text-stone-600 text-xs">{CLINICIANS_DATA.length} clinicians</p>
                       </div>
                       <div className="col-span-4 text-right">
-                        <span className="text-xl font-black text-stone-600" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                        <span className="text-xl font-black text-stone-600" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                           {metric.format(Math.round(teamAvg))}
                         </span>
                       </div>
@@ -1285,7 +1285,7 @@ export const ClinicianOverview: React.FC = () => {
 
                       {/* Label */}
                       <div>
-                        <h3 className="text-base text-stone-700 font-bold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                        <h3 className="text-base text-stone-700 font-bold" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                           Team Average
                         </h3>
                         <p className="text-stone-600 text-xs">{CLINICIANS_DATA.length} clinicians</p>
@@ -1294,7 +1294,7 @@ export const ClinicianOverview: React.FC = () => {
                       {/* Primary Value */}
                       {!metric.hidden && (
                         <div className="text-right">
-                          <span className="text-xl font-black text-stone-600" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                          <span className="text-xl font-black text-stone-600" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                             {metric.format(Math.round(teamAvg))}
                           </span>
                         </div>
@@ -1307,7 +1307,7 @@ export const ClinicianOverview: React.FC = () => {
                           <div key={s.key} className="text-right">
                             <span
                               className={`font-semibold ${s.isPrimary ? 'text-xl font-black text-stone-600' : 'text-lg text-stone-600'}`}
-                              style={s.isPrimary ? { fontFamily: "'DM Serif Display', Georgia, serif" } : undefined}
+                              style={s.isPrimary ? { fontFamily: "'Tiempos Headline', Georgia, serif" } : undefined}
                             >
                               {s.format(avg)}
                             </span>
@@ -1360,7 +1360,7 @@ export const ClinicianOverview: React.FC = () => {
                       <div className="lg:hidden">
                         <div className="grid grid-cols-12 gap-3 items-center">
                           <div className="col-span-2">
-                            <span className="text-3xl font-black" style={{ fontFamily: "'DM Serif Display', Georgia, serif", color: theme.text }}>
+                            <span className="text-3xl font-black" style={{ fontFamily: "'Tiempos Headline', Georgia, serif", color: theme.text }}>
                               {rank}
                             </span>
                           </div>
@@ -1378,14 +1378,14 @@ export const ClinicianOverview: React.FC = () => {
                               {clinician.avatar}
                             </div>
                             <div className="min-w-0">
-                              <h3 className="text-base text-stone-900 font-bold truncate" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                              <h3 className="text-base text-stone-900 font-bold truncate" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                                 {clinician.shortName}
                               </h3>
                               <p className="text-stone-600 text-xs truncate">{clinician.role}</p>
                             </div>
                           </div>
                           <div className="col-span-4 text-right">
-                            <span className="text-xl font-black" style={{ fontFamily: "'DM Serif Display', Georgia, serif", color: theme.text }}>
+                            <span className="text-xl font-black" style={{ fontFamily: "'Tiempos Headline', Georgia, serif", color: theme.text }}>
                               {metric.format(value)}
                             </span>
                           </div>
@@ -1418,7 +1418,7 @@ export const ClinicianOverview: React.FC = () => {
                           <span
                             className="text-3xl font-black"
                             style={{
-                              fontFamily: "'DM Serif Display', Georgia, serif",
+                              fontFamily: "'Tiempos Headline', Georgia, serif",
                               color: theme.text
                             }}
                           >
@@ -1443,7 +1443,7 @@ export const ClinicianOverview: React.FC = () => {
                           <div className="min-w-0">
                             <h3
                               className="text-base text-stone-900 font-bold truncate"
-                              style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                              style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                             >
                               {clinician.shortName}
                             </h3>
@@ -1459,7 +1459,7 @@ export const ClinicianOverview: React.FC = () => {
                             <span
                               className="text-xl font-black"
                               style={{
-                                fontFamily: "'DM Serif Display', Georgia, serif",
+                                fontFamily: "'Tiempos Headline', Georgia, serif",
                                 color: theme.text
                               }}
                             >
@@ -1473,7 +1473,7 @@ export const ClinicianOverview: React.FC = () => {
                           <div key={s.key} className="text-right">
                             <span
                               className={`text-lg font-semibold ${s.isPrimary ? '' : 'text-stone-600'}`}
-                              style={s.isPrimary ? { fontFamily: "'DM Serif Display', Georgia, serif", color: theme.text } : undefined}
+                              style={s.isPrimary ? { fontFamily: "'Tiempos Headline', Georgia, serif", color: theme.text } : undefined}
                             >
                               {s.format(clinician.metrics[s.key])}
                             </span>

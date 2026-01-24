@@ -70,7 +70,7 @@ export const FrequencyRetentionCard: React.FC<FrequencyRetentionCardProps> = ({
       className={`rounded-2xl xl:rounded-3xl p-6 sm:p-7 xl:p-8 relative overflow-hidden ${className}`}
       style={{
         background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
-        boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)',
+        boxShadow: 'var(--shadow-card)',
       }}
     >
       {/* Header */}
@@ -82,7 +82,7 @@ export const FrequencyRetentionCard: React.FC<FrequencyRetentionCardProps> = ({
           <div>
             <h3
               className="text-stone-900 text-2xl sm:text-3xl xl:text-4xl font-bold tracking-tight"
-              style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+              style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
             >
               Frequency & Retention
             </h3>

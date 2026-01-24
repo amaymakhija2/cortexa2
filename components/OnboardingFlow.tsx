@@ -1554,8 +1554,8 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onSw
     <div className="h-screen w-full flex overflow-hidden">
       {/* Styles */}
       <style>{`
-        .font-display { font-family: 'DM Serif Display', Georgia, serif; }
-        .font-body { font-family: 'DM Sans', system-ui, sans-serif; }
+        .font-display { font-family: 'Tiempos Headline', Georgia, serif; }
+        .font-body { font-family: 'Suisse Intl', system-ui, sans-serif; }
 
         .input-glow:focus {
           box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.3),

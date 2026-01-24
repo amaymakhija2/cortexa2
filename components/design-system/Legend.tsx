@@ -10,7 +10,7 @@ import React from 'react';
 // Design Philosophy:
 // - All legends use hex colors (not Tailwind classes) for consistency
 // - Rounded indicators (dots) are the default, with line variant for line charts
-// - Typography uses the design system's DM Serif Display for labels
+// - Typography uses the design system's Tiempos Headline for labels
 // - Consistent spacing and sizing across all variants
 // =============================================================================
 
@@ -199,7 +199,7 @@ const LegendItemComponent: React.FC<LegendItemComponentProps> = ({
       <span
         className={`${config.fontSize} ${config.fontWeight} text-stone-700 transition-colors duration-200`}
         style={{
-          fontFamily: variant === 'stacked' ? "'DM Serif Display', Georgia, serif" : undefined,
+          fontFamily: variant === 'stacked' ? "'Tiempos Headline', Georgia, serif" : undefined,
           color: isHovered ? item.color : undefined,
         }}
       >
@@ -210,7 +210,7 @@ const LegendItemComponent: React.FC<LegendItemComponentProps> = ({
         <span
           className={`${config.fontSize} font-bold tabular-nums text-stone-900`}
           style={{
-            fontFamily: "'DM Serif Display', Georgia, serif",
+            fontFamily: "'Tiempos Headline', Georgia, serif",
             color: isHovered ? item.color : undefined,
           }}
         >
@@ -386,7 +386,7 @@ export const Legend: React.FC<LegendProps> = ({
 
                 <span
                   className={`flex-1 text-stone-700 ${config.fontWeight} ${config.fontSize}`}
-                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                  style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                 >
                   {item.label}
                 </span>
@@ -395,7 +395,7 @@ export const Legend: React.FC<LegendProps> = ({
                   {item.value !== undefined && (
                     <span
                       className={`text-stone-900 font-bold ${config.fontSize} tabular-nums`}
-                      style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                      style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                     >
                       {typeof item.value === 'number' ? item.value.toLocaleString() : item.value}
                     </span>
@@ -451,7 +451,7 @@ export const Legend: React.FC<LegendProps> = ({
 
               <span
                 className={`flex-1 text-stone-700 ${config.fontWeight} ${config.fontSize} truncate`}
-                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
               >
                 {item.label}
               </span>

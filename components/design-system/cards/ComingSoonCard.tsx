@@ -173,7 +173,7 @@ export const ComingSoonCard: React.FC<ComingSoonCardProps> = ({
         <h2
           className="text-4xl sm:text-5xl xl:text-6xl text-stone-800 mb-6 tracking-tight"
           style={{
-            fontFamily: "'DM Serif Display', Georgia, serif",
+            fontFamily: "'Tiempos Headline', Georgia, serif",
           }}
         >
           {title}

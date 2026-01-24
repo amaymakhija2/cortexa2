@@ -277,7 +277,7 @@ export const DonutChartCard: React.FC<DonutChartCardProps> = ({
         )}
         <span
           className={`${centerValueColor} font-bold text-2xl sm:text-3xl xl:text-4xl`}
-          style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+          style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
         >
           {displayCenterValue}
         </span>
@@ -376,7 +376,7 @@ export const DonutChartCard: React.FC<DonutChartCardProps> = ({
       className={`rounded-2xl xl:rounded-3xl p-6 sm:p-8 xl:p-10 2xl:p-12 overflow-hidden flex flex-col relative ${className}`}
       style={{
         background: 'linear-gradient(145deg, #ffffff 0%, #fafaf9 100%)',
-        boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)',
+        boxShadow: 'var(--shadow-card)',
         minHeight: minHeight || undefined,
       }}
     >
@@ -385,7 +385,7 @@ export const DonutChartCard: React.FC<DonutChartCardProps> = ({
         <div className="min-w-0 flex-1">
           <h3
             className="text-stone-900 text-2xl sm:text-3xl xl:text-4xl font-bold mb-2 tracking-tight"
-            style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+            style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
           >
             {title}
           </h3>

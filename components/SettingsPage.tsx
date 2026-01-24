@@ -243,7 +243,7 @@ const LogoutModal: React.FC<LogoutModalProps> = ({ isOpen, onClose, onConfirm })
             <div className="p-6 text-center">
               <h2
                 className="text-2xl font-semibold text-stone-800 mb-2"
-                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
               >
                 Sign out?
               </h2>
@@ -448,7 +448,7 @@ const PasswordModal: React.FC<PasswordModalProps> = ({ isOpen, onClose }) => {
                     </motion.div>
                     <h3
                       className="text-2xl font-semibold text-stone-800 mb-2"
-                      style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                      style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                     >
                       Password Updated
                     </h3>
@@ -460,7 +460,7 @@ const PasswordModal: React.FC<PasswordModalProps> = ({ isOpen, onClose }) => {
                     <div className="mb-8">
                       <h2
                         className="text-2xl font-semibold text-stone-800 mb-1"
-                        style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                        style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                       >
                         Change Password
                       </h2>
@@ -626,7 +626,7 @@ const TimeZoneModal: React.FC<TimeZoneModalProps> = ({ isOpen, onClose, currentT
                 <div className="mb-6">
                   <h2
                     className="text-2xl font-semibold text-stone-800"
-                    style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                    style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                   >
                     Time Zone
                   </h2>
@@ -807,7 +807,7 @@ export const SettingsPage: React.FC = () => {
                     <div className="flex items-center gap-2.5 mb-1">
                       <h2
                         className="text-2xl font-semibold text-stone-800 truncate"
-                        style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                        style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                       >
                         Sarah Mitchell
                       </h2>

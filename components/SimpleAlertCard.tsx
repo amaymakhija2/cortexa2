@@ -134,7 +134,7 @@ export const SimpleAlertCard: React.FC<SimpleAlertCardProps> = ({
             transition={{ delay: index * 0.1 + 0.12, duration: 0.45 }}
             className="text-[28px] sm:text-[32px] lg:text-[36px] font-bold text-white leading-[1.15] mb-3 sm:mb-4"
             style={{
-              fontFamily: "'Playfair Display', 'Georgia', serif",
+              fontFamily: "'Tiempos Headline', 'Georgia', serif",
               letterSpacing: '-0.015em',
             }}
           >

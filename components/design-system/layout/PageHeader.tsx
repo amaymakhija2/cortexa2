@@ -172,7 +172,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
             <div className="flex items-center gap-10 flex-wrap">
               <h1
                 className="text-4xl sm:text-5xl lg:text-6xl text-white tracking-tight"
-                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
               >
                 {title}
               </h1>
@@ -209,7 +209,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
                   />
                   <span
                     className="text-white text-[15px] font-semibold tracking-[-0.01em]"
-                    style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                    style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                   >
                     {getCurrentPeriodLabel()}
                   </span>
@@ -338,7 +338,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
                         </button>
                         <h3
                           className="text-white text-lg font-semibold"
-                          style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                          style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                         >
                           Custom Range
                         </h3>
@@ -363,7 +363,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
                         </button>
                         <span
                           className="text-white text-3xl font-bold tabular-nums w-24 text-center"
-                          style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                          style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                         >
                           {customYear}
                         </span>

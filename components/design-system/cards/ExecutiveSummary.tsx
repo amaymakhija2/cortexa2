@@ -127,8 +127,9 @@ export const ExecutiveSummary: React.FC<ExecutiveSummaryProps> = ({
     >
       {/* Main Card Container */}
       <div
-        className="relative rounded-[28px] overflow-hidden transition-all duration-700 ease-out"
+        className="relative overflow-hidden transition-all duration-700 ease-out"
         style={{
+          borderRadius: 'var(--radius-2xl, 28px)',
           background: '#ffffff',
           boxShadow: isExpanded
             ? `
@@ -189,7 +190,7 @@ export const ExecutiveSummary: React.FC<ExecutiveSummaryProps> = ({
                   <h2
                     className="text-stone-900 leading-tight tracking-tight"
                     style={{
-                      fontFamily: "'DM Serif Display', Georgia, 'Times New Roman', serif",
+                      fontFamily: "'Tiempos Headline', Georgia, 'Times New Roman', serif",
                       fontSize: 'clamp(1.75rem, 4vw, 2.5rem)',
                       fontWeight: 400,
                       letterSpacing: '-0.02em',
@@ -221,7 +222,7 @@ export const ExecutiveSummary: React.FC<ExecutiveSummaryProps> = ({
                 <span
                   className="text-lg sm:text-xl font-semibold tracking-tight transition-colors duration-300"
                   style={{
-                    fontFamily: "'DM Serif Display', Georgia, serif",
+                    fontFamily: "'Tiempos Headline', Georgia, serif",
                     color: isExpanded ? theme.primary : '#57534e',
                   }}
                 >
@@ -261,7 +262,7 @@ export const ExecutiveSummary: React.FC<ExecutiveSummaryProps> = ({
               <div
                 className="absolute -top-2 left-8 text-8xl leading-none select-none pointer-events-none"
                 style={{
-                  fontFamily: "'DM Serif Display', Georgia, serif",
+                  fontFamily: "'Tiempos Headline', Georgia, serif",
                   color: theme.border,
                   opacity: 0.5,
                 }}
@@ -272,7 +273,7 @@ export const ExecutiveSummary: React.FC<ExecutiveSummaryProps> = ({
               <p
                 className="relative text-stone-700 leading-relaxed"
                 style={{
-                  fontFamily: "'DM Serif Display', Georgia, 'Times New Roman', serif",
+                  fontFamily: "'Tiempos Headline', Georgia, 'Times New Roman', serif",
                   fontSize: 'clamp(1.25rem, 2.5vw, 1.625rem)',
                   lineHeight: 1.8,
                   fontWeight: 400,

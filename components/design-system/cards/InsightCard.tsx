@@ -111,7 +111,7 @@ export const InsightCard: React.FC<InsightCardProps> = ({
       className={`insight-card ${className}`}
       style={{
         background: 'white',
-        borderRadius: '20px',
+        borderRadius: 'var(--radius-2xl, 20px)',
         padding: '2rem 2.5rem',
         boxShadow: `
           0 1px 2px rgba(0, 0, 0, 0.04),
@@ -131,7 +131,7 @@ export const InsightCard: React.FC<InsightCardProps> = ({
         {category ? (
           <h3
             className="text-2xl sm:text-3xl xl:text-4xl font-bold text-stone-900 tracking-tight"
-            style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+            style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
           >
             {category}
           </h3>
@@ -162,7 +162,7 @@ export const InsightCard: React.FC<InsightCardProps> = ({
                 className="text-xl font-bold leading-none"
                 style={{
                   color: config.metricColor,
-                  fontFamily: "'DM Serif Display', Georgia, serif",
+                  fontFamily: "'Tiempos Headline', Georgia, serif",
                 }}
               >
                 {metric}
@@ -184,7 +184,7 @@ export const InsightCard: React.FC<InsightCardProps> = ({
       <p
         className="text-xl sm:text-2xl xl:text-[1.75rem] leading-relaxed text-stone-700 flex-1"
         style={{
-          fontFamily: "'DM Serif Display', Georgia, serif",
+          fontFamily: "'Tiempos Headline', Georgia, serif",
           fontWeight: 400,
           lineHeight: 1.45,
         }}

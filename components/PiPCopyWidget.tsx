@@ -184,7 +184,7 @@ const getPiPStyles = () => `
   }
 
   body {
-    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: 'Suisse Intl', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background: linear-gradient(135deg, #1c1917 0%, #0c0a09 100%);
     color: #fafaf9;
     min-height: 100vh;

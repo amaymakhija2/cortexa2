@@ -244,11 +244,12 @@ export const MetricCard: React.FC<MetricCardProps> = ({
       <div ref={cardRef} className={`relative h-full flex flex-col ${className}`}>
         {/* Main Card */}
         <div
-          className={`group relative bg-white rounded-2xl flex flex-col h-full transition-all duration-300 hover:shadow-xl overflow-hidden ${
+          className={`group relative rounded-2xl flex flex-col h-full transition-all duration-300 hover:shadow-xl overflow-hidden ${
             isExpanded && hasExpandable ? 'rounded-b-none' : ''
           }`}
           style={{
-            boxShadow: '0 2px 8px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.04)',
+            background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
+            boxShadow: 'var(--shadow-card)',
           }}
         >
           {/* Status bar */}
@@ -258,15 +259,21 @@ export const MetricCard: React.FC<MetricCardProps> = ({
           <div className="px-4 pt-4 pb-3 sm:px-5 sm:pt-5 sm:pb-4 xl:px-5 xl:pt-5 xl:pb-4 flex flex-col">
             {/* Label row */}
             <div className="flex items-center justify-between mb-2 xl:mb-3">
-              <span className="text-sm sm:text-base lg:text-lg font-bold text-stone-700 uppercase tracking-wide">
+              <h3
+                className="text-sm sm:text-base lg:text-lg font-bold text-stone-700 uppercase tracking-wide"
+                style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
+              >
                 {label}
-              </span>
+              </h3>
               {tooltip && <Tooltip title={tooltip.title} description={tooltip.description} />}
             </div>
 
             {/* Value */}
             <div className="mb-2 xl:mb-3">
-              <span className="text-3xl sm:text-4xl xl:text-5xl font-black text-stone-900 tracking-tight">
+              <span
+                className="text-3xl sm:text-4xl xl:text-5xl font-bold text-stone-900 tracking-tight"
+                style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
+              >
                 {value}
               </span>
               {valueLabel && (

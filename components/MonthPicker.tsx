@@ -139,7 +139,7 @@ export const MonthPicker: React.FC<MonthPickerProps> = ({
 
                 <span
                   className="text-lg font-semibold text-stone-800 tabular-nums tracking-tight"
-                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                  style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                 >
                   {viewYear}
                 </span>

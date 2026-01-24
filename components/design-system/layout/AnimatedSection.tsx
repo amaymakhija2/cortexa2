@@ -79,7 +79,7 @@ export const AnimatedSection: React.FC<AnimatedSectionProps> = ({
         }
 
         .animate-section-enter {
-          animation: sectionEnter ease-out forwards;
+          animation: sectionEnter var(--ease-out-quint) forwards;
           opacity: 0;
         }
       `}</style>
@@ -175,7 +175,7 @@ export const AnimatedGrid: React.FC<AnimatedGridProps> = ({
         }
 
         .animate-grid-item {
-          animation: gridItemEnter ease-out forwards;
+          animation: gridItemEnter var(--ease-out-quint) forwards;
           opacity: 0;
         }
       `}</style>
@@ -228,7 +228,7 @@ export const AnimatedPageContent: React.FC<AnimatedPageContentProps> = ({
         }
 
         .animate-page-content {
-          animation: pageContentEnter 300ms ease-out forwards;
+          animation: pageContentEnter 300ms var(--ease-out-quint) forwards;
           opacity: 0;
         }
       `}</style>

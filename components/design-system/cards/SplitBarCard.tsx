@@ -105,7 +105,7 @@ export const SplitBarCard: React.FC<SplitBarCardProps> = ({
       className={`rounded-2xl sm:rounded-3xl p-4 sm:p-5 xl:p-6 relative overflow-hidden ${className}`}
       style={{
         background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
-        boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)'
+        boxShadow: 'var(--shadow-card)'
       }}
     >
       {/* Header */}
@@ -113,7 +113,7 @@ export const SplitBarCard: React.FC<SplitBarCardProps> = ({
         <div>
           <h3
             className="text-stone-900 text-2xl sm:text-3xl xl:text-4xl font-bold tracking-tight"
-            style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+            style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
           >
             {title}
           </h3>
@@ -161,7 +161,10 @@ export const SplitBarCard: React.FC<SplitBarCardProps> = ({
               {leftSegment.icon && (
                 <span className="text-white/90">{leftSegment.icon}</span>
               )}
-              <span className="text-white font-bold text-lg tracking-tight">
+              <span
+                className="text-white font-bold text-lg tracking-tight"
+                style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
+              >
                 {leftPercent}%
               </span>
             </div>
@@ -196,7 +199,10 @@ export const SplitBarCard: React.FC<SplitBarCardProps> = ({
               {rightSegment.icon && (
                 <span className="text-white/90">{rightSegment.icon}</span>
               )}
-              <span className="text-white font-bold text-lg tracking-tight">
+              <span
+                className="text-white font-bold text-lg tracking-tight"
+                style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
+              >
                 {rightPercent}%
               </span>
             </div>

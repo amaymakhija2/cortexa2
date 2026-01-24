@@ -180,7 +180,7 @@ const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
         <div className="mt-4">
           <h2
             className="text-3xl font-bold text-stone-900"
-            style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+            style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
           >
             {formatClientName(consultation.firstName, consultation.lastName)}
           </h2>
@@ -222,7 +222,7 @@ const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
 
       {/* Timeline */}
       <div className="px-6 py-5 border-t border-stone-100">
-        <h3 className="text-lg font-bold text-stone-900 mb-4" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+        <h3 className="text-lg font-bold text-stone-900 mb-4" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
           Timeline
         </h3>
         <div className="space-y-0">
@@ -271,7 +271,7 @@ const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
 
       {/* Client Info */}
       <div className="px-6 py-5 border-t border-stone-100">
-        <h3 className="text-lg font-bold text-stone-900 mb-4" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+        <h3 className="text-lg font-bold text-stone-900 mb-4" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
           Client Info
         </h3>
         <div className="space-y-3">
@@ -299,7 +299,7 @@ const ConsultationDetail: React.FC<ConsultationDetailProps> = ({
       {/* Form Responses */}
       {consultation.formResponses && consultation.formResponses.length > 0 && (
         <div className="px-6 py-5 border-t border-stone-100">
-          <h3 className="text-lg font-bold text-stone-900 mb-4" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+          <h3 className="text-lg font-bold text-stone-900 mb-4" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
             Intake Form
           </h3>
           <div className="space-y-4">
@@ -404,7 +404,7 @@ const TransferClinicianModal: React.FC<TransferClinicianModalProps> = ({
                 <UserPlus size={20} className="text-amber-600" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-stone-900" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                <h2 className="text-xl font-bold text-stone-900" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                   Transfer Client
                 </h2>
                 <p className="text-stone-500 text-sm">
@@ -591,7 +591,7 @@ const ConsultationRow: React.FC<ConsultationRowProps> = ({
               </div>
               {/* Name & clinician */}
               <div className="min-w-0">
-                <h3 className="text-base text-stone-900 font-bold truncate" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                <h3 className="text-base text-stone-900 font-bold truncate" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                   {formatClientName(consultation.firstName, consultation.lastName)}
                 </h3>
                 <p className="text-stone-500 text-xs truncate">{consultation.clinicianName}</p>
@@ -653,7 +653,7 @@ const ConsultationRow: React.FC<ConsultationRowProps> = ({
               {getClientInitials(consultation.firstName, consultation.lastName)}
             </div>
             <div className="min-w-0">
-              <h3 className="text-lg text-stone-900 font-bold truncate" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+              <h3 className="text-lg text-stone-900 font-bold truncate" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                 {formatClientName(consultation.firstName, consultation.lastName)}
               </h3>
               <div className="flex items-center gap-2 mt-0.5">
@@ -802,7 +802,7 @@ const MonthGroupSection: React.FC<MonthGroupSectionProps> = ({
             size={18}
             className={`text-stone-500 transition-transform duration-200 ${isExpanded ? '' : '-rotate-90'}`}
           />
-          <span className="text-base font-bold text-stone-800" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+          <span className="text-base font-bold text-stone-800" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
             {group.label}
           </span>
         </div>
@@ -1774,28 +1774,28 @@ export const Consultations: React.FC = () => {
               <p className="text-stone-400 text-sm uppercase tracking-wider font-semibold">This Month</p>
               <div className="flex items-center gap-5 sm:gap-6">
                 <div className="text-right">
-                  <p className="text-2xl sm:text-3xl font-bold text-white" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                  <p className="text-2xl sm:text-3xl font-bold text-white" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                     {monthlyStats.booked}
                   </p>
                   <p className="text-stone-400 text-sm font-medium">Booked</p>
                 </div>
                 <div className="w-px h-10 bg-white/15" />
                 <div className="text-right">
-                  <p className="text-2xl sm:text-3xl font-bold text-amber-400" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                  <p className="text-2xl sm:text-3xl font-bold text-amber-400" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                     {monthlyStats.inProgress}
                   </p>
                   <p className="text-stone-400 text-sm font-medium">Active</p>
                 </div>
                 <div className="w-px h-10 bg-white/15" />
                 <div className="text-right">
-                  <p className="text-2xl sm:text-3xl font-bold text-emerald-400" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                  <p className="text-2xl sm:text-3xl font-bold text-emerald-400" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                     {monthlyStats.converted}
                   </p>
                   <p className="text-stone-400 text-sm font-medium">Converted</p>
                 </div>
                 <div className="w-px h-10 bg-white/15" />
                 <div className="text-right">
-                  <p className="text-2xl sm:text-3xl font-bold text-rose-400" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                  <p className="text-2xl sm:text-3xl font-bold text-rose-400" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                     {monthlyStats.lost}
                   </p>
                   <p className="text-stone-400 text-sm font-medium">Lost</p>
@@ -1912,7 +1912,7 @@ export const Consultations: React.FC = () => {
               <div className="px-6 py-5 border-b border-stone-200/80 bg-stone-50/50">
                 <h3
                   className="text-xl font-bold text-stone-900"
-                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                  style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                 >
                   Upcoming Consultations
                 </h3>
@@ -1972,7 +1972,7 @@ export const Consultations: React.FC = () => {
                                 <div>
                                   <p
                                     className="font-semibold text-stone-900"
-                                    style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                                    style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                                   >
                                     {formatClientName(consultation.firstName, consultation.lastName)}
                                   </p>
@@ -2076,7 +2076,7 @@ export const Consultations: React.FC = () => {
                   <div>
                     <h3
                       className="text-xl font-bold text-stone-900"
-                      style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                      style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                     >
                       {selectedSegment === 'converted' ? 'Converted Clients' : 'Lost Cases'}
                     </h3>
@@ -2169,7 +2169,7 @@ export const Consultations: React.FC = () => {
                                 <div>
                                   <p
                                     className="font-semibold text-stone-900"
-                                    style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                                    style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                                   >
                                     {formatClientName(consultation.firstName, consultation.lastName)}
                                   </p>

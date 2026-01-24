@@ -139,7 +139,7 @@ export const RetentionFunnelCard: React.FC<RetentionFunnelCardProps> = ({
             className={`text-stone-900 font-bold tracking-tight ${
               isLarge ? 'text-3xl sm:text-4xl xl:text-5xl' : 'text-2xl sm:text-3xl xl:text-4xl'
             }`}
-            style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+            style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
           >
             {title}
           </h3>
@@ -204,7 +204,7 @@ export const RetentionFunnelCard: React.FC<RetentionFunnelCardProps> = ({
                     style={{
                       color: colors.text,
                       textShadow: '0 1px 2px rgba(0,0,0,0.1)',
-                      fontFamily: "'DM Serif Display', Georgia, serif"
+                      fontFamily: "'Tiempos Headline', Georgia, serif"
                     }}
                   >
                     {stage.label}
@@ -234,7 +234,7 @@ export const RetentionFunnelCard: React.FC<RetentionFunnelCardProps> = ({
                   style={{
                     background: colors.accentBg,
                     color: colors.accent,
-                    fontFamily: "'DM Serif Display', Georgia, serif",
+                    fontFamily: "'Tiempos Headline', Georgia, serif",
                   }}
                 >
                   {stage.percentage}%
@@ -264,7 +264,7 @@ export const RetentionFunnelCard: React.FC<RetentionFunnelCardProps> = ({
             >
               <div
                 className={`${insight.textColor || 'text-stone-800'} ${isLarge ? 'text-3xl' : 'text-2xl'} font-bold`}
-                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
               >
                 {insight.value}
               </div>

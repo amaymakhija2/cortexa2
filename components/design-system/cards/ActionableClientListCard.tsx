@@ -145,7 +145,7 @@ export function ActionableClientListCard<T extends { id: string }>({
       className={`rounded-2xl xl:rounded-3xl overflow-hidden ${className}`}
       style={{
         background: 'linear-gradient(145deg, #ffffff 0%, #fafaf9 100%)',
-        boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)',
+        boxShadow: 'var(--shadow-card)',
         opacity: isVisible ? 1 : 0,
         transform: isVisible ? 'translateY(0)' : 'translateY(10px)',
         transition: 'all 0.4s ease-out',
@@ -157,7 +157,7 @@ export function ActionableClientListCard<T extends { id: string }>({
           <div className="flex-1 min-w-0">
             <h3
               className="text-2xl sm:text-3xl xl:text-4xl text-stone-900 font-bold tracking-tight"
-              style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+              style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
             >
               {title}
             </h3>
@@ -170,7 +170,7 @@ export function ActionableClientListCard<T extends { id: string }>({
           <div className="text-right flex-shrink-0">
             <div
               className={`text-4xl sm:text-5xl xl:text-6xl font-bold ${accentConfig.text}`}
-              style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+              style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
             >
               {summaryValue}
             </div>

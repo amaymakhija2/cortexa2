@@ -201,14 +201,14 @@ export const ClientRoster: React.FC = () => {
           actions={
             <div className="flex items-center gap-6">
               <div className="text-right">
-                <p className="text-3xl font-bold text-white" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                <p className="text-3xl font-bold text-white" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                   {segmentCounts['all']}
                 </p>
                 <p className="text-stone-500 text-sm">Active Clients</p>
               </div>
               <div className="w-px h-12 bg-white/10" />
               <div className="text-right">
-                <p className="text-3xl font-bold text-emerald-400" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                <p className="text-3xl font-bold text-emerald-400" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                   {Math.round((segmentCounts['healthy'] / segmentCounts['all']) * 100)}%
                 </p>
                 <p className="text-stone-500 text-sm">Healthy</p>
@@ -307,7 +307,7 @@ export const ClientRoster: React.FC = () => {
                           </div>
                           {/* Name & clinician */}
                           <div className="min-w-0">
-                            <h3 className="text-base text-stone-900 font-bold truncate" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                            <h3 className="text-base text-stone-900 font-bold truncate" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                               {formatFullName(client.name)}
                             </h3>
                             <p className="text-stone-500 text-xs truncate">{client.clinicianShort}</p>
@@ -364,7 +364,7 @@ export const ClientRoster: React.FC = () => {
                           {client.initials}
                         </div>
                         <div className="min-w-0">
-                          <h3 className="text-lg text-stone-900 font-bold truncate" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                          <h3 className="text-lg text-stone-900 font-bold truncate" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                             {formatFullName(client.name)}
                           </h3>
                           <div className="flex items-center gap-2 mt-0.5">
@@ -380,13 +380,13 @@ export const ClientRoster: React.FC = () => {
                       </div>
 
                       {/* Clinician */}
-                      <div className="text-stone-900 text-lg font-bold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                      <div className="text-stone-900 text-lg font-bold" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                         {client.clinicianShort}
                       </div>
 
                       {/* Sessions */}
                       <div className="text-right">
-                        <span className="text-xl font-bold text-stone-900" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                        <span className="text-xl font-bold text-stone-900" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                           {client.totalSessions}
                         </span>
                       </div>

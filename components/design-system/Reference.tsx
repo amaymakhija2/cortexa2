@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ResponsiveContainer, LineChart as RechartsLineChart, Line, BarChart as RechartsBarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, LabelList, ComposedChart, ReferenceLine } from 'recharts';
 import { Users, DollarSign, Clock, TrendingUp, TrendingDown, Check, AlertCircle, Info, X as XIcon, ArrowRight, Target, FileText, MapPin, Grid3X3, List } from 'lucide-react';
+import { useTypography, TypographyMode } from '../../context/TypographyContext';
 
 // Import from design system (same folder)
 import {
@@ -240,6 +241,9 @@ export const Reference: React.FC = () => {
   const [viewModeValue, setViewModeValue] = useState('grid');
   const [legendHoveredItem, setLegendHoveredItem] = useState<string | null>(null);
 
+  // Global typography mode (persisted to localStorage, applies app-wide)
+  const { mode: typographyMode, setMode: setTypographyMode } = useTypography();
+
   // =========================================================================
   // PAGE STRUCTURE TEMPLATE (Copy this for new pages)
   // =========================================================================
@@ -338,7 +342,7 @@ export const Reference: React.FC = () => {
                   boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.2)'
                 }}
               >
-                <h2 className="text-2xl font-bold text-white mb-4" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                <h2 className="text-2xl font-bold text-white mb-4" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                   Quick Start Guide
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -372,7 +376,7 @@ export const Reference: React.FC = () => {
 
             {/* Component Overview Cards */}
             <Section>
-              <h2 className="text-2xl font-bold text-stone-900 mb-4" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+              <h2 className="text-2xl font-bold text-stone-900 mb-4" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                 Available Components
               </h2>
               <Grid cols={3} gap="md">
@@ -451,7 +455,7 @@ export const Reference: React.FC = () => {
 
             {/* Live Page Example */}
             <Section>
-              <h2 className="text-2xl font-bold text-stone-900 mb-4" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+              <h2 className="text-2xl font-bold text-stone-900 mb-4" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                 Live Example: Analysis Page Layout
               </h2>
               <div className="rounded-2xl overflow-hidden border border-stone-200">
@@ -461,7 +465,7 @@ export const Reference: React.FC = () => {
                     <div className="w-3 h-3 rounded-full bg-amber-500 opacity-50"></div>
                     <span className="text-amber-500/80 text-xs font-semibold tracking-wider uppercase">Analysis</span>
                   </div>
-                  <h3 className="text-white text-xl font-bold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                  <h3 className="text-white text-xl font-bold" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                     Page Title Here
                   </h3>
                 </div>
@@ -513,7 +517,7 @@ export const Reference: React.FC = () => {
           <>
             {/* Grid System */}
             <Section>
-              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                 Grid System
               </h2>
               <p className="text-stone-500 mb-6">Responsive grids with consistent gaps. Always 1 column on mobile.</p>
@@ -572,7 +576,7 @@ export const Reference: React.FC = () => {
 
             {/* Section Spacing */}
             <Section>
-              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                 Section Spacing
               </h2>
               <p className="text-stone-500 mb-6">Wrap grids in Section for vertical spacing between them.</p>
@@ -603,9 +607,40 @@ export const Reference: React.FC = () => {
         {/* ================================================================= */}
         {activeSection === 'cards' && (
           <>
+            {/* Global Typography Mode Toggle */}
+            <div className="mb-8 p-4 rounded-xl bg-stone-100 border border-stone-200">
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <div>
+                  <h3 className="font-semibold text-stone-900">Typography Mode (Global)</h3>
+                  <p className="text-sm text-stone-500">Changes apply across the entire application</p>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className={`
+                    inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium
+                    ${typographyMode === 'sans' ? 'bg-blue-100 text-blue-700' : ''}
+                    ${typographyMode === 'serif' ? 'bg-amber-100 text-amber-700' : ''}
+                    ${typographyMode === 'hybrid' ? 'bg-stone-200 text-stone-700' : ''}
+                  `}>
+                    {typographyMode === 'sans' && 'Sans-Serif Mode'}
+                    {typographyMode === 'serif' && 'Serif Mode'}
+                    {typographyMode === 'hybrid' && 'Hybrid Mode (Default)'}
+                  </div>
+                  <SegmentedControl
+                    options={[
+                      { id: 'hybrid', label: 'Hybrid' },
+                      { id: 'sans', label: 'All Sans' },
+                      { id: 'serif', label: 'All Serif' },
+                    ]}
+                    value={typographyMode}
+                    onChange={(v) => setTypographyMode(v as TypographyMode)}
+                  />
+                </div>
+              </div>
+            </div>
+
             {/* StatCard */}
             <Section>
-              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                 StatCard
               </h2>
               <p className="text-stone-500 mb-6">Hero metric cards for key statistics. Use in 4-column grid at page top.</p>
@@ -713,7 +748,7 @@ export const Reference: React.FC = () => {
 
             {/* MetricCard */}
             <Section>
-              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                 MetricCard
               </h2>
               <p className="text-stone-500 mb-6">Key metric card with status indicator and optional expandable content. Used in Practice Overview dashboard.</p>
@@ -806,7 +841,7 @@ export const Reference: React.FC = () => {
 
             {/* ChartCard */}
             <Section>
-              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                 ChartCard
               </h2>
               <p className="text-stone-500 mb-6">Full-featured chart container with header, legend, expand, insights.</p>
@@ -869,7 +904,7 @@ export const Reference: React.FC = () => {
 
             {/* ChartCard with Controls */}
             <Section>
-              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                 ChartCard with Controls
               </h2>
               <p className="text-stone-500 mb-6">Interactive chart card with toggle, goal indicator, and action button. Click "By Clinician" to see breakdown view.</p>
@@ -962,7 +997,7 @@ export const Reference: React.FC = () => {
 
             {/* CompactCard */}
             <Section>
-              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                 Compact Cards
               </h2>
               <p className="text-stone-500 mb-6">Smaller cards for demographics, breakdowns, and lists.</p>
@@ -1013,7 +1048,7 @@ export const Reference: React.FC = () => {
 
             {/* DonutChartCard */}
             <Section>
-              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                 DonutChartCard
               </h2>
               <p className="text-stone-500 mb-6">Premium donut/pie chart with animated segments, center content, and adaptive layout. Auto-detects container width.</p>
@@ -1121,7 +1156,7 @@ export const Reference: React.FC = () => {
 
             {/* DataTableCard */}
             <Section>
-              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                 DataTableCard
               </h2>
               <p className="text-stone-500 mb-6">Premium data table with responsive card view for mobile. Supports row indicators, hover states, and highlighted summary rows.</p>
@@ -1238,7 +1273,7 @@ export const Reference: React.FC = () => {
 
             {/* SplitBarCard */}
             <Section>
-              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                 SplitBarCard
               </h2>
               <p className="text-stone-500 mb-6">Premium split bar visualization for comparing two values. Features gradient segments with icons, percentages displayed inside, and a legend below.</p>
@@ -1346,6 +1381,7 @@ export const Reference: React.FC = () => {
                 </pre>
               </div>
             </Section>
+
           </>
         )}
 
@@ -1356,7 +1392,7 @@ export const Reference: React.FC = () => {
           <>
             {/* Toggle Button */}
             <Section>
-              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                 ToggleButton
               </h2>
               <p className="text-stone-500 mb-6">Premium toggle for switching between chart views. Use in ChartCard headerControls.</p>
@@ -1408,7 +1444,7 @@ export const Reference: React.FC = () => {
 
             {/* Goal Indicator */}
             <Section>
-              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                 GoalIndicator
               </h2>
               <p className="text-stone-500 mb-6">Visual badge showing goal/target value with line preview. Multiple color variants.</p>
@@ -1449,7 +1485,7 @@ export const Reference: React.FC = () => {
 
             {/* Action Button */}
             <Section>
-              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                 ActionButton
               </h2>
               <p className="text-stone-500 mb-6">Premium CTA button for card actions like "View Report". Multiple variants.</p>
@@ -1499,7 +1535,7 @@ export const Reference: React.FC = () => {
 
             {/* Segmented Control */}
             <Section>
-              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                 SegmentedControl
               </h2>
               <p className="text-stone-500 mb-6">Premium segmented control for mutually exclusive option selection. Features sliding indicator, refined gradients, and smooth transitions.</p>
@@ -1585,7 +1621,7 @@ export const Reference: React.FC = () => {
 
             {/* Usage with ChartCard */}
             <Section>
-              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                 Using with ChartCard
               </h2>
               <p className="text-stone-500 mb-6">Compose controls in the headerControls prop for interactive charts.</p>
@@ -1677,7 +1713,7 @@ export const Reference: React.FC = () => {
           <>
             {/* BarChart Component */}
             <Section>
-              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                 BarChart Component
               </h2>
               <p className="text-stone-500 mb-6">Premium custom bar chart with single and stacked modes, goal lines, and hover interactions. No Recharts dependency.</p>
@@ -1860,7 +1896,7 @@ export const Reference: React.FC = () => {
 
             {/* DivergingBarChart Component */}
             <Section>
-              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                 DivergingBarChart Component
               </h2>
               <p className="text-stone-500 mb-6">For visualizing flows with positive and negative values (e.g., new vs churned clients, gains vs losses). Bars extend above and below a zero reference line.</p>
@@ -1970,7 +2006,7 @@ export const Reference: React.FC = () => {
 
             {/* RetentionFunnelCard Component */}
             <Section>
-              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                 RetentionFunnelCard Component
               </h2>
               <p className="text-stone-500 mb-6">For visualizing client retention through session milestones or time periods. Shows tapering bars with values outside for clarity.</p>
@@ -2066,7 +2102,7 @@ export const Reference: React.FC = () => {
 
             {/* LineChart Component */}
             <Section>
-              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                 LineChart Component
               </h2>
               <p className="text-stone-500 mb-6">Design system wrapper for Recharts LineChart with consistent thick styling. Features thick lines (strokeWidth: 4), large dots, and reference line support.</p>
@@ -2168,7 +2204,7 @@ export const Reference: React.FC = () => {
 
             {/* Legend Component */}
             <Section>
-              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                 Legend Component
               </h2>
               <p className="text-stone-500 mb-6">Unified legend system for consistent styling across all chart components. Multiple variants for different contexts.</p>
@@ -2268,7 +2304,7 @@ export const Reference: React.FC = () => {
 
             {/* SectionHeader Component */}
             <Section>
-              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                 SectionHeader Component
               </h2>
               <p className="text-stone-500 mb-6">For organizing page content into numbered sections with questions. Used in Retention tab for section-based layout.</p>
@@ -2328,7 +2364,7 @@ export const Reference: React.FC = () => {
 
             {/* CohortSelector Component */}
             <Section>
-              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                 CohortSelector Component
               </h2>
               <p className="text-stone-500 mb-6">For cohort-first retention analysis. Features hero-sized typography, expanded/collapsed states, and maturity indicators.</p>
@@ -2397,7 +2433,7 @@ export const Reference: React.FC = () => {
 
             {/* AtRiskClientsCard Component */}
             <Section>
-              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                 AtRiskClientsCard Component
               </h2>
               <p className="text-stone-500 mb-6">Shows clients without upcoming appointments, sorted by risk level. Part of the Current Health section in Retention tab.</p>
@@ -2446,7 +2482,7 @@ export const Reference: React.FC = () => {
 
             {/* MilestoneOpportunityCard Component */}
             <Section>
-              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                 MilestoneOpportunityCard Component
               </h2>
               <p className="text-stone-500 mb-6">Shows clients approaching a key retention milestone (e.g., Session 5). Opportunities for proactive intervention.</p>
@@ -2497,7 +2533,7 @@ export const Reference: React.FC = () => {
 
             {/* ClientRosterCard Component */}
             <Section>
-              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                 ClientRosterCard
               </h2>
               <p className="text-stone-500 mb-6">Filterable client list card with status filters. Used for displaying client rosters with health status indicators.</p>
@@ -2546,7 +2582,7 @@ export const Reference: React.FC = () => {
 
             {/* InsightCard Component */}
             <Section>
-              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                 InsightCard
               </h2>
               <p className="text-stone-500 mb-6">Insight-first cards that lead with the finding, not labels. The statement IS the content. Clean hierarchy, excellent readability.</p>
@@ -2607,7 +2643,7 @@ export const Reference: React.FC = () => {
 
             {/* ExecutiveSummary Component */}
             <Section>
-              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                 ExecutiveSummary
               </h2>
               <p className="text-stone-500 mb-6">Editorial-style summary card for maximum impact. Inspired by premium financial publications - expandable with bold typography.</p>
@@ -2647,7 +2683,7 @@ export const Reference: React.FC = () => {
 
             {/* ComingSoonCard Component */}
             <Section>
-              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                 ComingSoonCard
               </h2>
               <p className="text-stone-500 mb-6">Elegant placeholder for features in development. Features floating orbs, subtle animations, and premium typography.</p>
@@ -2689,7 +2725,7 @@ export const Reference: React.FC = () => {
 
             {/* DefinitionsBar Component */}
             <Section>
-              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                 DefinitionsBar
               </h2>
               <p className="text-stone-500 mb-6">Compact horizontal bar for displaying key term definitions. Used to clarify terminology in analysis sections.</p>
@@ -2718,7 +2754,7 @@ export const Reference: React.FC = () => {
 
             {/* AnimatedSection & AnimatedGrid Components */}
             <Section>
-              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                 Animation Components
               </h2>
               <p className="text-stone-500 mb-6">CSS-only entrance animations with staggered reveals. No library dependencies - pure CSS for performance.</p>
@@ -2805,7 +2841,7 @@ export const Reference: React.FC = () => {
 
             {/* Recharts Styling Reference */}
             <Section>
-              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                 Recharts Styling Reference
               </h2>
               <p className="text-stone-500 mb-6">Standard Recharts configuration for consistent chart appearance (for line charts, composed charts, etc.).</p>
@@ -2940,7 +2976,7 @@ export const Reference: React.FC = () => {
           <>
             {/* Accent Colors */}
             <Section>
-              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                 Accent Colors
               </h2>
               <p className="text-stone-500 mb-6">Each analysis tab uses a different accent color.</p>
@@ -2965,24 +3001,24 @@ export const Reference: React.FC = () => {
 
             {/* Typography */}
             <Section>
-              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                 Typography
               </h2>
-              <p className="text-stone-500 mb-6">DM Serif Display for headings and large values, system font for body.</p>
+              <p className="text-stone-500 mb-6">Tiempos Headline for headings and large values, Suisse Intl for body.</p>
 
               <div className="rounded-xl p-6 bg-white shadow-sm border border-stone-100">
                 <div className="space-y-4">
                   <div className="flex items-baseline gap-4">
                     <span className="text-stone-400 text-sm w-24">Page title</span>
-                    <h1 className="text-5xl text-stone-900" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>Page Title</h1>
+                    <h1 className="text-5xl text-stone-900" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>Page Title</h1>
                   </div>
                   <div className="flex items-baseline gap-4">
                     <span className="text-stone-400 text-sm w-24">Card title</span>
-                    <h2 className="text-3xl text-stone-900" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>Card Title</h2>
+                    <h2 className="text-3xl text-stone-900" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>Card Title</h2>
                   </div>
                   <div className="flex items-baseline gap-4">
                     <span className="text-stone-400 text-sm w-24">Large value</span>
-                    <span className="text-6xl font-bold text-stone-900" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>156</span>
+                    <span className="text-6xl font-bold text-stone-900" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>156</span>
                   </div>
                   <div className="flex items-baseline gap-4">
                     <span className="text-stone-400 text-sm w-24">Subtitle</span>
@@ -2994,7 +3030,7 @@ export const Reference: React.FC = () => {
 
             {/* Shadows */}
             <Section>
-              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                 Shadows
               </h2>
               <div className="grid grid-cols-3 gap-6">
@@ -3027,7 +3063,7 @@ export const Reference: React.FC = () => {
 
             {/* Status Colors */}
             <Section spacing="none">
-              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                 Status Indicators
               </h2>
               <div className="flex flex-wrap gap-3">
@@ -3054,7 +3090,7 @@ export const Reference: React.FC = () => {
         {activeSection === 'roadmap' && (
           <>
             <Section>
-              <h2 className="text-3xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+              <h2 className="text-3xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
                 Design System Roadmap
               </h2>
               <p className="text-stone-500 mb-8 text-lg">

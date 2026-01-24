@@ -215,7 +215,7 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({ isOpen, onClose })
                       <div className="flex items-baseline justify-center gap-3">
                         <span
                           className="text-7xl font-bold text-white"
-                          style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                          style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                         >
                           {invitesRemaining}
                         </span>
@@ -232,7 +232,7 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({ isOpen, onClose })
                       >
                         <span
                           className="text-4xl font-bold text-amber-400"
-                          style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                          style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                         >
                           ${rewardPerReferral}
                         </span>
@@ -263,7 +263,7 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({ isOpen, onClose })
                           placeholder="Enter their email address"
                           disabled={invitesRemaining <= 0}
                           className="flex-1 bg-transparent text-white text-lg py-3 placeholder:text-stone-400 focus:outline-none disabled:opacity-50"
-                          style={{ fontFamily: "'DM Sans', sans-serif" }}
+                          style={{ fontFamily: "'Suisse Intl', sans-serif" }}
                         />
                         <button
                           onClick={handleSendInvite}
@@ -331,7 +331,7 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({ isOpen, onClose })
                         <span className="text-stone-400 text-3xl font-medium">$</span>
                         <span
                           className="text-7xl font-bold text-white"
-                          style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                          style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                         >
                           {confirmedEarnings}
                         </span>

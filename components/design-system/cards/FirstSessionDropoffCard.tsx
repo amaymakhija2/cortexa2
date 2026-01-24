@@ -48,7 +48,7 @@ export const FirstSessionDropoffCard: React.FC<FirstSessionDropoffCardProps> = (
       className={`rounded-2xl xl:rounded-3xl p-6 sm:p-7 relative overflow-hidden ${className}`}
       style={{
         background: 'linear-gradient(135deg, #ffffff 0%, #fafaf9 100%)',
-        boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)',
+        boxShadow: 'var(--shadow-card)',
       }}
     >
       {/* Header */}
@@ -56,7 +56,7 @@ export const FirstSessionDropoffCard: React.FC<FirstSessionDropoffCardProps> = (
         <div>
           <h3
             className="text-stone-900 text-2xl sm:text-3xl xl:text-4xl font-bold tracking-tight"
-            style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+            style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
           >
             First Session Drop-off
           </h3>
@@ -129,7 +129,7 @@ export const FirstSessionDropoffCard: React.FC<FirstSessionDropoffCardProps> = (
           <div className="flex items-baseline gap-2">
             <span
               className={`text-2xl font-bold ${isBelowBenchmark ? 'text-rose-600' : 'text-emerald-600'}`}
-              style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+              style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
             >
               {returnRate.toFixed(0)}%
             </span>

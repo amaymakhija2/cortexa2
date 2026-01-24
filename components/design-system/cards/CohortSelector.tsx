@@ -82,7 +82,7 @@ export const CohortSelector: React.FC<CohortSelectorProps> = ({
                 className={`text-2xl sm:text-3xl xl:text-4xl font-bold mb-2 tracking-tight ${
                   isSelected ? 'text-amber-900' : 'text-stone-900'
                 }`}
-                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
               >
                 {cohort.label}
               </h3>
@@ -101,7 +101,7 @@ export const CohortSelector: React.FC<CohortSelectorProps> = ({
                 className={`text-4xl sm:text-5xl xl:text-6xl font-bold mt-4 xl:mt-5 ${
                   isSelected ? 'text-amber-600' : 'text-stone-900'
                 }`}
-                style={{ fontFamily: "'DM Serif Display', Georgia, serif", lineHeight: 1 }}
+                style={{ fontFamily: "'Tiempos Headline', Georgia, serif", lineHeight: 1 }}
               >
                 {cohort.clientCount.toLocaleString()}
               </p>

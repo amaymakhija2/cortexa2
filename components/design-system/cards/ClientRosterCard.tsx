@@ -120,7 +120,7 @@ export const ClientRosterCard: React.FC<ClientRosterCardProps> = ({
     ? {}
     : {
         background: 'linear-gradient(145deg, #ffffff 0%, #fafaf9 100%)',
-        boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)',
+        boxShadow: 'var(--shadow-card)',
       };
 
   return (
@@ -136,7 +136,7 @@ export const ClientRosterCard: React.FC<ClientRosterCardProps> = ({
             <div className="flex-1 min-w-0">
               <h3
                 className="text-stone-900 text-2xl sm:text-3xl xl:text-4xl font-bold mb-2 tracking-tight"
-                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
               >
                 {title}
               </h3>
@@ -149,7 +149,7 @@ export const ClientRosterCard: React.FC<ClientRosterCardProps> = ({
             <div className="flex-shrink-0 text-right">
               <div
                 className="text-stone-900 text-3xl sm:text-4xl font-bold"
-                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
               >
                 {filteredClients.length}
               </div>
@@ -190,7 +190,7 @@ export const ClientRosterCard: React.FC<ClientRosterCardProps> = ({
             <div className="flex items-center gap-3">
               <div
                 className="text-stone-900 text-2xl font-bold"
-                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
               >
                 {filteredClients.length}
               </div>
@@ -237,7 +237,7 @@ export const ClientRosterCard: React.FC<ClientRosterCardProps> = ({
                     <div>
                       <h4
                         className="text-lg font-semibold text-stone-900"
-                        style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                        style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                       >
                         {formatFullName(client.name)}
                       </h4>
@@ -262,7 +262,7 @@ export const ClientRosterCard: React.FC<ClientRosterCardProps> = ({
                     <div>
                       <span
                         className="text-xl font-bold text-stone-900"
-                        style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                        style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                       >
                         {client.totalSessions}
                       </span>

@@ -149,7 +149,7 @@ export const ChartCard: React.FC<ChartCardProps> = ({
       className={`rounded-2xl xl:rounded-3xl p-6 sm:p-8 xl:p-10 2xl:p-12 relative flex flex-col overflow-hidden ${className}`}
       style={{
         background: 'linear-gradient(145deg, #ffffff 0%, #fafaf9 100%)',
-        boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)',
+        boxShadow: 'var(--shadow-card)',
         minHeight,
       }}
     >
@@ -158,7 +158,7 @@ export const ChartCard: React.FC<ChartCardProps> = ({
         <div>
           <h3
             className="text-stone-900 text-2xl sm:text-3xl xl:text-4xl font-bold mb-3 tracking-tight"
-            style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+            style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
           >
             {title}
           </h3>
@@ -176,7 +176,7 @@ export const ChartCard: React.FC<ChartCardProps> = ({
             <div className={`${valueIndicator.bgColor || 'bg-stone-50'} rounded-xl px-5 py-3 text-center`}>
               <div
                 className={`${valueIndicator.textColor || 'text-stone-900'} text-2xl sm:text-3xl font-bold`}
-                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                style={{ fontFamily: "'Suisse Intl', system-ui, sans-serif" }}
               >
                 {valueIndicator.value}
               </div>
@@ -226,7 +226,7 @@ export const ChartCard: React.FC<ChartCardProps> = ({
             >
               <div
                 className={`${insight.textColor || 'text-stone-800'} text-2xl sm:text-3xl font-bold`}
-                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                style={{ fontFamily: "'Suisse Intl', system-ui, sans-serif" }}
               >
                 {insight.value}
               </div>
@@ -309,7 +309,7 @@ export const SimpleChartCard: React.FC<SimpleChartCardProps> = ({
       className={`rounded-2xl xl:rounded-3xl p-5 sm:p-6 xl:p-8 overflow-hidden flex flex-col relative ${className}`}
       style={{
         background: 'linear-gradient(145deg, #ffffff 0%, #fafaf9 100%)',
-        boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)',
+        boxShadow: 'var(--shadow-card)',
         minHeight: height,
       }}
     >
@@ -318,7 +318,7 @@ export const SimpleChartCard: React.FC<SimpleChartCardProps> = ({
         <div className="flex-1 min-w-0">
           <h3
             className="text-stone-900 text-2xl sm:text-3xl xl:text-4xl font-bold mb-2 tracking-tight"
-            style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+            style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
           >
             {title}
           </h3>
@@ -357,7 +357,7 @@ export const SimpleChartCard: React.FC<SimpleChartCardProps> = ({
                   <div
                     className="text-xl sm:text-2xl xl:text-3xl font-bold leading-none"
                     style={{
-                      fontFamily: "'DM Serif Display', Georgia, serif",
+                      fontFamily: "'Suisse Intl', system-ui, sans-serif",
                       color: metric.textColor || '#44403c',
                     }}
                   >
@@ -522,7 +522,7 @@ export const ExpandedChartModal: React.FC<ExpandedChartModalProps> = ({
             <div>
               <h3
                 className="text-stone-900 text-3xl sm:text-4xl xl:text-5xl font-bold mb-3 tracking-tight"
-                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
               >
                 {title}
               </h3>
@@ -566,7 +566,7 @@ export const ExpandedChartModal: React.FC<ExpandedChartModalProps> = ({
                 >
                   <div
                     className={`${insight.textColor || 'text-stone-800'} text-3xl sm:text-4xl font-bold`}
-                    style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                    style={{ fontFamily: "'Suisse Intl', system-ui, sans-serif" }}
                   >
                     {insight.value}
                   </div>

@@ -2325,7 +2325,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                 </p>
                 <h1
                   className="text-4xl sm:text-5xl lg:text-6xl text-white tracking-tight"
-                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                  style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                 >
                   Clinician Details
                 </h1>
@@ -2353,7 +2353,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                     <Calendar size={18} className="text-amber-400/80" strokeWidth={1.5} />
                     <span
                       className="text-white text-[15px] font-semibold tracking-[-0.01em]"
-                      style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                      style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                     >
                       {getCurrentPeriodLabel()}
                     </span>
@@ -2433,14 +2433,14 @@ export const ClinicianDetailsTab: React.FC = () => {
                             <ChevronLeft size={16} />
                             Back
                           </button>
-                          <span className="text-white font-semibold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>Custom Range</span>
+                          <span className="text-white font-semibold" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>Custom Range</span>
                           <button onClick={() => { setShowCustomPicker(false); setIsTimeDropdownOpen(false); }} className="text-stone-500 hover:text-white transition-colors">
                             <X size={16} />
                           </button>
                         </div>
                         <div className="flex items-center justify-center gap-4 mb-4 pb-4 border-b border-white/10">
                           <button onClick={() => setCustomYear(prev => prev - 1)} className="text-stone-400 hover:text-white"><ChevronLeft size={20} /></button>
-                          <span className="text-white text-2xl font-bold w-20 text-center" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>{customYear}</span>
+                          <span className="text-white text-2xl font-bold w-20 text-center" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>{customYear}</span>
                           <button onClick={() => setCustomYear(prev => prev + 1)} className="text-stone-400 hover:text-white"><ChevronRight size={20} /></button>
                         </div>
                         <div className="grid grid-cols-4 gap-2 mb-4">
@@ -2524,7 +2524,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                     <div>
                       <h1
                         className="text-4xl sm:text-5xl lg:text-6xl text-white tracking-tight leading-none mb-1"
-                        style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                        style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                       >
                         {selectedClinician.name}
                       </h1>
@@ -2575,7 +2575,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                         </div>
                         <span
                           className="text-white text-[15px] font-semibold tracking-[-0.01em] max-w-[120px] truncate"
-                          style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                          style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                         >
                           {selectedClinician.name.split(' ')[0]}
                         </span>
@@ -2671,7 +2671,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                         <Calendar size={18} className="text-amber-400/80" strokeWidth={1.5} />
                         <span
                           className="text-white text-[15px] font-semibold tracking-[-0.01em]"
-                          style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                          style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                         >
                           {getCurrentPeriodLabel()}
                         </span>
@@ -2751,14 +2751,14 @@ export const ClinicianDetailsTab: React.FC = () => {
                                 <ChevronLeft size={16} />
                                 Back
                               </button>
-                              <span className="text-white font-semibold" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>Custom Range</span>
+                              <span className="text-white font-semibold" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>Custom Range</span>
                               <button onClick={() => { setShowCustomPicker(false); setIsTimeDropdownOpen(false); }} className="text-stone-500 hover:text-white transition-colors">
                                 <X size={16} />
                               </button>
                             </div>
                             <div className="flex items-center justify-center gap-4 mb-4 pb-4 border-b border-white/10">
                               <button onClick={() => setCustomYear(prev => prev - 1)} className="text-stone-400 hover:text-white"><ChevronLeft size={20} /></button>
-                              <span className="text-white text-2xl font-bold w-20 text-center" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>{customYear}</span>
+                              <span className="text-white text-2xl font-bold w-20 text-center" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>{customYear}</span>
                               <button onClick={() => setCustomYear(prev => prev + 1)} className="text-stone-400 hover:text-white"><ChevronRight size={20} /></button>
                             </div>
                             <div className="grid grid-cols-4 gap-2 mb-4">
@@ -2818,7 +2818,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                       <Target size={18} className="text-amber-400" strokeWidth={1.5} />
                       <span
                         className="text-amber-100 text-[15px] font-semibold tracking-[-0.01em]"
-                        style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                        style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                       >
                         Goals
                       </span>
@@ -2847,7 +2847,7 @@ export const ClinicianDetailsTab: React.FC = () => {
               <div className="text-center mb-12">
                 <h2
                   className="text-4xl sm:text-5xl text-stone-800 mb-4"
-                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                  style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                 >
                   Select a Clinician
                 </h2>
@@ -2917,7 +2917,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                         <div className="mb-5">
                           <h3
                             className="text-2xl lg:text-[1.75rem] text-stone-800 mb-1 group-hover:text-stone-900 transition-colors leading-tight"
-                            style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                            style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                           >
                             {clinician.name}
                           </h3>
@@ -3523,7 +3523,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                     <div className="flex-1 min-w-0">
                       <h3
                         className="text-2xl sm:text-3xl xl:text-4xl text-stone-900 font-bold tracking-tight"
-                        style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                        style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                       >
                         Overdue Notes
                       </h3>
@@ -3542,7 +3542,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                               ? 'text-amber-600'
                               : 'text-rose-600'
                         }`}
-                        style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                        style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                       >
                         {complianceData.overdueNotes}
                       </div>
@@ -4050,7 +4050,7 @@ export const ClinicianDetailsTab: React.FC = () => {
               {/* Title */}
               <h2
                 className="text-2xl sm:text-3xl text-white tracking-tight"
-                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
               >
                 {selectedClinician.name.split(' ')[0]}'s Performance
               </h2>
@@ -4148,7 +4148,7 @@ export const ClinicianDetailsTab: React.FC = () => {
 
               <h2
                 className="text-3xl font-bold text-stone-900 tracking-tight"
-                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
               >
                 Goals
               </h2>
@@ -4224,7 +4224,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                             <div className="flex items-baseline gap-2">
                               <span
                                 className="text-stone-900 text-3xl font-bold"
-                                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                                style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                               >
                                 {masterClinicianData?.sessionGoal || '-'}
                               </span>
@@ -4273,7 +4273,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                             <div className="flex items-baseline gap-2">
                               <span
                                 className="text-stone-900 text-3xl font-bold"
-                                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                                style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                               >
                                 {masterClinicianData?.clientGoal || '-'}
                               </span>
@@ -4322,7 +4322,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                             <div className="flex items-baseline gap-2">
                               <span
                                 className="text-stone-900 text-3xl font-bold"
-                                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                                style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                               >
                                 {masterClinicianData?.takeRate || '-'}
                               </span>
@@ -4407,7 +4407,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                         onChange={(e) => setEarningsGoalInput(e.target.value)}
                         placeholder="8,000"
                         className="flex-1 bg-transparent text-5xl font-bold text-stone-900 outline-none placeholder:text-amber-300/60 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                        style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                        style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                       />
                       <span className="text-amber-700 text-xl font-medium">/mo</span>
                     </div>
@@ -4456,7 +4456,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                           </div>
                           <span
                             className="text-stone-900 text-3xl font-bold"
-                            style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                            style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                           >
                             {sessionsPerWeek}
                           </span>
@@ -4486,7 +4486,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                           </div>
                           <span
                             className="text-stone-900 text-3xl font-bold"
-                            style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                            style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                           >
                             {sessionsPerMonth}
                           </span>
@@ -4516,7 +4516,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                           </div>
                           <span
                             className="text-stone-900 text-3xl font-bold"
-                            style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                            style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                           >
                             {clientsNeeded}
                           </span>
@@ -4655,7 +4655,7 @@ export const ClinicianDetailsTab: React.FC = () => {
 
               <h2
                 className="text-2xl font-bold text-stone-900 tracking-tight"
-                style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
               >
                 {goalTypeConfig[editingGoalType].label}
               </h2>
@@ -4687,7 +4687,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                     <div className="relative inline-flex">
                       <span
                         className="invisible text-4xl font-bold px-1"
-                        style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                        style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                       >
                         {goalFormData.value || '0'}
                       </span>
@@ -4700,7 +4700,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                         onChange={(e) => setGoalFormData({ ...goalFormData, value: e.target.value })}
                         placeholder="0"
                         className="absolute inset-0 w-full bg-transparent text-4xl font-bold text-stone-900 outline-none placeholder:text-stone-300 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                        style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                        style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                       />
                     </div>
                     <span className="text-lg text-amber-700/70 font-medium">
@@ -4809,7 +4809,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                                   <div className="flex items-center gap-2 flex-wrap">
                                     <span
                                       className="text-xl font-bold text-stone-900"
-                                      style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                                      style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                                     >
                                       {formatGoalValue(editingGoalType, period.value)}
                                     </span>

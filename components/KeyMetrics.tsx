@@ -80,7 +80,7 @@ const Tooltip: React.FC<{ title: string; description: string }> = ({ title, desc
           >
             <p
               className="text-white text-lg font-semibold mb-2"
-              style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+              style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
             >
               {title}
             </p>
@@ -364,7 +364,7 @@ const HeroMetricCard: React.FC<HeroMetricCardProps> = ({ data, type, sparklineDa
               <span
                 className="text-5xl sm:text-6xl xl:text-7xl text-stone-900 tracking-tight font-bold"
                 style={{
-                  fontFamily: "'DM Serif Display', Georgia, serif",
+                  fontFamily: "'Tiempos Headline', Georgia, serif",
                   lineHeight: 1,
                 }}
               >
@@ -459,7 +459,7 @@ const HeroMetricCard: React.FC<HeroMetricCardProps> = ({ data, type, sparklineDa
                   </div>
                   <span
                     className="text-sm font-bold text-stone-800 w-14 text-right"
-                    style={{ fontFamily: "'DM Serif Display', Georgia, serif", lineHeight: 1 }}
+                    style={{ fontFamily: "'Tiempos Headline', Georgia, serif", lineHeight: 1 }}
                   >
                     {type === 'revenue' ? formatCurrency(value) : value}
                   </span>
@@ -476,7 +476,7 @@ const HeroMetricCard: React.FC<HeroMetricCardProps> = ({ data, type, sparklineDa
             <p className="text-sm text-stone-600">
               <span
                 className="font-bold text-stone-800"
-                style={{ fontFamily: "'DM Serif Display', Georgia, serif", lineHeight: 1 }}
+                style={{ fontFamily: "'Tiempos Headline', Georgia, serif", lineHeight: 1 }}
               >
                 {type === 'revenue'
                   ? formatCurrency(WEEKLY_REVENUE.reduce((sum, w) => sum + w.revenue, 0))
@@ -592,7 +592,7 @@ const ClientsMetricCard: React.FC<ClientsMetricCardProps> = ({ data, index }) =>
             <span
               className="text-3xl sm:text-4xl text-stone-900 tracking-tight font-bold"
               style={{
-                fontFamily: "'DM Serif Display', Georgia, serif",
+                fontFamily: "'Tiempos Headline', Georgia, serif",
                 lineHeight: 1,
               }}
             >
@@ -676,7 +676,7 @@ const ClientsMetricCard: React.FC<ClientsMetricCardProps> = ({ data, index }) =>
               <div className="flex-1">
                 <p
                   className="text-lg font-bold text-stone-900"
-                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                  style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                 >
                   {newClients} New Clients This Month
                 </p>
@@ -696,7 +696,7 @@ const ClientsMetricCard: React.FC<ClientsMetricCardProps> = ({ data, index }) =>
               <div className="flex-1">
                 <p
                   className="text-lg font-bold text-stone-900"
-                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                  style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                 >
                   {churned} Clients Churned This Month
                 </p>
@@ -711,7 +711,7 @@ const ClientsMetricCard: React.FC<ClientsMetricCardProps> = ({ data, index }) =>
               <p className="text-sm text-stone-600">
                 <span
                   className={`font-bold ${newClients - churned >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}
-                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                  style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                 >
                   {newClients - churned >= 0 ? '+' : ''}{newClients - churned} net
                 </span>
@@ -798,7 +798,7 @@ const SupportingMetricCard: React.FC<SupportingMetricCardProps> = ({ data, index
             <span
               className="text-3xl sm:text-4xl text-stone-900 tracking-tight font-bold"
               style={{
-                fontFamily: "'DM Serif Display', Georgia, serif",
+                fontFamily: "'Tiempos Headline', Georgia, serif",
                 lineHeight: 1,
               }}
             >

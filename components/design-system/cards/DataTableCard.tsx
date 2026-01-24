@@ -240,7 +240,7 @@ export const DataTableCard: React.FC<DataTableCardProps> = ({
     ? { minHeight: minHeight || undefined }
     : {
         background: 'linear-gradient(145deg, #ffffff 0%, #fafaf9 100%)',
-        boxShadow: '0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)',
+        boxShadow: 'var(--shadow-card)',
         minHeight: minHeight || undefined,
       };
 
@@ -255,7 +255,7 @@ export const DataTableCard: React.FC<DataTableCardProps> = ({
           <div>
             <h3
               className={`text-stone-900 ${sizeConfig.titleClass} font-bold tracking-tight`}
-              style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+              style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
             >
               {title}
             </h3>
@@ -357,7 +357,7 @@ export const DataTableCard: React.FC<DataTableCardProps> = ({
                               ? highlightTextColor
                               : 'text-stone-800'
                           }`}
-                          style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                          style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                         >
                           {row.label}
                         </span>
@@ -425,7 +425,7 @@ export const DataTableCard: React.FC<DataTableCardProps> = ({
                       ? `text-${row.highlightColor}-800`
                       : 'text-stone-800'
                   }`}
-                  style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                  style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                 >
                   {row.label}
                 </span>

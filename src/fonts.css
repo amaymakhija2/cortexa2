@@ -1,0 +1,141 @@
+/* ==========================================================================
+   Font System: Suisse Int'l + Tiempos Headline
+   ========================================================================== */
+
+/* Suisse Int'l (Sans-serif - UI/Body) */
+@font-face {
+  font-family: 'Suisse Intl';
+  src: url('/fonts/suisse-intl/SuisseIntlTrial-Light.woff2') format('woff2');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Suisse Intl';
+  src: url('/fonts/suisse-intl/SuisseIntlTrial-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Suisse Intl';
+  src: url('/fonts/suisse-intl/SuisseIntlTrial-RegularIt.woff2') format('woff2');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Suisse Intl';
+  src: url('/fonts/suisse-intl/SuisseIntlTrial-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Suisse Intl';
+  src: url('/fonts/suisse-intl/SuisseIntlTrial-MediumIt.woff2') format('woff2');
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Suisse Intl';
+  src: url('/fonts/suisse-intl/SuisseIntlTrial-Semibold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Suisse Intl';
+  src: url('/fonts/suisse-intl/SuisseIntlTrial-SemiboldIt.woff2') format('woff2');
+  font-weight: 600;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Suisse Intl';
+  src: url('/fonts/suisse-intl/SuisseIntlTrial-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Tiempos Headline (Serif - Display/Headlines) */
+@font-face {
+  font-family: 'Tiempos Headline';
+  src: url('/fonts/tiempos-headline/TestTiemposHeadline-Light.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+  size-adjust: 110%;
+}
+
+@font-face {
+  font-family: 'Tiempos Headline';
+  src: url('/fonts/tiempos-headline/TestTiemposHeadline-LightItalic.otf') format('opentype');
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+  size-adjust: 110%;
+}
+
+@font-face {
+  font-family: 'Tiempos Headline';
+  src: url('/fonts/tiempos-headline/TestTiemposHeadline-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  size-adjust: 110%;
+}
+
+@font-face {
+  font-family: 'Tiempos Headline';
+  src: url('/fonts/tiempos-headline/TestTiemposHeadline-RegularItalic.otf') format('opentype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+  size-adjust: 110%;
+}
+
+@font-face {
+  font-family: 'Tiempos Headline';
+  src: url('/fonts/tiempos-headline/TestTiemposHeadline-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  size-adjust: 110%;
+}
+
+@font-face {
+  font-family: 'Tiempos Headline';
+  src: url('/fonts/tiempos-headline/TestTiemposHeadline-MediumItalic.otf') format('opentype');
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
+  size-adjust: 110%;
+}
+
+@font-face {
+  font-family: 'Tiempos Headline';
+  src: url('/fonts/tiempos-headline/TestTiemposHeadline-Semibold.otf') format('opentype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+  size-adjust: 110%;
+}
+
+@font-face {
+  font-family: 'Tiempos Headline';
+  src: url('/fonts/tiempos-headline/TestTiemposHeadline-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  size-adjust: 110%;
+}

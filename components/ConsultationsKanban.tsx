@@ -803,7 +803,7 @@ const KanbanCard: React.FC<KanbanCardProps> = ({
           <div className="flex-1 min-w-0">
             <h4
               className="text-lg font-semibold text-stone-900 truncate leading-tight"
-              style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+              style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
             >
               {formatClientName(consultation.firstName, consultation.lastName)}
             </h4>
@@ -936,7 +936,7 @@ const KanbanColumnComponent: React.FC<KanbanColumnComponentProps> = ({
           <div className="flex items-center gap-3">
             <h3
               className="text-lg font-semibold tracking-tight text-stone-800"
-              style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+              style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
             >
               {column.title}
             </h3>
@@ -1087,7 +1087,7 @@ export const ConsultationsKanban: React.FC<ConsultationsKanbanProps> = ({
         <div className="flex items-center gap-5">
           <h2
             className="text-2xl font-semibold text-stone-900 tracking-tight"
-            style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+            style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
           >
             Pipeline
           </h2>
