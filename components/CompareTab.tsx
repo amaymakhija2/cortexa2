@@ -326,6 +326,36 @@ export const CompareTab: React.FC = () => {
     }
   };
 
+  // Get informative table title based on dimension and view mode
+  const getTableTitle = (): string => {
+    const dimensionName = getDimensionLabel();
+    switch (viewMode) {
+      case 'last-12-months':
+        return `${dimensionName} Performance Summary`;
+      case 'live':
+        return `Current ${dimensionName} Metrics`;
+      case 'historical':
+        const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        return `${dimensionName} Metrics for ${months[selectedMonth]} ${selectedYear}`;
+      default:
+        return `${dimensionName} Performance`;
+    }
+  };
+
+  // Get informative table subtitle based on view mode
+  const getTableSubtitle = (): string => {
+    switch (viewMode) {
+      case 'last-12-months':
+        return 'Aggregate totals and averages over the trailing 12 months';
+      case 'live':
+        return 'Real-time snapshot of current month performance';
+      case 'historical':
+        return 'Point-in-time metrics for the selected month';
+      default:
+        return '';
+    }
+  };
+
   // Build table data based on view mode
   const tableRows = useMemo(() => {
     if (compareData.viewMode === 'last-12-months') {
@@ -339,10 +369,10 @@ export const CompareTab: React.FC = () => {
 
   if (availableDimensions.length === 0) {
     return (
-      <div className="flex-1 overflow-y-auto h-[calc(100vh-80px)] bg-gradient-to-b from-stone-100 to-stone-50">
-        <div className="min-h-full">
+      <div className="flex-1 flex flex-col h-[calc(100vh-80px)] overflow-y-auto bg-gradient-to-b from-stone-100 to-stone-50">
+        <div className="min-h-full flex flex-col">
           <PageHeader
-            accent="violet"
+            accent="amber"
             label="Practice Comparison"
             title="Compare Performance"
             subtitle="Last 12 months"
@@ -362,11 +392,11 @@ export const CompareTab: React.FC = () => {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto h-[calc(100vh-80px)] bg-gradient-to-b from-stone-100 to-stone-50">
-      <div className="min-h-full">
+    <div className="flex-1 flex flex-col h-[calc(100vh-80px)] overflow-y-auto bg-gradient-to-b from-stone-100 to-stone-50">
+      <div className="min-h-full flex flex-col">
         {/* Header with Time Controls */}
         <PageHeader
-          accent="violet"
+          accent="amber"
           label="Practice Comparison"
           title="Compare Performance"
           subtitle={getDateRangeLabel()}
@@ -433,7 +463,7 @@ export const CompareTab: React.FC = () => {
         </PageHeader>
 
         {/* Table Content */}
-        <div className="px-4 sm:px-6 lg:px-8 py-6 lg:py-8 overflow-x-auto">
+        <div className="flex flex-col flex-1 min-h-0 min-w-0 px-6 sm:px-8 lg:px-12 py-6 lg:py-8 overflow-x-auto">
           {compareData.loading ? (
             <div className="flex items-center justify-center py-24">
               <div className="flex flex-col items-center gap-4">
@@ -449,12 +479,14 @@ export const CompareTab: React.FC = () => {
               </div>
             </div>
           ) : (
-            <DataTableCard
-              title={`By ${getDimensionLabel()}`}
-              subtitle={`${compareData.groups.length} ${dimension === 'location' ? 'locations' : dimension === 'supervisor' ? 'teams' : 'license types'} compared`}
-              columns={tableColumns}
-              rows={tableRows}
-            />
+            <div className="min-w-0 overflow-x-auto">
+              <DataTableCard
+                title={getTableTitle()}
+                subtitle={getTableSubtitle()}
+                columns={tableColumns}
+                rows={tableRows}
+              />
+            </div>
           )}
         </div>
       </div>

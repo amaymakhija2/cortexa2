@@ -160,10 +160,10 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
         />
       </div>
 
-      <div className="relative px-6 sm:px-8 lg:px-12 py-8 lg:py-10">
+      <div className="relative px-6 sm:px-8 lg:px-12 py-8 lg:py-10 overflow-x-auto">
         {/* Header row */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
-          <div className="min-w-0 flex-shrink">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 mb-6 min-w-max lg:min-w-0">
+          <div className="min-w-0 flex-shrink-0 lg:flex-shrink">
             {label && (
               <p className={`${accentConfig.labelClass} text-sm font-semibold tracking-widest uppercase mb-2`}>
                 {label}
@@ -183,7 +183,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
             )}
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-shrink-0">
             {/* Time Period Selector - Sophisticated Dropdown */}
             {showTimePeriod && (
               <div className="relative" ref={dropdownRef}>
