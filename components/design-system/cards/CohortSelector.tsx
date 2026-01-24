@@ -101,7 +101,7 @@ export const CohortSelector: React.FC<CohortSelectorProps> = ({
                 className={`text-4xl sm:text-5xl xl:text-6xl font-bold mt-4 xl:mt-5 ${
                   isSelected ? 'text-amber-600' : 'text-stone-900'
                 }`}
-                style={{ fontFamily: "'Tiempos Headline', Georgia, serif", lineHeight: 1 }}
+                style={{ lineHeight: 1 }}
               >
                 {cohort.clientCount.toLocaleString()}
               </p>

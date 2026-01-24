@@ -94,7 +94,7 @@ export const StatCard: React.FC<StatCardProps> = ({
         <div className="flex items-baseline gap-2 sm:gap-2.5">
           <span
             className={`${colorClass} font-bold text-3xl sm:text-4xl xl:text-5xl 2xl:text-6xl tracking-tight`}
-            style={{ lineHeight: 1.1, fontFamily: "'Tiempos Headline', Georgia, serif" }}
+            style={{ lineHeight: 1.1 }}
           >
             {value}
           </span>
@@ -192,7 +192,7 @@ export const StatCardWithBreakdown: React.FC<StatCardWithBreakdownProps> = ({
       {/* Value */}
       <span
         className={`${colorClass} font-bold block text-3xl sm:text-4xl xl:text-5xl 2xl:text-6xl tracking-tight`}
-        style={{ lineHeight: 1.1, fontFamily: "'Tiempos Headline', Georgia, serif" }}
+        style={{ lineHeight: 1.1 }}
       >
         {value}
       </span>

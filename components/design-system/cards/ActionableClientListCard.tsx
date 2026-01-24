@@ -170,7 +170,6 @@ export function ActionableClientListCard<T extends { id: string }>({
           <div className="text-right flex-shrink-0">
             <div
               className={`text-4xl sm:text-5xl xl:text-6xl font-bold ${accentConfig.text}`}
-              style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
             >
               {summaryValue}
             </div>

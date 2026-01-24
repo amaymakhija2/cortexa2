@@ -178,7 +178,6 @@ const NavItem: React.FC<NavItemProps> = ({
                   {description && !isActive && isExpanded && (
                     <div
                       className="text-[13px] text-stone-400 truncate mt-0.5 transition-colors duration-200 group-hover:text-stone-300"
-                      style={{ fontStyle: 'italic' }}
                     >
                       {description}
                     </div>
@@ -487,7 +486,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
                               {item.description && !isActive && (
                                 <div
                                   className="text-[13px] text-stone-400 mt-0.5 transition-colors duration-200 group-hover:text-stone-300"
-                                  style={{ fontStyle: 'italic' }}
                                 >
                                   {item.description}
                                 </div>

@@ -149,7 +149,6 @@ export const ClientRosterCard: React.FC<ClientRosterCardProps> = ({
             <div className="flex-shrink-0 text-right">
               <div
                 className="text-stone-900 text-3xl sm:text-4xl font-bold"
-                style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
               >
                 {filteredClients.length}
               </div>
@@ -190,7 +189,6 @@ export const ClientRosterCard: React.FC<ClientRosterCardProps> = ({
             <div className="flex items-center gap-3">
               <div
                 className="text-stone-900 text-2xl font-bold"
-                style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
               >
                 {filteredClients.length}
               </div>
@@ -262,7 +260,6 @@ export const ClientRosterCard: React.FC<ClientRosterCardProps> = ({
                     <div>
                       <span
                         className="text-xl font-bold text-stone-900"
-                        style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                       >
                         {client.totalSessions}
                       </span>

@@ -162,7 +162,6 @@ export const InsightCard: React.FC<InsightCardProps> = ({
                 className="text-xl font-bold leading-none"
                 style={{
                   color: config.metricColor,
-                  fontFamily: "'Tiempos Headline', Georgia, serif",
                 }}
               >
                 {metric}

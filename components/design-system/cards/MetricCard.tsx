@@ -272,7 +272,6 @@ export const MetricCard: React.FC<MetricCardProps> = ({
             <div className="mb-2 xl:mb-3">
               <span
                 className="text-3xl sm:text-4xl xl:text-5xl font-bold text-stone-900 tracking-tight"
-                style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
               >
                 {value}
               </span>

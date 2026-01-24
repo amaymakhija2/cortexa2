@@ -163,7 +163,6 @@ export const SplitBarCard: React.FC<SplitBarCardProps> = ({
               )}
               <span
                 className="text-white font-bold text-lg tracking-tight"
-                style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
               >
                 {leftPercent}%
               </span>
@@ -201,7 +200,6 @@ export const SplitBarCard: React.FC<SplitBarCardProps> = ({
               )}
               <span
                 className="text-white font-bold text-lg tracking-tight"
-                style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
               >
                 {rightPercent}%
               </span>

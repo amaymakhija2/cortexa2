@@ -1145,7 +1145,7 @@ export const ClinicianOverview: React.FC = () => {
           </p>
 
           {/* Metric buttons - 8 metric groups in 2 rows of 4 */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 auto-rows-fr">
             {METRIC_GROUPS.map((group) => {
               const isSelected = selectedGroupId === group.id;
 
@@ -1153,7 +1153,7 @@ export const ClinicianOverview: React.FC = () => {
                 <button
                   key={group.id}
                   onClick={() => handleGroupChange(group.id)}
-                  className={`relative px-6 py-6 rounded-2xl font-semibold transition-all duration-300 text-left min-h-[100px] ${
+                  className={`relative px-5 py-5 rounded-2xl font-semibold transition-all duration-300 text-left flex flex-col ${
                     isSelected
                       ? 'bg-white text-stone-900 shadow-xl scale-[1.02]'
                       : 'bg-white/10 text-white/80 hover:bg-white/20 hover:text-white hover:scale-[1.01]'
@@ -1164,13 +1164,13 @@ export const ClinicianOverview: React.FC = () => {
                       : undefined
                   }}
                 >
-                  <span className="block text-xl font-bold leading-tight">{group.label}</span>
-                  <span className={`block text-base mt-2 leading-relaxed ${isSelected ? 'text-stone-500' : 'text-white/70'}`}>
+                  <span className="block text-lg font-bold leading-tight" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>{group.label}</span>
+                  <span className={`block text-sm mt-1.5 leading-snug line-clamp-2 ${isSelected ? 'text-stone-500' : 'text-white/70'}`}>
                     {group.description}
                   </span>
                   {isSelected && (
                     <div
-                      className="absolute bottom-0 left-6 right-6 h-1.5 rounded-full"
+                      className="absolute bottom-0 left-5 right-5 h-1.5 rounded-full"
                       style={{ background: 'linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%)' }}
                     />
                   )}
@@ -1259,7 +1259,7 @@ export const ClinicianOverview: React.FC = () => {
                         <p className="text-stone-600 text-xs">{CLINICIANS_DATA.length} clinicians</p>
                       </div>
                       <div className="col-span-4 text-right">
-                        <span className="text-xl font-black text-stone-600" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
+                        <span className="text-xl font-black text-stone-600">
                           {metric.format(Math.round(teamAvg))}
                         </span>
                       </div>
@@ -1294,7 +1294,7 @@ export const ClinicianOverview: React.FC = () => {
                       {/* Primary Value */}
                       {!metric.hidden && (
                         <div className="text-right">
-                          <span className="text-xl font-black text-stone-600" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
+                          <span className="text-xl font-black text-stone-600">
                             {metric.format(Math.round(teamAvg))}
                           </span>
                         </div>
@@ -1307,7 +1307,6 @@ export const ClinicianOverview: React.FC = () => {
                           <div key={s.key} className="text-right">
                             <span
                               className={`font-semibold ${s.isPrimary ? 'text-xl font-black text-stone-600' : 'text-lg text-stone-600'}`}
-                              style={s.isPrimary ? { fontFamily: "'Tiempos Headline', Georgia, serif" } : undefined}
                             >
                               {s.format(avg)}
                             </span>
@@ -1360,7 +1359,7 @@ export const ClinicianOverview: React.FC = () => {
                       <div className="lg:hidden">
                         <div className="grid grid-cols-12 gap-3 items-center">
                           <div className="col-span-2">
-                            <span className="text-3xl font-black" style={{ fontFamily: "'Tiempos Headline', Georgia, serif", color: theme.text }}>
+                            <span className="text-3xl font-black" style={{ color: theme.text }}>
                               {rank}
                             </span>
                           </div>
@@ -1385,7 +1384,7 @@ export const ClinicianOverview: React.FC = () => {
                             </div>
                           </div>
                           <div className="col-span-4 text-right">
-                            <span className="text-xl font-black" style={{ fontFamily: "'Tiempos Headline', Georgia, serif", color: theme.text }}>
+                            <span className="text-xl font-black" style={{ color: theme.text }}>
                               {metric.format(value)}
                             </span>
                           </div>
@@ -1417,10 +1416,7 @@ export const ClinicianOverview: React.FC = () => {
                         <div className="flex justify-center">
                           <span
                             className="text-3xl font-black"
-                            style={{
-                              fontFamily: "'Tiempos Headline', Georgia, serif",
-                              color: theme.text
-                            }}
+                            style={{ color: theme.text }}
                           >
                             {rank}
                           </span>
@@ -1458,10 +1454,7 @@ export const ClinicianOverview: React.FC = () => {
                           <div className="text-right">
                             <span
                               className="text-xl font-black"
-                              style={{
-                                fontFamily: "'Tiempos Headline', Georgia, serif",
-                                color: theme.text
-                              }}
+                              style={{ color: theme.text }}
                             >
                               {metric.format(value)}
                             </span>
@@ -1473,7 +1466,7 @@ export const ClinicianOverview: React.FC = () => {
                           <div key={s.key} className="text-right">
                             <span
                               className={`text-lg font-semibold ${s.isPrimary ? '' : 'text-stone-600'}`}
-                              style={s.isPrimary ? { fontFamily: "'Tiempos Headline', Georgia, serif", color: theme.text } : undefined}
+                              style={s.isPrimary ? { color: theme.text } : undefined}
                             >
                               {s.format(clinician.metrics[s.key])}
                             </span>
