@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { Users, ArrowRight } from 'lucide-react';
 import { useSettings } from '../../context/SettingsContext';
 import {
@@ -20,8 +20,11 @@ import {
   AnimatedGrid,
   AnimatedSection,
   ExecutiveSummary,
+  ClinicianFilter,
+  OthersTooltip,
+  useClinicianFilter,
 } from '../design-system';
-import type { HoverInfo } from '../design-system';
+import type { HoverInfo, ClinicianFilterOption } from '../design-system';
 import type { FinancialAnalysisTabProps } from './types';
 
 // =============================================================================
@@ -31,19 +34,17 @@ import type { FinancialAnalysisTabProps } from './types';
 // and detailed breakdown. Uses design system components throughout.
 // =============================================================================
 
-// Clinician segment configuration for BarChart
-const CLINICIAN_SEGMENTS = [
-  { key: 'Chen', label: 'S Chen', color: '#7c3aed', gradient: 'linear-gradient(180deg, #a78bfa 0%, #7c3aed 100%)' },
-  { key: 'Rodriguez', label: 'M Rodriguez', color: '#0891b2', gradient: 'linear-gradient(180deg, #22d3ee 0%, #0891b2 100%)' },
-  { key: 'Patel', label: 'A Patel', color: '#d97706', gradient: 'linear-gradient(180deg, #fbbf24 0%, #d97706 100%)' },
-  { key: 'Kim', label: 'J Kim', color: '#db2777', gradient: 'linear-gradient(180deg, #f472b6 0%, #db2777 100%)' },
-  { key: 'Johnson', label: 'M Johnson', color: '#059669', gradient: 'linear-gradient(180deg, #34d399 0%, #059669 100%)' },
-];
+// Clinician display labels
+const CLINICIAN_LABELS: Record<string, string> = {
+  Chen: 'S Chen',
+  Rodriguez: 'M Rodriguez',
+  Patel: 'A Patel',
+  Kim: 'J Kim',
+  Johnson: 'M Johnson',
+};
 
-// Order for stacking (bottom to top)
-const CLINICIAN_STACK_ORDER = ['Johnson', 'Kim', 'Patel', 'Rodriguez', 'Chen'];
-
-const CLINICIAN_NAMES = ['Chen', 'Rodriguez', 'Patel', 'Kim', 'Johnson'] as const;
+// All clinician keys in the data
+const CLINICIAN_KEYS = ['Chen', 'Rodriguez', 'Patel', 'Kim', 'Johnson'];
 
 export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
   timePeriod,
@@ -67,7 +68,20 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
   const revenueGoalDisplay = `$${Math.round(revenueGoal / 1000)}k`; // e.g., "$150k"
   const [showClinicianBreakdown, setShowClinicianBreakdown] = useState(false);
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
-  const [hoveredClinicianBar, setHoveredClinicianBar] = useState<HoverInfo | null>(null);
+
+  // Reference for tooltip positioning
+  const chartContainerRef = useRef<HTMLDivElement>(null);
+
+  // ==========================================================================
+  // CLINICIAN FILTER HOOK (Top N + Others pattern)
+  // ==========================================================================
+
+  const clinicianFilter = useClinicianFilter({
+    data: clinicianRevenueData,
+    clinicianKeys: CLINICIAN_KEYS,
+    clinicianLabels: CLINICIAN_LABELS,
+    initialFilter: 'top5',
+  });
 
   // Get user-friendly period label (e.g., "last 12 months" instead of "Jan–Dec 2024")
   const periodLabel = useMemo(() => {
@@ -241,6 +255,14 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
     return `$${(value / 1000).toFixed(0)}k`;
   };
 
+  // Format helpers that return value and suffix separately for better typography
+  const formatCurrencyParts = (value: number): { value: string; suffix: string } => {
+    if (value >= 1000000) {
+      return { value: `$${(value / 1000000).toFixed(2)}`, suffix: 'M' };
+    }
+    return { value: `$${(value / 1000).toFixed(0)}`, suffix: 'k' };
+  };
+
   // Memoized formatter functions for charts (to prevent re-renders)
   const ltvYTickFormatter = useMemo(() => (v: number) => `$${(v / 1000).toFixed(1)}k`, []);
   const ltvTooltipFormatter = useMemo(() => (value: number, name: string): [string, string] => [
@@ -260,17 +282,14 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
     }));
   }, [revenueData]);
 
-  // Prepare stacked bar chart data for clinician breakdown
+  // Prepare stacked bar chart data for clinician breakdown (with Others aggregation)
   const clinicianBarChartData = useMemo(() => {
-    return clinicianRevenueData.map((item) => ({
+    return clinicianFilter.transformedData.map((item) => ({
       label: item.month,
-      Chen: item.Chen,
-      Rodriguez: item.Rodriguez,
-      Patel: item.Patel,
-      Kim: item.Kim,
-      Johnson: item.Johnson,
+      ...CLINICIAN_KEYS.reduce((acc, key) => ({ ...acc, [key]: item[key] }), {}),
+      __others__: item.__others__ || 0,
     }));
-  }, [clinicianRevenueData]);
+  }, [clinicianFilter.transformedData]);
 
   // =========================================================================
   // INSIGHTS
@@ -286,8 +305,8 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
     {
       value: `${monthsAtGoal}/${revenueData.length}`,
       label: 'Goal Achievement',
-      bgColor: monthsAtGoal >= revenueData.length / 2 ? 'bg-emerald-50' : 'bg-amber-50',
-      textColor: monthsAtGoal >= revenueData.length / 2 ? 'text-emerald-600' : 'text-amber-600',
+      bgColor: 'bg-stone-100',
+      textColor: 'text-stone-700',
     },
     {
       value: `${formatCurrencyShort(revenueRange.min)}–${formatCurrencyShort(revenueRange.max)}`,
@@ -298,36 +317,30 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
   ], [bestMonth, monthsAtGoal, revenueData.length, revenueRange]);
 
   const clinicianInsights = useMemo(() => {
-    // Find top clinician by total revenue
-    const clinicianTotals = CLINICIAN_NAMES.map((name) => ({
-      name,
-      total: clinicianRevenueData.reduce((sum, item) => sum + item[name], 0),
-    }));
-    const topClinician = clinicianTotals.reduce((best, curr) =>
-      curr.total > best.total ? curr : best
-    );
+    const { topClinician, grandTotal, colorConfig, allClinicians } = clinicianFilter;
+    const othersCount = colorConfig.othersClinicians.length;
 
     return [
       {
-        value: topClinician.name,
-        label: `Top (${formatCurrencyShort(topClinician.total)})`,
+        value: topClinician?.label || '-',
+        label: `Top (${formatCurrencyShort(topClinician?.totalValue || 0)})`,
         bgColor: 'bg-violet-50',
         textColor: 'text-violet-600',
       },
       {
-        value: formatCurrencyShort(totalGrossRevenue),
+        value: formatCurrencyShort(grandTotal),
         label: 'Team Total',
-        bgColor: 'bg-indigo-50',
-        textColor: 'text-indigo-600',
+        bgColor: 'bg-stone-100',
+        textColor: 'text-stone-700',
       },
       {
-        value: '5',
-        label: 'Clinicians',
+        value: allClinicians.length.toString(),
+        label: othersCount > 0 ? `Clinicians (${othersCount} in Others)` : 'Clinicians',
         bgColor: 'bg-stone-100',
         textColor: 'text-stone-700',
       },
     ];
-  }, [clinicianRevenueData, totalGrossRevenue]);
+  }, [clinicianFilter]);
 
   // =========================================================================
   // TABLE DATA
@@ -427,14 +440,16 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
           <AnimatedGrid cols={settings.showNetRevenueData ? 3 : 2} gap="md" staggerDelay={60}>
             <StatCard
               title="Gross Revenue"
-              value={formatCurrency(totalGrossRevenue)}
+              value={formatCurrencyParts(totalGrossRevenue).value}
+              valueSuffix={formatCurrencyParts(totalGrossRevenue).suffix}
               valueLabel="total"
               subtitle={periodLabel}
             />
             {settings.showNetRevenueData && (
               <StatCard
                 title="Net Revenue"
-                value={formatCurrency(totalNetRevenue)}
+                value={formatCurrencyParts(totalNetRevenue).value}
+                valueSuffix={formatCurrencyParts(totalNetRevenue).suffix}
                 valueLabel="total"
                 subtitle={periodLabel}
               />
@@ -463,13 +478,49 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
                     active={showClinicianBreakdown}
                     onToggle={() => setShowClinicianBreakdown(!showClinicianBreakdown)}
                     icon={<Users size={16} />}
+                    hidden={!!clinicianFilter.hoverInfo}
                   />
+                  {showClinicianBreakdown && !clinicianFilter.hoverInfo && (
+                    <ClinicianFilter
+                      value={clinicianFilter.filterMode}
+                      onChange={clinicianFilter.setFilterMode}
+                      customSelection={clinicianFilter.customSelection}
+                      onCustomSelectionChange={clinicianFilter.setCustomSelection}
+                      clinicians={clinicianFilter.allClinicians}
+                      size="sm"
+                    />
+                  )}
                   {!showClinicianBreakdown && (
                     <GoalIndicator
                       value={revenueGoalDisplay}
                       label="Goal"
                       color="amber"
                     />
+                  )}
+                  {clinicianFilter.hoverInfo && !clinicianFilter.isOthersHovered && (
+                    <div
+                      className="flex items-center gap-3 px-4 py-2 rounded-xl"
+                      style={{ backgroundColor: `${clinicianFilter.hoverInfo.color}15` }}
+                    >
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: clinicianFilter.hoverInfo.color }} />
+                      <span className="text-stone-700 font-semibold">{clinicianFilter.hoverInfo.segmentLabel}</span>
+                      <span className="font-bold" style={{ color: clinicianFilter.hoverInfo.color }}>
+                        {formatCurrencyShort(clinicianFilter.hoverInfo.value)}
+                      </span>
+                      <span className="text-stone-500 text-sm">in {clinicianFilter.hoverInfo.label}</span>
+                    </div>
+                  )}
+                  {clinicianFilter.isOthersHovered && (
+                    <div className="flex items-center gap-3 px-4 py-2 rounded-xl bg-stone-100">
+                      <div className="w-3 h-3 rounded-full bg-stone-500" />
+                      <span className="text-stone-700 font-semibold">Others</span>
+                      <span className="font-bold text-stone-600">
+                        {formatCurrencyShort(clinicianFilter.hoverInfo?.value || 0)}
+                      </span>
+                      <span className="text-stone-500 text-sm">
+                        ({clinicianFilter.colorConfig.othersClinicians.length} clinicians)
+                      </span>
+                    </div>
                   )}
                 </>
               }
@@ -480,19 +531,33 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
             >
               {/* Using the design system BarChart component */}
               {showClinicianBreakdown ? (
-                <BarChart
-                  data={clinicianBarChartData}
-                  mode="stacked"
-                  segments={CLINICIAN_SEGMENTS}
-                  stackOrder={CLINICIAN_STACK_ORDER}
-                  formatValue={formatCurrencyShort}
-                  onHover={setHoveredClinicianBar}
-                  hoverInfo={hoveredClinicianBar}
-                  formatHoverValue={formatCurrencyShort}
-                  showLegend
-                  legendPosition="top-right"
-                  height="380px"
-                />
+                <div ref={chartContainerRef} className="relative h-full">
+                  <BarChart
+                    data={clinicianBarChartData}
+                    mode="stacked"
+                    segments={clinicianFilter.segments}
+                    stackOrder={clinicianFilter.stackOrder}
+                    formatValue={formatCurrencyShort}
+                    onHover={clinicianFilter.handleSegmentHover}
+                    hoverInfo={clinicianFilter.hoverInfo}
+                    formatHoverValue={formatCurrencyShort}
+                    showLegend
+                    legendPosition="top-right"
+                    height="380px"
+                  />
+                  {/* Others Tooltip */}
+                  {clinicianFilter.isOthersHovered && clinicianFilter.hoveredDataPoint && (
+                    <OthersTooltip
+                      clinicians={clinicianFilter.colorConfig.othersClinicians}
+                      dataPointLabel={clinicianFilter.hoverInfo?.label || ''}
+                      dataPointValues={clinicianFilter.hoveredDataPoint as Record<string, number>}
+                      totalValue={clinicianFilter.hoverInfo?.value || 0}
+                      onSwap={clinicianFilter.swapClinicianIntoView}
+                      formatValue={formatCurrencyShort}
+                      className="right-4 top-16"
+                    />
+                  )}
+                </div>
               ) : (
                 <BarChart
                   data={barChartData}
@@ -542,21 +607,9 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
               <SimpleChartCard
                 title="Client Lifetime Value"
                 subtitle="What an average client brings in gross revenue over time"
-                metrics={[
-                  {
-                    value: '$3.6k',
-                    label: '2025',
-                    bgColor: '#ecfdf5',
-                    textColor: '#059669',
-                    isPrimary: true,
-                  },
-                  {
-                    value: '$4.4k',
-                    label: '2024',
-                    bgColor: '#eff6ff',
-                    textColor: '#2563eb',
-                    accentColor: '#3b82f6',
-                  },
+                insights={[
+                  { value: '$3.6k', label: '2025', bgColor: 'bg-emerald-50', textColor: 'text-emerald-600' },
+                  { value: '$4.4k', label: '2024', bgColor: 'bg-stone-100', textColor: 'text-stone-700' },
                 ]}
               >
                 <LineChart
@@ -580,85 +633,49 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
             <Grid cols={2} gap="lg">
               {/* Net Revenue Margin Chart */}
               <SimpleChartCard
-              title="Net Revenue Margin"
-              subtitle="Percentage of gross revenue retained"
-              metrics={[
-                {
-                  value: `${Math.round(avgMargin)}%`,
-                  label: 'Your Avg',
-                  bgColor: '#ecfdf5',
-                  textColor: '#059669',
-                  isPrimary: true,
-                },
-                {
-                  value: '18%',
-                  label: 'Industry',
-                  bgColor: '#eef2ff',
-                  textColor: '#6366f1',
-                  accentColor: '#6366f1',
-                },
-                {
-                  value: '15%',
-                  label: '2024',
-                  bgColor: '#fefce8',
-                  textColor: '#ca8a04',
-                  accentColor: '#eab308',
-                },
-              ]}
-            >
-              <LineChart
-                data={marginChartData}
-                xAxisKey="month"
-                lines={[{ dataKey: 'margin', color: '#10b981', activeColor: '#059669' }]}
-                yDomain={[0, 30]}
-                yTickFormatter={(v) => `${v}%`}
-                tooltipFormatter={(value: number) => [`${value.toFixed(1)}%`, 'Margin']}
-              />
-            </SimpleChartCard>
+                title="Net Revenue Margin"
+                subtitle="Percentage of gross revenue retained"
+                insights={[
+                  { value: `${Math.round(avgMargin)}%`, label: 'Your Avg', bgColor: 'bg-emerald-50', textColor: 'text-emerald-600' },
+                  { value: '18%', label: 'Industry', bgColor: 'bg-stone-100', textColor: 'text-stone-700' },
+                  { value: '15%', label: '2024', bgColor: 'bg-stone-100', textColor: 'text-stone-700' },
+                ]}
+              >
+                <LineChart
+                  data={marginChartData}
+                  xAxisKey="month"
+                  lines={[{ dataKey: 'margin', color: '#10b981', activeColor: '#059669' }]}
+                  yDomain={[0, 30]}
+                  yTickFormatter={(v) => `${v}%`}
+                  tooltipFormatter={(value: number) => [`${value.toFixed(1)}%`, 'Margin']}
+                />
+              </SimpleChartCard>
 
-            {/* Clinician & Supervisor Cost as % of Revenue */}
-            <SimpleChartCard
-              title="Cost as % of Revenue"
-              subtitle="Clinician and supervisor costs"
-              metrics={[
-                {
-                  value: `${Math.round(avgClinicianPct + avgSupervisorPct)}%`,
-                  label: 'Total Avg',
-                  bgColor: '#f5f5f4',
-                  textColor: '#57534e',
-                  isPrimary: true,
-                },
-                {
-                  value: `${Math.round(avgClinicianPct)}%`,
-                  label: 'Clinician',
-                  bgColor: '#eff6ff',
-                  textColor: '#2563eb',
-                  accentColor: '#3b82f6',
-                },
-                {
-                  value: `${Math.round(avgSupervisorPct)}%`,
-                  label: 'Supervisor',
-                  bgColor: '#fefce8',
-                  textColor: '#ca8a04',
-                  accentColor: '#f59e0b',
-                },
-              ]}
-            >
-              <LineChart
-                data={costPercentageData}
-                xAxisKey="month"
-                lines={[
-                  { dataKey: 'clinicianPct', color: '#3b82f6', activeColor: '#2563eb', name: 'Clinician' },
-                  { dataKey: 'supervisorPct', color: '#f59e0b', activeColor: '#d97706', name: 'Supervisor' },
+              {/* Clinician & Supervisor Cost as % of Revenue */}
+              <SimpleChartCard
+                title="Cost as % of Revenue"
+                subtitle="Clinician and supervisor costs"
+                insights={[
+                  { value: `${Math.round(avgClinicianPct + avgSupervisorPct)}%`, label: 'Total Avg', bgColor: 'bg-amber-50', textColor: 'text-amber-600' },
+                  { value: `${Math.round(avgClinicianPct)}%`, label: 'Clinician', bgColor: 'bg-stone-100', textColor: 'text-stone-700' },
+                  { value: `${Math.round(avgSupervisorPct)}%`, label: 'Supervisor', bgColor: 'bg-stone-100', textColor: 'text-stone-700' },
                 ]}
-                yDomain={[0, 80]}
-                yTickFormatter={(v) => `${v}%`}
-                tooltipFormatter={(value: number, name: string) => [
-                  `${value.toFixed(1)}%`,
-                  name === 'clinicianPct' ? 'Clinician' : 'Supervisor',
-                ]}
-              />
-            </SimpleChartCard>
+              >
+                <LineChart
+                  data={costPercentageData}
+                  xAxisKey="month"
+                  lines={[
+                    { dataKey: 'clinicianPct', color: '#3b82f6', activeColor: '#2563eb', name: 'Clinician' },
+                    { dataKey: 'supervisorPct', color: '#f59e0b', activeColor: '#d97706', name: 'Supervisor' },
+                  ]}
+                  yDomain={[0, 80]}
+                  yTickFormatter={(v) => `${v}%`}
+                  tooltipFormatter={(value: number, name: string) => [
+                    `${value.toFixed(1)}%`,
+                    name === 'clinicianPct' ? 'Clinician' : 'Supervisor',
+                  ]}
+                />
+              </SimpleChartCard>
             </Grid>
           </Section>
         </AnimatedSection>
@@ -672,21 +689,9 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
               <SimpleChartCard
                 title="Client Lifetime Value"
                 subtitle="What an average client brings in gross revenue over time"
-                metrics={[
-                  {
-                    value: '$3.6k',
-                    label: '2025',
-                    bgColor: '#ecfdf5',
-                    textColor: '#059669',
-                    isPrimary: true,
-                  },
-                  {
-                    value: '$4.4k',
-                    label: '2024',
-                    bgColor: '#eff6ff',
-                    textColor: '#2563eb',
-                    accentColor: '#3b82f6',
-                  },
+                insights={[
+                  { value: '$3.6k', label: '2025', bgColor: 'bg-emerald-50', textColor: 'text-emerald-600' },
+                  { value: '$4.4k', label: '2024', bgColor: 'bg-stone-100', textColor: 'text-stone-700' },
                 ]}
               >
                 <LineChart
@@ -734,34 +739,51 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
               onToggle={() => setShowClinicianBreakdown(!showClinicianBreakdown)}
               icon={<Users size={16} />}
             />
+            {showClinicianBreakdown && (
+              <ClinicianFilter
+                value={clinicianFilter.filterMode}
+                onChange={clinicianFilter.setFilterMode}
+                customSelection={clinicianFilter.customSelection}
+                onCustomSelectionChange={clinicianFilter.setCustomSelection}
+                clinicians={clinicianFilter.allClinicians}
+              />
+            )}
             <GoalIndicator
               value={revenueGoalDisplay}
               label="Goal"
               color="amber"
               hidden={showClinicianBreakdown}
             />
-{/* Report button hidden for now
-            <ActionButton
-              label="Revenue Report"
-              icon={<ArrowRight size={16} />}
-            />
-*/}
           </>
         }
         insights={showClinicianBreakdown ? clinicianInsights : revenueInsights}
       >
         {showClinicianBreakdown ? (
-          <BarChart
-            data={clinicianBarChartData}
-            mode="stacked"
-            size="lg"
-            segments={CLINICIAN_SEGMENTS}
-            stackOrder={CLINICIAN_STACK_ORDER}
-            formatValue={formatCurrencyShort}
-            onHover={setHoveredClinicianBar}
-            showLegend
-            height="100%"
-          />
+          <div className="relative h-full">
+            <BarChart
+              data={clinicianBarChartData}
+              mode="stacked"
+              size="lg"
+              segments={clinicianFilter.segments}
+              stackOrder={clinicianFilter.stackOrder}
+              formatValue={formatCurrencyShort}
+              onHover={clinicianFilter.handleSegmentHover}
+              showLegend
+              height="100%"
+            />
+            {/* Others Tooltip */}
+            {clinicianFilter.isOthersHovered && clinicianFilter.hoveredDataPoint && (
+              <OthersTooltip
+                clinicians={clinicianFilter.colorConfig.othersClinicians}
+                dataPointLabel={clinicianFilter.hoverInfo?.label || ''}
+                dataPointValues={clinicianFilter.hoveredDataPoint as Record<string, number>}
+                totalValue={clinicianFilter.hoverInfo?.value || 0}
+                onSwap={clinicianFilter.swapClinicianIntoView}
+                formatValue={formatCurrencyShort}
+                className="right-4 top-20"
+              />
+            )}
+          </div>
         ) : (
           <BarChart
             data={barChartData}

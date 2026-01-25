@@ -129,7 +129,7 @@ export const DivergingBarChart: React.FC<DivergingBarChartProps> = ({
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={chartData}
-          margin={{ top: 30, right: 30, bottom: 10, left: 30 }}
+          margin={{ top: 20, right: 10, bottom: 10, left: 0 }}
         >
         {/* Gradient and shadow definitions */}
         <defs>
@@ -170,7 +170,7 @@ export const DivergingBarChart: React.FC<DivergingBarChartProps> = ({
           tickLine={false}
           tick={{ fill: '#78716c', fontSize: 14, fontWeight: 600 }}
           tickFormatter={(value) => Math.abs(value).toString()}
-          width={40}
+          width={25}
           domain={yDomain}
         />
 

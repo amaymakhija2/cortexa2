@@ -225,8 +225,8 @@ export const ConsultationsAnalysisTab: React.FC<ConsultationsAnalysisTabProps> =
     {
       value: `${conversionRate.toFixed(0)}%`,
       label: 'Conversion Rate',
-      bgColor: conversionRate >= 60 ? 'bg-emerald-50' : 'bg-amber-50',
-      textColor: conversionRate >= 60 ? 'text-emerald-600' : 'text-amber-600',
+      bgColor: 'bg-stone-100',
+      textColor: 'text-stone-700',
     },
     {
       value: `${consultationsRange.min}–${consultationsRange.max}`,
@@ -255,7 +255,7 @@ export const ConsultationsAnalysisTab: React.FC<ConsultationsAnalysisTabProps> =
     return [
       { value: topName, label: `Top (${topValue})`, bgColor: 'bg-violet-50', textColor: 'text-violet-600' },
       { value: avgPerClinician.toString(), label: 'Avg/Clinician', bgColor: 'bg-stone-100', textColor: 'text-stone-700' },
-      { value: totalAll.toString(), label: 'Total', bgColor: 'bg-cyan-50', textColor: 'text-cyan-600' },
+      { value: totalAll.toString(), label: 'Total', bgColor: 'bg-stone-100', textColor: 'text-stone-700' },
     ];
   }, [consultationsByClinicianData]);
 
@@ -348,7 +348,8 @@ export const ConsultationsAnalysisTab: React.FC<ConsultationsAnalysisTabProps> =
             />
             <StatCard
               title="Conversion Rate"
-              value={`${conversionRate.toFixed(1)}%`}
+              value={conversionRate.toFixed(1)}
+              valueSuffix="%"
               valueLabel="average"
               subtitle={periodLabel}
             />

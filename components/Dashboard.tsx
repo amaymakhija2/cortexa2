@@ -160,7 +160,7 @@ const buildPracticeMetrics = (calc: DashboardMetrics, month: number, year: numbe
   // Build subtext - keep original format
   const revenueGap = revenueGoal - calc.revenue.value;
   const revenueSubtext = revenueGap > 0
-    ? `Goal: $${revenueGoal / 1000}k · $${(revenueGap / 1000).toFixed(1)}k left to reach target`
+    ? `Goal: $${revenueGoal / 1000}k · $${Math.round(revenueGap / 1000)}k left to reach target`
     : `Goal: $${revenueGoal / 1000}k · Target achieved!`;
 
   const sessionsSubtext = `Goal: ${sessionsGoal} · ${sessionsPercent}% of monthly goal`;
@@ -174,10 +174,20 @@ const buildPracticeMetrics = (calc: DashboardMetrics, month: number, year: numbe
   // Get consultation metrics for this month
   const consultationMetrics = getConsultationMetrics(month, year, DEFAULT_GOALS.monthlyConsultations);
 
+  // Format revenue with separate value and suffix for better typography
+  const formatRevenueParts = (value: number): { value: string; suffix: string } => {
+    if (value >= 1000) {
+      return { value: `$${(value / 1000).toFixed(1)}`, suffix: 'k' };
+    }
+    return { value: `$${value.toFixed(0)}`, suffix: '' };
+  };
+  const revenueParts = formatRevenueParts(calc.revenue.value);
+
   return {
     revenue: {
       label: "Revenue",
-      value: calc.revenue.formatted,
+      value: revenueParts.value,
+      valueSuffix: revenueParts.suffix || undefined,
       valueLabel: "",
       subtext: revenueSubtext,
       status: getRevenueStatus()
@@ -199,7 +209,8 @@ const buildPracticeMetrics = (calc: DashboardMetrics, month: number, year: numbe
     },
     attendance: {
       label: "Attendance",
-      value: `${rebookPercent}%`,
+      value: `${rebookPercent}`,
+      valueSuffix: "%",
       valueLabel: "rebook rate",
       subtext: attendanceSubtext,
       status: getAttendanceStatus()

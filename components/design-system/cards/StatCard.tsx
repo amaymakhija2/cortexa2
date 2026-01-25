@@ -14,6 +14,8 @@ export interface StatCardProps {
   title: string;
   /** Main value to display */
   value: string | number;
+  /** Suffix attached to the value with de-emphasized styling (e.g., "K", "/mo", "%") */
+  valueSuffix?: string;
   /** Label displayed next to the value (e.g., "right now") */
   valueLabel?: string;
   /** Subtitle/description below value */
@@ -43,20 +45,25 @@ const VALUE_COLORS: Record<StatVariant, string> = {
  * <StatCard title="Active Clients" value={156} subtitle="of 180 capacity" />
  *
  * @example
+ * // Stat with value suffix (de-emphasized unit)
+ * <StatCard title="Revenue" value="$143" valueSuffix="K" subtitle="+12% vs goal" />
+ *
+ * @example
+ * // Stat with rate suffix
+ * <StatCard title="Sessions" value={41} valueSuffix="/mo" subtitle="~10/week" />
+ *
+ * @example
  * // Stat with value label
  * <StatCard title="Active Clients" value={156} valueLabel="right now" subtitle="+14 in Jan–Dec 2024" />
  *
  * @example
  * // Positive growth stat
  * <StatCard title="Net Growth" value="+14" variant="positive" subtitle="+62 new, -48 churned" />
- *
- * @example
- * // Percentage stat
- * <StatCard title="Caseload Capacity" value="87%" subtitle="of client capacity" />
  */
 export const StatCard: React.FC<StatCardProps> = ({
   title,
   value,
+  valueSuffix,
   valueLabel,
   subtitle,
   variant = 'default',
@@ -89,14 +96,27 @@ export const StatCard: React.FC<StatCardProps> = ({
         {title}
       </h3>
 
-      {/* Value + Label Group */}
+      {/* Value + Suffix + Label Group */}
       <div className="flex flex-col">
         <div className="flex items-baseline gap-2 sm:gap-2.5">
-          <span
-            className={`${colorClass} font-bold text-3xl sm:text-4xl xl:text-5xl 2xl:text-6xl tracking-tight`}
-            style={{ lineHeight: 1.1 }}
-          >
-            {value}
+          <span className="flex items-baseline">
+            <span
+              className={`${colorClass} font-bold text-3xl sm:text-4xl xl:text-5xl 2xl:text-6xl tracking-tight`}
+              style={{ lineHeight: 1.1 }}
+            >
+              {value}
+            </span>
+            {valueSuffix && (
+              <span
+                className={`${colorClass} font-medium text-xl sm:text-2xl xl:text-3xl 2xl:text-4xl tracking-tight ml-0.5`}
+                style={{
+                  lineHeight: 1.1,
+                  fontFamily: "'Suisse Intl', system-ui, sans-serif",
+                }}
+              >
+                {valueSuffix}
+              </span>
+            )}
           </span>
           {valueLabel && (
             <span
@@ -153,6 +173,7 @@ export interface StatCardWithBreakdownProps extends Omit<StatCardProps, 'subtitl
 export const StatCardWithBreakdown: React.FC<StatCardWithBreakdownProps> = ({
   title,
   value,
+  valueSuffix,
   variant = 'default',
   valueColor,
   className = '',
@@ -189,12 +210,21 @@ export const StatCardWithBreakdown: React.FC<StatCardWithBreakdownProps> = ({
         {title}
       </h3>
 
-      {/* Value */}
-      <span
-        className={`${colorClass} font-bold block text-3xl sm:text-4xl xl:text-5xl 2xl:text-6xl tracking-tight`}
-        style={{ lineHeight: 1.1 }}
-      >
-        {value}
+      {/* Value + Suffix */}
+      <span className="flex items-baseline" style={{ lineHeight: 1.1 }}>
+        <span
+          className={`${colorClass} font-bold text-3xl sm:text-4xl xl:text-5xl 2xl:text-6xl tracking-tight`}
+        >
+          {value}
+        </span>
+        {valueSuffix && (
+          <span
+            className={`${colorClass} font-medium text-xl sm:text-2xl xl:text-3xl 2xl:text-4xl tracking-tight ml-0.5`}
+            style={{ fontFamily: "'Suisse Intl', system-ui, sans-serif" }}
+          >
+            {valueSuffix}
+          </span>
+        )}
       </span>
 
       {/* Breakdown items */}

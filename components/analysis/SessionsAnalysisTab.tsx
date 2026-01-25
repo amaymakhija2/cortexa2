@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { Users, ArrowRight } from 'lucide-react';
 import { useSettings } from '../../context/SettingsContext';
 import {
@@ -19,23 +19,28 @@ import {
   AnimatedGrid,
   AnimatedSection,
   ExecutiveSummary,
+  ClinicianFilter,
+  OthersTooltip,
+  useClinicianFilter,
 } from '../design-system';
-import type { HoverInfo, SegmentConfig } from '../design-system';
+import type { HoverInfo, SegmentConfig, ClinicianFilterOption } from '../design-system';
 import type { SessionsAnalysisTabProps } from './types';
 
 // =============================================================================
 // CONSTANTS
 // =============================================================================
 
-const CLINICIAN_SEGMENTS: SegmentConfig[] = [
-  { key: 'Chen', label: 'S Chen', color: '#7c3aed', gradient: 'linear-gradient(180deg, #a78bfa 0%, #7c3aed 100%)' },
-  { key: 'Rodriguez', label: 'M Rodriguez', color: '#0891b2', gradient: 'linear-gradient(180deg, #22d3ee 0%, #0891b2 100%)' },
-  { key: 'Patel', label: 'A Patel', color: '#d97706', gradient: 'linear-gradient(180deg, #fbbf24 0%, #d97706 100%)' },
-  { key: 'Kim', label: 'J Kim', color: '#db2777', gradient: 'linear-gradient(180deg, #f472b6 0%, #db2777 100%)' },
-  { key: 'Johnson', label: 'M Johnson', color: '#059669', gradient: 'linear-gradient(180deg, #34d399 0%, #059669 100%)' },
-];
+// Clinician display labels
+const CLINICIAN_LABELS: Record<string, string> = {
+  Chen: 'S Chen',
+  Rodriguez: 'M Rodriguez',
+  Patel: 'A Patel',
+  Kim: 'J Kim',
+  Johnson: 'M Johnson',
+};
 
-const CLINICIAN_STACK_ORDER = ['Johnson', 'Kim', 'Patel', 'Rodriguez', 'Chen'];
+// All clinician keys in the data
+const CLINICIAN_KEYS = ['Chen', 'Rodriguez', 'Patel', 'Kim', 'Johnson'];
 
 // =============================================================================
 // SESSIONS ANALYSIS TAB COMPONENT
@@ -61,7 +66,20 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
 
   const [showClinicianBreakdown, setShowClinicianBreakdown] = useState(false);
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
-  const [hoveredClinicianBar, setHoveredClinicianBar] = useState<HoverInfo | null>(null);
+
+  // Reference for tooltip positioning
+  const chartContainerRef = useRef<HTMLDivElement>(null);
+
+  // ==========================================================================
+  // CLINICIAN FILTER HOOK (Top N + Others pattern)
+  // ==========================================================================
+
+  const clinicianFilter = useClinicianFilter({
+    data: clinicianSessionsData,
+    clinicianKeys: CLINICIAN_KEYS,
+    clinicianLabels: CLINICIAN_LABELS,
+    initialFilter: 'top5',
+  });
 
   // Get user-friendly period label (e.g., "last 12 months" instead of "Jan–Dec 2024")
   const periodLabel = useMemo(() => {
@@ -196,17 +214,14 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
     }));
   }, [sessionsData]);
 
-  // Stacked bar chart data for clinician breakdown
+  // Stacked bar chart data for clinician breakdown (with Others aggregation)
   const clinicianBarChartData = useMemo(() => {
-    return clinicianSessionsData.map((item) => ({
+    return clinicianFilter.transformedData.map((item) => ({
       label: item.month,
-      Chen: item.Chen,
-      Rodriguez: item.Rodriguez,
-      Patel: item.Patel,
-      Kim: item.Kim,
-      Johnson: item.Johnson,
+      ...CLINICIAN_KEYS.reduce((acc, key) => ({ ...acc, [key]: item[key] }), {}),
+      __others__: item.__others__ || 0,
     }));
-  }, [clinicianSessionsData]);
+  }, [clinicianFilter.transformedData]);
 
   // Donut chart segments for attendance breakdown
   const attendanceSegments = useMemo(() => [
@@ -231,8 +246,8 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
     {
       value: `${monthsAtGoal}/${sessionsData.length}`,
       label: 'Goal Achievement',
-      bgColor: monthsAtGoal >= sessionsData.length / 2 ? 'bg-emerald-50' : 'bg-amber-50',
-      textColor: monthsAtGoal >= sessionsData.length / 2 ? 'text-emerald-600' : 'text-amber-600',
+      bgColor: 'bg-stone-100',
+      textColor: 'text-stone-700',
     },
     {
       value: `${sessionsRange.min}–${sessionsRange.max}`,
@@ -243,27 +258,30 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
   ], [bestMonth, monthsAtGoal, sessionsData.length, sessionsRange]);
 
   const clinicianInsights = useMemo(() => {
-    // Calculate totals per clinician
-    const totals = clinicianSessionsData.reduce((acc, item) => ({
-      Chen: acc.Chen + item.Chen,
-      Rodriguez: acc.Rodriguez + item.Rodriguez,
-      Patel: acc.Patel + item.Patel,
-      Kim: acc.Kim + item.Kim,
-      Johnson: acc.Johnson + item.Johnson,
-    }), { Chen: 0, Rodriguez: 0, Patel: 0, Kim: 0, Johnson: 0 });
-
-    const entries = Object.entries(totals) as [string, number][];
-    const sorted = entries.sort((a, b) => b[1] - a[1]);
-    const [topName, topValue] = sorted[0];
-    const totalAll = entries.reduce((sum, [, v]) => sum + v, 0);
-    const avgPerClinician = Math.round(totalAll / 5);
+    const { topClinician, avgPerClinician, grandTotal, colorConfig } = clinicianFilter;
+    const othersCount = colorConfig.othersClinicians.length;
 
     return [
-      { value: topName, label: `Top (${topValue})`, bgColor: 'bg-violet-50', textColor: 'text-violet-600' },
-      { value: avgPerClinician.toString(), label: 'Avg/Clinician', bgColor: 'bg-stone-100', textColor: 'text-stone-700' },
-      { value: totalAll.toString(), label: 'Total', bgColor: 'bg-cyan-50', textColor: 'text-cyan-600' },
+      {
+        value: topClinician?.label || '-',
+        label: `Top (${topClinician?.totalValue || 0})`,
+        bgColor: 'bg-violet-50',
+        textColor: 'text-violet-600',
+      },
+      {
+        value: Math.round(avgPerClinician).toString(),
+        label: 'Avg/Clinician',
+        bgColor: 'bg-stone-100',
+        textColor: 'text-stone-700',
+      },
+      {
+        value: grandTotal.toString(),
+        label: othersCount > 0 ? `Total (${othersCount} in Others)` : 'Total',
+        bgColor: 'bg-stone-100',
+        textColor: 'text-stone-700',
+      },
     ];
-  }, [clinicianSessionsData]);
+  }, [clinicianFilter]);
 
   // =========================================================================
   // TABLE DATA BUILDERS
@@ -352,7 +370,8 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
             />
             <StatCard
               title="Cancel Rate"
-              value={`${clientCancelRate.toFixed(1)}%`}
+              value={clientCancelRate.toFixed(1)}
+              valueSuffix="%"
               valueLabel="average"
               subtitle={periodLabel}
             />
@@ -374,30 +393,51 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
                     active={showClinicianBreakdown}
                     onToggle={() => setShowClinicianBreakdown(!showClinicianBreakdown)}
                     icon={<Users size={16} />}
-                    hidden={!!hoveredClinicianBar}
+                    hidden={!!clinicianFilter.hoverInfo}
                   />
+                  {showClinicianBreakdown && !clinicianFilter.hoverInfo && (
+                    <ClinicianFilter
+                      value={clinicianFilter.filterMode}
+                      onChange={clinicianFilter.setFilterMode}
+                      customSelection={clinicianFilter.customSelection}
+                      onCustomSelectionChange={clinicianFilter.setCustomSelection}
+                      clinicians={clinicianFilter.allClinicians}
+                      size="sm"
+                    />
+                  )}
                   <GoalIndicator
                     value={sessionsGoal}
                     label="Goal"
                     color="amber"
-                    hidden={showClinicianBreakdown || !!hoveredClinicianBar}
+                    hidden={showClinicianBreakdown || !!clinicianFilter.hoverInfo}
                   />
-                  {hoveredClinicianBar && (
+                  {clinicianFilter.hoverInfo && !clinicianFilter.isOthersHovered && (
                     <div
                       className="flex items-center gap-3 px-4 py-2 rounded-xl"
-                      style={{ backgroundColor: `${hoveredClinicianBar.color}15` }}
+                      style={{ backgroundColor: `${clinicianFilter.hoverInfo.color}15` }}
                     >
-                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: hoveredClinicianBar.color }} />
-                      <span className="text-stone-700 font-semibold">{hoveredClinicianBar.segmentLabel}</span>
-                      <span className="font-bold" style={{ color: hoveredClinicianBar.color }}>
-                        {hoveredClinicianBar.value}
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: clinicianFilter.hoverInfo.color }} />
+                      <span className="text-stone-700 font-semibold">{clinicianFilter.hoverInfo.segmentLabel}</span>
+                      <span className="font-bold" style={{ color: clinicianFilter.hoverInfo.color }}>
+                        {clinicianFilter.hoverInfo.value}
                       </span>
-                      <span className="text-stone-500 text-sm">in {hoveredClinicianBar.label}</span>
+                      <span className="text-stone-500 text-sm">in {clinicianFilter.hoverInfo.label}</span>
                     </div>
                   )}
-{/* Report button hidden for now
-                  <ActionButton label="Sessions Report" icon={<ArrowRight size={16} />} />
-*/}
+                  {clinicianFilter.isOthersHovered && (
+                    <div
+                      className="flex items-center gap-3 px-4 py-2 rounded-xl bg-stone-100"
+                    >
+                      <div className="w-3 h-3 rounded-full bg-stone-500" />
+                      <span className="text-stone-700 font-semibold">Others</span>
+                      <span className="font-bold text-stone-600">
+                        {clinicianFilter.hoverInfo?.value}
+                      </span>
+                      <span className="text-stone-500 text-sm">
+                        ({clinicianFilter.colorConfig.othersClinicians.length} clinicians)
+                      </span>
+                    </div>
+                  )}
                 </>
               }
               expandable
@@ -406,18 +446,32 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
               minHeight="520px"
             >
               {showClinicianBreakdown ? (
-                <BarChart
-                  data={clinicianBarChartData}
-                  mode="stacked"
-                  segments={CLINICIAN_SEGMENTS}
-                  stackOrder={CLINICIAN_STACK_ORDER}
-                  formatValue={(v) => v.toString()}
-                  onHover={setHoveredClinicianBar}
-                  showLegend
-                  legendPosition="top-right"
-                  maxValue={900}
-                  height="380px"
-                />
+                <div ref={chartContainerRef} className="relative h-full">
+                  <BarChart
+                    data={clinicianBarChartData}
+                    mode="stacked"
+                    segments={clinicianFilter.segments}
+                    stackOrder={clinicianFilter.stackOrder}
+                    formatValue={(v) => v.toString()}
+                    onHover={clinicianFilter.handleSegmentHover}
+                    showLegend
+                    legendPosition="top-right"
+                    maxValue={900}
+                    height="380px"
+                  />
+                  {/* Others Tooltip */}
+                  {clinicianFilter.isOthersHovered && clinicianFilter.hoveredDataPoint && (
+                    <OthersTooltip
+                      clinicians={clinicianFilter.colorConfig.othersClinicians}
+                      dataPointLabel={clinicianFilter.hoverInfo?.label || ''}
+                      dataPointValues={clinicianFilter.hoveredDataPoint as Record<string, number>}
+                      totalValue={clinicianFilter.hoverInfo?.value || 0}
+                      onSwap={clinicianFilter.swapClinicianIntoView}
+                      formatValue={(v) => v.toString()}
+                      className="right-4 top-16"
+                    />
+                  )}
+                </div>
               ) : (
                 <BarChart
                   data={barChartData}
@@ -523,28 +577,48 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
               onToggle={() => setShowClinicianBreakdown(!showClinicianBreakdown)}
               icon={<Users size={16} />}
             />
+            {showClinicianBreakdown && (
+              <ClinicianFilter
+                value={clinicianFilter.filterMode}
+                onChange={clinicianFilter.setFilterMode}
+                customSelection={clinicianFilter.customSelection}
+                onCustomSelectionChange={clinicianFilter.setCustomSelection}
+                clinicians={clinicianFilter.allClinicians}
+              />
+            )}
             <GoalIndicator value={sessionsGoal} label="Goal" color="amber" hidden={showClinicianBreakdown} />
-{/* Report button hidden for now
-            <ActionButton label="Sessions Report" icon={<ArrowRight size={16} />} />
-*/}
           </>
         }
         insights={showClinicianBreakdown ? clinicianInsights : sessionsInsights}
       >
         {showClinicianBreakdown ? (
-          <BarChart
-            data={clinicianBarChartData}
-            mode="stacked"
-            segments={CLINICIAN_SEGMENTS}
-            stackOrder={CLINICIAN_STACK_ORDER}
-            formatValue={(v) => v.toString()}
-            onHover={setHoveredClinicianBar}
-            showLegend
-            legendPosition="top-right"
-            maxValue={900}
-            size="lg"
-            height="100%"
-          />
+          <div className="relative h-full">
+            <BarChart
+              data={clinicianBarChartData}
+              mode="stacked"
+              segments={clinicianFilter.segments}
+              stackOrder={clinicianFilter.stackOrder}
+              formatValue={(v) => v.toString()}
+              onHover={clinicianFilter.handleSegmentHover}
+              showLegend
+              legendPosition="top-right"
+              maxValue={900}
+              size="lg"
+              height="100%"
+            />
+            {/* Others Tooltip */}
+            {clinicianFilter.isOthersHovered && clinicianFilter.hoveredDataPoint && (
+              <OthersTooltip
+                clinicians={clinicianFilter.colorConfig.othersClinicians}
+                dataPointLabel={clinicianFilter.hoverInfo?.label || ''}
+                dataPointValues={clinicianFilter.hoveredDataPoint as Record<string, number>}
+                totalValue={clinicianFilter.hoverInfo?.value || 0}
+                onSwap={clinicianFilter.swapClinicianIntoView}
+                formatValue={(v) => v.toString()}
+                className="right-4 top-20"
+              />
+            )}
+          </div>
         ) : (
           <BarChart
             data={barChartData}

@@ -177,8 +177,8 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
     {
       value: avgMonthlyChurn.toFixed(1),
       label: 'Avg/month',
-      bgColor: 'bg-amber-50',
-      textColor: 'text-amber-600',
+      bgColor: 'bg-stone-100',
+      textColor: 'text-stone-700',
     },
     {
       value: highestChurnMonth.month,
@@ -212,7 +212,7 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
     const diff = finalStage.percentage - industryFinal;
     return [
       { value: `${finalStage.percentage}%`, label: 'Final Retention', bgColor: 'bg-amber-50', textColor: 'text-amber-700' },
-      { value: `+${diff}%`, label: 'vs Industry', bgColor: diff >= 0 ? 'bg-emerald-50' : 'bg-rose-50', textColor: diff >= 0 ? 'text-emerald-600' : 'text-rose-600' },
+      { value: `${diff >= 0 ? '+' : ''}${diff}%`, label: 'vs Industry', bgColor: 'bg-stone-100', textColor: 'text-stone-700' },
     ];
   }, [retentionFunnelData.sessionsFunnel]);
 
@@ -222,7 +222,7 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
     const diff = finalStage.percentage - industryFinal;
     return [
       { value: `${finalStage.percentage}%`, label: 'Final Retention', bgColor: 'bg-indigo-50', textColor: 'text-indigo-700' },
-      { value: `+${diff}%`, label: 'vs Industry', bgColor: diff >= 0 ? 'bg-emerald-50' : 'bg-rose-50', textColor: diff >= 0 ? 'text-emerald-600' : 'text-rose-600' },
+      { value: `${diff >= 0 ? '+' : ''}${diff}%`, label: 'vs Industry', bgColor: 'bg-stone-100', textColor: 'text-stone-700' },
     ];
   }, [retentionFunnelData.timeFunnel]);
 
@@ -310,7 +310,7 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
                   />
                   <StatCard
                     title="Avg Sessions Completed"
-                    value={`${selectedCohortData.summary.avgSessionsPerClient.toFixed(1)}`}
+                    value={selectedCohortData.summary.avgSessionsPerClient.toFixed(1)}
                     subtitle="sessions per client"
                   />
                 </Grid>

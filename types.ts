@@ -2,6 +2,8 @@
 export interface MetricDetail {
   label: string;
   value: string;
+  /** Suffix attached to the value with de-emphasized styling (e.g., "k", "/mo", "%") */
+  valueSuffix?: string;
   valueLabel?: string;
   subtext: string;
   status: 'Healthy' | 'Needs attention' | 'Critical';

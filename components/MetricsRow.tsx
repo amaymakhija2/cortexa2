@@ -158,6 +158,7 @@ export const MetricsRow: React.FC<MetricsRowProps> = ({ metrics, isLive = true }
       key="revenue"
       label={metrics.revenue.label}
       value={metrics.revenue.value}
+      valueSuffix={metrics.revenue.valueSuffix}
       valueLabel={metrics.revenue.valueLabel}
       subtext={metrics.revenue.subtext}
       status={metrics.revenue.status}
@@ -170,6 +171,7 @@ export const MetricsRow: React.FC<MetricsRowProps> = ({ metrics, isLive = true }
       key="consultations"
       label={metrics.consultations.label}
       value={metrics.consultations.value}
+      valueSuffix={metrics.consultations.valueSuffix}
       valueLabel={metrics.consultations.valueLabel}
       subtext={metrics.consultations.subtext}
       status={metrics.consultations.status}
@@ -184,6 +186,7 @@ export const MetricsRow: React.FC<MetricsRowProps> = ({ metrics, isLive = true }
       key="sessions"
       label={metrics.sessions.label}
       value={metrics.sessions.value}
+      valueSuffix={metrics.sessions.valueSuffix}
       valueLabel={metrics.sessions.valueLabel}
       subtext={metrics.sessions.subtext}
       status={metrics.sessions.status}
@@ -196,6 +199,7 @@ export const MetricsRow: React.FC<MetricsRowProps> = ({ metrics, isLive = true }
       key="clients"
       label={metrics.clientGrowth.label}
       value={metrics.clientGrowth.value}
+      valueSuffix={metrics.clientGrowth.valueSuffix}
       valueLabel={metrics.clientGrowth.valueLabel}
       subtext={clientsSubtext}
       status={metrics.clientGrowth.status}
@@ -208,6 +212,7 @@ export const MetricsRow: React.FC<MetricsRowProps> = ({ metrics, isLive = true }
       key="attendance"
       label={metrics.attendance.label}
       value={metrics.attendance.value}
+      valueSuffix={metrics.attendance.valueSuffix}
       valueLabel={metrics.attendance.valueLabel}
       subtext={metrics.attendance.subtext}
       status={metrics.attendance.status}
@@ -222,6 +227,7 @@ export const MetricsRow: React.FC<MetricsRowProps> = ({ metrics, isLive = true }
       key="compliance"
       label={metrics.compliance.label}
       value={metrics.compliance.value}
+      valueSuffix={metrics.compliance.valueSuffix}
       valueLabel={metrics.compliance.valueLabel}
       subtext={metrics.compliance.subtext}
       status={metrics.compliance.status}
@@ -257,7 +263,7 @@ export const MetricsRow: React.FC<MetricsRowProps> = ({ metrics, isLive = true }
         {cards.map((card, index) => (
           <div
             key={index}
-            className="snap-start flex-shrink-0"
+            className="snap-start flex-shrink-0 h-full"
             style={cardStyle}
           >
             {card}

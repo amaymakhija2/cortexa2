@@ -80,8 +80,8 @@ export { MetricCard, ExpandableBarChart } from './cards/MetricCard';
 export type { MetricCardProps, MetricStatus, ExpandableBarChartProps, BarChartItem } from './cards/MetricCard';
 
 // Control Components
-export { ToggleButton, GoalIndicator, ActionButton, SegmentedControl } from './controls';
-export type { ToggleButtonProps, GoalIndicatorProps, GoalIndicatorColor, ActionButtonProps, ActionButtonVariant, SegmentedControlProps, SegmentedControlOption } from './controls';
+export { ToggleButton, GoalIndicator, ActionButton, SegmentedControl, ClinicianFilter } from './controls';
+export type { ToggleButtonProps, GoalIndicatorProps, GoalIndicatorColor, ActionButtonProps, ActionButtonVariant, SegmentedControlProps, SegmentedControlOption, ClinicianFilterProps } from './controls';
 
 // Legend Component
 export { Legend, HoverInfoDisplay } from './Legend';
@@ -111,6 +111,29 @@ export type {
   FunnelStage,
   FunnelInsight,
 } from './charts';
+
+// Clinician Color Utilities (Top N + Others pattern)
+export {
+  CLINICIAN_COLOR_PALETTE,
+  OTHERS_SEGMENT_STYLE,
+  getClinicianColorConfig,
+  aggregateOthersData,
+  getAllSegments,
+  calculateClinicianTotals,
+} from './utils';
+export type {
+  ClinicianData,
+  ClinicianColorConfig,
+  ClinicianFilterOption,
+} from './utils';
+
+// Hooks
+export { useClinicianFilter } from './hooks';
+export type { UseClinicianFilterOptions, UseClinicianFilterResult } from './hooks';
+
+// Others Tooltip (for stacked charts)
+export { OthersTooltip } from './charts';
+export type { OthersTooltipProps } from './charts';
 
 // Reference Page (for viewing in app)
 export { Reference } from './Reference';

@@ -144,7 +144,10 @@ export const RetentionFunnelCard: React.FC<RetentionFunnelCardProps> = ({
             {title}
           </h3>
           {subtitle && (
-            <p className={`text-stone-500 mt-2 ${isLarge ? 'text-lg sm:text-xl' : 'text-base sm:text-lg xl:text-xl'}`}>
+            <p
+              className={`text-stone-500 mt-2 ${isLarge ? 'text-lg sm:text-xl' : 'text-base sm:text-lg xl:text-xl'}`}
+              style={{ fontFamily: "'Suisse Intl', system-ui, sans-serif" }}
+            >
               {subtitle}
             </p>
           )}
@@ -224,6 +227,7 @@ export const RetentionFunnelCard: React.FC<RetentionFunnelCardProps> = ({
               >
                 <span
                   className={`text-stone-600 font-medium ${isLarge ? 'text-lg' : 'text-base'}`}
+                  style={{ fontFamily: "'Suisse Intl', system-ui, sans-serif" }}
                 >
                   {stage.count.toLocaleString()} clients
                 </span>
@@ -234,7 +238,7 @@ export const RetentionFunnelCard: React.FC<RetentionFunnelCardProps> = ({
                   style={{
                     background: colors.accentBg,
                     color: colors.accent,
-                    fontFamily: "'Tiempos Headline', Georgia, serif",
+                    fontFamily: "'Suisse Intl', system-ui, sans-serif",
                   }}
                 >
                   {stage.percentage}%
@@ -245,10 +249,10 @@ export const RetentionFunnelCard: React.FC<RetentionFunnelCardProps> = ({
         })}
       </div>
 
-      {/* Insights Row */}
+      {/* Insights Row - matches ChartCard styling */}
       {insights && insights.length > 0 && (
         <div
-          className="grid gap-4 pt-6 mt-4 border-t-2 border-stone-100"
+          className={`grid gap-4 pt-3 border-t-2 border-stone-100 ${isLarge ? 'mt-6' : 'mt-4'}`}
           style={{
             gridTemplateColumns: `repeat(${insights.length}, 1fr)`,
             opacity: isVisible ? 1 : 0,
@@ -260,15 +264,15 @@ export const RetentionFunnelCard: React.FC<RetentionFunnelCardProps> = ({
           {insights.map((insight, idx) => (
             <div
               key={idx}
-              className={`${insight.bgColor || 'bg-stone-100'} rounded-xl ${isLarge ? 'p-5' : 'p-4'} text-center`}
+              className={`${insight.bgColor || 'bg-stone-100'} rounded-xl p-4 text-center`}
             >
               <div
-                className={`${insight.textColor || 'text-stone-800'} ${isLarge ? 'text-3xl' : 'text-2xl'} font-bold`}
-                style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
+                className={`${insight.textColor || 'text-stone-800'} text-2xl sm:text-3xl font-bold`}
+                style={{ fontFamily: "'Suisse Intl', system-ui, sans-serif" }}
               >
                 {insight.value}
               </div>
-              <div className={`text-stone-600 ${isLarge ? 'text-base' : 'text-sm'} font-medium mt-1`}>
+              <div className="text-stone-600 text-sm sm:text-base font-medium mt-1">
                 {insight.label}
               </div>
             </div>

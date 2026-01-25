@@ -17,6 +17,8 @@ export interface MetricCardProps {
   label: string;
   /** Main metric value */
   value: string;
+  /** Suffix attached to the value with de-emphasized styling (e.g., "K", "/mo", "%") */
+  valueSuffix?: string;
   /** Optional label after the value (e.g., "completed", "active") */
   valueLabel?: string;
   /** Subtext description */
@@ -145,21 +147,33 @@ const StatusIndicator: React.FC<{ status: MetricStatus }> = ({ status }) => {
  * MetricCard - Key metric display card with optional expandable content
  *
  * @example
- * // Basic metric card
+ * // Basic metric card with value suffix (de-emphasized unit)
+ * <MetricCard
+ *   label="Revenue"
+ *   value="$153"
+ *   valueSuffix="k"
+ *   subtext="Goal: $160k"
+ *   status="Healthy"
+ *   tooltip={{ title: "Revenue", description: "Total revenue collected" }}
+ * />
+ *
+ * @example
+ * // Metric with rate suffix
  * <MetricCard
  *   label="Sessions"
- *   value="698"
+ *   value="41"
+ *   valueSuffix="/mo"
  *   valueLabel="completed"
- *   subtext="82% of goal"
+ *   subtext="~10/week average"
  *   status="Healthy"
- *   tooltip={{ title: "Sessions", description: "Total completed sessions" }}
  * />
  *
  * @example
  * // With expandable content
  * <MetricCard
  *   label="Revenue"
- *   value="$153.4k"
+ *   value="$153"
+ *   valueSuffix="k"
  *   subtext="Goal: $160k"
  *   status="Needs attention"
  *   expandButtonLabel="Weekly Breakdown"
@@ -169,6 +183,7 @@ const StatusIndicator: React.FC<{ status: MetricStatus }> = ({ status }) => {
 export const MetricCard: React.FC<MetricCardProps> = ({
   label,
   value,
+  valueSuffix,
   valueLabel,
   subtext,
   status,
@@ -253,7 +268,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
           }}
         >
           {/* Status bar */}
-          <div className={`h-1.5 ${statusColor}`} />
+          <div className={`h-1.5 flex-shrink-0 ${statusColor}`} />
 
           {/* Content */}
           <div className="px-4 pt-4 pb-3 sm:px-5 sm:pt-5 sm:pb-4 xl:px-5 xl:pt-5 xl:pb-4 flex flex-col">
@@ -268,18 +283,40 @@ export const MetricCard: React.FC<MetricCardProps> = ({
               {tooltip && <Tooltip title={tooltip.title} description={tooltip.description} />}
             </div>
 
-            {/* Value */}
+            {/* Value + Suffix + Label Group */}
             <div className="mb-2 xl:mb-3">
-              <span
-                className="text-3xl sm:text-4xl xl:text-5xl font-bold text-stone-900 tracking-tight"
-              >
-                {value}
-              </span>
-              {valueLabel && (
-                <span className="text-base sm:text-lg xl:text-xl font-medium text-stone-400 ml-2">
-                  {valueLabel}
+              <div className="flex items-baseline gap-2 sm:gap-2.5">
+                <span className="flex items-baseline">
+                  <span
+                    className="text-3xl sm:text-4xl xl:text-5xl font-bold text-stone-900 tracking-tight"
+                    style={{ lineHeight: 1.1 }}
+                  >
+                    {value}
+                  </span>
+                  {valueSuffix && (
+                    <span
+                      className="text-xl sm:text-2xl xl:text-3xl font-medium text-stone-900 tracking-tight ml-0.5"
+                      style={{
+                        lineHeight: 1.1,
+                        fontFamily: "'Suisse Intl', system-ui, sans-serif",
+                      }}
+                    >
+                      {valueSuffix}
+                    </span>
+                  )}
                 </span>
-              )}
+                {valueLabel && (
+                  <span
+                    className="text-stone-400 text-sm sm:text-base xl:text-lg font-normal tracking-wide"
+                    style={{
+                      fontFamily: "'Suisse Intl', system-ui, sans-serif",
+                      letterSpacing: '0.02em'
+                    }}
+                  >
+                    {valueLabel}
+                  </span>
+                )}
+              </div>
             </div>
 
             {/* Subtext */}

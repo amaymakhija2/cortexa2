@@ -15,3 +15,6 @@ export type { ActionButtonProps, ActionButtonVariant } from './ActionButton';
 
 export { SegmentedControl } from './SegmentedControl';
 export type { SegmentedControlProps, SegmentedControlOption } from './SegmentedControl';
+
+export { ClinicianFilter } from './ClinicianFilter';
+export type { ClinicianFilterProps } from './ClinicianFilter';

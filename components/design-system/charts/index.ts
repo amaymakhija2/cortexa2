@@ -42,3 +42,6 @@ export type {
 
 export { useChartAnimation } from './useChartAnimation';
 export type { ChartAnimationOptions, ChartAnimationResult } from './useChartAnimation';
+
+export { OthersTooltip } from './OthersTooltip';
+export type { OthersTooltipProps } from './OthersTooltip';

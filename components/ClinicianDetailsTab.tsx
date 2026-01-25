@@ -12,7 +12,7 @@ import {
   LineChart,
   GoalIndicator,
   ActionButton,
-  StatCard,
+  MetricCard,
   AnimatedGrid,
   DonutChartCard,
   DivergingBarChart,
@@ -23,7 +23,7 @@ import {
   StackedBarCard,
   ExpandedChartModal,
 } from './design-system';
-import type { ClientData } from './design-system';
+import type { ClientData, HoverInfo, SegmentConfig } from './design-system';
 
 // =============================================================================
 // CLINICIAN DETAILS TAB
@@ -1454,6 +1454,20 @@ export const ClinicianDetailsTab: React.FC = () => {
     return `$${value}`;
   };
 
+  // Format helpers that return value and suffix separately for better typography
+  const formatCurrencyParts = (value: number): { value: string; suffix?: string } => {
+    if (value >= 1000) return { value: `$${(value / 1000).toFixed(0)}`, suffix: 'K' };
+    return { value: `$${value}` };
+  };
+
+  const formatSessionsParts = (sessionsPerMonth: number): { value: string; suffix: string } => {
+    return { value: String(Math.round(sessionsPerMonth)), suffix: '/mo' };
+  };
+
+  const formatCaseloadParts = (active: number, capacity: number): { value: string; suffix: string } => {
+    return { value: String(active), suffix: `/${capacity}` };
+  };
+
   // ==========================================================================
   // FINANCIAL COMPUTED VALUES
   // ==========================================================================
@@ -1524,14 +1538,14 @@ export const ClinicianDetailsTab: React.FC = () => {
       {
         value: `$${financialData.avgRevenuePerSession}`,
         label: `Per Session (${revenuePerSessionDiff >= 0 ? '+' : ''}$${revenuePerSessionDiff} vs avg)`,
-        bgColor: revenuePerSessionDiff >= 0 ? 'bg-emerald-50' : 'bg-rose-50',
-        textColor: revenuePerSessionDiff >= 0 ? 'text-emerald-600' : 'text-rose-600',
+        bgColor: 'bg-stone-100',
+        textColor: 'text-stone-700',
       },
       {
         value: `${monthsAtGoal}/${financialData.monthlyRevenue.length}`,
         label: 'Hit Goal',
-        bgColor: monthsAtGoal >= 6 ? 'bg-emerald-50' : 'bg-amber-50',
-        textColor: monthsAtGoal >= 6 ? 'text-emerald-600' : 'text-amber-600',
+        bgColor: 'bg-stone-100',
+        textColor: 'text-stone-700',
       },
     ];
   }, [financialData, bestMonth, monthsAtGoal, revenuePerSessionDiff]);
@@ -1663,25 +1677,119 @@ export const ClinicianDetailsTab: React.FC = () => {
     );
   }, [sessionData]);
 
-  // Clinician cancellation insights
-  const clinicianCancellationInsights = useMemo(() => {
+  // Cancellation breakdown stacked bar data (client + clinician cancellations)
+  const cancellationBreakdownBarData = useMemo(() => {
     if (!sessionData) return [];
-    const avgCancellations = totalClinicianCancelled / sessionData.monthlySessions.length;
+    return sessionData.monthlySessions.map((item) => ({
+      label: item.month,
+      clientCancelled: item.clientCancelled,
+      clinicianCancelled: item.clinicianCancelled,
+    }));
+  }, [sessionData]);
+
+  // Cancellation breakdown segments - premium gradients with warm/cool distinction
+  const cancellationBreakdownSegments = useMemo(() => [
+    { key: 'clientCancelled', label: 'Client', color: '#dc2626', gradient: 'linear-gradient(180deg, #fca5a5 0%, #dc2626 100%)' },
+    { key: 'clinicianCancelled', label: 'Clinician', color: '#2563eb', gradient: 'linear-gradient(180deg, #93c5fd 0%, #2563eb 100%)' },
+  ], []);
+
+  const cancellationBreakdownStackOrder = useMemo(() => ['clinicianCancelled', 'clientCancelled'], []);
+
+  // Total cancellations (client + clinician)
+  const totalCancellations = useMemo(() => totalClientCancelled + totalClinicianCancelled, [totalClientCancelled, totalClinicianCancelled]);
+
+  // Peak cancellation month (combined)
+  const peakTotalCancellationMonth = useMemo(() => {
+    if (!sessionData || sessionData.monthlySessions.length === 0) return { month: '-', value: 0 };
+    return sessionData.monthlySessions.reduce((peak, item) => {
+      const total = item.clientCancelled + item.clinicianCancelled;
+      return total > peak.value ? { month: item.month, value: total } : peak;
+    }, { month: sessionData.monthlySessions[0].month, value: sessionData.monthlySessions[0].clientCancelled + sessionData.monthlySessions[0].clinicianCancelled });
+  }, [sessionData]);
+
+  // Cancellation breakdown insights
+  const cancellationBreakdownInsights = useMemo(() => {
+    if (!sessionData) return [];
+    const clientPercent = totalCancellations > 0 ? (totalClientCancelled / totalCancellations) * 100 : 0;
     return [
       {
-        icon: Calendar,
-        label: 'Peak Month',
-        value: peakCancellationMonth.month,
-        detail: `${peakCancellationMonth.value} cancellations`,
+        value: `${clientPercent.toFixed(0)}%`,
+        label: 'Client Cancellations',
+        bgColor: 'bg-rose-50',
+        textColor: 'text-rose-600',
       },
       {
-        icon: Activity,
-        label: 'Monthly Avg',
-        value: avgCancellations.toFixed(1),
-        detail: `${totalClinicianCancelled} total this year`,
+        value: peakTotalCancellationMonth.month,
+        label: `Peak (${peakTotalCancellationMonth.value})`,
+        bgColor: 'bg-stone-100',
+        textColor: 'text-stone-700',
+      },
+      {
+        value: totalCancellations.toString(),
+        label: 'Total Cancelled',
+        bgColor: 'bg-stone-100',
+        textColor: 'text-stone-700',
       },
     ];
-  }, [sessionData, totalClinicianCancelled, peakCancellationMonth]);
+  }, [sessionData, totalClientCancelled, totalCancellations, peakTotalCancellationMonth]);
+
+  // No-Show & Late Cancellation stacked bar data
+  const noShowLateBarData = useMemo(() => {
+    if (!sessionData) return [];
+    return sessionData.monthlySessions.map((item) => ({
+      label: item.month,
+      lateCancelled: item.lateCancelled,
+      noShow: item.noShow,
+    }));
+  }, [sessionData]);
+
+  // No-Show & Late segments - amber for late, slate for no-show (distinct from cancellation colors)
+  const noShowLateSegments = useMemo(() => [
+    { key: 'lateCancelled', label: 'Late Cancel', color: '#d97706', gradient: 'linear-gradient(180deg, #fcd34d 0%, #d97706 100%)' },
+    { key: 'noShow', label: 'No-Show', color: '#475569', gradient: 'linear-gradient(180deg, #94a3b8 0%, #475569 100%)' },
+  ], []);
+
+  const noShowLateStackOrder = useMemo(() => ['noShow', 'lateCancelled'], []);
+
+  // Total no-shows + late cancellations
+  const totalNoShowLate = useMemo(() => totalNoShow + totalLateCancelled, [totalNoShow, totalLateCancelled]);
+
+  // Peak no-show/late month
+  const peakNoShowLateMonth = useMemo(() => {
+    if (!sessionData || sessionData.monthlySessions.length === 0) return { month: '-', value: 0 };
+    return sessionData.monthlySessions.reduce((peak, item) => {
+      const total = item.noShow + item.lateCancelled;
+      return total > peak.value ? { month: item.month, value: total } : peak;
+    }, { month: sessionData.monthlySessions[0].month, value: sessionData.monthlySessions[0].noShow + sessionData.monthlySessions[0].lateCancelled });
+  }, [sessionData]);
+
+  // No-Show & Late insights
+  const noShowLateInsights = useMemo(() => {
+    if (!sessionData) return [];
+    const noShowPercent = totalNoShowLate > 0 ? (totalNoShow / totalNoShowLate) * 100 : 0;
+    const noShowRate = totalBooked > 0 ? (totalNoShow / totalBooked) * 100 : 0;
+    return [
+      {
+        value: `${noShowRate.toFixed(1)}%`,
+        label: 'No-Show Rate',
+        bgColor: noShowRate > 5 ? 'bg-rose-50' : 'bg-stone-100',
+        textColor: noShowRate > 5 ? 'text-rose-600' : 'text-stone-700',
+      },
+      {
+        value: peakNoShowLateMonth.month,
+        label: `Peak (${peakNoShowLateMonth.value})`,
+        bgColor: 'bg-stone-100',
+        textColor: 'text-stone-700',
+      },
+      {
+        value: totalNoShowLate.toString(),
+        label: 'Total Lost',
+        bgColor: 'bg-stone-100',
+        textColor: 'text-stone-700',
+      },
+    ];
+  }, [sessionData, totalNoShow, totalNoShowLate, totalBooked, peakNoShowLateMonth]);
+
 
   // Average weekly sessions
   const avgWeeklySessions = useMemo(() => {
@@ -1703,14 +1811,14 @@ export const ClinicianDetailsTab: React.FC = () => {
       {
         value: `${avgWeeklySessions}/wk`,
         label: 'Avg Weekly',
-        bgColor: 'bg-blue-50',
-        textColor: 'text-blue-600',
+        bgColor: 'bg-stone-100',
+        textColor: 'text-stone-700',
       },
       {
         value: `${sessionMonthsAtGoal}/${sessionData.monthlySessions.length}`,
         label: 'Hit Goal',
-        bgColor: sessionMonthsAtGoal >= 6 ? 'bg-emerald-50' : 'bg-amber-50',
-        textColor: sessionMonthsAtGoal >= 6 ? 'text-emerald-600' : 'text-amber-600',
+        bgColor: 'bg-stone-100',
+        textColor: 'text-stone-700',
       },
     ];
   }, [sessionData, bestSessionMonth, avgWeeklySessions, sessionMonthsAtGoal]);
@@ -1897,14 +2005,14 @@ export const ClinicianDetailsTab: React.FC = () => {
       {
         value: `+${avgNew.toFixed(1)}`,
         label: 'Avg New/mo',
-        bgColor: 'bg-emerald-50',
-        textColor: 'text-emerald-600',
+        bgColor: 'bg-stone-100',
+        textColor: 'text-stone-700',
       },
       {
         value: `-${avgChurn.toFixed(1)}`,
         label: 'Avg Churn/mo',
-        bgColor: 'bg-rose-50',
-        textColor: 'text-rose-600',
+        bgColor: 'bg-stone-100',
+        textColor: 'text-stone-700',
       },
     ];
   }, [caseloadData, netClientGrowth, totalNewClients, totalChurnedClients]);
@@ -1971,13 +2079,13 @@ export const ClinicianDetailsTab: React.FC = () => {
         value: latestMonth?.capacity.toString() || '0',
         label: 'Capacity',
         bgColor: 'bg-stone-100',
-        textColor: 'text-stone-600',
+        textColor: 'text-stone-700',
       },
       {
         value: avgClients.toString(),
         label: 'Avg/Month',
-        bgColor: 'bg-blue-50',
-        textColor: 'text-blue-600',
+        bgColor: 'bg-stone-100',
+        textColor: 'text-stone-700',
       },
     ];
   }, [caseloadData]);
@@ -1998,13 +2106,13 @@ export const ClinicianDetailsTab: React.FC = () => {
         value: `${avgCapacity}%`,
         label: 'Avg',
         bgColor: 'bg-stone-100',
-        textColor: 'text-stone-600',
+        textColor: 'text-stone-700',
       },
       {
         value: `${caseloadData.practiceAvgUtilization}%`,
         label: 'Practice Avg',
-        bgColor: 'bg-blue-50',
-        textColor: 'text-blue-600',
+        bgColor: 'bg-stone-100',
+        textColor: 'text-stone-700',
       },
     ];
   }, [caseloadData, caseloadUtilization]);
@@ -2971,29 +3079,32 @@ export const ClinicianDetailsTab: React.FC = () => {
               --------------------------------------------------------- */}
           {isSpotlightMode && selectedClinician && (
             <AnimatedGrid cols={4} gap="md" staggerDelay={60}>
-              <StatCard
-                title="Revenue"
-                value={formatCurrency(selectedClinician.metrics.revenue)}
-                subtitle={`${selectedClinician.metrics.revenueVsGoal >= 100 ? '+' : ''}${selectedClinician.metrics.revenueVsGoal - 100}% vs goal · ${financialData?.practiceRevenueShare || 0}% of practice`}
-                variant={selectedClinician.metrics.revenueVsGoal >= 100 ? 'positive' : 'negative'}
+              <MetricCard
+                label="Revenue"
+                value={formatCurrencyParts(selectedClinician.metrics.revenue).value}
+                valueSuffix={formatCurrencyParts(selectedClinician.metrics.revenue).suffix}
+                subtext={`${selectedClinician.metrics.revenueVsGoal >= 100 ? '+' : ''}${selectedClinician.metrics.revenueVsGoal - 100}% vs goal · ${financialData?.practiceRevenueShare || 0}% of practice`}
+                status={selectedClinician.metrics.revenueVsGoal >= 100 ? 'Healthy' : 'Needs attention'}
               />
-              <StatCard
-                title="Sessions"
-                value={sessionData ? `${Math.round(totalCompleted / sessionData.monthlySessions.length)}/mo` : '-'}
-                subtitle={sessionData ? `~${Math.round(totalCompleted / sessionData.monthlySessions.length / 4.33)}/week · ${totalCompleted} total` : '-'}
-                variant={selectedClinician.metrics.sessionsVsGoal >= 100 ? 'positive' : 'negative'}
+              <MetricCard
+                label="Sessions"
+                value={sessionData ? formatSessionsParts(totalCompleted / sessionData.monthlySessions.length).value : '-'}
+                valueSuffix={sessionData ? formatSessionsParts(totalCompleted / sessionData.monthlySessions.length).suffix : undefined}
+                subtext={sessionData ? `~${Math.round(totalCompleted / sessionData.monthlySessions.length / 4.33)}/week · ${totalCompleted} total` : '-'}
+                status={selectedClinician.metrics.sessionsVsGoal >= 100 ? 'Healthy' : 'Needs attention'}
               />
-              <StatCard
-                title={`Caseload (${caseloadData?.monthlyCaseload[caseloadData.monthlyCaseload.length - 1]?.month || 'Current'})`}
-                value={caseloadData ? `${currentActiveClients}/${currentCapacity}` : '-'}
-                subtitle={caseloadData ? `${caseloadUtilization.toFixed(0)}% capacity · ${caseloadUtilization >= caseloadData.practiceAvgUtilization ? '+' : ''}${(caseloadUtilization - caseloadData.practiceAvgUtilization).toFixed(0)}% vs avg` : '-'}
-                variant={caseloadData && caseloadUtilization >= caseloadData.practiceAvgUtilization ? 'positive' : 'negative'}
+              <MetricCard
+                label={`Caseload (${caseloadData?.monthlyCaseload[caseloadData.monthlyCaseload.length - 1]?.month || 'Current'})`}
+                value={caseloadData ? formatCaseloadParts(currentActiveClients, currentCapacity).value : '-'}
+                valueSuffix={caseloadData ? formatCaseloadParts(currentActiveClients, currentCapacity).suffix : undefined}
+                subtext={caseloadData ? `${caseloadUtilization.toFixed(0)}% capacity · ${caseloadUtilization >= caseloadData.practiceAvgUtilization ? '+' : ''}${(caseloadUtilization - caseloadData.practiceAvgUtilization).toFixed(0)}% vs avg` : '-'}
+                status={caseloadData && caseloadUtilization >= caseloadData.practiceAvgUtilization ? 'Healthy' : 'Needs attention'}
               />
-              <StatCard
-                title="Notes Overdue"
-                value={selectedClinician.metrics.notesOverdue}
-                subtitle={selectedClinician.metrics.notesOverdue <= 5 ? 'On track' : selectedClinician.metrics.notesOverdue <= 10 ? 'Needs attention' : 'Critical backlog'}
-                variant={selectedClinician.metrics.notesOverdue <= 5 ? 'positive' : selectedClinician.metrics.notesOverdue <= 10 ? 'default' : 'negative'}
+              <MetricCard
+                label="Notes Overdue"
+                value={String(selectedClinician.metrics.notesOverdue)}
+                subtext={selectedClinician.metrics.notesOverdue <= 5 ? 'On track' : selectedClinician.metrics.notesOverdue <= 10 ? 'Needs attention' : 'Critical backlog'}
+                status={selectedClinician.metrics.notesOverdue <= 5 ? 'Healthy' : selectedClinician.metrics.notesOverdue <= 10 ? 'Needs attention' : 'Critical'}
               />
             </AnimatedGrid>
           )}
@@ -3124,35 +3235,67 @@ export const ClinicianDetailsTab: React.FC = () => {
                 onExpand={() => setExpandedCard('attendance-breakdown')}
               />
 
-              {/* Clinician Cancellations Chart */}
+              {/* Cancellation Breakdown Chart - Stacked (Client + Clinician) */}
               <ChartCard
-                title="Clinician Cancellations"
-                subtitle={`How often ${selectedClinician.name.split(' ')[0]} cancels sessions`}
-                insights={clinicianCancellationInsights}
-                minHeight="320px"
+                title="Cancellation Breakdown"
+                subtitle={`Who's cancelling ${selectedClinician.name.split(' ')[0]}'s sessions`}
+                headerControls={
+                  <div className="flex items-center gap-6 bg-stone-50 rounded-xl px-5 py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-4 h-4 rounded-md" style={{ background: 'linear-gradient(180deg, #fca5a5 0%, #dc2626 100%)' }} />
+                      <span className="text-stone-700 text-sm font-semibold">Client</span>
+                    </div>
+                    <div className="w-px h-5 bg-stone-200" />
+                    <div className="flex items-center gap-3">
+                      <div className="w-4 h-4 rounded-md" style={{ background: 'linear-gradient(180deg, #93c5fd 0%, #2563eb 100%)' }} />
+                      <span className="text-stone-700 text-sm font-semibold">Clinician</span>
+                    </div>
+                  </div>
+                }
+                insights={cancellationBreakdownInsights}
+                minHeight="420px"
                 expandable
-                onExpand={() => setExpandedCard('clinician-cancellations')}
+                onExpand={() => setExpandedCard('cancellation-breakdown')}
               >
                 <BarChart
-                  data={clinicianCancellationsBarData}
-                  mode="single"
-                  getBarColor={() => ({
-                    gradient: 'linear-gradient(180deg, #f87171 0%, #dc2626 100%)',
-                    shadow: '0 4px 12px -2px rgba(220, 38, 38, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
-                    textColor: 'text-red-600',
-                  })}
+                  data={cancellationBreakdownBarData}
+                  mode="stacked"
+                  segments={cancellationBreakdownSegments as SegmentConfig[]}
+                  stackOrder={cancellationBreakdownStackOrder}
                   formatValue={(v) => Math.round(v).toString()}
-                  yAxisLabels={(maxVal) => {
-                    const max = Math.ceil(maxVal);
-                    return [
-                      max.toString(),
-                      Math.round(max * 0.75).toString(),
-                      Math.round(max * 0.5).toString(),
-                      Math.round(max * 0.25).toString(),
-                      '0',
-                    ];
-                  }}
-                  height="220px"
+                  height="280px"
+                />
+              </ChartCard>
+
+              {/* No-Show & Late Cancellations Chart */}
+              <ChartCard
+                title="Late Cancels & No-Shows"
+                subtitle={`Lost sessions that can't be recovered`}
+                headerControls={
+                  <div className="flex items-center gap-6 bg-stone-50 rounded-xl px-5 py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-4 h-4 rounded-md" style={{ background: 'linear-gradient(180deg, #fcd34d 0%, #d97706 100%)' }} />
+                      <span className="text-stone-700 text-sm font-semibold">Late Cancel</span>
+                    </div>
+                    <div className="w-px h-5 bg-stone-200" />
+                    <div className="flex items-center gap-3">
+                      <div className="w-4 h-4 rounded-md" style={{ background: 'linear-gradient(180deg, #94a3b8 0%, #475569 100%)' }} />
+                      <span className="text-stone-700 text-sm font-semibold">No-Show</span>
+                    </div>
+                  </div>
+                }
+                insights={noShowLateInsights}
+                minHeight="420px"
+                expandable
+                onExpand={() => setExpandedCard('noshow-late')}
+              >
+                <BarChart
+                  data={noShowLateBarData}
+                  mode="stacked"
+                  segments={noShowLateSegments as SegmentConfig[]}
+                  stackOrder={noShowLateStackOrder}
+                  formatValue={(v) => Math.round(v).toString()}
+                  height="280px"
                 />
               </ChartCard>
             </Grid>
@@ -3271,7 +3414,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                     ]}
                   />
                   <StackedBarCard
-                    title="Client Modality"
+                    title="Session Format"
                     subtitle={`${selectedClinician.name.split(' ')[0]}'s current active clients`}
                     segments={[
                       { label: 'In-Person', value: demographicsData.modality.inPerson, color: 'bg-amber-500' },
@@ -3328,7 +3471,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                     color: '#fb7185',
                     colorEnd: '#f43f5e',
                   }}
-                  height="280px"
+                  height="100%"
                   yDomain={[-(Math.max(...churnedClientsData.map(d => d.negative)) + 3), 1]}
                   formatNegativeLabel={(value) => Math.abs(value).toString()}
                 />
@@ -3718,33 +3861,69 @@ export const ClinicianDetailsTab: React.FC = () => {
         </ExpandedChartModal>
       )}
 
-      {/* Clinician Cancellations Expanded */}
+      {/* Cancellation Breakdown Expanded */}
       {selectedClinician && sessionData && (
         <ExpandedChartModal
-          isOpen={expandedCard === 'clinician-cancellations'}
+          isOpen={expandedCard === 'cancellation-breakdown'}
           onClose={() => setExpandedCard(null)}
-          title="Clinician Cancellations"
-          subtitle={`How often ${selectedClinician.name.split(' ')[0]} cancels sessions`}
+          title="Cancellation Breakdown"
+          subtitle={`Who's cancelling ${selectedClinician.name.split(' ')[0]}'s sessions`}
+          headerControls={
+            <div className="flex items-center gap-6 bg-stone-50 rounded-xl px-5 py-3">
+              <div className="flex items-center gap-3">
+                <div className="w-5 h-5 rounded-md" style={{ background: 'linear-gradient(180deg, #fca5a5 0%, #dc2626 100%)' }} />
+                <span className="text-stone-700 text-base font-semibold">Client</span>
+              </div>
+              <div className="w-px h-6 bg-stone-200" />
+              <div className="flex items-center gap-3">
+                <div className="w-5 h-5 rounded-md" style={{ background: 'linear-gradient(180deg, #93c5fd 0%, #2563eb 100%)' }} />
+                <span className="text-stone-700 text-base font-semibold">Clinician</span>
+              </div>
+            </div>
+          }
+          insights={cancellationBreakdownInsights}
         >
           <BarChart
-            data={clinicianCancellationsBarData}
-            mode="single"
-            getBarColor={(value) => {
-              const avg = totalClinicianCancelled / 12;
-              return value > avg * 1.5
-                ? {
-                    gradient: 'linear-gradient(180deg, #f87171 0%, #dc2626 100%)',
-                    shadow: '0 4px 12px -2px rgba(220, 38, 38, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
-                    textColor: 'text-red-600',
-                  }
-                : {
-                    gradient: 'linear-gradient(180deg, #60a5fa 0%, #2563eb 100%)',
-                    shadow: '0 4px 12px -2px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
-                    textColor: 'text-blue-600',
-                  };
-            }}
+            data={cancellationBreakdownBarData}
+            mode="stacked"
+            segments={cancellationBreakdownSegments as SegmentConfig[]}
+            stackOrder={cancellationBreakdownStackOrder}
             formatValue={(v) => Math.round(v).toString()}
-            height="400px"
+            height="100%"
+            size="lg"
+          />
+        </ExpandedChartModal>
+      )}
+
+      {/* No-Show & Late Cancellations Expanded */}
+      {selectedClinician && sessionData && (
+        <ExpandedChartModal
+          isOpen={expandedCard === 'noshow-late'}
+          onClose={() => setExpandedCard(null)}
+          title="Late Cancels & No-Shows"
+          subtitle={`Lost sessions that can't be recovered`}
+          headerControls={
+            <div className="flex items-center gap-6 bg-stone-50 rounded-xl px-5 py-3">
+              <div className="flex items-center gap-3">
+                <div className="w-5 h-5 rounded-md" style={{ background: 'linear-gradient(180deg, #fcd34d 0%, #d97706 100%)' }} />
+                <span className="text-stone-700 text-base font-semibold">Late Cancel</span>
+              </div>
+              <div className="w-px h-6 bg-stone-200" />
+              <div className="flex items-center gap-3">
+                <div className="w-5 h-5 rounded-md" style={{ background: 'linear-gradient(180deg, #94a3b8 0%, #475569 100%)' }} />
+                <span className="text-stone-700 text-base font-semibold">No-Show</span>
+              </div>
+            </div>
+          }
+          insights={noShowLateInsights}
+        >
+          <BarChart
+            data={noShowLateBarData}
+            mode="stacked"
+            segments={noShowLateSegments as SegmentConfig[]}
+            stackOrder={noShowLateStackOrder}
+            formatValue={(v) => Math.round(v).toString()}
+            height="100%"
             size="lg"
           />
         </ExpandedChartModal>

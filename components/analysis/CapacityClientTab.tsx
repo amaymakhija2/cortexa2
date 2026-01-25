@@ -241,8 +241,8 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
     {
       value: avgActiveClients.toFixed(0),
       label: 'Average',
-      bgColor: 'bg-amber-50',
-      textColor: 'text-amber-600',
+      bgColor: 'bg-stone-100',
+      textColor: 'text-stone-700',
     },
     {
       value: `${activeClientsRange.min}–${activeClientsRange.max}`,
@@ -263,8 +263,8 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
     {
       value: `${avgUtilization.toFixed(0)}%`,
       label: 'Average',
-      bgColor: 'bg-amber-50',
-      textColor: 'text-amber-600',
+      bgColor: 'bg-stone-100',
+      textColor: 'text-stone-700',
     },
     {
       value: `${caseloadCapacityRange.min.toFixed(0)}%–${caseloadCapacityRange.max.toFixed(0)}%`,
@@ -284,14 +284,14 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
     {
       value: `+${avgMonthlyNew.toFixed(1)}`,
       label: 'Avg New/mo',
-      bgColor: 'bg-emerald-50',
-      textColor: 'text-emerald-600',
+      bgColor: 'bg-stone-100',
+      textColor: 'text-stone-700',
     },
     {
       value: `-${avgMonthlyChurn.toFixed(1)}`,
       label: 'Avg Churn/mo',
-      bgColor: 'bg-rose-50',
-      textColor: 'text-rose-600',
+      bgColor: 'bg-stone-100',
+      textColor: 'text-stone-700',
     },
   ], [netGrowth, avgMonthlyNew, avgMonthlyChurn]);
 
@@ -340,13 +340,15 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
             />
             <StatCard
               title="Caseload Capacity"
-              value={`${avgUtilization.toFixed(0)}%`}
+              value={avgUtilization.toFixed(0)}
+              valueSuffix="%"
               valueLabel="average"
               subtitle={periodLabel}
             />
             <StatCard
               title="Session Goal %"
-              value={`${avgSessionUtilization.toFixed(0)}%`}
+              value={avgSessionUtilization.toFixed(0)}
+              valueSuffix="%"
               valueLabel="average"
               subtitle={periodLabel}
             />

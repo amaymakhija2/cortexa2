@@ -2109,17 +2109,15 @@ export const Reference: React.FC = () => {
 
               {/* Interactive Demo */}
               <div className="mb-8">
-                <ChartCard
+                <SimpleChartCard
                   title="Return Rate Over Time"
                   subtitle="6-month return rate comparison"
-                  headerControls={
-                    <GoalIndicator value="85%" label="Target" color="emerald" />
-                  }
                   insights={[
-                    { value: '86.5%', label: 'Clinician Avg', bgColor: 'bg-blue-50', textColor: 'text-blue-600' },
-                    { value: '79%', label: 'Practice Avg', bgColor: 'bg-amber-50', textColor: 'text-amber-600' },
+                    { value: '86.5%', label: 'Clinician Avg', bgColor: 'bg-emerald-50', textColor: 'text-emerald-600' },
+                    { value: '79%', label: 'Practice Avg', bgColor: 'bg-stone-100', textColor: 'text-stone-700' },
+                    { value: '85%', label: 'Target', bgColor: 'bg-stone-100', textColor: 'text-stone-700' },
                   ]}
-                  minHeight="400px"
+                  height="450px"
                 >
                   <LineChart
                     data={SAMPLE_RETURN_RATE_DATA}
@@ -2135,7 +2133,7 @@ export const Reference: React.FC = () => {
                       { value: 85, label: 'Target', color: '#10b981', dashed: true },
                     ]}
                   />
-                </ChartCard>
+                </SimpleChartCard>
               </div>
 
               {/* Props Reference */}

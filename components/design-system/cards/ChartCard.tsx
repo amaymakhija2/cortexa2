@@ -212,13 +212,13 @@ export const ChartCard: React.FC<ChartCardProps> = ({
       )}
 
       {/* Chart Area */}
-      <div className="flex-1 min-h-[280px] flex flex-col justify-end">
+      <div className="flex-1 min-h-[280px]">
         {children}
       </div>
 
       {/* Insights Row */}
       {insights && insights.length > 0 && (
-        <div className={`grid grid-cols-${insights.length} gap-4 pt-3 border-t-2 border-stone-100`}>
+        <div className={`grid grid-cols-${insights.length} gap-4 pt-3 mt-4 border-t-2 border-stone-100`}>
           {insights.map((insight, idx) => (
             <div
               key={idx}
@@ -267,8 +267,10 @@ export interface SimpleChartCardProps {
   title: string;
   /** Subtitle/description */
   subtitle?: string;
-  /** Metric indicators displayed as elegant boxes (e.g., Your Avg, Industry, Last Year) */
+  /** Metric indicators displayed as elegant boxes in header (e.g., Your Avg, Industry, Last Year) */
   metrics?: MetricIndicator[];
+  /** Insights row at bottom (same as ChartCard) */
+  insights?: InsightItem[];
   /** Show expand button */
   expandable?: boolean;
   /** Callback when expand is clicked */
@@ -298,6 +300,7 @@ export const SimpleChartCard: React.FC<SimpleChartCardProps> = ({
   title,
   subtitle,
   metrics,
+  insights,
   expandable = false,
   onExpand,
   height = '620px',
@@ -391,6 +394,31 @@ export const SimpleChartCard: React.FC<SimpleChartCardProps> = ({
       <div className="flex-1 min-h-[280px]">
         {children}
       </div>
+
+      {/* Insights Row - same styling as ChartCard */}
+      {insights && insights.length > 0 && (
+        <div
+          className="grid gap-4 pt-3 mt-4 border-t-2 border-stone-100"
+          style={{ gridTemplateColumns: `repeat(${insights.length}, 1fr)` }}
+        >
+          {insights.map((insight, idx) => (
+            <div
+              key={idx}
+              className={`${insight.bgColor || 'bg-stone-100'} rounded-xl p-4 text-center`}
+            >
+              <div
+                className={`${insight.textColor || 'text-stone-800'} text-2xl sm:text-3xl font-bold`}
+                style={{ fontFamily: "'Suisse Intl', system-ui, sans-serif" }}
+              >
+                {insight.value}
+              </div>
+              <div className="text-stone-600 text-sm sm:text-base font-medium mt-1">
+                {insight.label}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
