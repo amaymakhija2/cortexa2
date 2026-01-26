@@ -3,15 +3,16 @@ import { NavLink, useLocation, useSearchParams } from 'react-router-dom';
 import {
   Compass,
   Users,
+  House,
+  TrendUp,
   Calculator,
-  Banknote,
+  Money,
   X,
-  Activity,
-  Inbox,
-  Settings,
-  RefreshCw,
-  ArrowRight,
-} from 'lucide-react';
+  Gear,
+  ArrowsClockwise,
+  CaretRight,
+} from '@phosphor-icons/react';
+import { useSettings } from '../context/SettingsContext';
 
 // =============================================================================
 // GLASSMORPHIC FLOATING SIDEBAR
@@ -59,6 +60,8 @@ const NAV_ITEMS = [
     path: '/dashboard',
     label: 'Overview',
     icon: Compass,
+    imageSrc: '/compass-icon.png',
+    imageSize: 38,
     subItems: [
       { id: 'summary', label: 'Summary' },
       { id: 'compare', label: 'Compare' },
@@ -68,6 +71,8 @@ const NAV_ITEMS = [
     path: '/clinician-overview',
     label: 'Clinicians',
     icon: Users,
+    imageSrc: '/clinicians-icon.png',
+    imageSize: 40,
     subItems: [
       { id: 'ranking', label: 'Spotlight' },
       { id: 'details', label: 'Details' },
@@ -76,7 +81,9 @@ const NAV_ITEMS = [
   {
     path: '/practice-analysis',
     label: 'Practice',
-    icon: Activity,
+    icon: House,
+    imageSrc: '/practice-icon.png',
+    imageSize: 44,
     subItems: [
       { id: 'clients', label: 'Roster' },
       { id: 'consultations', label: 'Consults' },
@@ -89,13 +96,15 @@ const NAV_ITEMS = [
   {
     path: '/consultations',
     label: 'Pipeline',
-    icon: Inbox,
+    icon: TrendUp,
+    imageSrc: '/pipeline-icon.png',
+    imageSize: 44,
   },
 ];
 
 const UPCOMING = [
   { label: 'Accounting', icon: Calculator },
-  { label: 'Payroll', icon: Banknote },
+  { label: 'Payroll', icon: Money },
 ];
 
 // Glassmorphic style constants - higher opacity for readability
@@ -125,18 +134,31 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { settings } = useSettings();
+  const useIllustratedIcons = settings.iconStyle === 'illustrated';
   const currentPath = location.pathname;
+  const expandTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const collapseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleMouseEnter = useCallback(() => {
+    // Cancel any pending collapse
     if (collapseTimeoutRef.current) {
       clearTimeout(collapseTimeoutRef.current);
       collapseTimeoutRef.current = null;
     }
-    setIsCollapsed?.(false);
+    // Delay expansion to avoid triggering on quick hover-through
+    expandTimeoutRef.current = setTimeout(() => {
+      setIsCollapsed?.(false);
+    }, 200);
   }, [setIsCollapsed]);
 
   const handleMouseLeave = useCallback(() => {
+    // Cancel any pending expansion
+    if (expandTimeoutRef.current) {
+      clearTimeout(expandTimeoutRef.current);
+      expandTimeoutRef.current = null;
+    }
+    // Delay collapse
     collapseTimeoutRef.current = setTimeout(() => {
       setIsCollapsed?.(true);
     }, 400);
@@ -198,6 +220,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           width: isExpanded ? 280 : 68,
           // Pill shape - rounded on all sides since it's floating
           borderRadius: 24,
+          // Allow compass icon to overflow
+          overflow: 'visible',
           // Glassmorphic styling
           ...glassStyle,
           // Smooth transitions
@@ -229,7 +253,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             background: 'transparent',
           }}
         >
-          <X size={18} strokeWidth={2} />
+          <X size={18} weight="regular" />
         </button>
 
         {/* ══════════════ HEADER ══════════════ */}
@@ -383,9 +407,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   {isSyncing ? 'Syncing...' : 'Synced 2h ago'}
                 </span>
 
-                <RefreshCw
+                <ArrowsClockwise
                   size={13}
-                  strokeWidth={2}
+                  weight="regular"
                   className={`mr-3 transition-colors duration-200 group-hover:text-stone-600 ${isSyncing ? 'animate-spin' : ''}`}
                   style={{ color: COLORS.textMuted }}
                 />
@@ -396,10 +420,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* ══════════════ NAVIGATION ══════════════ */}
         <nav
-          className="flex-1 overflow-y-auto overflow-x-hidden relative"
-          style={{ padding: '0 8px' }}
+          className="flex-1 overflow-y-auto relative"
+          style={{ padding: '0 8px', overflowX: 'visible' }}
         >
-          <div className="space-y-0.5">
+          <div className="space-y-4">
             {NAV_ITEMS.map((item) => {
               const isActive = currentPath === item.path;
               const activeSubItem = getActiveSubItem(item.path, item.subItems);
@@ -416,21 +440,44 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     {/* Container with icon + label */}
                     <div
                       className="relative flex items-center"
-                      style={{ height: 48 }}
+                      style={{
+                        height: 48,
+                        overflow: 'visible',
+                        transition: 'all 400ms cubic-bezier(0.22, 0.61, 0.36, 1)',
+                      }}
                     >
                       {/* Icon - 52px to center in 68px collapsed (68 - 16px padding = 52) */}
                       <div
                         className="flex items-center justify-center flex-shrink-0 relative z-10"
-                        style={{ width: 52, height: 48 }}
+                        style={{
+                          width: 52,
+                          height: 48,
+                          overflow: 'visible',
+                          transition: 'all 400ms cubic-bezier(0.22, 0.61, 0.36, 1)',
+                        }}
                       >
-                        <Icon
-                          size={20}
-                          strokeWidth={1.8}
-                          className="transition-colors duration-500"
-                          style={{
-                            color: isActive ? COLORS.textPrimary : COLORS.textSecondary,
-                          }}
-                        />
+                        {useIllustratedIcons && item.imageSrc ? (
+                          <img
+                            src={item.imageSrc}
+                            alt={item.label}
+                            style={{
+                              width: item.imageSize || 72,
+                              height: item.imageSize || 72,
+                              objectFit: 'contain',
+                              opacity: isActive ? 1 : 0.75,
+                              transition: 'all 400ms cubic-bezier(0.22, 0.61, 0.36, 1)',
+                            }}
+                          />
+                        ) : Icon ? (
+                          <Icon
+                            size={20}
+                            weight="regular"
+                            className="transition-colors duration-500"
+                            style={{
+                              color: isActive ? COLORS.textPrimary : COLORS.textSecondary,
+                            }}
+                          />
+                        ) : null}
                       </div>
 
                       {/* Label - LP nav style */}
@@ -450,10 +497,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
                       {/* Active indicator - amber gradient underline (LP style) */}
                       <span
-                        className="absolute bottom-1.5 rounded-full transition-all duration-200 ease-out origin-center"
+                        className="absolute rounded-full transition-all duration-200 ease-out origin-center"
                         style={{
                           left: 8,
                           right: isExpanded ? 8 : 8,
+                          bottom: -2,
                           height: 2,
                           background: 'linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%)',
                           opacity: isActive ? 1 : 0,
@@ -463,10 +511,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
                       {/* Hover underline - appears on non-active items */}
                       <span
-                        className="absolute bottom-1.5 rounded-full transition-all duration-200 ease-out origin-center opacity-0 group-hover:opacity-70 group-hover:scale-x-100"
+                        className="absolute rounded-full transition-all duration-200 ease-out origin-center opacity-0 group-hover:opacity-70 group-hover:scale-x-100"
                         style={{
                           left: 8,
                           right: isExpanded ? 8 : 8,
+                          bottom: -2,
                           height: 2,
                           background: 'linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%)',
                           transform: 'scaleX(0)',
@@ -509,9 +558,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
                             {/* Sub-item active indicator */}
                             {isSubActive && (
-                              <ArrowRight
+                              <CaretRight
                                 size={12}
-                                strokeWidth={2.5}
+                                weight="bold"
                                 className="ml-auto"
                                 style={{ color: COLORS.accent }}
                               />
@@ -550,7 +599,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   style={{ height: 40 }}
                 >
                   <div className="w-[52px] flex items-center justify-center">
-                    <Icon size={18} strokeWidth={1.8} style={{ color: COLORS.textDisabled }} />
+                    <Icon size={18} weight="regular" style={{ color: COLORS.textDisabled }} />
                   </div>
                   <span
                     className="text-[14px] font-medium tracking-[-0.01em]"
@@ -631,9 +680,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   </p>
                 </div>
 
-                <Settings
+                <Gear
                   size={16}
-                  strokeWidth={1.8}
+                  weight="regular"
                   className="flex-shrink-0 transition-all duration-200 group-hover:rotate-45 mr-2"
                   style={{
                     opacity: isExpanded ? 1 : 0,

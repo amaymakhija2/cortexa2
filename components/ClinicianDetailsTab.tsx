@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ChevronDown, Check, Calendar, X, TrendingUp, TrendingDown, Users, DollarSign, Activity, FileText, ArrowRight, Settings, Pencil, Sparkles, AlertTriangle, Target, Zap, Calculator } from 'lucide-react';
+import { ChevronDown, Check, Calendar, X, TrendingUp, TrendingDown, Users, DollarSign, Activity, FileText, ArrowRight, ArrowLeft, Settings, Pencil, Sparkles, AlertTriangle, Target, Zap, Calculator, Search } from 'lucide-react';
 import * as chrono from 'chrono-node';
 import { formatFullName } from '../types/consultations';
 import {
@@ -1158,6 +1158,13 @@ export const ClinicianDetailsTab: React.FC = () => {
   // Dropdown states
   const [isClinicianDropdownOpen, setIsClinicianDropdownOpen] = useState(false);
 
+  // Search states for clinician selection
+  const [preSelectionSearch, setPreSelectionSearch] = useState('');
+  const [dropdownSearch, setDropdownSearch] = useState('');
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const preSelectionSearchRef = useRef<HTMLInputElement>(null);
+  const dropdownSearchRef = useRef<HTMLInputElement>(null);
+
   // Animation state for clinician change
   const [isTransitioning, setIsTransitioning] = useState(false);
 
@@ -1221,11 +1228,96 @@ export const ClinicianDetailsTab: React.FC = () => {
     // If switching clinicians, use transition animation
     setIsTransitioning(true);
     setIsClinicianDropdownOpen(false);
+    setDropdownSearch(''); // Clear search on selection
     setTimeout(() => {
       setSelectedClinician(clinician);
       setTimeout(() => setIsTransitioning(false), 50);
     }, 200);
   };
+
+  // Filter clinicians based on search query
+  const filterClinicians = useCallback((query: string) => {
+    if (!query.trim()) return MOCK_CLINICIANS;
+    const searchTerms = query.toLowerCase().trim().split(/\s+/);
+    return MOCK_CLINICIANS.filter(clinician => {
+      const searchableText = `${clinician.name} ${clinician.role} ${clinician.title}`.toLowerCase();
+      return searchTerms.every(term => searchableText.includes(term));
+    });
+  }, []);
+
+  // Filtered clinicians for pre-selection view
+  const filteredPreSelectionClinicians = useMemo(
+    () => filterClinicians(preSelectionSearch),
+    [preSelectionSearch, filterClinicians]
+  );
+
+  // Filtered clinicians for dropdown
+  const filteredDropdownClinicians = useMemo(
+    () => filterClinicians(dropdownSearch),
+    [dropdownSearch, filterClinicians]
+  );
+
+  // Reset highlight when search changes or dropdown opens/closes
+  useEffect(() => {
+    setHighlightedIndex(-1);
+  }, [preSelectionSearch, dropdownSearch, isClinicianDropdownOpen]);
+
+  // Focus search input when dropdown opens
+  useEffect(() => {
+    if (isClinicianDropdownOpen && dropdownSearchRef.current) {
+      setTimeout(() => dropdownSearchRef.current?.focus(), 100);
+    }
+  }, [isClinicianDropdownOpen]);
+
+  // Keyboard navigation for pre-selection search
+  const handlePreSelectionKeyDown = useCallback((e: React.KeyboardEvent) => {
+    const clinicians = filteredPreSelectionClinicians;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setHighlightedIndex(prev => Math.min(prev + 1, clinicians.length - 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setHighlightedIndex(prev => Math.max(prev - 1, -1));
+    } else if (e.key === 'Enter' && highlightedIndex >= 0 && highlightedIndex < clinicians.length) {
+      e.preventDefault();
+      handleClinicianSelect(clinicians[highlightedIndex]);
+      setPreSelectionSearch('');
+    } else if (e.key === 'Escape') {
+      setPreSelectionSearch('');
+      setHighlightedIndex(-1);
+      preSelectionSearchRef.current?.blur();
+    }
+  }, [filteredPreSelectionClinicians, highlightedIndex, handleClinicianSelect]);
+
+  // Keyboard navigation for dropdown search
+  const handleDropdownKeyDown = useCallback((e: React.KeyboardEvent) => {
+    const clinicians = filteredDropdownClinicians;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setHighlightedIndex(prev => Math.min(prev + 1, clinicians.length - 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setHighlightedIndex(prev => Math.max(prev - 1, -1));
+    } else if (e.key === 'Enter' && highlightedIndex >= 0 && highlightedIndex < clinicians.length) {
+      e.preventDefault();
+      handleClinicianSelect(clinicians[highlightedIndex]);
+    } else if (e.key === 'Escape') {
+      setIsClinicianDropdownOpen(false);
+      setDropdownSearch('');
+    }
+  }, [filteredDropdownClinicians, highlightedIndex, handleClinicianSelect]);
+
+  // Highlight matching text in search results
+  const highlightMatch = useCallback((text: string, query: string) => {
+    if (!query.trim()) return text;
+    const regex = new RegExp(`(${query.trim().split(/\s+/).join('|')})`, 'gi');
+    const parts = text.split(regex);
+    return parts.map((part, i) =>
+      regex.test(part) ? (
+        <mark key={i} className="bg-amber-200/60 text-stone-900 rounded px-0.5">{part}</mark>
+      ) : part
+    );
+  }, []);
 
   // Get the current period label for display in modals
   const getCurrentPeriodLabel = () => {
@@ -2344,7 +2436,7 @@ export const ClinicianDetailsTab: React.FC = () => {
           />
         </div>
 
-        <div className="relative px-6 sm:px-8 lg:px-12 py-6 lg:py-8" style={{ zIndex: 1 }}>
+        <div className="relative px-6 sm:px-8 lg:px-12 py-8 lg:py-12" style={{ zIndex: 1 }}>
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             {/* Left: Title Area */}
             <div className="min-w-0">
@@ -2364,7 +2456,19 @@ export const ClinicianDetailsTab: React.FC = () => {
               ) : selectedClinician && healthConfig && (
                 /* Spotlight mode - clinician info */
                 <div className={`transition-all duration-300 ${isTransitioning ? 'opacity-0 transform translate-y-1' : 'opacity-100 transform translate-y-0'}`}>
-                  <div className="flex items-center gap-5">
+                  <div className="flex items-center gap-4">
+                    {/* Back Button */}
+                    <button
+                      onClick={() => {
+                        setSelectedClinician(null);
+                        setPreSelectionSearch('');
+                      }}
+                      className="group flex items-center justify-center w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 transition-all duration-200"
+                      title="Back to all clinicians"
+                    >
+                      <ArrowLeft size={18} className="text-white/70 group-hover:text-white transition-colors" />
+                    </button>
+
                     {/* Avatar */}
                     <div
                       className="w-16 h-16 lg:w-18 lg:h-18 rounded-2xl flex items-center justify-center text-xl lg:text-2xl font-bold text-white flex-shrink-0"
@@ -2393,56 +2497,130 @@ export const ClinicianDetailsTab: React.FC = () => {
                             />
                           </button>
 
-                          {/* Clinician Dropdown */}
+                          {/* Clinician Dropdown with Search */}
                           {isClinicianDropdownOpen && (
                             <div
                               className="absolute top-full left-0 mt-2 z-[100000] overflow-hidden"
                               style={{
-                                minWidth: '300px',
+                                minWidth: '340px',
                                 background: 'linear-gradient(135deg, #292524 0%, #1c1917 100%)',
                                 border: '1px solid rgba(255, 255, 255, 0.1)',
                                 borderRadius: '16px',
                                 boxShadow: '0 20px 40px -12px rgba(0, 0, 0, 0.5)',
+                                animation: 'dropdownReveal 0.2s ease-out',
                               }}
                             >
-                              <div className="p-2">
-                                <div className="px-3 py-2 text-xs font-medium text-stone-500 uppercase tracking-wider">
-                                  Switch Clinician
-                                </div>
-                                {MOCK_CLINICIANS.map((clinician) => {
-                                  const isSelectedClin = selectedClinician.id === clinician.id;
-                                  const cHealth = HEALTH_CONFIG[clinician.healthStatus];
-                                  return (
+                              {/* Search Input */}
+                              <div className="p-3 border-b border-white/10">
+                                <div
+                                  className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-all duration-200"
+                                  style={{
+                                    background: 'rgba(255, 255, 255, 0.06)',
+                                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                                  }}
+                                >
+                                  <Search size={16} className="text-stone-500" />
+                                  <input
+                                    ref={dropdownSearchRef}
+                                    type="text"
+                                    value={dropdownSearch}
+                                    onChange={(e) => setDropdownSearch(e.target.value)}
+                                    onKeyDown={handleDropdownKeyDown}
+                                    placeholder="Search clinicians..."
+                                    className="flex-1 bg-transparent outline-none text-white placeholder:text-stone-500 text-sm"
+                                    style={{ fontFamily: "'Suisse Intl', sans-serif" }}
+                                  />
+                                  {dropdownSearch && (
                                     <button
-                                      key={clinician.id}
-                                      onClick={() => handleClinicianSelect(clinician)}
-                                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
-                                        isSelectedClin ? 'bg-white/10' : 'hover:bg-white/5'
-                                      }`}
+                                      onClick={() => {
+                                        setDropdownSearch('');
+                                        setHighlightedIndex(-1);
+                                        dropdownSearchRef.current?.focus();
+                                      }}
+                                      className="p-1 hover:bg-white/10 rounded-md transition-colors"
                                     >
-                                      <div
-                                        className="w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
-                                        style={{ background: clinician.color }}
-                                      >
-                                        {clinician.initials}
-                                      </div>
-                                      <div className="flex-1 text-left min-w-0">
-                                        <div className="flex items-center gap-2">
-                                          <span className={`text-sm font-medium truncate ${isSelectedClin ? 'text-white' : 'text-stone-300'}`}>
-                                            {clinician.name}
-                                          </span>
-                                          <div
-                                            className="w-2 h-2 rounded-full flex-shrink-0"
-                                            style={{ background: cHealth.color }}
-                                          />
-                                        </div>
-                                        <span className="text-xs text-stone-500">{clinician.role}</span>
-                                      </div>
-                                      {isSelectedClin && <Check size={16} className="text-amber-400 flex-shrink-0" />}
+                                      <X size={14} className="text-stone-500" />
                                     </button>
-                                  );
-                                })}
+                                  )}
+                                </div>
                               </div>
+
+                              <div className="p-2 max-h-[320px] overflow-y-auto">
+                                <div className="px-3 py-1.5 text-xs font-medium text-stone-500 uppercase tracking-wider flex items-center justify-between">
+                                  <span>
+                                    {dropdownSearch
+                                      ? `${filteredDropdownClinicians.length} result${filteredDropdownClinicians.length !== 1 ? 's' : ''}`
+                                      : 'Switch Clinician'
+                                    }
+                                  </span>
+                                  {highlightedIndex >= 0 && (
+                                    <span className="text-amber-500/70 normal-case tracking-normal">↑↓ navigate · ↵ select</span>
+                                  )}
+                                </div>
+
+                                {filteredDropdownClinicians.length === 0 ? (
+                                  <div className="px-3 py-6 text-center">
+                                    <div className="w-10 h-10 mx-auto mb-2 rounded-xl bg-white/5 flex items-center justify-center">
+                                      <Users size={18} className="text-stone-500" />
+                                    </div>
+                                    <p className="text-stone-400 text-sm">No clinicians found</p>
+                                  </div>
+                                ) : (
+                                  filteredDropdownClinicians.map((clinician, index) => {
+                                    const isSelectedClin = selectedClinician.id === clinician.id;
+                                    const isHighlighted = index === highlightedIndex;
+                                    const cHealth = HEALTH_CONFIG[clinician.healthStatus];
+                                    return (
+                                      <button
+                                        key={clinician.id}
+                                        onClick={() => handleClinicianSelect(clinician)}
+                                        onMouseEnter={() => setHighlightedIndex(index)}
+                                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-150 ${
+                                          isSelectedClin
+                                            ? 'bg-white/10'
+                                            : isHighlighted
+                                              ? 'bg-amber-500/15'
+                                              : 'hover:bg-white/5'
+                                        }`}
+                                      >
+                                        <div
+                                          className={`w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold text-white flex-shrink-0 transition-transform duration-150 ${isHighlighted ? 'scale-105' : ''}`}
+                                          style={{ background: clinician.color }}
+                                        >
+                                          {clinician.initials}
+                                        </div>
+                                        <div className="flex-1 text-left min-w-0">
+                                          <div className="flex items-center gap-2">
+                                            <span className={`text-sm font-medium truncate ${isSelectedClin || isHighlighted ? 'text-white' : 'text-stone-300'}`}>
+                                              {highlightMatch(clinician.name, dropdownSearch)}
+                                            </span>
+                                            <div
+                                              className="w-2 h-2 rounded-full flex-shrink-0"
+                                              style={{ background: cHealth.color }}
+                                            />
+                                          </div>
+                                          <span className="text-xs text-stone-500">
+                                            {highlightMatch(clinician.role, dropdownSearch)}
+                                          </span>
+                                        </div>
+                                        {isSelectedClin && <Check size={16} className="text-amber-400 flex-shrink-0" />}
+                                        {isHighlighted && !isSelectedClin && (
+                                          <ArrowRight size={14} className="text-amber-400/60 flex-shrink-0" />
+                                        )}
+                                      </button>
+                                    );
+                                  })
+                                )}
+                              </div>
+
+                              {/* Keyboard hint footer */}
+                              {!dropdownSearch && filteredDropdownClinicians.length > 3 && (
+                                <div className="px-4 py-2 border-t border-white/5 text-center">
+                                  <span className="text-xs text-stone-600">
+                                    Type to search · Esc to close
+                                  </span>
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
@@ -2503,77 +2681,154 @@ export const ClinicianDetailsTab: React.FC = () => {
         <div className="px-6 sm:px-8 lg:px-12 py-8 lg:py-10 space-y-6">
 
           {/* ---------------------------------------------------------
-              CLINICIAN SELECTOR - Clean list for pre-selection
+              CLINICIAN SELECTOR - Searchable list for pre-selection
               --------------------------------------------------------- */}
           {!isSpotlightMode && (
             <div className="max-w-4xl mx-auto">
+              {/* Search Input */}
+              <div className="mb-4">
+                <div
+                  className="relative group"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(253, 252, 251, 0.95) 0%, rgba(250, 250, 249, 0.98) 100%)',
+                    borderRadius: '16px',
+                    border: '1px solid rgba(168, 154, 140, 0.2)',
+                    boxShadow: '0 2px 12px -4px rgba(120, 100, 80, 0.08), inset 0 1px 2px rgba(255, 255, 255, 0.5)',
+                  }}
+                >
+                  <div className="flex items-center px-4 py-3.5">
+                    <Search
+                      size={20}
+                      className="text-stone-400 transition-colors duration-200 group-focus-within:text-amber-500"
+                    />
+                    <input
+                      ref={preSelectionSearchRef}
+                      type="text"
+                      value={preSelectionSearch}
+                      onChange={(e) => setPreSelectionSearch(e.target.value)}
+                      onKeyDown={handlePreSelectionKeyDown}
+                      placeholder="Search clinicians by name or role..."
+                      className="flex-1 ml-3 bg-transparent outline-none text-stone-800 placeholder:text-stone-400 text-base"
+                      style={{ fontFamily: "'Suisse Intl', sans-serif" }}
+                    />
+                    {preSelectionSearch && (
+                      <button
+                        onClick={() => {
+                          setPreSelectionSearch('');
+                          setHighlightedIndex(-1);
+                        }}
+                        className="p-1.5 hover:bg-stone-100 rounded-lg transition-colors"
+                      >
+                        <X size={16} className="text-stone-400" />
+                      </button>
+                    )}
+                  </div>
+                  {/* Animated focus underline */}
+                  <div
+                    className="absolute bottom-0 left-4 right-4 h-0.5 rounded-full transition-all duration-300 group-focus-within:opacity-100 opacity-0"
+                    style={{
+                      background: 'linear-gradient(90deg, #f59e0b 0%, #fbbf24 50%, #f59e0b 100%)',
+                    }}
+                  />
+                </div>
+                {preSelectionSearch && (
+                  <p className="mt-2 text-sm text-stone-500 px-1">
+                    {filteredPreSelectionClinicians.length === 0
+                      ? 'No clinicians found'
+                      : `${filteredPreSelectionClinicians.length} clinician${filteredPreSelectionClinicians.length !== 1 ? 's' : ''} found`
+                    }
+                    {highlightedIndex >= 0 && ' · Use arrow keys to navigate, Enter to select'}
+                  </p>
+                )}
+              </div>
+
               {/* Clinician List */}
               <div className="bg-white rounded-2xl border border-stone-200/60 overflow-hidden shadow-sm">
-                {MOCK_CLINICIANS.map((clinician, index) => {
-                  const cHealth = HEALTH_CONFIG[clinician.healthStatus];
-                  const isLast = index === MOCK_CLINICIANS.length - 1;
-                  return (
-                    <button
-                      key={clinician.id}
-                      onClick={() => handleClinicianSelect(clinician)}
-                      className={`w-full flex items-center gap-4 p-4 sm:p-5 text-left transition-colors hover:bg-stone-50 ${
-                        !isLast ? 'border-b border-stone-100' : ''
-                      }`}
-                    >
-                      {/* Avatar */}
-                      <div
-                        className="w-11 h-11 rounded-xl flex items-center justify-center text-base font-bold text-white flex-shrink-0"
-                        style={{ background: clinician.color }}
+                {filteredPreSelectionClinicians.length === 0 ? (
+                  <div className="p-12 text-center">
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-stone-100 flex items-center justify-center">
+                      <Users size={28} className="text-stone-400" />
+                    </div>
+                    <p className="text-stone-600 font-medium">No clinicians match your search</p>
+                    <p className="text-stone-400 text-sm mt-1">Try a different name or role</p>
+                  </div>
+                ) : (
+                  filteredPreSelectionClinicians.map((clinician, index) => {
+                    const cHealth = HEALTH_CONFIG[clinician.healthStatus];
+                    const isLast = index === filteredPreSelectionClinicians.length - 1;
+                    const isHighlighted = index === highlightedIndex;
+                    return (
+                      <button
+                        key={clinician.id}
+                        onClick={() => {
+                          handleClinicianSelect(clinician);
+                          setPreSelectionSearch('');
+                        }}
+                        onMouseEnter={() => setHighlightedIndex(index)}
+                        className={`w-full flex items-center gap-4 p-4 sm:p-5 text-left transition-all duration-150 ${
+                          !isLast ? 'border-b border-stone-100' : ''
+                        } ${isHighlighted ? 'bg-amber-50/70' : 'hover:bg-stone-50'}`}
                       >
-                        {clinician.initials}
-                      </div>
-
-                      {/* Info */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <h3
-                            className="text-lg font-semibold text-stone-800 truncate"
-                            style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
-                          >
-                            {clinician.name}
-                          </h3>
-                          {/* Health dot */}
-                          <div
-                            className="w-2 h-2 rounded-full flex-shrink-0"
-                            style={{ background: cHealth.color }}
-                            title={cHealth.label}
-                          />
+                        {/* Avatar */}
+                        <div
+                          className={`w-11 h-11 rounded-xl flex items-center justify-center text-base font-bold text-white flex-shrink-0 transition-transform duration-200 ${isHighlighted ? 'scale-105' : ''}`}
+                          style={{ background: clinician.color }}
+                        >
+                          {clinician.initials}
                         </div>
-                        <p className="text-sm text-stone-500">{clinician.role} · {clinician.title}</p>
-                      </div>
 
-                      {/* Quick stats - hidden on mobile */}
-                      <div className="hidden sm:flex items-center gap-6 text-right">
-                        <div>
-                          <p className="text-xs text-stone-400 uppercase tracking-wide">Revenue</p>
-                          <p className="text-base font-semibold text-stone-700 tabular-nums">
-                            ${(CLINICIAN_FINANCIAL_DATA[clinician.id]?.monthlyRevenue[CLINICIAN_FINANCIAL_DATA[clinician.id]?.monthlyRevenue.length - 1]?.value / 1000).toFixed(1)}k
+                        {/* Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h3
+                              className="text-lg font-semibold text-stone-800 truncate"
+                              style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
+                            >
+                              {highlightMatch(clinician.name, preSelectionSearch)}
+                            </h3>
+                            {/* Health dot */}
+                            <div
+                              className="w-2 h-2 rounded-full flex-shrink-0"
+                              style={{ background: cHealth.color }}
+                              title={cHealth.label}
+                            />
+                          </div>
+                          <p className="text-sm text-stone-500">
+                            {highlightMatch(`${clinician.role} · ${clinician.title}`, preSelectionSearch)}
                           </p>
                         </div>
-                        <div>
-                          <p className="text-xs text-stone-400 uppercase tracking-wide">Clients</p>
-                          <p className="text-base font-semibold text-stone-700 tabular-nums">
-                            {CLINICIAN_CASELOAD_DATA[clinician.id]?.monthlyCaseload[CLINICIAN_CASELOAD_DATA[clinician.id]?.monthlyCaseload.length - 1]?.activeClients || 0}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-stone-400 uppercase tracking-wide">Sessions</p>
-                          <p className="text-base font-semibold text-stone-700 tabular-nums">
-                            {CLINICIAN_SESSION_DATA[clinician.id]?.monthlySessions[CLINICIAN_SESSION_DATA[clinician.id]?.monthlySessions.length - 1]?.completed || 0}
-                          </p>
-                        </div>
-                      </div>
 
-                      {/* Arrow */}
-                      <ArrowRight size={18} className="text-stone-400 flex-shrink-0" />
-                    </button>
-                  );
-                })}
+                        {/* Quick stats - hidden on mobile */}
+                        <div className="hidden sm:flex items-center gap-6 text-right">
+                          <div>
+                            <p className="text-xs text-stone-400 uppercase tracking-wide">Revenue</p>
+                            <p className="text-base font-semibold text-stone-700 tabular-nums">
+                              ${(CLINICIAN_FINANCIAL_DATA[clinician.id]?.monthlyRevenue[CLINICIAN_FINANCIAL_DATA[clinician.id]?.monthlyRevenue.length - 1]?.value / 1000).toFixed(1)}k
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-stone-400 uppercase tracking-wide">Clients</p>
+                            <p className="text-base font-semibold text-stone-700 tabular-nums">
+                              {CLINICIAN_CASELOAD_DATA[clinician.id]?.monthlyCaseload[CLINICIAN_CASELOAD_DATA[clinician.id]?.monthlyCaseload.length - 1]?.activeClients || 0}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-stone-400 uppercase tracking-wide">Sessions</p>
+                            <p className="text-base font-semibold text-stone-700 tabular-nums">
+                              {CLINICIAN_SESSION_DATA[clinician.id]?.monthlySessions[CLINICIAN_SESSION_DATA[clinician.id]?.monthlySessions.length - 1]?.completed || 0}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Arrow with animation */}
+                        <ArrowRight
+                          size={18}
+                          className={`text-stone-400 flex-shrink-0 transition-transform duration-200 ${isHighlighted ? 'translate-x-1 text-amber-500' : ''}`}
+                        />
+                      </button>
+                    );
+                  })
+                )}
               </div>
             </div>
           )}

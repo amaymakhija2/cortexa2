@@ -22,6 +22,7 @@ import {
   EyeOff,
   X,
   AlertCircle,
+  Palette,
 } from 'lucide-react';
 import { PageHeader } from './design-system';
 
@@ -891,6 +892,16 @@ export const SettingsPage: React.FC = () => {
                   <ToggleSwitch
                     enabled={settings.showConsultationMetrics}
                     onChange={(enabled) => updateSettings({ showConsultationMetrics: enabled })}
+                  />
+                </SettingRow>
+                <SettingRow
+                  icon={Palette}
+                  label="Illustrated Icons"
+                  description="Use illustrated icons in sidebar (vs. minimal line icons)"
+                >
+                  <ToggleSwitch
+                    enabled={settings.iconStyle === 'illustrated'}
+                    onChange={(enabled) => updateSettings({ iconStyle: enabled ? 'illustrated' : 'phosphor' })}
                   />
                 </SettingRow>
               </SettingsSection>
