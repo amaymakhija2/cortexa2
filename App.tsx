@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { SettingsProvider } from './context/SettingsContext';
@@ -6,6 +6,7 @@ import { TypographyProvider, TypographyStyles } from './context/TypographyContex
 import { ReferralProvider } from './components/referral';
 import { LoginPage } from './components/LoginPage';
 import { OnboardingFlow } from './components/OnboardingFlow';
+import { CortexaLoader } from './components/CortexaLoader';
 import { Sidebar } from './components/Sidebar';
 import { BottomNav } from './components/BottomNav';
 import { Dashboard } from './components/Dashboard';
@@ -17,6 +18,7 @@ import { PracticeConfigurationPage } from './components/PracticeConfigurationPag
 import { SessionHistoryPage } from './components/SessionHistoryPage';
 import { Consultations } from './components/Consultations';
 import { Reference as Components } from './components/design-system';
+import { DevLoaderTest } from './components/DevLoaderTest';
 import { Menu } from 'lucide-react';
 
 // =============================================================================
@@ -104,6 +106,16 @@ const ProtectedApp: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
+  const [showLoader, setShowLoader] = useState(false);
+  const prevAuthRef = useRef(isAuthenticated);
+
+  // Detect fresh login (transition from false → true)
+  useEffect(() => {
+    if (!prevAuthRef.current && isAuthenticated) {
+      setShowLoader(true);
+    }
+    prevAuthRef.current = isAuthenticated;
+  }, [isAuthenticated]);
 
   if (!isAuthenticated) {
     return (
@@ -113,6 +125,12 @@ const ProtectedApp: React.FC = () => {
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     );
+  }
+
+  // Dev route outside main layout
+  const location = useLocation();
+  if (location.pathname === '/dev/loader') {
+    return <DevLoaderTest />;
   }
 
   // No wrapper padding - pages handle their own left padding so backgrounds extend full width
@@ -195,6 +213,7 @@ const ProtectedApp: React.FC = () => {
                 <Route path="/configure" element={<PracticeConfigurationPage />} />
                 <Route path="/components" element={<Components />} />
                 <Route path="/settings" element={<SettingsPage />} />
+                {/* Dev loader route handled above, outside layout */}
                 <Route path="*" element={<Navigate to="/dashboard" replace />} />
               </Routes>
             </div>
@@ -204,6 +223,9 @@ const ProtectedApp: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Login reveal animation */}
+      {showLoader && <CortexaLoader onDone={() => setShowLoader(false)} />}
     </div>
   );
 };
