@@ -218,7 +218,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
         style={sizeConfig.minHeight ? { minHeight: sizeConfig.minHeight } : undefined}
       >
         {/* Header row */}
-        <div className={`flex flex-col ${actions || showTimePeriod ? 'lg:flex-row lg:items-end' : ''} justify-between gap-4 ${timeSelector ? 'mb-1' : children ? 'mb-3' : ''} min-w-max lg:min-w-0 ${isSpotlightSize ? 'w-full' : ''}`}>
+        <div className={`flex flex-col ${actions || showTimePeriod || timeSelector ? 'lg:flex-row lg:items-end' : ''} justify-between gap-4 ${timeSelector ? 'mb-1' : children ? 'mb-3' : ''} min-w-max lg:min-w-0 ${isSpotlightSize ? 'w-full' : ''}`}>
           <div className="min-w-0 flex-shrink-0 lg:flex-shrink">
             {/* Custom hero content or default title area */}
             {heroContent ? (

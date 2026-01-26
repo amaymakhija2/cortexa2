@@ -308,7 +308,7 @@ export const CompareTab: React.FC = () => {
       <div className="flex-1 flex flex-col h-[calc(100vh-80px)] overflow-y-auto bg-gradient-to-b from-stone-100 to-stone-50">
         <div className="min-h-full flex flex-col">
           <PageHeader
-            accent="amber"
+            accent="rose"
             title="Compare Performance"
             showGridPattern
           />
@@ -330,7 +330,7 @@ export const CompareTab: React.FC = () => {
       <div className="min-h-full flex flex-col">
         {/* Header with Time Controls */}
         <PageHeader
-          accent="amber"
+          accent="rose"
           title="Compare Performance"
           showGridPattern
           timeSelector={

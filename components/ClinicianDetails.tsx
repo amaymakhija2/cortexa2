@@ -7,14 +7,14 @@ export const ClinicianDetails: React.FC = () => {
       <div className="min-h-full">
         {/* Header Section */}
         <PageHeader
-          accent="amber"
+          accent="blue"
           title="Clinician Details"
           showGridPattern
         />
 
         {/* Coming Soon Content */}
         <ComingSoonCard
-          accent="amber"
+          accent="blue"
           title="Clinician Details"
           description="Deep-dive analytics for individual clinician performance. Select a clinician to explore their metrics, trends, and actionable insights."
           features={[

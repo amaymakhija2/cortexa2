@@ -742,7 +742,7 @@ export const SettingsPage: React.FC = () => {
               DARK HEADER SECTION - Matches app style
               ============================================= */}
           <PageHeader
-            accent="amber"
+            accent="violet"
             title="Settings"
             subtitle="Manage your account preferences and practice configuration"
           />

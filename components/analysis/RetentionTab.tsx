@@ -237,7 +237,7 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
     <div className="min-h-full">
       {/* Page Header */}
       <PageHeader
-        accent="rose"
+        accent="amber"
         title="Retention"
         timeSelector={
           <TimeSelector

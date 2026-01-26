@@ -1050,7 +1050,7 @@ export const ClinicianOverview: React.FC = () => {
             PART 1: METRIC SELECTOR - THE HERO SECTION
             ============================================= */}
         <PageHeader
-          accent="amber"
+          accent="blue"
           title="Clinician Spotlight"
           showGridPattern
           actions={

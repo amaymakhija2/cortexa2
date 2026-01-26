@@ -21,7 +21,7 @@ export const InsuranceTab: React.FC<BaseAnalysisTabProps> = ({
   return (
     <div className="min-h-full">
       <PageHeader
-        accent="violet"
+        accent="amber"
         title="Insurance"
         timeSelector={
           <TimeSelector

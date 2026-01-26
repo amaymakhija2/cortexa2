@@ -2420,7 +2420,7 @@ export const ClinicianDetailsTab: React.FC = () => {
           HEADER - Using PageHeader with spotlight mode support
           ================================================================= */}
       <PageHeader
-        accent="amber"
+        accent="blue"
         size="spotlight"
         title="Clinician Details"
         glowColor={selectedClinician?.color}

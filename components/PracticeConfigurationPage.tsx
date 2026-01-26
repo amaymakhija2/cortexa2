@@ -2701,7 +2701,7 @@ export const PracticeConfigurationPage: React.FC = () => {
     <div className="flex-1 flex flex-col h-[calc(100vh-80px)] overflow-y-auto bg-gradient-to-b from-stone-100 to-stone-50">
       {/* Page Header with Tabs */}
       <PageHeader
-        accent="amber"
+        accent="violet"
         label="Settings"
         title="Configure"
         subtitle="Set up your practice structure, goals, and metrics"

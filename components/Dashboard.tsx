@@ -442,7 +442,7 @@ export const Dashboard: React.FC = () => {
             DARK HEADER SECTION
             ============================================= */}
         <PageHeader
-          accent="amber"
+          accent="rose"
           title="Practice Overview"
           timeSelector={
             <TimeSelector
@@ -453,6 +453,9 @@ export const Dashboard: React.FC = () => {
               minYear={dataRange?.earliest.getFullYear()}
               maxYear={dataRange?.latest.getFullYear()}
             />
+          }
+          actions={
+            <ReferralBadge onClick={() => setIsReferralModalOpen(true)} />
           }
         />
 

@@ -316,7 +316,7 @@ export const ConsultationsAnalysisTab: React.FC<ConsultationsAnalysisTabProps> =
     <div className="min-h-full">
       {/* Page Header */}
       <PageHeader
-        accent="cyan"
+        accent="amber"
         title="Consultations"
         timeSelector={
           <TimeSelector
