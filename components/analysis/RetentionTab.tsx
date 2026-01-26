@@ -17,6 +17,7 @@ import {
   CohortSelector,
 } from '../design-system';
 import type { HoverInfo } from '../design-system';
+import { TimeSelector } from '../design-system/controls/TimeSelector';
 import type { RetentionTabProps } from './types';
 
 // =============================================================================
@@ -43,6 +44,8 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
   tabs,
   activeTab,
   onTabChange,
+  timeSelection,
+  onTimeSelectionChange,
   churnByClinicianData,
   churnTimingData,
   retentionFunnelData,
@@ -235,9 +238,15 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
       {/* Page Header */}
       <PageHeader
         accent="rose"
-        label="Detailed Analysis"
         title="Retention"
-        subtitle="Understand how clients progress through their journey with your practice"
+        timeSelector={
+          <TimeSelector
+            value={timeSelection}
+            onChange={onTimeSelectionChange}
+            showAggregateOption={true}
+            variant="header"
+          />
+        }
       />
       {/* Note: Retention tab uses cohort-based analysis rather than time period filtering */}
 

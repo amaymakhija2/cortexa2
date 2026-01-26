@@ -18,3 +18,6 @@ export type { SegmentedControlProps, SegmentedControlOption } from './SegmentedC
 
 export { ClinicianFilter } from './ClinicianFilter';
 export type { ClinicianFilterProps } from './ClinicianFilter';
+
+export { TimeSelector } from './TimeSelector';
+export type { TimeSelectorProps, TimeSelectorValue } from './TimeSelector';

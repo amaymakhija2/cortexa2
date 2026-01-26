@@ -124,13 +124,13 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
   const colors = ACCENT_COLORS[accent];
 
   return (
-    <div className={`${compact ? 'mb-6 xl:mb-8' : 'mb-8 xl:mb-10'} ${className}`}>
-      <div className="flex items-start justify-between gap-6">
-        <div className="flex items-start gap-5">
+    <div className={`${compact ? 'mb-4 xl:mb-5' : 'mb-6 xl:mb-8'} ${className}`}>
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start gap-4">
           {/* Section number - refined with gradient text option */}
           {number !== undefined && (
             <div
-              className={`flex-shrink-0 w-14 h-14 xl:w-16 xl:h-16 rounded-2xl flex items-center justify-center ${colors.numberBg} relative overflow-hidden`}
+              className={`flex-shrink-0 w-11 h-11 xl:w-12 xl:h-12 rounded-xl flex items-center justify-center ${colors.numberBg} relative overflow-hidden`}
               style={{ boxShadow: colors.numberShadow }}
             >
               {/* Subtle inner glow */}
@@ -141,7 +141,7 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
                 }}
               />
               <span
-                className={`text-2xl xl:text-3xl font-bold relative z-10 ${colors.number}`}
+                className={`text-xl xl:text-2xl font-bold relative z-10 ${colors.number}`}
                 style={{
                   fontFamily: "'Tiempos Headline', Georgia, serif",
                 }}
@@ -159,15 +159,15 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
           )}
 
           {/* Title and description */}
-          <div className="pt-1">
+          <div className="pt-0.5">
             <h3
-              className="text-2xl sm:text-3xl xl:text-[2.5rem] font-bold tracking-tight text-stone-900 leading-tight"
+              className="text-xl sm:text-2xl xl:text-[1.75rem] font-bold tracking-tight text-stone-900 leading-tight"
               style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
             >
               {question}
             </h3>
             {description && (
-              <p className="text-stone-600 text-base sm:text-lg mt-2.5 max-w-2xl leading-relaxed">
+              <p className="text-stone-600 text-sm sm:text-base mt-2 max-w-2xl leading-relaxed">
                 {description}
               </p>
             )}
@@ -176,7 +176,7 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
 
         {/* Actions */}
         {actions && (
-          <div className="flex items-center gap-3 flex-shrink-0 pt-2">
+          <div className="flex items-center gap-3 flex-shrink-0 pt-1">
             {actions}
           </div>
         )}
@@ -185,9 +185,9 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
       {/* Accent line - gradient with taper */}
       {showAccentLine && (
         <div
-          className="h-1 mt-6 rounded-full"
+          className="h-0.5 mt-4 rounded-full"
           style={{
-            maxWidth: '140px',
+            maxWidth: '100px',
             background: colors.lineGradient,
           }}
         />

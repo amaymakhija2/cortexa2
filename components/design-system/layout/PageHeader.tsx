@@ -19,6 +19,27 @@ const ACCENT_COLORS: Record<AccentColor, { glow: string; glowSecondary: string; 
   blue: { glow: '#3b82f6', glowSecondary: '#60a5fa', labelClass: 'text-blue-500/80' },
 };
 
+// Size presets for visual hierarchy
+export type PageHeaderSize = 'compact' | 'standard' | 'hero';
+
+const SIZE_CONFIGS: Record<PageHeaderSize, { title: string; subtitle: string; padding: string }> = {
+  compact: {
+    title: 'text-2xl sm:text-3xl lg:text-4xl',
+    subtitle: 'text-sm sm:text-base',
+    padding: 'px-6 sm:px-8 lg:px-12 py-4 lg:py-5',
+  },
+  standard: {
+    title: 'text-3xl sm:text-4xl lg:text-5xl',
+    subtitle: 'text-base sm:text-lg',
+    padding: 'px-6 sm:px-8 lg:px-12 py-4 lg:py-5',
+  },
+  hero: {
+    title: 'text-4xl sm:text-5xl lg:text-6xl',
+    subtitle: 'text-base sm:text-lg',
+    padding: 'px-6 sm:px-8 lg:px-12 py-5 lg:py-6',
+  },
+};
+
 export type TimePeriod = 'last-12-months' | 'this-year' | 'this-quarter' | 'last-quarter' | 'this-month' | 'last-month' | '2024' | '2023' | 'custom';
 
 export interface Tab {
@@ -29,6 +50,8 @@ export interface Tab {
 export interface PageHeaderProps {
   /** The accent color for the glow effect */
   accent?: AccentColor;
+  /** Size preset for visual hierarchy: compact (analysis tabs), standard (Dashboard, Compare), hero (ClinicianOverview, ClientRoster) */
+  size?: PageHeaderSize;
   /** Small uppercase label above the title */
   label?: string;
   /** Main page title */
@@ -55,6 +78,11 @@ export interface PageHeaderProps {
   onTabChange?: (tabId: string) => void;
   /** Custom content to render in the header (right side) */
   actions?: React.ReactNode;
+  /**
+   * Time selector component to render below the title.
+   * Use this instead of `actions` for the new prominent time selector design.
+   */
+  timeSelector?: React.ReactNode;
   /** Children rendered below the header content */
   children?: React.ReactNode;
 }
@@ -70,6 +98,7 @@ const DEFAULT_TIME_PERIODS: { id: TimePeriod; label: string }[] = [
 
 export const PageHeader: React.FC<PageHeaderProps> = ({
   accent = 'amber',
+  size = 'hero',
   label,
   title,
   titleAction,
@@ -83,9 +112,11 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   activeTab,
   onTabChange,
   actions,
+  timeSelector,
   children,
 }) => {
   const accentConfig = ACCENT_COLORS[accent];
+  const sizeConfig = SIZE_CONFIGS[size];
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [showCustomPicker, setShowCustomPicker] = useState(false);
   const [customStartMonth, setCustomStartMonth] = useState(0);
@@ -160,9 +191,9 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
         />
       </div>
 
-      <div className="relative px-6 sm:px-8 lg:px-12 py-8 lg:py-10 overflow-x-auto">
+      <div className={`relative ${sizeConfig.padding} overflow-x-auto`}>
         {/* Header row */}
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 mb-6 min-w-max lg:min-w-0">
+        <div className={`flex flex-col ${actions || showTimePeriod ? 'lg:flex-row lg:items-end' : ''} justify-between gap-4 ${timeSelector ? 'mb-1' : 'mb-3'} min-w-max lg:min-w-0`}>
           <div className="min-w-0 flex-shrink-0 lg:flex-shrink">
             {label && (
               <p className={`${accentConfig.labelClass} text-sm font-semibold tracking-widest uppercase mb-2`}>
@@ -171,7 +202,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
             )}
             <div className="flex items-center gap-10 flex-wrap">
               <h1
-                className="text-4xl sm:text-5xl lg:text-6xl text-white tracking-tight"
+                className={`${sizeConfig.title} text-white tracking-tight`}
                 style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
               >
                 {title}
@@ -179,7 +210,13 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
               {titleAction}
             </div>
             {subtitle && (
-              <p className="text-stone-400 text-base sm:text-lg mt-2">{subtitle}</p>
+              <p className={`text-stone-400 ${sizeConfig.subtitle} mt-2`}>{subtitle}</p>
+            )}
+            {/* Time Selector - rendered under the title */}
+            {timeSelector && (
+              <div className="mt-4">
+                {timeSelector}
+              </div>
             )}
           </div>
 
@@ -475,7 +512,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
 
         {/* Tab Navigation */}
         {tabs && tabs.length > 0 && (
-          <div className="flex items-center gap-3 sm:gap-4 mt-8 overflow-x-auto scrollbar-hide pb-2">
+          <div className="flex items-center gap-3 sm:gap-4 mt-5 overflow-x-auto scrollbar-hide pb-2">
             {tabs.map((tab) => (
               <button
                 key={tab.id}

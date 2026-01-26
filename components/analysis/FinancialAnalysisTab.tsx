@@ -25,6 +25,7 @@ import {
   useClinicianFilter,
 } from '../design-system';
 import type { HoverInfo, ClinicianFilterOption } from '../design-system';
+import { TimeSelector } from '../design-system/controls/TimeSelector';
 import type { FinancialAnalysisTabProps } from './types';
 
 // =============================================================================
@@ -54,6 +55,8 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
   activeTab,
   onTabChange,
   getDateRangeLabel,
+  timeSelection,
+  onTimeSelectionChange,
   revenueData,
   revenueBreakdownData,
   clinicianRevenueData,
@@ -416,24 +419,28 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
       {/* Page Header */}
       <PageHeader
         accent="amber"
-        label="Detailed Analysis"
         title="Financial Performance"
-        subtitle={getDateRangeLabel()}
-        showTimePeriod
-        timePeriod={timePeriod}
-        onTimePeriodChange={onTimePeriodChange}
-        timePeriods={timePeriods}
+        timeSelector={
+          <TimeSelector
+            value={timeSelection}
+            onChange={onTimeSelectionChange}
+            showAggregateOption={true}
+            variant="header"
+          />
+        }
       />
 
       <PageContent>
         {/* Executive Summary */}
-        <Section spacing="md">
-          <ExecutiveSummary
-            headline="Strong Revenue, Watch Your Margins"
-            summary={`Revenue is **${momChange >= 0 ? 'up' : 'down'} ${Math.abs(momChange).toFixed(1)}%** this month, with **${monthsAtGoal} of ${revenueData.length} months** exceeding the **${revenueGoalDisplay} target**. Your net margin stands at **${avgMargin.toFixed(1)}%**, ${avgMargin >= 18 ? 'meeting' : 'slightly below'} the industry average of 18%. Clinician compensation costs represent **${avgClinicianPct.toFixed(0)}%** of gross revenue—consider reviewing if margins need improvement.`}
-            accent="amber"
-          />
-        </Section>
+        {!settings.hideAIInsights && (
+          <Section spacing="md">
+            <ExecutiveSummary
+              headline="Strong Revenue, Watch Your Margins"
+              summary={`Revenue is **${momChange >= 0 ? 'up' : 'down'} ${Math.abs(momChange).toFixed(1)}%** this month, with **${monthsAtGoal} of ${revenueData.length} months** exceeding the **${revenueGoalDisplay} target**. Your net margin stands at **${avgMargin.toFixed(1)}%**, ${avgMargin >= 18 ? 'meeting' : 'slightly below'} the industry average of 18%. Clinician compensation costs represent **${avgClinicianPct.toFixed(0)}%** of gross revenue—consider reviewing if margins need improvement.`}
+              accent="amber"
+            />
+          </Section>
+        )}
 
         {/* Hero Stats Row */}
         <Section spacing="md">
@@ -442,7 +449,6 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
               title="Gross Revenue"
               value={formatCurrencyParts(totalGrossRevenue).value}
               valueSuffix={formatCurrencyParts(totalGrossRevenue).suffix}
-              valueLabel="total"
               subtitle={periodLabel}
             />
             {settings.showNetRevenueData && (
@@ -450,7 +456,6 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
                 title="Net Revenue"
                 value={formatCurrencyParts(totalNetRevenue).value}
                 valueSuffix={formatCurrencyParts(totalNetRevenue).suffix}
-                valueLabel="total"
                 subtitle={periodLabel}
               />
             )}

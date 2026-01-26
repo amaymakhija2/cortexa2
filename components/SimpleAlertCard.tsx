@@ -1,5 +1,6 @@
-import React from "react"
-import { motion } from "framer-motion"
+import React, { useEffect } from "react"
+import { motion, useMotionValue, useTransform, animate } from "framer-motion"
+import { ArrowRight } from "lucide-react"
 
 interface SimpleAlertCardProps {
   index: number
@@ -15,47 +16,70 @@ interface SimpleAlertCardProps {
   comparisonText?: string
 }
 
-const statusConfig = {
+// Minimal status theme - just enough color to communicate, never shout
+const statusTheme = {
   critical: {
-    label: "CRITICAL",
-    color: "#ef4444",
-    badgeBg: "rgba(239, 68, 68, 0.2)",
-    badgeBorder: "rgba(239, 68, 68, 0.5)",
-    buttonBg: "#dc2626",
-    buttonShadow: "0 4px 20px rgba(220, 38, 38, 0.35)",
+    label: "Needs attention",
+    dotColor: "#ef4444",
+    glowColor: "251, 146, 60",
+    buttonBg: "#292524", // Neutral dark - let urgency come from content
   },
   warning: {
-    label: "ATTENTION",
-    color: "#fbbf24",
-    badgeBg: "rgba(251, 191, 36, 0.18)",
-    badgeBorder: "rgba(251, 191, 36, 0.45)",
-    buttonBg: "#d97706",
-    buttonShadow: "0 4px 20px rgba(217, 119, 6, 0.35)",
+    label: "Review",
+    dotColor: "#f59e0b",
+    glowColor: "251, 191, 36",
+    buttonBg: "#292524",
   },
   good: {
-    label: "OPPORTUNITY",
-    color: "#34d399",
-    badgeBg: "rgba(52, 211, 153, 0.18)",
-    badgeBorder: "rgba(52, 211, 153, 0.45)",
-    buttonBg: "#059669",
-    buttonShadow: "0 4px 20px rgba(5, 150, 105, 0.35)",
+    label: "Opportunity",
+    dotColor: "#10b981",
+    glowColor: "52, 211, 153",
+    buttonBg: "#292524",
   },
   insight: {
-    label: "INSIGHT",
-    color: "#60a5fa",
-    badgeBg: "rgba(96, 165, 250, 0.18)",
-    badgeBorder: "rgba(96, 165, 250, 0.45)",
-    buttonBg: "#2563eb",
-    buttonShadow: "0 4px 20px rgba(37, 99, 235, 0.35)",
+    label: "Insight",
+    dotColor: "#6366f1",
+    glowColor: "99, 102, 241",
+    buttonBg: "#292524",
   }
 }
 
-const colorMap = {
+// Semantic stat colors - muted for light mode elegance
+const statColors: Record<string, string> = {
   red: "#dc2626",
-  amber: "#f59e0b",
-  emerald: "#10b981",
-  white: "#ffffff",
-  blue: "#60a5fa"
+  amber: "#d97706",
+  emerald: "#059669",
+  white: "#1c1917",
+  blue: "#2563eb"
+}
+
+// Animated counter for stats
+function AnimatedStat({ value, color, delay }: { value: string | number; color: string; delay: number }) {
+  const isNumeric = typeof value === 'number' || /^[\d.]+/.test(String(value))
+
+  if (!isNumeric) {
+    return <span style={{ color }}>{value}</span>
+  }
+
+  const numericPart = parseFloat(String(value).replace(/[^0-9.]/g, ''))
+  const prefix = String(value).match(/^[^0-9]*/)?.[0] || ''
+  const suffix = String(value).match(/[^0-9.]*$/)?.[0] || ''
+
+  const motionValue = useMotionValue(0)
+  const rounded = useTransform(motionValue, (v) => `${prefix}${Math.round(v)}${suffix}`)
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      const controls = animate(motionValue, numericPart, {
+        duration: 1,
+        ease: [0.22, 1, 0.36, 1],
+      })
+      return controls.stop
+    }, delay * 1000)
+    return () => clearTimeout(timeout)
+  }, [numericPart, motionValue, delay])
+
+  return <motion.span style={{ color }}>{rounded}</motion.span>
 }
 
 export const SimpleAlertCard: React.FC<SimpleAlertCardProps> = ({
@@ -67,163 +91,170 @@ export const SimpleAlertCard: React.FC<SimpleAlertCardProps> = ({
   stats,
   comparisonText,
 }) => {
-  const config = statusConfig[status]
+  const theme = statusTheme[status]
 
-  // Get default comparison text based on status/context
-  const getDefaultComparison = () => {
-    if (title.toLowerCase().includes('retention')) return "Practice average: 80%"
-    if (title.toLowerCase().includes('cancel')) return "Team average: 2-3/month"
-    if (title.toLowerCase().includes('receivable') || title.toLowerCase().includes('ar')) return "Best practice: <7 days"
-    if (title.toLowerCase().includes('slot') || title.toLowerCase().includes('open')) return "Utilization: 72%"
-    return null
-  }
-
-  const comparison = comparisonText || getDefaultComparison()
+  const baseDelay = index * 0.1
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 28 }}
+    <motion.article
+      initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{
-        delay: index * 0.1,
-        duration: 0.65,
+        delay: baseDelay,
+        duration: 0.6,
         ease: [0.16, 1, 0.3, 1]
       }}
       className="h-full"
     >
       <div
-        className="h-full rounded-[24px] overflow-hidden flex flex-col relative"
+        className="h-full relative rounded-3xl overflow-hidden bg-white transition-shadow duration-500 ease-out hover:shadow-[0_8px_40px_-12px_rgba(0,0,0,0.12)]"
         style={{
-          background: 'linear-gradient(165deg, #0c0c0c 0%, #111111 40%, #0a0a0a 100%)',
-          boxShadow: '0 4px 16px rgba(0, 0, 0, 0.4)',
+          border: '1px solid rgba(231, 229, 228, 0.8)',
+          boxShadow: '0 8px 40px -12px rgba(0,0,0,0.08)',
         }}
       >
-        {/* Subtle top highlight for depth */}
+        {/* Subtle grain */}
         <div
-          className="absolute top-0 left-0 right-0 h-32 pointer-events-none"
+          className="absolute inset-0 opacity-[0.02] pointer-events-none"
           style={{
-            background: 'radial-gradient(ellipse 80% 50% at 50% 0%, rgba(255,255,255,0.03) 0%, transparent 100%)',
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
           }}
         />
 
-        <div className="flex flex-col h-full p-6 sm:p-7 lg:p-8 relative z-10">
+        {/* Content */}
+        <div className="relative h-full flex flex-col p-7 sm:p-8 lg:p-9">
 
-          {/* Status Badge */}
+          {/* Status - minimal: just a dot and quiet label */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: index * 0.1 + 0.08, duration: 0.35 }}
-            className="mb-5 sm:mb-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: baseDelay + 0.1, duration: 0.4 }}
+            className="flex items-center gap-2 mb-6"
           >
             <span
-              className="inline-block px-4 py-2 rounded-full text-[12px] sm:text-[13px] font-bold tracking-[0.1em]"
-              style={{
-                color: config.color,
-                backgroundColor: config.badgeBg,
-                border: `1px solid ${config.badgeBorder}`,
-              }}
+              className="w-1.5 h-1.5 rounded-full"
+              style={{ backgroundColor: theme.dotColor }}
+            />
+            <span
+              className="text-[11px] font-medium tracking-[0.06em] uppercase"
+              style={{ color: '#a8a29e' }}
             >
-              {config.label}
+              {theme.label}
             </span>
           </motion.div>
 
-          {/* Title - Editorial Serif */}
+          {/* Title - Editorial serif */}
           <motion.h2
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 + 0.12, duration: 0.45 }}
-            className="text-[28px] sm:text-[32px] lg:text-[36px] font-bold text-white leading-[1.15] mb-3 sm:mb-4"
+            transition={{ delay: baseDelay + 0.15, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            className="text-[24px] sm:text-[27px] lg:text-[30px] leading-[1.15] mb-4 tracking-[-0.015em]"
             style={{
-              fontFamily: "'Tiempos Headline', 'Georgia', serif",
-              letterSpacing: '-0.015em',
+              fontFamily: "'Tiempos Headline', Georgia, serif",
+              fontWeight: 500,
+              color: '#1c1917',
             }}
           >
             {title}
           </motion.h2>
 
-          {/* AI Guidance */}
+          {/* Guidance narrative */}
           <motion.p
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 + 0.16, duration: 0.45 }}
-            className="text-[16px] sm:text-[17px] lg:text-[18px] leading-[1.65] mb-6 sm:mb-8 text-white"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: baseDelay + 0.22, duration: 0.5 }}
+            className="text-[17px] sm:text-[18px] lg:text-[19px] leading-[1.65] flex-grow"
             style={{
-              fontFamily: "'Inter', system-ui, sans-serif",
+              fontFamily: "'Suisse Intl', -apple-system, BlinkMacSystemFont, sans-serif",
               fontWeight: 400,
+              color: '#57534e',
             }}
           >
             {aiGuidance}
           </motion.p>
 
-          {/* Stats Row */}
+          {/* Stats */}
           <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 + 0.22, duration: 0.45 }}
-            className="flex items-baseline gap-6 sm:gap-8 lg:gap-10 mt-auto"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: baseDelay + 0.3, duration: 0.5 }}
+            className="mt-8 pt-6"
+            style={{ borderTop: '1px solid #e7e5e4' }}
           >
-            {stats.map((stat, idx) => (
-              <div key={idx} className="flex flex-col">
-                <span
-                  className="text-[32px] sm:text-[36px] lg:text-[40px] font-bold tracking-tight"
-                  style={{
-                    color: colorMap[stat.color || 'white'],
-                    fontFamily: "'Inter', system-ui, sans-serif",
-                  }}
-                >
-                  {stat.value}
-                </span>
-                {stat.label && (
+            <div className="flex items-end gap-10 sm:gap-12">
+              {stats.map((stat, idx) => (
+                <div key={idx} className="flex flex-col">
                   <span
-                    className="text-[14px] sm:text-[15px] mt-1.5 font-medium tracking-wide uppercase"
+                    className="text-[36px] sm:text-[42px] lg:text-[48px] font-light tracking-[-0.02em] leading-none"
+                    style={{ fontFamily: "'Suisse Intl', sans-serif" }}
+                  >
+                    <AnimatedStat
+                      value={stat.value}
+                      color={statColors[stat.color || 'white']}
+                      delay={baseDelay + 0.4 + idx * 0.1}
+                    />
+                  </span>
+                  <span
+                    className="text-[11px] sm:text-[12px] mt-2.5 font-medium tracking-[0.04em] uppercase"
                     style={{ color: '#a8a29e' }}
                   >
                     {stat.label}
                   </span>
-                )}
-              </div>
-            ))}
+                </div>
+              ))}
+            </div>
           </motion.div>
 
-          {/* Bottom: Comparison + Action */}
+          {/* Footer */}
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 + 0.3, duration: 0.45 }}
-            className="flex items-center justify-between mt-6 sm:mt-8 pt-5 sm:pt-6"
-            style={{
-              borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-            }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: baseDelay + 0.4, duration: 0.5 }}
+            className="flex items-center justify-between mt-6 gap-4"
           >
-            {/* Comparison Text */}
-            {comparison ? (
+            {comparisonText ? (
               <span
-                className="text-[17px] sm:text-[18px] font-medium"
+                className="text-[13px] sm:text-[14px]"
                 style={{
-                  color: 'rgba(255, 255, 255, 0.75)',
+                  color: '#78716c',
+                  fontFamily: "'Suisse Intl', sans-serif",
                 }}
               >
-                {comparison}
+                {comparisonText}
               </span>
             ) : (
               <div />
             )}
 
-            {/* Action Button */}
+            {/* Button - neutral dark, sophisticated */}
             <motion.button
-              whileHover={{ scale: 1.02, filter: 'brightness(1.1)' }}
-              whileTap={{ scale: 0.98 }}
-              className="px-5 sm:px-6 py-2.5 sm:py-3 rounded-full text-[14px] sm:text-[15px] font-semibold text-white transition-all duration-300 flex-shrink-0"
+              whileHover={{ scale: 1.015 }}
+              whileTap={{ scale: 0.985 }}
+              className="group/btn relative flex items-center gap-2.5 px-5 py-2.5 rounded-full text-[13px] sm:text-[14px] font-medium overflow-hidden"
               style={{
-                backgroundColor: config.buttonBg,
-                boxShadow: config.buttonShadow,
+                background: theme.buttonBg,
+                color: '#FAFAF9',
+                fontFamily: "'Suisse Intl', sans-serif",
+                boxShadow: '0 2px 8px -2px rgba(0,0,0,0.2), 0 4px 12px -4px rgba(0,0,0,0.1)',
               }}
             >
-              {action}
+              {/* Shimmer */}
+              <span
+                className="absolute inset-0 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700 ease-out"
+                style={{
+                  background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent)',
+                }}
+              />
+              <span className="relative">{action}</span>
+              <ArrowRight
+                size={14}
+                className="relative transition-transform duration-300 group-hover/btn:translate-x-0.5"
+                strokeWidth={2}
+              />
             </motion.button>
           </motion.div>
         </div>
       </div>
-    </motion.div>
+    </motion.article>
   )
 }

@@ -130,9 +130,9 @@ const StatusIndicator: React.FC<{ status: MetricStatus }> = ({ status }) => {
   const config = STATUS_CONFIG[status];
 
   return (
-    <div className="flex items-center gap-2 sm:gap-3">
-      <div className={`w-2.5 sm:w-3 h-2.5 sm:h-3 rounded-full ${config.color}`} />
-      <span className="text-sm sm:text-base lg:text-lg font-semibold text-stone-600">
+    <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+      <div className={`w-3 h-3 rounded-full flex-shrink-0 ${config.color}`} />
+      <span className="text-sm sm:text-base font-semibold text-stone-600 whitespace-nowrap">
         {config.label}
       </span>
     </div>
@@ -324,20 +324,19 @@ export const MetricCard: React.FC<MetricCardProps> = ({
               {subtext}
             </p>
 
-            {/* Footer */}
-            <div className={`pt-2 xl:pt-3 border-t border-stone-100 ${hasButton ? 'flex items-center justify-between' : ''}`}>
+            {/* Footer - stacks vertically on small screens, horizontal on larger */}
+            <div className={`pt-2 xl:pt-3 border-t border-stone-100 ${hasButton ? 'flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between' : ''}`}>
               <StatusIndicator status={status} />
               {hasExpandable && (
                 <button
                   onClick={() => setIsExpanded(!isExpanded)}
-                  className={`flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 ${
+                  className={`flex items-center justify-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-lg sm:rounded-full text-sm font-medium transition-all duration-300 w-full sm:w-auto ${
                     isExpanded
                       ? 'bg-stone-900 text-white'
                       : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
                   }`}
                 >
-                  <span className="hidden sm:inline">{isExpanded ? 'Close' : expandButtonLabel}</span>
-                  <span className="sm:hidden">{isExpanded ? 'Close' : expandButtonLabelMobile}</span>
+                  <span>{isExpanded ? 'Close' : expandButtonLabel}</span>
                   <ChevronRight
                     size={14}
                     className={`transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`}
@@ -347,10 +346,9 @@ export const MetricCard: React.FC<MetricCardProps> = ({
               {hasNavigation && !hasExpandable && (
                 <button
                   onClick={() => navigate(navigateTo!.path)}
-                  className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 bg-stone-100 text-stone-600 hover:bg-stone-200"
+                  className="flex items-center justify-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-lg sm:rounded-full text-sm font-medium transition-all duration-300 bg-stone-100 text-stone-600 hover:bg-stone-200 w-full sm:w-auto"
                 >
-                  <span className="hidden sm:inline">{navigateTo!.label}</span>
-                  <span className="sm:hidden">{navigateTo!.labelMobile || navigateTo!.label}</span>
+                  <span>{navigateTo!.label}</span>
                   <ChevronRight size={14} />
                 </button>
               )}

@@ -9,7 +9,7 @@
 
 // Layout Components
 export { PageHeader } from './layout/PageHeader';
-export type { PageHeaderProps, AccentColor, TimePeriod, Tab } from './layout/PageHeader';
+export type { PageHeaderProps, AccentColor, TimePeriod, Tab, PageHeaderSize } from './layout/PageHeader';
 
 export { Grid, Section, PageContent } from './layout/Grid';
 export type { GridProps, GridColumns, SectionProps, PageContentProps } from './layout/Grid';

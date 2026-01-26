@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Users } from 'lucide-react';
+import { useSettings } from '../../context/SettingsContext';
 import {
   PageHeader,
   PageContent,
@@ -19,6 +20,7 @@ import {
   ExecutiveSummary,
 } from '../design-system';
 import type { HoverInfo, SegmentConfig } from '../design-system';
+import { TimeSelector } from '../design-system/controls/TimeSelector';
 import type { ConsultationsAnalysisTabProps } from './types';
 
 // =============================================================================
@@ -48,6 +50,8 @@ export const ConsultationsAnalysisTab: React.FC<ConsultationsAnalysisTabProps> =
   activeTab,
   onTabChange,
   getDateRangeLabel,
+  timeSelection,
+  onTimeSelectionChange,
   consultationsData,
   consultationsByClinicianData,
   sourceData,
@@ -55,9 +59,10 @@ export const ConsultationsAnalysisTab: React.FC<ConsultationsAnalysisTabProps> =
   funnelData,
 }) => {
   // =========================================================================
-  // LOCAL STATE
+  // LOCAL STATE & SETTINGS
   // =========================================================================
 
+  const { settings } = useSettings();
   const [showClinicianBreakdown, setShowClinicianBreakdown] = useState(false);
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const [hoveredClinicianBar, setHoveredClinicianBar] = useState<HoverInfo | null>(null);
@@ -312,24 +317,28 @@ export const ConsultationsAnalysisTab: React.FC<ConsultationsAnalysisTabProps> =
       {/* Page Header */}
       <PageHeader
         accent="cyan"
-        label="Detailed Analysis"
         title="Consultations"
-        subtitle={getDateRangeLabel()}
-        showTimePeriod
-        timePeriod={timePeriod}
-        onTimePeriodChange={onTimePeriodChange}
-        timePeriods={timePeriods}
+        timeSelector={
+          <TimeSelector
+            value={timeSelection}
+            onChange={onTimeSelectionChange}
+            showAggregateOption={true}
+            variant="header"
+          />
+        }
       />
 
       <PageContent>
         {/* Executive Summary */}
-        <Section spacing="md">
-          <ExecutiveSummary
-            headline="Your Consultation Pipeline"
-            summary={executiveSummary}
-            accent="cyan"
-          />
-        </Section>
+        {!settings.hideAIInsights && (
+          <Section spacing="md">
+            <ExecutiveSummary
+              headline="Your Consultation Pipeline"
+              summary={executiveSummary}
+              accent="cyan"
+            />
+          </Section>
+        )}
 
         {/* Hero Stats Row */}
         <Section spacing="md">

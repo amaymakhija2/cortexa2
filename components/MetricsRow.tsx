@@ -120,9 +120,10 @@ const BOOKING_FORECAST = [
 export interface MetricsRowProps {
   metrics: PracticeMetrics;
   isLive?: boolean;
+  showConsultations?: boolean;
 }
 
-export const MetricsRow: React.FC<MetricsRowProps> = ({ metrics, isLive = true }) => {
+export const MetricsRow: React.FC<MetricsRowProps> = ({ metrics, isLive = true, showConsultations = true }) => {
   // Build the expandable content for Revenue card
   const revenueExpandableContent = isLive ? (
     <ExpandableBarChart
@@ -167,21 +168,23 @@ export const MetricsRow: React.FC<MetricsRowProps> = ({ metrics, isLive = true }
       expandButtonLabel="Weekly Breakdown"
       expandButtonLabelMobile="Weekly"
     />,
-    <MetricCard
-      key="consultations"
-      label={metrics.consultations.label}
-      value={metrics.consultations.value}
-      valueSuffix={metrics.consultations.valueSuffix}
-      valueLabel={metrics.consultations.valueLabel}
-      subtext={metrics.consultations.subtext}
-      status={metrics.consultations.status}
-      tooltip={METRIC_TOOLTIPS['Consultations']}
-      navigateTo={{
-        path: '/clinician-overview?tab=ranking&metric=growth',
-        label: 'By Clinician',
-        labelMobile: 'Clinicians',
-      }}
-    />,
+    ...(showConsultations ? [
+      <MetricCard
+        key="consultations"
+        label={metrics.consultations.label}
+        value={metrics.consultations.value}
+        valueSuffix={metrics.consultations.valueSuffix}
+        valueLabel={metrics.consultations.valueLabel}
+        subtext={metrics.consultations.subtext}
+        status={metrics.consultations.status}
+        tooltip={METRIC_TOOLTIPS['Consultations']}
+        navigateTo={{
+          path: '/clinician-overview?tab=ranking&metric=growth',
+          label: 'By Clinician',
+          labelMobile: 'Clinicians',
+        }}
+      />,
+    ] : []),
     <MetricCard
       key="sessions"
       label={metrics.sessions.label}
@@ -242,9 +245,10 @@ export const MetricsRow: React.FC<MetricsRowProps> = ({ metrics, isLive = true }
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // Card width: show ~3.5 cards on large screens to indicate scrollability
+  // Card width: minimum 260px for readability, scales up to 400px on large screens
+  // Shows ~3.5 cards on large screens to indicate scrollability
   const cardStyle = {
-    width: 'clamp(280px, 26vw, 480px)',
+    width: 'clamp(260px, 28vw, 400px)',
   };
 
   return (

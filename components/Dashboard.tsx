@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { MetricsRow } from './MetricsRow';
 import { SimpleAlertCard } from './SimpleAlertCard';
-import { MonthPicker } from './MonthPicker';
+import { TimeSelector, TimeSelectorValue } from './design-system/controls/TimeSelector';
 import { CompareTab } from './CompareTab';
 import { PageHeader, SectionHeader } from './design-system';
 import { ReferralBadge, ReferralModal } from './referral';
@@ -234,11 +234,13 @@ export const Dashboard: React.FC = () => {
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
-  const [viewMode, setViewMode] = useState<'live' | 'historical'>('live');
   const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
   const now = new Date();
-  const [selectedMonth, setSelectedMonth] = useState(now.getMonth()); // 0-11
-  const [selectedYear, setSelectedYear] = useState(now.getFullYear());
+  // Dashboard defaults to current month (no aggregate option)
+  const [timeSelection, setTimeSelection] = useState<TimeSelectorValue>({
+    month: now.getMonth(),
+    year: now.getFullYear(),
+  });
 
   // Get active tab from URL search params
   const activeTab = (searchParams.get('tab') || 'summary') as DashboardTabType;
@@ -252,9 +254,9 @@ export const Dashboard: React.FC = () => {
   // Get data date range from API
   const { data: dataRange, loading: rangeLoading } = useDataDateRange();
 
-  // Determine which month to fetch
-  const activeMonth = viewMode === 'live' ? now.getMonth() : selectedMonth;
-  const activeYear = viewMode === 'live' ? now.getFullYear() : selectedYear;
+  // Determine which month to fetch (Dashboard always shows specific month, no aggregate)
+  const activeMonth = timeSelection === 'last-12-months' ? now.getMonth() : timeSelection.month;
+  const activeYear = timeSelection === 'last-12-months' ? now.getFullYear() : timeSelection.year;
 
   // Fetch metrics from API
   const { data: apiMetrics, loading: metricsLoading, error: metricsError } = useMetrics(activeMonth, activeYear);
@@ -267,18 +269,12 @@ export const Dashboard: React.FC = () => {
 
   const isLoading = metricsLoading || rangeLoading;
 
-  // Handle month selection from picker
-  const handleMonthSelect = (month: number, year: number) => {
-    setSelectedMonth(month);
-    setSelectedYear(year);
-  };
-
-  // Get the display title based on view mode
+  // Get the display title based on time selection
   const getTitle = () => {
-    if (viewMode === 'live') {
-      return `${FULL_MONTHS[now.getMonth()]} ${now.getFullYear()}`;
+    if (timeSelection === 'last-12-months') {
+      return 'Last 12 Months';
     }
-    return `${FULL_MONTHS[selectedMonth]} ${selectedYear}`;
+    return `${FULL_MONTHS[timeSelection.month]} ${timeSelection.year}`;
   };
 
   // Check if cards overflow the container
@@ -366,45 +362,16 @@ export const Dashboard: React.FC = () => {
             ============================================= */}
         <PageHeader
           accent="amber"
-          label="Practice Overview"
-          title={getTitle()}
-          titleAction={<ReferralBadge onClick={() => setIsReferralModalOpen(true)} />}
-          actions={
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-1 p-1 rounded-xl bg-white/10 backdrop-blur-sm">
-                <button
-                  onClick={() => setViewMode('live')}
-                  className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
-                    viewMode === 'live'
-                      ? 'bg-white text-stone-900 shadow-lg'
-                      : 'text-white/70 hover:text-white hover:bg-white/10'
-                  }`}
-                >
-                  Live
-                </button>
-                <button
-                  onClick={() => setViewMode('historical')}
-                  className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
-                    viewMode === 'historical'
-                      ? 'bg-white text-stone-900 shadow-lg'
-                      : 'text-white/70 hover:text-white hover:bg-white/10'
-                  }`}
-                >
-                  Historical
-                </button>
-              </div>
-
-              {viewMode === 'historical' && dataRange && (
-                <MonthPicker
-                  selectedMonth={selectedMonth}
-                  selectedYear={selectedYear}
-                  onSelect={handleMonthSelect}
-                  minYear={dataRange.earliest.getFullYear()}
-                  maxYear={dataRange.latest.getFullYear()}
-                  autoOpen={true}
-                />
-              )}
-            </div>
+          title="Practice Overview"
+          timeSelector={
+            <TimeSelector
+              value={timeSelection}
+              onChange={setTimeSelection}
+              showAggregateOption={false}
+              variant="header"
+              minYear={dataRange?.earliest.getFullYear()}
+              maxYear={dataRange?.latest.getFullYear()}
+            />
           }
         />
 
@@ -421,13 +388,6 @@ export const Dashboard: React.FC = () => {
 
           {/* Metrics Row */}
           <div className="flex-shrink-0">
-            <SectionHeader
-              question="Key Metrics"
-              accent="amber"
-              showAccentLine={false}
-              compact
-              className="!mb-4"
-            />
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="w-8 h-8 text-amber-500 animate-spin" />
@@ -438,7 +398,7 @@ export const Dashboard: React.FC = () => {
                 <span>Failed to load metrics. Please try again.</span>
               </div>
             ) : metrics ? (
-              <MetricsRow metrics={metrics} />
+              <MetricsRow metrics={metrics} showConsultations={settings.showConsultationMetrics} />
             ) : null}
           </div>
 
@@ -451,44 +411,46 @@ export const Dashboard: React.FC = () => {
               compact
               className="!mb-4"
               actions={
-                needsNavigation ? (
-                  <div className="flex items-center gap-4">
-                    {/* Progress Bar */}
-                    <div className="hidden sm:flex items-center gap-3">
-                      <div className="w-32 h-2 bg-stone-200 rounded-full overflow-hidden">
-                        <motion.div
-                          className="h-full bg-gradient-to-r from-amber-400 to-amber-500 rounded-full"
-                          initial={{ width: '5%' }}
-                          animate={{ width: `${Math.max(5, scrollProgress * 100)}%` }}
-                          transition={{ duration: 0.15, ease: 'easeOut' }}
-                        />
+                <div className="flex items-center gap-4">
+                  {needsNavigation && (
+                    <>
+                      {/* Progress Bar */}
+                      <div className="hidden sm:flex items-center gap-3">
+                        <div className="w-32 h-2 bg-stone-200 rounded-full overflow-hidden">
+                          <motion.div
+                            className="h-full bg-gradient-to-r from-amber-400 to-amber-500 rounded-full"
+                            initial={{ width: '5%' }}
+                            animate={{ width: `${Math.max(5, scrollProgress * 100)}%` }}
+                            transition={{ duration: 0.15, ease: 'easeOut' }}
+                          />
+                        </div>
+                        <span className="text-sm font-semibold text-stone-600 tabular-nums">
+                          {totalCards} items
+                        </span>
                       </div>
-                      <span className="text-sm font-semibold text-stone-600 tabular-nums">
-                        {totalCards} items
-                      </span>
-                    </div>
 
-                    {/* Navigation Arrows */}
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={handlePrevious}
-                        disabled={!canScrollLeft}
-                        className="w-10 h-10 rounded-xl bg-white border border-stone-200 flex items-center justify-center transition-all hover:border-stone-300 hover:shadow-md hover:bg-stone-50 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:shadow-none disabled:active:scale-100"
-                        aria-label="Previous page"
-                      >
-                        <ChevronLeft size={20} className="text-stone-700" />
-                      </button>
-                      <button
-                        onClick={handleNext}
-                        disabled={!canScrollRight}
-                        className="w-10 h-10 rounded-xl bg-white border border-stone-200 flex items-center justify-center transition-all hover:border-stone-300 hover:shadow-md hover:bg-stone-50 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:shadow-none disabled:active:scale-100"
-                        aria-label="Next page"
-                      >
-                        <ChevronRight size={20} className="text-stone-700" />
-                      </button>
-                    </div>
-                  </div>
-                ) : undefined
+                      {/* Navigation Arrows */}
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={handlePrevious}
+                          disabled={!canScrollLeft}
+                          className="w-10 h-10 rounded-xl bg-white border border-stone-200 flex items-center justify-center transition-all hover:border-stone-300 hover:shadow-md hover:bg-stone-50 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:shadow-none disabled:active:scale-100"
+                          aria-label="Previous page"
+                        >
+                          <ChevronLeft size={20} className="text-stone-700" />
+                        </button>
+                        <button
+                          onClick={handleNext}
+                          disabled={!canScrollRight}
+                          className="w-10 h-10 rounded-xl bg-white border border-stone-200 flex items-center justify-center transition-all hover:border-stone-300 hover:shadow-md hover:bg-stone-50 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:shadow-none disabled:active:scale-100"
+                          aria-label="Next page"
+                        >
+                          <ChevronRight size={20} className="text-stone-700" />
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
               }
             />
 

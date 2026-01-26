@@ -8,7 +8,6 @@ export const ClinicianDetails: React.FC = () => {
         {/* Header Section */}
         <PageHeader
           accent="amber"
-          label="Individual Performance"
           title="Clinician Details"
           showGridPattern
         />

@@ -7,7 +7,7 @@ import {
   useDataDateRange,
   ClinicianMetricsCalculated,
 } from '../hooks';
-import { MonthPicker } from './MonthPicker';
+import { TimeSelector, TimeSelectorValue } from './design-system/controls/TimeSelector';
 import { useSettings, getDisplayName } from '../context/SettingsContext';
 import { ClinicianDetailsTab } from './ClinicianDetailsTab';
 import { PageHeader } from './design-system';
@@ -97,7 +97,7 @@ const InfoTooltip: React.FC<{ text: string }> = ({ text }) => {
 // Uses the original card-based UI with horizontal bars.
 // =============================================================================
 
-type ViewMode = 'last-12-months' | 'live' | 'historical';
+// ViewMode type replaced by TimeSelectorValue from TimeSelector component
 
 // Metric group IDs - the 6 "questions" practice managers ask
 type MetricGroupId = 'revenue' | 'caseload' | 'growth' | 'sessions' | 'attendance' | 'engagement' | 'retention' | 'documentation';
@@ -626,15 +626,28 @@ export const ClinicianOverview: React.FC = () => {
   // Get metric from URL search params (allows deep linking from other pages)
   const metricFromUrl = searchParams.get('metric') as MetricGroupId | null;
   const [selectedGroupId, setSelectedGroupId] = useState<MetricGroupId>(metricFromUrl || 'revenue');
-  const [viewMode, setViewMode] = useState<ViewMode>('live');
   const [sessionGoalView, setSessionGoalView] = useState<SessionGoalView>('weekly');
+
+  const now = new Date();
+  // Default to current month for ranking view
+  const [timeSelection, setTimeSelection] = useState<TimeSelectorValue>({
+    month: now.getMonth(),
+    year: now.getFullYear(),
+  });
 
   // Sync selectedGroupId with URL param when it changes externally
   useEffect(() => {
-    if (metricFromUrl && metricFromUrl !== selectedGroupId && METRIC_GROUPS.some(g => g.id === metricFromUrl)) {
+    if (metricFromUrl && metricFromUrl !== selectedGroupId && visibleMetricGroups.some(g => g.id === metricFromUrl)) {
       setSelectedGroupId(metricFromUrl);
     }
-  }, [metricFromUrl]);
+  }, [metricFromUrl, visibleMetricGroups]);
+
+  // Reset to first visible group if current selection becomes hidden
+  useEffect(() => {
+    if (!visibleMetricGroups.some(g => g.id === selectedGroupId) && visibleMetricGroups.length > 0) {
+      setSelectedGroupId(visibleMetricGroups[0].id);
+    }
+  }, [visibleMetricGroups, selectedGroupId]);
 
   // Get active tab from URL search params (managed by UnifiedNavigation)
   const activeTab = (searchParams.get('tab') || 'ranking') as ClinicianTabType;
@@ -642,83 +655,76 @@ export const ClinicianOverview: React.FC = () => {
   // Get settings for demo mode
   const { settings } = useSettings();
 
-  // For historical view - month/year selection
-  const now = new Date();
-  const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
-  const [selectedYear, setSelectedYear] = useState(now.getFullYear());
+  // Filter metric groups based on settings
+  const visibleMetricGroups = useMemo(() => {
+    return METRIC_GROUPS.filter(group => {
+      // Hide 'growth' group if consultation metrics are disabled
+      if (group.id === 'growth' && !settings.showConsultationMetrics) {
+        return false;
+      }
+      return true;
+    });
+  }, [settings.showConsultationMetrics]);
 
   // Get data date range from API
   const { data: dataRange } = useDataDateRange();
 
-  // Determine which month to fetch for live/historical modes
-  const activeMonth = viewMode === 'live' ? now.getMonth() : selectedMonth;
-  const activeYear = viewMode === 'live' ? now.getFullYear() : selectedYear;
+  // Derive viewMode and month/year from timeSelection
+  const isAggregateView = timeSelection === 'last-12-months';
+  const activeMonth = isAggregateView ? now.getMonth() : timeSelection.month;
+  const activeYear = isAggregateView ? now.getFullYear() : timeSelection.year;
 
-  // Fetch data from API - use both hooks, pick the right data based on viewMode
+  // Fetch data from API - use both hooks, pick the right data based on timeSelection
   const periodData = useClinicianMetricsForPeriod('last-12-months');
   const monthData = useClinicianMetricsForMonth(activeMonth, activeYear);
 
-  // Select the right data source based on view mode
-  const isUsingPeriodData = viewMode === 'last-12-months';
-  const clinicianApiData = isUsingPeriodData ? periodData.data : monthData.data;
-  const isLoading = isUsingPeriodData ? periodData.loading : monthData.loading;
-  const hasError = isUsingPeriodData ? periodData.error : monthData.error;
-
-  // Handle month selection from picker
-  const handleMonthSelect = (month: number, year: number) => {
-    setSelectedMonth(month);
-    setSelectedYear(year);
-  };
+  // Select the right data source based on time selection
+  const clinicianApiData = isAggregateView ? periodData.data : monthData.data;
+  const isLoading = isAggregateView ? periodData.loading : monthData.loading;
+  const hasError = isAggregateView ? periodData.error : monthData.error;
 
   // Build clinician data from API metrics
   const CLINICIANS_DATA = useMemo(() => {
     if (!clinicianApiData || clinicianApiData.length === 0) return [];
 
     const calculatedMetrics = clinicianApiData;
-    const periodId = viewMode === 'last-12-months' ? 'last-12-months' : 'this-month';
+    const periodId = isAggregateView ? 'last-12-months' : 'this-month';
 
     return buildClinicianData(calculatedMetrics, periodId, settings.anonymizeClinicianNames);
-  }, [clinicianApiData, viewMode, settings.anonymizeClinicianNames]);
+  }, [clinicianApiData, isAggregateView, settings.anonymizeClinicianNames]);
 
-  // Switch tabs - keep same view mode except Notes (always live) and Retention (default to last-12-months)
+  // Switch tabs - keep same time selection except Notes (always current month) and Retention (default to last-12-months)
   const handleGroupChange = (groupId: MetricGroupId) => {
     setSelectedGroupId(groupId);
     // Update URL param so deep links work correctly
     const newParams = new URLSearchParams(searchParams);
     newParams.set('metric', groupId);
     setSearchParams(newParams, { replace: true });
-    // Force live mode for Notes/Documentation (point-in-time metric)
+    // Force current month for Notes/Documentation (point-in-time metric)
     if (groupId === 'documentation') {
-      setViewMode('live');
+      setTimeSelection({ month: now.getMonth(), year: now.getFullYear() });
     }
     // Default to last-12-months for Retention and Growth (historical metrics)
-    if ((groupId === 'retention' || groupId === 'growth') && viewMode === 'live') {
-      setViewMode('last-12-months');
+    if ((groupId === 'retention' || groupId === 'growth') && !isAggregateView) {
+      setTimeSelection('last-12-months');
     }
   };
 
   const selectedGroup = METRIC_GROUPS.find(g => g.id === selectedGroupId)!;
 
-  // Get human-readable date range label for the selected view mode
+  // Get human-readable date range label for the selected time period
   const getDateRangeLabel = (): string => {
     const currentMonth = now.getMonth();
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const fullMonths = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     const currentYear = now.getFullYear();
 
-    switch (viewMode) {
-      case 'last-12-months': {
-        const startMonth = (currentMonth + 1) % 12;
-        const startYear = startMonth > currentMonth ? currentYear - 1 : currentYear;
-        return `${months[startMonth]} ${startYear} – ${months[currentMonth]} ${currentYear}`;
-      }
-      case 'live':
-        return `${fullMonths[currentMonth]} ${currentYear}`;
-      case 'historical':
-        return `${fullMonths[selectedMonth]} ${selectedYear}`;
-      default:
-        return '';
+    if (isAggregateView) {
+      const startMonth = (currentMonth + 1) % 12;
+      const startYear = startMonth > currentMonth ? currentYear - 1 : currentYear;
+      return `${months[startMonth]} ${startYear} – ${months[currentMonth]} ${currentYear}`;
     }
+    return `${fullMonths[activeMonth]} ${activeYear}`;
   };
 
   // For sessions tab, dynamically adjust labels based on weekly/monthly toggle
@@ -730,14 +736,10 @@ export const ClinicianOverview: React.FC = () => {
 
     // Calculate how many weeks/months in the selected period
     const getPeriodsInRange = () => {
-      switch (viewMode) {
-        case 'live':
-        case 'historical':
-          return { weeks: 4, months: 1 };
-        case 'last-12-months':
-        default:
-          return { weeks: 52, months: 12 };
+      if (isAggregateView) {
+        return { weeks: 52, months: 12 };
       }
+      return { weeks: 4, months: 1 };
     };
 
     const periods = getPeriodsInRange();
@@ -772,7 +774,7 @@ export const ClinicianOverview: React.FC = () => {
   const getCaseloadGroup = (): MetricGroupConfig => {
     if (selectedGroupId !== 'caseload') return selectedGroup;
 
-    const isAggregatePeriod = viewMode === 'last-12-months';
+    const isAggregatePeriod = isAggregateView;
 
     if (isAggregatePeriod) {
       return {
@@ -811,7 +813,7 @@ export const ClinicianOverview: React.FC = () => {
   const getEngagementGroup = (): MetricGroupConfig => {
     if (selectedGroupId !== 'engagement') return selectedGroup;
 
-    const isAggregatePeriod = viewMode === 'last-12-months';
+    const isAggregatePeriod = isAggregateView;
 
     if (isAggregatePeriod) {
       // For aggregate periods, use Avg Session Retention as primary, hide Rebook Rate
@@ -895,7 +897,7 @@ export const ClinicianOverview: React.FC = () => {
   const getRetentionGroup = (): MetricGroupConfig => {
     if (selectedGroupId !== 'retention') return selectedGroup;
 
-    const isAggregatePeriod = viewMode === 'last-12-months';
+    const isAggregatePeriod = isAggregateView;
 
     if (isAggregatePeriod) {
       // For aggregate periods, show full retention story
@@ -1042,9 +1044,7 @@ export const ClinicianOverview: React.FC = () => {
             ============================================= */}
         <PageHeader
           accent="amber"
-          label="Team Performance"
           title="Clinician Spotlight"
-          subtitle={getDateRangeLabel()}
           showGridPattern
           actions={
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -1084,53 +1084,14 @@ export const ClinicianOverview: React.FC = () => {
                     </div>
                   </div>
                 ) : (
-                  <>
-                    {/* View Mode Toggle: Last 12 Months / Live / Historical */}
-                    <div className="flex items-center gap-1 p-1 rounded-xl bg-white/10 backdrop-blur-sm">
-                      <button
-                        onClick={() => setViewMode('last-12-months')}
-                        className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
-                          viewMode === 'last-12-months'
-                            ? 'bg-white text-stone-900 shadow-lg'
-                            : 'text-white/70 hover:text-white hover:bg-white/10'
-                        }`}
-                      >
-                        Last 12 Months
-                      </button>
-                      <button
-                        onClick={() => setViewMode('live')}
-                        className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
-                          viewMode === 'live'
-                            ? 'bg-white text-stone-900 shadow-lg'
-                            : 'text-white/70 hover:text-white hover:bg-white/10'
-                        }`}
-                      >
-                        Live
-                      </button>
-                      <button
-                        onClick={() => setViewMode('historical')}
-                        className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
-                          viewMode === 'historical'
-                            ? 'bg-white text-stone-900 shadow-lg'
-                            : 'text-white/70 hover:text-white hover:bg-white/10'
-                        }`}
-                      >
-                        Historical
-                      </button>
-                    </div>
-
-                    {/* Month Picker - only shown in Historical mode */}
-                    {viewMode === 'historical' && dataRange && (
-                      <MonthPicker
-                        selectedMonth={selectedMonth}
-                        selectedYear={selectedYear}
-                        onSelect={handleMonthSelect}
-                        minYear={dataRange.earliest.getFullYear()}
-                        maxYear={dataRange.latest.getFullYear()}
-                        autoOpen={true}
-                      />
-                    )}
-                  </>
+                  <TimeSelector
+                    value={timeSelection}
+                    onChange={setTimeSelection}
+                    showAggregateOption={true}
+                    variant="header"
+                    minYear={dataRange?.earliest.getFullYear()}
+                    maxYear={dataRange?.latest.getFullYear()}
+                  />
                 )}
               </div>
             </div>
@@ -1144,9 +1105,9 @@ export const ClinicianOverview: React.FC = () => {
             )}
           </p>
 
-          {/* Metric buttons - 8 metric groups in 2 rows of 4 */}
+          {/* Metric buttons - visible metric groups in 2 rows */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 auto-rows-fr">
-            {METRIC_GROUPS.map((group) => {
+            {visibleMetricGroups.map((group) => {
               const isSelected = selectedGroupId === group.id;
 
               return (

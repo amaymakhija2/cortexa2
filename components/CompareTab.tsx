@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Loader2, MapPin, Users, GraduationCap } from 'lucide-react';
 import { PageHeader, DataTableCard, SegmentedControl } from './design-system';
 import type { SegmentedControlOption } from './design-system/controls/SegmentedControl';
-import { MonthPicker } from './MonthPicker';
+import { TimeSelector, TimeSelectorValue } from './design-system/controls/TimeSelector';
 import {
   useCompareMetrics,
   getDimensionOptions,
@@ -267,13 +267,17 @@ function buildPointInTimeRows(groups: PointInTimeMetrics[]): TableRow[] {
 
 export const CompareTab: React.FC = () => {
   const [dimension, setDimension] = useState<CompareDimension>('location');
-  const [viewMode, setViewMode] = useState<CompareViewMode>('last-12-months');
   const now = new Date();
-  const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
-  const [selectedYear, setSelectedYear] = useState(now.getFullYear());
+  // Compare tab defaults to Last 12 Months aggregate view
+  const [timeSelection, setTimeSelection] = useState<TimeSelectorValue>('last-12-months');
 
   // Get data date range from API
   const { data: dataRange } = useDataDateRange();
+
+  // Derive viewMode and month/year for the hook
+  const viewMode: CompareViewMode = timeSelection === 'last-12-months' ? 'last-12-months' : 'historical';
+  const selectedMonth = timeSelection === 'last-12-months' ? now.getMonth() : timeSelection.month;
+  const selectedYear = timeSelection === 'last-12-months' ? now.getFullYear() : timeSelection.year;
 
   // Get metrics based on view mode
   const compareData = useCompareMetrics(dimension, viewMode, selectedMonth, selectedYear);
@@ -287,74 +291,6 @@ export const CompareTab: React.FC = () => {
       setDimension(availableDimensions[0].id);
     }
   }, [availableDimensions, dimension]);
-
-  // Handle month selection
-  const handleMonthSelect = (month: number, year: number) => {
-    setSelectedMonth(month);
-    setSelectedYear(year);
-  };
-
-  // Get human-readable date range label
-  const getDateRangeLabel = (): string => {
-    const currentMonth = now.getMonth();
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const fullMonths = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-    const currentYear = now.getFullYear();
-
-    switch (viewMode) {
-      case 'last-12-months': {
-        const startMonth = (currentMonth + 1) % 12;
-        const startYear = startMonth > currentMonth ? currentYear - 1 : currentYear;
-        return `${months[startMonth]} ${startYear} – ${months[currentMonth]} ${currentYear}`;
-      }
-      case 'live':
-        return `${fullMonths[currentMonth]} ${currentYear}`;
-      case 'historical':
-        return `${fullMonths[selectedMonth]} ${selectedYear}`;
-      default:
-        return '';
-    }
-  };
-
-  // Get dimension display name
-  const getDimensionLabel = (): string => {
-    switch (dimension) {
-      case 'location': return 'Location';
-      case 'supervisor': return 'Supervisor';
-      case 'credential': return 'License Type';
-      default: return '';
-    }
-  };
-
-  // Get informative table title based on dimension and view mode
-  const getTableTitle = (): string => {
-    const dimensionName = getDimensionLabel();
-    switch (viewMode) {
-      case 'last-12-months':
-        return `${dimensionName} Performance Summary`;
-      case 'live':
-        return `Current ${dimensionName} Metrics`;
-      case 'historical':
-        const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-        return `${dimensionName} Metrics for ${months[selectedMonth]} ${selectedYear}`;
-      default:
-        return `${dimensionName} Performance`;
-    }
-  };
-
-  // Get informative table subtitle based on view mode
-  const getTableSubtitle = (): string => {
-    switch (viewMode) {
-      case 'last-12-months':
-        return 'Aggregate totals and averages over the trailing 12 months';
-      case 'live':
-        return 'Real-time snapshot of current month performance';
-      case 'historical':
-        return 'Point-in-time metrics for the selected month';
-      default:
-        return '';
-    }
-  };
 
   // Build table data based on view mode
   const tableRows = useMemo(() => {
@@ -373,9 +309,7 @@ export const CompareTab: React.FC = () => {
         <div className="min-h-full flex flex-col">
           <PageHeader
             accent="amber"
-            label="Practice Comparison"
             title="Compare Performance"
-            subtitle="Last 12 months"
             showGridPattern
           />
           <div className="flex items-center justify-center py-24 px-6 sm:px-8 lg:px-12">
@@ -397,73 +331,27 @@ export const CompareTab: React.FC = () => {
         {/* Header with Time Controls */}
         <PageHeader
           accent="amber"
-          label="Practice Comparison"
           title="Compare Performance"
-          subtitle={getDateRangeLabel()}
           showGridPattern
-          actions={
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-              <div className="flex items-center gap-3">
-                {/* View Mode Toggle: Last 12 Months / Live / Historical */}
-                <div className="flex items-center gap-1 p-1 rounded-xl bg-white/10 backdrop-blur-sm">
-                  <button
-                    onClick={() => setViewMode('last-12-months')}
-                    className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
-                      viewMode === 'last-12-months'
-                        ? 'bg-white text-stone-900 shadow-lg'
-                        : 'text-white/70 hover:text-white hover:bg-white/10'
-                    }`}
-                  >
-                    Last 12 Months
-                  </button>
-                  <button
-                    onClick={() => setViewMode('live')}
-                    className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
-                      viewMode === 'live'
-                        ? 'bg-white text-stone-900 shadow-lg'
-                        : 'text-white/70 hover:text-white hover:bg-white/10'
-                    }`}
-                  >
-                    Live
-                  </button>
-                  <button
-                    onClick={() => setViewMode('historical')}
-                    className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
-                      viewMode === 'historical'
-                        ? 'bg-white text-stone-900 shadow-lg'
-                        : 'text-white/70 hover:text-white hover:bg-white/10'
-                    }`}
-                  >
-                    Historical
-                  </button>
-                </div>
-
-                {/* Month Picker - only shown in Historical mode */}
-                {viewMode === 'historical' && dataRange && (
-                  <MonthPicker
-                    selectedMonth={selectedMonth}
-                    selectedYear={selectedYear}
-                    onSelect={handleMonthSelect}
-                    minYear={dataRange.earliest.getFullYear()}
-                    maxYear={dataRange.latest.getFullYear()}
-                    autoOpen={true}
-                  />
-                )}
-              </div>
-            </div>
+          timeSelector={
+            <TimeSelector
+              value={timeSelection}
+              onChange={setTimeSelection}
+              showAggregateOption={true}
+              variant="header"
+              minYear={dataRange?.earliest.getFullYear()}
+              maxYear={dataRange?.latest.getFullYear()}
+            />
           }
-        >
-          {/* Dimension Selector in Header */}
-          <div className="mt-6">
-            <p className="text-stone-300 text-sm font-medium mb-3 uppercase tracking-wider">
-              Compare by
-            </p>
+        />
+
+        {/* Content Area */}
+        <div className="flex flex-col flex-1 min-h-0 min-w-0 px-6 sm:px-8 lg:px-12 py-6 lg:py-8 overflow-x-auto">
+          {/* Dimension Filter Bar */}
+          <div className="flex items-center gap-4 mb-6">
+            <span className="text-sm font-medium text-stone-500">Compare by</span>
             <DimensionSelector selected={dimension} onChange={setDimension} />
           </div>
-        </PageHeader>
-
-        {/* Table Content */}
-        <div className="flex flex-col flex-1 min-h-0 min-w-0 px-6 sm:px-8 lg:px-12 py-6 lg:py-8 overflow-x-auto">
           {compareData.loading ? (
             <div className="flex items-center justify-center py-24">
               <div className="flex flex-col items-center gap-4">
@@ -481,8 +369,6 @@ export const CompareTab: React.FC = () => {
           ) : (
             <div className="min-w-0 overflow-x-auto">
               <DataTableCard
-                title={getTableTitle()}
-                subtitle={getTableSubtitle()}
                 columns={tableColumns}
                 rows={tableRows}
               />

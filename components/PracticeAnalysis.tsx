@@ -5,6 +5,7 @@ import { ResponsiveContainer, LineChart, Line, BarChart, Bar, PieChart, Pie, Cel
 import { Info, X, ArrowRight, Calendar, ChevronLeft, ChevronRight, Maximize2, Minimize2, Users } from 'lucide-react';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { ToggleButton, GoalIndicator, ActionButton } from './design-system';
+import { TimeSelector, TimeSelectorValue } from './design-system/controls/TimeSelector';
 import { FinancialAnalysisTab, SessionsAnalysisTab, CapacityClientTab, RetentionTab, InsuranceTab, AdminTab, ConsultationsAnalysisTab } from './analysis';
 import { ClientRoster } from './ClientRoster';
 // Note: Clinician last names in chart data (Chen, Rodriguez, Patel, Kim, Johnson)
@@ -521,7 +522,7 @@ const CONSULTATION_FUNNEL_DATA = {
   firstSession: 82,      // 95% made it to first session (4 dropped)
 };
 
-type TimePeriod = 'last-12-months' | 'this-year' | 'this-quarter' | 'last-quarter' | 'this-month' | 'last-month' | '2024' | '2023' | 'custom';
+type TimePeriod = 'last-12-months' | 'last-6-months' | 'last-3-months' | 'this-year' | 'this-quarter' | 'last-quarter' | 'this-month' | 'last-month' | '2024' | '2023' | 'custom';
 
 // Month name to index mapping for date comparison
 const MONTH_MAP: { [key: string]: number } = {
@@ -554,12 +555,22 @@ export const PracticeAnalysis: React.FC = () => {
   // Expanded chart card state
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
 
-  // Read time period from URL (managed by UnifiedNavigation)
-  const timePeriod = (searchParams.get('period') || 'last-12-months') as TimePeriod;
+  // Time selection state - using TimeSelector format
+  const [timeSelection, setTimeSelection] = useState<TimeSelectorValue>('last-12-months');
+
+  // Convert TimeSelector value to internal period for data filtering
+  const timePeriod = (() => {
+    if (timeSelection === 'last-12-months') return 'last-12-months' as TimePeriod;
+    if (timeSelection === 'last-6-months') return 'last-6-months' as TimePeriod;
+    if (timeSelection === 'last-3-months') return 'last-3-months' as TimePeriod;
+    return 'last-12-months' as TimePeriod; // Default for specific months
+  })();
+
+  // Legacy setter for compatibility
   const setTimePeriod = (period: TimePeriod) => {
-    const newParams = new URLSearchParams(searchParams);
-    newParams.set('period', period);
-    // Note: This is kept for compatibility but the primary control is in UnifiedNavigation
+    if (period === 'last-12-months') setTimeSelection('last-12-months');
+    else if (period === 'last-6-months') setTimeSelection('last-6-months');
+    else if (period === 'last-3-months') setTimeSelection('last-3-months');
   };
 
   // Custom Date Picker State - Simplified
@@ -580,14 +591,10 @@ export const PracticeAnalysis: React.FC = () => {
     { id: 'admin', label: 'Admin Analysis', shortLabel: 'Admin' }
   ];
 
+  // Simplified time periods - users who check monthly don't need complex filtering
+  // "Last 12 Months" is the ideal default for trend analysis
   const timePeriods: { id: TimePeriod; label: string }[] = [
-    { id: 'last-12-months', label: 'Last 12 months' },
-    { id: 'this-year', label: 'This Year' },
-    { id: 'this-quarter', label: 'This Quarter' },
-    { id: 'last-quarter', label: 'Last Quarter' },
-    { id: 'this-month', label: 'This Month' },
-    { id: 'last-month', label: 'Last Month' },
-    { id: '2024', label: '2024' },
+    { id: 'last-12-months', label: 'Last 12 Months' },
   ];
 
   // Get current date info for period calculations
@@ -600,6 +607,10 @@ export const PracticeAnalysis: React.FC = () => {
     switch (period) {
       case 'last-12-months':
         return data.slice(-12);
+      case 'last-6-months':
+        return data.slice(-6);
+      case 'last-3-months':
+        return data.slice(-3);
       case 'this-year':
         // All data for current year (assuming data is 2025)
         return data.slice(0, currentMonth + 1);
@@ -812,6 +823,8 @@ export const PracticeAnalysis: React.FC = () => {
           tabs={tabs}
           activeTab={activeTab}
           onTabChange={() => {}}
+          timeSelection={timeSelection}
+          onTimeSelectionChange={setTimeSelection}
           getDateRangeLabel={getDateRangeLabel}
           revenueData={REVENUE_DATA}
           revenueBreakdownData={REVENUE_BREAKDOWN_DATA}
@@ -831,6 +844,8 @@ export const PracticeAnalysis: React.FC = () => {
           tabs={tabs}
           activeTab={activeTab}
           onTabChange={() => {}}
+          timeSelection={timeSelection}
+          onTimeSelectionChange={setTimeSelection}
           getDateRangeLabel={getDateRangeLabel}
           sessionsData={SESSIONS_DATA}
           clinicianSessionsData={CLINICIAN_SESSIONS_DATA}
@@ -845,6 +860,8 @@ export const PracticeAnalysis: React.FC = () => {
           tabs={tabs}
           activeTab={activeTab}
           onTabChange={() => {}}
+          timeSelection={timeSelection}
+          onTimeSelectionChange={setTimeSelection}
           getDateRangeLabel={getDateRangeLabel}
           clientGrowthData={CLIENT_GROWTH_DATA}
           genderData={CLIENT_GENDER_DATA}
@@ -861,6 +878,8 @@ export const PracticeAnalysis: React.FC = () => {
           tabs={tabs}
           activeTab={activeTab}
           onTabChange={() => {}}
+          timeSelection={timeSelection}
+          onTimeSelectionChange={setTimeSelection}
           churnByClinicianData={CHURN_BY_CLINICIAN_DATA}
           churnTimingData={CHURN_TIMING_DATA}
           retentionFunnelData={RETENTION_FUNNEL_DATA}
@@ -882,6 +901,8 @@ export const PracticeAnalysis: React.FC = () => {
           tabs={tabs}
           activeTab={activeTab}
           onTabChange={() => {}}
+          timeSelection={timeSelection}
+          onTimeSelectionChange={setTimeSelection}
           getDateRangeLabel={getDateRangeLabel}
           consultationsData={CONSULTATIONS_DATA}
           consultationsByClinicianData={CONSULTATIONS_BY_CLINICIAN_DATA}
@@ -899,6 +920,8 @@ export const PracticeAnalysis: React.FC = () => {
           tabs={tabs}
           activeTab={activeTab}
           onTabChange={() => {}}
+          timeSelection={timeSelection}
+          onTimeSelectionChange={setTimeSelection}
           getDateRangeLabel={getDateRangeLabel}
         />
       )}
@@ -911,6 +934,8 @@ export const PracticeAnalysis: React.FC = () => {
           tabs={tabs}
           activeTab={activeTab}
           onTabChange={() => {}}
+          timeSelection={timeSelection}
+          onTimeSelectionChange={setTimeSelection}
           getDateRangeLabel={getDateRangeLabel}
         />
       )}

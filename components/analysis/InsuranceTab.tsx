@@ -1,5 +1,6 @@
 import React from 'react';
 import { PageHeader, PageContent, ComingSoonCard } from '../design-system';
+import { TimeSelector } from '../design-system/controls/TimeSelector';
 import type { BaseAnalysisTabProps } from './types';
 
 // =============================================================================
@@ -14,18 +15,22 @@ export const InsuranceTab: React.FC<BaseAnalysisTabProps> = ({
   activeTab,
   onTabChange,
   getDateRangeLabel,
+  timeSelection,
+  onTimeSelectionChange,
 }) => {
   return (
     <div className="min-h-full">
       <PageHeader
         accent="violet"
-        label="Detailed Analysis"
         title="Insurance"
-        subtitle={getDateRangeLabel()}
-        showTimePeriod
-        timePeriod={timePeriod}
-        onTimePeriodChange={onTimePeriodChange}
-        timePeriods={timePeriods}
+        timeSelector={
+          <TimeSelector
+            value={timeSelection}
+            onChange={onTimeSelectionChange}
+            showAggregateOption={true}
+            variant="header"
+          />
+        }
       />
 
       <PageContent>

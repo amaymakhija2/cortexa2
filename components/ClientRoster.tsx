@@ -194,9 +194,7 @@ export const ClientRoster: React.FC = () => {
             ============================================= */}
         <PageHeader
           accent="amber"
-          label="Client Health"
           title="Client Roster"
-          subtitle={`${segmentCounts['at-risk'] + segmentCounts['new'] + segmentCounts['milestone']} clients need attention`}
           showGridPattern
           actions={
             <div className="flex items-center gap-6">

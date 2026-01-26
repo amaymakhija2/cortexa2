@@ -24,6 +24,7 @@ import {
   useClinicianFilter,
 } from '../design-system';
 import type { HoverInfo, SegmentConfig, ClinicianFilterOption } from '../design-system';
+import { TimeSelector } from '../design-system/controls/TimeSelector';
 import type { SessionsAnalysisTabProps } from './types';
 
 // =============================================================================
@@ -54,6 +55,8 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
   activeTab,
   onTabChange,
   getDateRangeLabel,
+  timeSelection,
+  onTimeSelectionChange,
   sessionsData,
   clinicianSessionsData,
 }) => {
@@ -328,24 +331,28 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
       {/* Page Header */}
       <PageHeader
         accent="amber"
-        label="Detailed Analysis"
         title="Sessions Performance"
-        subtitle={getDateRangeLabel()}
-        showTimePeriod
-        timePeriod={timePeriod}
-        onTimePeriodChange={onTimePeriodChange}
-        timePeriods={timePeriods}
+        timeSelector={
+          <TimeSelector
+            value={timeSelection}
+            onChange={onTimeSelectionChange}
+            showAggregateOption={true}
+            variant="header"
+          />
+        }
       />
 
       <PageContent>
         {/* Executive Summary */}
-        <Section spacing="md">
-          <ExecutiveSummary
-            headline="Sessions On Track, Monitor Cancellations"
-            summary={`Your practice completed **${totalCompleted.toLocaleString()} sessions** this period with a **${showRate.toFixed(1)}% show rate**. You hit the ${sessionsGoal}-session goal in **${monthsAtGoal} of ${sessionsData.length} months**. The client cancellation rate stands at **${clientCancelRate.toFixed(1)}%**—${clientCancelRate <= 15 ? 'within acceptable range' : 'consider reviewing scheduling practices to reduce lost revenue'}.`}
-            accent="indigo"
-          />
-        </Section>
+        {!settings.hideAIInsights && (
+          <Section spacing="md">
+            <ExecutiveSummary
+              headline="Sessions On Track, Monitor Cancellations"
+              summary={`Your practice completed **${totalCompleted.toLocaleString()} sessions** this period with a **${showRate.toFixed(1)}% show rate**. You hit the ${sessionsGoal}-session goal in **${monthsAtGoal} of ${sessionsData.length} months**. The client cancellation rate stands at **${clientCancelRate.toFixed(1)}%**—${clientCancelRate <= 15 ? 'within acceptable range' : 'consider reviewing scheduling practices to reduce lost revenue'}.`}
+              accent="indigo"
+            />
+          </Section>
+        )}
 
         {/* Hero Stats Row */}
         <Section spacing="md">

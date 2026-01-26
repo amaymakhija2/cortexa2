@@ -741,7 +741,6 @@ export const SettingsPage: React.FC = () => {
               ============================================= */}
           <PageHeader
             accent="amber"
-            label="Account"
             title="Settings"
             subtitle="Manage your account preferences and practice configuration"
           />
@@ -865,6 +864,16 @@ export const SettingsPage: React.FC = () => {
                   />
                 </SettingRow>
                 <SettingRow
+                  icon={Sparkles}
+                  label="AI Insight Summaries"
+                  description="Show AI-generated executive summaries on analysis tabs"
+                >
+                  <ToggleSwitch
+                    enabled={!settings.hideAIInsights}
+                    onChange={(enabled) => updateSettings({ hideAIInsights: !enabled })}
+                  />
+                </SettingRow>
+                <SettingRow
                   icon={UserX}
                   label="Demo Mode"
                   description="Use anonymized clinician names for presentations"
@@ -872,6 +881,16 @@ export const SettingsPage: React.FC = () => {
                   <ToggleSwitch
                     enabled={settings.anonymizeClinicianNames}
                     onChange={(enabled) => updateSettings({ anonymizeClinicianNames: enabled })}
+                  />
+                </SettingRow>
+                <SettingRow
+                  icon={User}
+                  label="Consultation Metrics"
+                  description="Show consults booked and conversion rate on Overview"
+                >
+                  <ToggleSwitch
+                    enabled={settings.showConsultationMetrics}
+                    onChange={(enabled) => updateSettings({ showConsultationMetrics: enabled })}
                   />
                 </SettingRow>
               </SettingsSection>

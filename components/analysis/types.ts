@@ -122,6 +122,8 @@ export interface HoursUtilizationDataPoint {
 // COMMON PROPS FOR ALL ANALYSIS TABS
 // =============================================================================
 
+import type { TimeSelectorValue } from '../design-system/controls/TimeSelector';
+
 export interface BaseAnalysisTabProps {
   timePeriod: TimePeriod;
   onTimePeriodChange: (period: TimePeriod) => void;
@@ -130,6 +132,10 @@ export interface BaseAnalysisTabProps {
   activeTab: string;
   onTabChange: (tabId: string) => void;
   getDateRangeLabel: () => string;
+  /** TimeSelector value for the header */
+  timeSelection: TimeSelectorValue;
+  /** TimeSelector change handler */
+  onTimeSelectionChange: (value: TimeSelectorValue) => void;
 }
 
 // =============================================================================
@@ -390,6 +396,10 @@ export interface RetentionTabProps {
   tabs: TabConfig[];
   activeTab: string;
   onTabChange: (tabId: string) => void;
+  /** TimeSelector value for the header */
+  timeSelection: TimeSelectorValue;
+  /** TimeSelector change handler */
+  onTimeSelectionChange: (value: TimeSelectorValue) => void;
   /** Churn data by clinician */
   churnByClinicianData: ChurnByClinicianDataPoint[];
   /** Churn timing breakdown */

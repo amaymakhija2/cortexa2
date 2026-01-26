@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { ArrowRight } from 'lucide-react';
+import { useSettings } from '../../context/SettingsContext';
 import {
   PageHeader,
   PageContent,
@@ -19,6 +20,7 @@ import {
   AnimatedSection,
   ExecutiveSummary,
 } from '../design-system';
+import { TimeSelector } from '../design-system/controls/TimeSelector';
 import type { CapacityClientTabProps } from './types';
 
 // =============================================================================
@@ -33,6 +35,8 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
   activeTab,
   onTabChange,
   getDateRangeLabel,
+  timeSelection,
+  onTimeSelectionChange,
   clientGrowthData,
   genderData,
   sessionFrequencyData,
@@ -40,9 +44,10 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
   hoursUtilizationData,
 }) => {
   // =========================================================================
-  // LOCAL STATE
+  // LOCAL STATE & SETTINGS
   // =========================================================================
 
+  const { settings } = useSettings();
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const [showCapacityPercentage, setShowCapacityPercentage] = useState(false);
 
@@ -304,24 +309,28 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
       {/* Page Header */}
       <PageHeader
         accent="amber"
-        label="Detailed Analysis"
         title="Client & Capacity"
-        subtitle={getDateRangeLabel()}
-        showTimePeriod
-        timePeriod={timePeriod}
-        onTimePeriodChange={onTimePeriodChange}
-        timePeriods={timePeriods}
+        timeSelector={
+          <TimeSelector
+            value={timeSelection}
+            onChange={onTimeSelectionChange}
+            showAggregateOption={true}
+            variant="header"
+          />
+        }
       />
 
       <PageContent>
         {/* Executive Summary */}
-        <Section spacing="md">
-          <ExecutiveSummary
-            headline="Capacity Healthy, Room to Grow"
-            summary={`You currently have **${currentActiveClients} active clients** out of **${currentCapacity} capacity** (**${clientUtilization.toFixed(0)}% utilization**). Net growth this period is **${netGrowth >= 0 ? '+' : ''}${netGrowth} clients** (+${totalNew} new, -${totalChurned} churned). Session utilization averages **${avgSessionUtilization.toFixed(0)}%**—${avgSessionUtilization >= 85 ? 'excellent efficiency' : avgSessionUtilization >= 75 ? 'healthy levels with room for optimization' : 'consider strategies to improve slot fill rates'}.`}
-            accent="cyan"
-          />
-        </Section>
+        {!settings.hideAIInsights && (
+          <Section spacing="md">
+            <ExecutiveSummary
+              headline="Capacity Healthy, Room to Grow"
+              summary={`You currently have **${currentActiveClients} active clients** out of **${currentCapacity} capacity** (**${clientUtilization.toFixed(0)}% utilization**). Net growth this period is **${netGrowth >= 0 ? '+' : ''}${netGrowth} clients** (+${totalNew} new, -${totalChurned} churned). Session utilization averages **${avgSessionUtilization.toFixed(0)}%**—${avgSessionUtilization >= 85 ? 'excellent efficiency' : avgSessionUtilization >= 75 ? 'healthy levels with room for optimization' : 'consider strategies to improve slot fill rates'}.`}
+              accent="cyan"
+            />
+          </Section>
+        )}
 
         {/* Hero Stats Row */}
         <Section spacing="md">

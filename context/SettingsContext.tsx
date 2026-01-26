@@ -207,6 +207,8 @@ export interface MetricThresholds {
 interface AppSettings {
   showNetRevenueData: boolean;
   anonymizeClinicianNames: boolean;
+  hideAIInsights: boolean;
+  showConsultationMetrics: boolean;
   practiceGoals: PracticeGoals;
   thresholds: MetricThresholds;
   clinicianGoals: ClinicianGoalOverrides; // Legacy, kept for backward compatibility
@@ -357,6 +359,8 @@ const DEFAULT_THRESHOLDS: MetricThresholds = {
 const DEFAULT_SETTINGS: AppSettings = {
   showNetRevenueData: true,
   anonymizeClinicianNames: false,
+  hideAIInsights: true,
+  showConsultationMetrics: false,
   practiceGoals: DEFAULT_PRACTICE_GOALS,
   thresholds: DEFAULT_THRESHOLDS,
   clinicianGoals: {}, // Legacy, kept for backward compatibility

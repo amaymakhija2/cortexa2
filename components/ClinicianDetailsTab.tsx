@@ -939,13 +939,9 @@ const CLINICIAN_DEMOGRAPHICS: Record<number, ClientDemographics> = {
 
 type TimePeriod = 'last-12-months' | 'this-year' | 'this-quarter' | 'last-quarter' | 'this-month' | 'last-month' | 'custom';
 
+// Simplified time periods - users who check monthly don't need complex filtering
 const TIME_PERIODS: { id: TimePeriod; label: string }[] = [
-  { id: 'last-12-months', label: 'Last 12 months' },
-  { id: 'this-year', label: 'This Year' },
-  { id: 'this-quarter', label: 'This Quarter' },
-  { id: 'last-quarter', label: 'Last Quarter' },
-  { id: 'this-month', label: 'This Month' },
-  { id: 'last-month', label: 'Last Month' },
+  { id: 'last-12-months', label: 'Last 12 Months' },
 ];
 
 // Health status configuration
@@ -2428,9 +2424,6 @@ export const ClinicianDetailsTab: React.FC = () => {
           {!isSpotlightMode && (
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
               <div>
-                <p className="text-amber-500/80 text-sm font-semibold tracking-widest uppercase mb-2">
-                  Individual Performance
-                </p>
                 <h1
                   className="text-4xl sm:text-5xl lg:text-6xl text-white tracking-tight"
                   style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
