@@ -80,8 +80,8 @@ export { MetricCard, ExpandableBarChart } from './cards/MetricCard';
 export type { MetricCardProps, MetricStatus, ExpandableBarChartProps, BarChartItem } from './cards/MetricCard';
 
 // Control Components
-export { ToggleButton, GoalIndicator, ActionButton, SegmentedControl, ClinicianFilter } from './controls';
-export type { ToggleButtonProps, GoalIndicatorProps, GoalIndicatorColor, ActionButtonProps, ActionButtonVariant, SegmentedControlProps, SegmentedControlOption, ClinicianFilterProps } from './controls';
+export { ToggleButton, GoalIndicator, ActionButton, SegmentedControl, ClinicianFilter, TimeSelector } from './controls';
+export type { ToggleButtonProps, GoalIndicatorProps, GoalIndicatorColor, ActionButtonProps, ActionButtonVariant, SegmentedControlProps, SegmentedControlOption, ClinicianFilterProps, TimeSelectorProps, TimeSelectorValue } from './controls';
 
 // Legend Component
 export { Legend, HoverInfoDisplay } from './Legend';

@@ -635,36 +635,43 @@ export const ClinicianOverview: React.FC = () => {
     year: now.getFullYear(),
   });
 
-  // Sync selectedGroupId with URL param when it changes externally
-  useEffect(() => {
-    if (metricFromUrl && metricFromUrl !== selectedGroupId && visibleMetricGroups.some(g => g.id === metricFromUrl)) {
-      setSelectedGroupId(metricFromUrl);
-    }
-  }, [metricFromUrl, visibleMetricGroups]);
-
-  // Reset to first visible group if current selection becomes hidden
-  useEffect(() => {
-    if (!visibleMetricGroups.some(g => g.id === selectedGroupId) && visibleMetricGroups.length > 0) {
-      setSelectedGroupId(visibleMetricGroups[0].id);
-    }
-  }, [visibleMetricGroups, selectedGroupId]);
-
   // Get active tab from URL search params (managed by UnifiedNavigation)
   const activeTab = (searchParams.get('tab') || 'ranking') as ClinicianTabType;
 
   // Get settings for demo mode
   const { settings } = useSettings();
 
-  // Filter metric groups based on settings
+  // All metric groups are visible, but some may be disabled based on settings
   const visibleMetricGroups = useMemo(() => {
-    return METRIC_GROUPS.filter(group => {
-      // Hide 'growth' group if consultation metrics are disabled
-      if (group.id === 'growth' && !settings.showConsultationMetrics) {
-        return false;
-      }
+    return METRIC_GROUPS;
+  }, []);
+
+  // Check if a metric group is disabled (greyed out but visible)
+  const isMetricGroupDisabled = (groupId: MetricGroupId): boolean => {
+    // Growth group is disabled if consultation metrics are turned off
+    if (groupId === 'growth' && !settings.showConsultationMetrics) {
       return true;
-    });
-  }, [settings.showConsultationMetrics]);
+    }
+    return false;
+  };
+
+  // Sync selectedGroupId with URL param when it changes externally (only if not disabled)
+  useEffect(() => {
+    if (metricFromUrl && metricFromUrl !== selectedGroupId && visibleMetricGroups.some(g => g.id === metricFromUrl) && !isMetricGroupDisabled(metricFromUrl)) {
+      setSelectedGroupId(metricFromUrl);
+    }
+  }, [metricFromUrl, visibleMetricGroups, settings.showConsultationMetrics]);
+
+  // Reset to first enabled group if current selection becomes disabled
+  useEffect(() => {
+    if (isMetricGroupDisabled(selectedGroupId)) {
+      // Find the first non-disabled group
+      const firstEnabledGroup = visibleMetricGroups.find(g => !isMetricGroupDisabled(g.id));
+      if (firstEnabledGroup) {
+        setSelectedGroupId(firstEnabledGroup.id);
+      }
+    }
+  }, [visibleMetricGroups, selectedGroupId, settings.showConsultationMetrics]);
 
   // Get data date range from API
   const { data: dataRange } = useDataDateRange();
@@ -1109,27 +1116,37 @@ export const ClinicianOverview: React.FC = () => {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 auto-rows-fr">
             {visibleMetricGroups.map((group) => {
               const isSelected = selectedGroupId === group.id;
+              const isDisabled = isMetricGroupDisabled(group.id);
 
               return (
                 <button
                   key={group.id}
-                  onClick={() => handleGroupChange(group.id)}
+                  onClick={() => !isDisabled && handleGroupChange(group.id)}
+                  disabled={isDisabled}
                   className={`relative px-5 py-5 rounded-2xl font-semibold transition-all duration-300 text-left flex flex-col ${
-                    isSelected
-                      ? 'bg-white text-stone-900 shadow-xl scale-[1.02]'
-                      : 'bg-white/10 text-white/80 hover:bg-white/20 hover:text-white hover:scale-[1.01]'
+                    isDisabled
+                      ? 'bg-white/5 text-white/30 cursor-not-allowed opacity-50'
+                      : isSelected
+                        ? 'bg-white text-stone-900 shadow-xl scale-[1.02]'
+                        : 'bg-white/10 text-white/80 hover:bg-white/20 hover:text-white hover:scale-[1.01]'
                   }`}
                   style={{
-                    boxShadow: isSelected
+                    boxShadow: isSelected && !isDisabled
                       ? '0 8px 32px -4px rgba(0, 0, 0, 0.3), 0 4px 16px -2px rgba(0, 0, 0, 0.2)'
                       : undefined
                   }}
                 >
                   <span className="block text-lg font-bold leading-tight" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>{group.label}</span>
-                  <span className={`block text-sm mt-1.5 leading-snug line-clamp-2 ${isSelected ? 'text-stone-500' : 'text-white/70'}`}>
-                    {group.description}
+                  <span className={`block text-sm mt-1.5 leading-snug line-clamp-2 ${
+                    isDisabled
+                      ? 'text-white/20'
+                      : isSelected
+                        ? 'text-stone-500'
+                        : 'text-white/70'
+                  }`}>
+                    {isDisabled ? 'Enable in Settings' : group.description}
                   </span>
-                  {isSelected && (
+                  {isSelected && !isDisabled && (
                     <div
                       className="absolute bottom-0 left-5 right-5 h-1.5 rounded-full"
                       style={{ background: 'linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%)' }}
