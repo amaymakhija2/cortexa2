@@ -1104,16 +1104,8 @@ export const ClinicianOverview: React.FC = () => {
             </div>
           }
         >
-          {/* Metric selector label */}
-          <p className="text-stone-300 text-sm font-medium mb-4 uppercase tracking-wider">
-            Select metric to rank by
-            {!metric.higherIsBetter && (
-              <span className="ml-3 text-amber-400">· Lower values rank higher</span>
-            )}
-          </p>
-
           {/* Metric buttons - visible metric groups in 2 rows */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 auto-rows-fr">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 auto-rows-fr mt-6">
             {visibleMetricGroups.map((group) => {
               const isSelected = selectedGroupId === group.id;
               const isDisabled = isMetricGroupDisabled(group.id);
@@ -1329,8 +1321,10 @@ export const ClinicianOverview: React.FC = () => {
                     className="group bg-white rounded-xl lg:rounded-2xl overflow-hidden transition-all duration-300 hover:scale-[1.01] cursor-pointer"
                     style={{ boxShadow: theme.shadow }}
                   >
-                    {/* Accent bar - thin and elegant */}
-                    <div className="h-0.5" style={{ background: theme.accent }} />
+                    {/* Accent bar - only for top/bottom performers */}
+                    {(isFirst || isLast) && (
+                      <div className="h-1" style={{ background: theme.accent }} />
+                    )}
 
                     <div className="px-4 sm:px-6 py-4 lg:py-5">
                       {/* Mobile layout */}
