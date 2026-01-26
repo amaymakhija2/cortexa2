@@ -384,7 +384,7 @@ export const Dashboard: React.FC = () => {
         {/* =============================================
             MAIN CONTENT AREA
             ============================================= */}
-        <div className="flex flex-col gap-6 lg:gap-8 flex-1 min-h-0 px-6 sm:px-8 lg:px-12 py-6 lg:py-8">
+        <div className="flex flex-col gap-6 lg:gap-8 flex-1 min-h-0 px-6 sm:px-8 lg:pl-[100px] lg:pr-12 py-6 lg:py-8">
 
           {/* Metrics Row */}
           <div className="flex-shrink-0">

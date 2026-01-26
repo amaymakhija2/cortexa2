@@ -28,6 +28,7 @@ export const InsuranceTab: React.FC<BaseAnalysisTabProps> = ({
             value={timeSelection}
             onChange={onTimeSelectionChange}
             showAggregateOption={true}
+            aggregateOnly={true}
             variant="header"
           />
         }

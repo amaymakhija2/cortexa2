@@ -315,6 +315,7 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
             value={timeSelection}
             onChange={onTimeSelectionChange}
             showAggregateOption={true}
+            aggregateOnly={true}
             variant="header"
           />
         }

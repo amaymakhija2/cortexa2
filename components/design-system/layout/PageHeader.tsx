@@ -26,17 +26,17 @@ const SIZE_CONFIGS: Record<PageHeaderSize, { title: string; subtitle: string; pa
   compact: {
     title: 'text-2xl sm:text-3xl lg:text-4xl',
     subtitle: 'text-sm sm:text-base',
-    padding: 'px-6 sm:px-8 lg:px-12 py-4 lg:py-5',
+    padding: 'px-6 sm:px-8 lg:pl-[100px] lg:pr-12 py-4 lg:py-5',
   },
   standard: {
     title: 'text-3xl sm:text-4xl lg:text-5xl',
     subtitle: 'text-base sm:text-lg',
-    padding: 'px-6 sm:px-8 lg:px-12 py-4 lg:py-5',
+    padding: 'px-6 sm:px-8 lg:pl-[100px] lg:pr-12 py-4 lg:py-5',
   },
   hero: {
     title: 'text-4xl sm:text-5xl lg:text-6xl',
     subtitle: 'text-base sm:text-lg',
-    padding: 'px-6 sm:px-8 lg:px-12 py-5 lg:py-6',
+    padding: 'px-6 sm:px-8 lg:pl-[100px] lg:pr-12 py-5 lg:py-6',
   },
 };
 

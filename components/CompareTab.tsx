@@ -312,7 +312,7 @@ export const CompareTab: React.FC = () => {
             title="Compare Performance"
             showGridPattern
           />
-          <div className="flex items-center justify-center py-24 px-6 sm:px-8 lg:px-12">
+          <div className="flex items-center justify-center py-24 px-6 sm:px-8 lg:pl-[100px] lg:pr-12">
             <div className="text-center max-w-md">
               <p className="text-stone-600 text-lg mb-2">No comparison data available</p>
               <p className="text-stone-500 text-sm">
@@ -346,7 +346,7 @@ export const CompareTab: React.FC = () => {
         />
 
         {/* Content Area */}
-        <div className="flex flex-col flex-1 min-h-0 min-w-0 px-6 sm:px-8 lg:px-12 py-6 lg:py-8 overflow-x-auto">
+        <div className="flex flex-col flex-1 min-h-0 min-w-0 px-6 sm:px-8 lg:pl-[100px] lg:pr-12 py-6 lg:py-8 overflow-x-auto">
           {/* Dimension Filter Bar */}
           <div className="flex items-center gap-4 mb-6">
             <span className="text-sm font-medium text-stone-500">Compare by</span>

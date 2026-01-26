@@ -1900,7 +1900,7 @@ export const Consultations: React.FC = () => {
 
         {/* UPCOMING VIEW - clean table of upcoming consultations */}
         {viewMode === 'upcoming' && (
-          <div className="px-6 sm:px-8 lg:px-12 py-6 lg:py-8">
+          <div className="px-6 sm:px-8 lg:pl-[100px] lg:pr-12 py-6 lg:py-8">
             <div
               className="rounded-2xl overflow-hidden"
               style={{
@@ -2062,7 +2062,7 @@ export const Consultations: React.FC = () => {
 
         {/* LIST VIEW - for historical segments (converted/lost) */}
         {isHistoricalSegment && (
-          <div className="px-6 sm:px-8 lg:px-12 py-6 lg:py-8">
+          <div className="px-6 sm:px-8 lg:pl-[100px] lg:pr-12 py-6 lg:py-8">
             <div
               className="rounded-2xl overflow-hidden"
               style={{

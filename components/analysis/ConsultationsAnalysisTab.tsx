@@ -323,6 +323,7 @@ export const ConsultationsAnalysisTab: React.FC<ConsultationsAnalysisTabProps> =
             value={timeSelection}
             onChange={onTimeSelectionChange}
             showAggregateOption={true}
+            aggregateOnly={true}
             variant="header"
           />
         }

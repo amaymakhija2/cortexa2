@@ -244,6 +244,7 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
             value={timeSelection}
             onChange={onTimeSelectionChange}
             showAggregateOption={true}
+            aggregateOnly={true}
             variant="header"
           />
         }

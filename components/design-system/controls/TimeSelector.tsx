@@ -31,6 +31,11 @@ export interface TimeSelectorProps {
   monthsToShow?: number;
   showAggregateOption?: boolean;
   /**
+   * When true, only shows aggregate options (Last 12/6/3 months) without specific month selection.
+   * Useful for practice-level analytics where month-by-month selection isn't needed.
+   */
+  aggregateOnly?: boolean;
+  /**
    * Variant styles:
    * - 'default': Compact button style for general use
    * - 'header': Large, prominent display for page headers (positioned under title)
@@ -46,6 +51,7 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
   maxYear = new Date().getFullYear(),
   monthsToShow = 24,
   showAggregateOption = true,
+  aggregateOnly = false,
   variant = 'default',
   className = '',
 }) => {
@@ -368,76 +374,82 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
                           </button>
                         );
                       })}
-                      <div className="mx-5 my-3 h-px bg-white/10" />
+                      {!aggregateOnly && (
+                        <div className="mx-5 my-3 h-px bg-white/10" />
+                      )}
                     </>
                   )}
 
-                  {/* Specific month section */}
-                  <div className="px-5 pt-3 pb-2 flex items-center justify-between">
-                    <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
-                      Specific month
-                    </span>
-                    <button
-                      onClick={() => {
-                        // Set picker year to current selection's year if applicable
-                        if (!isAggregateValue(value)) {
-                          setPickerYear(value.year);
-                        }
-                        setShowMonthPicker(true);
-                      }}
-                      className="text-xs font-semibold text-amber-400/80 hover:text-amber-400 uppercase tracking-wider transition-colors"
-                    >
-                      Calendar →
-                    </button>
-                  </div>
+                  {/* Specific month section - hidden when aggregateOnly */}
+                  {!aggregateOnly && (
+                    <>
+                      <div className="px-5 pt-3 pb-2 flex items-center justify-between">
+                        <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
+                          Specific month
+                        </span>
+                        <button
+                          onClick={() => {
+                            // Set picker year to current selection's year if applicable
+                            if (!isAggregateValue(value)) {
+                              setPickerYear(value.year);
+                            }
+                            setShowMonthPicker(true);
+                          }}
+                          className="text-xs font-semibold text-amber-400/80 hover:text-amber-400 uppercase tracking-wider transition-colors"
+                        >
+                          Calendar →
+                        </button>
+                      </div>
 
-                  {/* Recent months list - height adjusts based on whether aggregate options are shown */}
-                  <div className="relative">
-                    <div
-                      className="overflow-y-auto pb-1 months-scroll-dark"
-                      style={{
-                        // Show ~3 months when aggregate options present, ~6 when not
-                        maxHeight: showAggregateOption ? '144px' : '288px',
-                        scrollbarWidth: 'thin',
-                        scrollbarColor: 'rgba(251, 191, 36, 0.3) transparent',
-                      }}
-                    >
-                      {monthOptions.slice(0, 12).map(({ month, year, isCurrent }) => {
-                        const selected = isSelected(month, year);
-                        return (
-                          <button
-                            key={`${month}-${year}`}
-                            onClick={() => select({ month, year })}
-                            className={`
-                              w-full flex items-center justify-between px-5 py-3
-                              text-left text-base transition-all duration-200
-                              ${selected
-                                ? 'bg-white/10 font-medium text-white'
-                                : 'hover:bg-white/5 text-stone-400 hover:text-stone-200'
-                              }
-                            `}
-                          >
-                            <span className="flex items-center gap-2.5">
-                              {MONTHS[month]} {year}
-                              {isCurrent && (
-                                <span className="text-[11px] font-semibold text-amber-400/70 uppercase">
-                                  Now
+                      {/* Recent months list - height adjusts based on whether aggregate options are shown */}
+                      <div className="relative">
+                        <div
+                          className="overflow-y-auto pb-1 months-scroll-dark"
+                          style={{
+                            // Show ~3 months when aggregate options present, ~6 when not
+                            maxHeight: showAggregateOption ? '144px' : '288px',
+                            scrollbarWidth: 'thin',
+                            scrollbarColor: 'rgba(251, 191, 36, 0.3) transparent',
+                          }}
+                        >
+                          {monthOptions.slice(0, 12).map(({ month, year, isCurrent }) => {
+                            const selected = isSelected(month, year);
+                            return (
+                              <button
+                                key={`${month}-${year}`}
+                                onClick={() => select({ month, year })}
+                                className={`
+                                  w-full flex items-center justify-between px-5 py-3
+                                  text-left text-base transition-all duration-200
+                                  ${selected
+                                    ? 'bg-white/10 font-medium text-white'
+                                    : 'hover:bg-white/5 text-stone-400 hover:text-stone-200'
+                                  }
+                                `}
+                              >
+                                <span className="flex items-center gap-2.5">
+                                  {MONTHS[month]} {year}
+                                  {isCurrent && (
+                                    <span className="text-[11px] font-semibold text-amber-400/70 uppercase">
+                                      Now
+                                    </span>
+                                  )}
                                 </span>
-                              )}
-                            </span>
-                            {selected && <Check size={16} className="text-amber-400" />}
-                          </button>
-                        );
-                      })}
-                    </div>
-                    {/* Bottom fade gradient to indicate more content */}
-                    <div
-                      className="absolute bottom-0 left-0 right-2 h-8 pointer-events-none"
-                      style={{
-                        background: 'linear-gradient(to top, #1c1917 0%, transparent 100%)',
-                      }}
-                    />
-                  </div>
+                                {selected && <Check size={16} className="text-amber-400" />}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        {/* Bottom fade gradient to indicate more content */}
+                        <div
+                          className="absolute bottom-0 left-0 right-2 h-8 pointer-events-none"
+                          style={{
+                            background: 'linear-gradient(to top, #1c1917 0%, transparent 100%)',
+                          }}
+                        />
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
 
@@ -552,64 +564,70 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
                     </button>
                   );
                 })}
-                <div className="mx-5 my-3 h-px bg-stone-200" />
+                {!aggregateOnly && (
+                  <div className="mx-5 my-3 h-px bg-stone-200" />
+                )}
               </>
             )}
 
-            {/* Section label */}
-            <div className="px-5 pt-3 pb-2">
-              <span className="text-xs font-semibold text-stone-400 uppercase tracking-wider">
-                Specific month
-              </span>
-            </div>
+            {/* Section label - hidden when aggregateOnly */}
+            {!aggregateOnly && (
+              <>
+                <div className="px-5 pt-3 pb-2">
+                  <span className="text-xs font-semibold text-stone-400 uppercase tracking-wider">
+                    Specific month
+                  </span>
+                </div>
 
-            {/* Month list - height adjusts based on whether aggregate options are shown */}
-            <div className="relative">
-              <div
-                className="overflow-y-auto pb-2 months-scroll-light"
-                style={{
-                  // Show ~3 months when aggregate options present, ~6 when not
-                  maxHeight: showAggregateOption ? '144px' : '288px',
-                  scrollbarWidth: 'thin',
-                  scrollbarColor: 'rgba(120, 113, 108, 0.3) transparent',
-                }}
-              >
-                {monthOptions.map(({ month, year, isCurrent }) => {
-                  const selected = isSelected(month, year);
-                  return (
-                    <button
-                      key={`${month}-${year}`}
-                      onClick={() => select({ month, year })}
-                      className={`
-                        w-full flex items-center justify-between px-5 py-3
-                        text-left text-base transition-colors
-                        ${selected
-                          ? 'bg-stone-100 font-medium text-stone-900'
-                          : 'hover:bg-stone-50 text-stone-600'
-                        }
-                      `}
-                    >
-                      <span className="flex items-center gap-2.5">
-                        {MONTHS[month]} {year}
-                        {isCurrent && (
-                          <span className="text-[11px] font-semibold text-stone-400 uppercase">
-                            Now
+                {/* Month list - height adjusts based on whether aggregate options are shown */}
+                <div className="relative">
+                  <div
+                    className="overflow-y-auto pb-2 months-scroll-light"
+                    style={{
+                      // Show ~3 months when aggregate options present, ~6 when not
+                      maxHeight: showAggregateOption ? '144px' : '288px',
+                      scrollbarWidth: 'thin',
+                      scrollbarColor: 'rgba(120, 113, 108, 0.3) transparent',
+                    }}
+                  >
+                    {monthOptions.map(({ month, year, isCurrent }) => {
+                      const selected = isSelected(month, year);
+                      return (
+                        <button
+                          key={`${month}-${year}`}
+                          onClick={() => select({ month, year })}
+                          className={`
+                            w-full flex items-center justify-between px-5 py-3
+                            text-left text-base transition-colors
+                            ${selected
+                              ? 'bg-stone-100 font-medium text-stone-900'
+                              : 'hover:bg-stone-50 text-stone-600'
+                            }
+                          `}
+                        >
+                          <span className="flex items-center gap-2.5">
+                            {MONTHS[month]} {year}
+                            {isCurrent && (
+                              <span className="text-[11px] font-semibold text-stone-400 uppercase">
+                                Now
+                              </span>
+                            )}
                           </span>
-                        )}
-                      </span>
-                      {selected && <Check size={16} className="text-stone-500" />}
-                    </button>
-                  );
-                })}
-              </div>
-              {/* Bottom fade gradient to indicate more content */}
-              <div
-                className="absolute bottom-0 left-0 right-2 h-8 pointer-events-none"
-                style={{
-                  background: 'linear-gradient(to top, white 0%, transparent 100%)',
-                }}
-              />
-            </div>
+                          {selected && <Check size={16} className="text-stone-500" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {/* Bottom fade gradient to indicate more content */}
+                  <div
+                    className="absolute bottom-0 left-0 right-2 h-8 pointer-events-none"
+                    style={{
+                      background: 'linear-gradient(to top, white 0%, transparent 100%)',
+                    }}
+                  />
+                </div>
+              </>
+            )}
 
             {/* Scrollbar styling for light variant */}
             <style>{`

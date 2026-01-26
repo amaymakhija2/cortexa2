@@ -749,7 +749,7 @@ export const SettingsPage: React.FC = () => {
           {/* =============================================
               MAIN CONTENT AREA
               ============================================= */}
-          <div className="flex-1 px-6 sm:px-8 lg:px-12 py-8 lg:py-10">
+          <div className="flex-1 px-6 sm:px-8 lg:pl-[100px] lg:pr-12 py-8 lg:py-10">
             <div className="max-w-2xl mx-auto space-y-6">
 
               {/* Profile Card - Hero style */}

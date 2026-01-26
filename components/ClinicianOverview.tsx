@@ -1161,7 +1161,7 @@ export const ClinicianOverview: React.FC = () => {
         {/* =============================================
             PART 2: RANKING LIST - COMPACT & EFFICIENT
             ============================================= */}
-        <div className="px-6 sm:px-8 lg:px-12 py-6 lg:py-8">
+        <div className="px-6 sm:px-8 lg:pl-[100px] lg:pr-12 py-6 lg:py-8">
 
           {/* Column headers */}
           <div className="hidden lg:grid gap-4 py-4 px-4 sm:px-6 text-sm font-bold text-stone-800 uppercase tracking-wide border-b-2 border-stone-300 mb-3"

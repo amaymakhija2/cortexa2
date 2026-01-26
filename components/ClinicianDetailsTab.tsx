@@ -2436,7 +2436,7 @@ export const ClinicianDetailsTab: React.FC = () => {
           />
         </div>
 
-        <div className="relative px-6 sm:px-8 lg:px-12 py-8 lg:py-12" style={{ zIndex: 1 }}>
+        <div className="relative px-6 sm:px-8 lg:pl-[100px] lg:pr-12 py-8 lg:py-12" style={{ zIndex: 1 }}>
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             {/* Left: Title Area */}
             <div className="min-w-0">
@@ -2678,7 +2678,7 @@ export const ClinicianDetailsTab: React.FC = () => {
           MAIN CONTENT - Light background with sections
           ================================================================= */}
       <div className="bg-gradient-to-b from-stone-100 to-stone-50 min-h-screen relative" style={{ zIndex: 0 }}>
-        <div className="px-6 sm:px-8 lg:px-12 py-8 lg:py-10 space-y-6">
+        <div className="px-6 sm:px-8 lg:pl-[100px] lg:pr-12 py-8 lg:py-10 space-y-6">
 
           {/* ---------------------------------------------------------
               CLINICIAN SELECTOR - Searchable list for pre-selection

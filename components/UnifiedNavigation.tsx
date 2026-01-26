@@ -1,6 +1,7 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { NavLink, useLocation, useSearchParams } from 'react-router-dom';
 import { Search, Bell, Menu, Calendar, ChevronDown, ChevronLeft, ChevronRight, X, Check } from 'lucide-react';
+import { useSettings } from '../context/SettingsContext';
 
 // =============================================================================
 // UNIFIED NAVIGATION COMPONENT
@@ -58,6 +59,7 @@ export const UnifiedNavigation: React.FC<UnifiedNavigationProps> = ({ onMobileMe
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [isSubTabsVisible, setIsSubTabsVisible] = useState(false);
+  const { settings } = useSettings();
 
   // Time period selector state
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -69,7 +71,20 @@ export const UnifiedNavigation: React.FC<UnifiedNavigationProps> = ({ onMobileMe
 
   // Determine current primary tab and sub-tabs
   const currentPath = location.pathname;
-  const subTabs = SUB_TABS[currentPath];
+
+  // Filter sub-tabs based on settings (hide consultations if toggle is off)
+  const subTabs = useMemo(() => {
+    const tabs = SUB_TABS[currentPath];
+    if (!tabs) return undefined;
+
+    // Filter out consultations tab if showConsultationMetrics is false
+    if (currentPath === '/practice-analysis' && !settings.showConsultationMetrics) {
+      return tabs.filter(tab => tab.id !== 'consultations');
+    }
+
+    return tabs;
+  }, [currentPath, settings.showConsultationMetrics]);
+
   const hasSubTabs = !!subTabs && subTabs.length > 0;
 
   // Get current sub-tab from URL or default to first

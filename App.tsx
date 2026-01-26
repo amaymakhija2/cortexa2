@@ -114,8 +114,8 @@ const ProtectedApp: React.FC = () => {
     );
   }
 
-  // Fixed sidebar width for left padding (collapsed state only, since sidebar floats over content)
-  const sidebarCollapsedWidth = 92; // 68px sidebar + 12px margin + 12px gap
+  // No wrapper padding - pages handle their own left padding so backgrounds extend full width
+  const sidebarCollapsedWidth = 0;
 
   return (
     <div className="flex h-screen w-full overflow-hidden relative" style={{ backgroundColor: '#fafaf9' }}>

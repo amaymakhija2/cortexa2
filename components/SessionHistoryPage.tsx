@@ -161,7 +161,7 @@ export const SessionHistoryPage: React.FC = () => {
     <div className="flex-1 flex flex-col h-[calc(100vh-80px)] overflow-y-auto bg-gradient-to-b from-stone-100 to-stone-50">
       {/* Header */}
       <div className="sticky top-0 z-20 bg-white border-b border-stone-200 shadow-sm">
-        <div className="px-6 sm:px-8 lg:px-12 py-5">
+        <div className="px-6 sm:px-8 lg:pl-[100px] lg:pr-12 py-5">
           <div className="flex items-center gap-4">
             <button
               onClick={() => navigate(`/clinician-overview?tab=details&clinician=${clinicianId}`)}
@@ -197,7 +197,7 @@ export const SessionHistoryPage: React.FC = () => {
       </div>
 
       {/* Legend */}
-      <div className="px-6 sm:px-8 lg:px-12 py-4 bg-white border-b border-stone-100">
+      <div className="px-6 sm:px-8 lg:pl-[100px] lg:pr-12 py-4 bg-white border-b border-stone-100">
         <div className="flex items-center gap-6 text-sm">
           <span className="text-stone-500 font-medium">Sessions per month:</span>
           <div className="flex items-center gap-3">
@@ -229,7 +229,7 @@ export const SessionHistoryPage: React.FC = () => {
       </div>
 
       {/* Matrix Table */}
-      <div className="px-6 sm:px-8 lg:px-12 py-6">
+      <div className="px-6 sm:px-8 lg:pl-[100px] lg:pr-12 py-6">
         <div className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">

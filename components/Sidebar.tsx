@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useMemo, memo } from 'react';
 import { NavLink, useLocation, useSearchParams } from 'react-router-dom';
 import {
   Compass,
@@ -12,6 +12,7 @@ import {
   ArrowsClockwise,
   CaretRight,
 } from '@phosphor-icons/react';
+import type { Icon } from '@phosphor-icons/react';
 import { useSettings } from '../context/SettingsContext';
 
 // =============================================================================
@@ -126,6 +127,262 @@ const GLASS_STYLES = {
   },
 } as const;
 
+// Static styles extracted to prevent recreation on each render
+const MOBILE_BACKDROP_STYLE: React.CSSProperties = {
+  background: 'rgba(254, 250, 245, 0.6)',
+  backdropFilter: 'blur(12px)',
+  WebkitBackdropFilter: 'blur(12px)',
+};
+
+const HEADER_TRANSITION_STYLE: React.CSSProperties = {
+  padding: '20px 8px 16px',
+  transition: 'padding 500ms cubic-bezier(0.22, 0.61, 0.36, 1)',
+};
+
+const TOP_HIGHLIGHT_STYLE: React.CSSProperties = {
+  borderRadius: '24px 24px 0 0',
+  background: 'linear-gradient(90deg, transparent 10%, rgba(255, 255, 255, 0.4) 50%, transparent 90%)',
+};
+
+const LOGO_SHADOW_STYLE: React.CSSProperties = {
+  filter: 'drop-shadow(0 2px 8px rgba(120, 100, 80, 0.12))',
+};
+
+const AVATAR_BORDER_STYLE: React.CSSProperties = {
+  border: '2px solid rgba(168, 154, 140, 0.3)',
+};
+
+// Keyframe animations - defined once, not on every render
+const KEYFRAME_STYLES = `
+  @keyframes fadeSlideIn {
+    from {
+      opacity: 0;
+      transform: translateX(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes bezelRotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes glowPulse {
+    0%, 100% { opacity: 0.7; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.15); }
+  }
+
+  @keyframes corePulse {
+    0%, 100% { box-shadow: 0 0 10px 2px rgba(245, 158, 11, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.3); }
+    50% { box-shadow: 0 0 16px 4px rgba(245, 158, 11, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.4); }
+  }
+`;
+
+// =============================================================================
+// NAV ITEM COMPONENT - Memoized for performance
+// =============================================================================
+interface NavItemProps {
+  item: typeof NAV_ITEMS[number];
+  isExpanded: boolean;
+  currentPath: string;
+  activeSubItem: string | null;
+  useIllustratedIcons: boolean;
+  onClose: () => void;
+  onSubItemClick: (id: string) => void;
+}
+
+const NavItem = memo<NavItemProps>(({
+  item,
+  isExpanded,
+  currentPath,
+  activeSubItem,
+  useIllustratedIcons,
+  onClose,
+  onSubItemClick,
+}) => {
+  const isActive = currentPath === item.path;
+  const hasSubItems = item.subItems && item.subItems.length > 0;
+  const Icon = item.icon;
+
+  const labelStyle = useMemo<React.CSSProperties>(() => ({
+    color: isActive ? COLORS.textPrimary : COLORS.textSecondary,
+    opacity: isExpanded ? 1 : 0,
+    transform: isExpanded ? 'translateX(0)' : 'translateX(-4px)',
+    transition: 'opacity 500ms cubic-bezier(0.22, 0.61, 0.36, 1), transform 500ms cubic-bezier(0.22, 0.61, 0.36, 1), color 500ms cubic-bezier(0.22, 0.61, 0.36, 1)',
+    transitionDelay: isExpanded ? '80ms' : '0ms',
+    pointerEvents: isExpanded ? 'auto' : 'none',
+  }), [isActive, isExpanded]);
+
+  const activeIndicatorStyle = useMemo<React.CSSProperties>(() => ({
+    left: 8,
+    right: isExpanded ? 8 : 8,
+    bottom: -2,
+    height: 2,
+    background: 'linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%)',
+    opacity: isActive ? 1 : 0,
+    transform: isActive ? 'scaleX(1)' : 'scaleX(0)',
+  }), [isActive, isExpanded]);
+
+  const hoverIndicatorStyle = useMemo<React.CSSProperties>(() => ({
+    left: 8,
+    right: isExpanded ? 8 : 8,
+    bottom: -2,
+    height: 2,
+    background: 'linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%)',
+    transform: 'scaleX(0)',
+    display: isActive ? 'none' : 'block',
+  }), [isActive, isExpanded]);
+
+  return (
+    <div>
+      <NavLink
+        to={item.path}
+        onClick={onClose}
+        className="group relative block"
+      >
+        <div
+          className="relative"
+          style={{
+            height: 48,
+            overflow: 'visible',
+          }}
+        >
+          {/* Icon container - FIXED position, never moves */}
+          <div
+            className="absolute left-0 top-0 flex items-center justify-center z-10"
+            style={{
+              width: 52,
+              height: 48,
+              overflow: 'visible',
+            }}
+          >
+            {useIllustratedIcons && item.imageSrc ? (
+              <img
+                src={item.imageSrc}
+                alt={item.label}
+                loading="lazy"
+                style={{
+                  width: item.imageSize || 72,
+                  height: item.imageSize || 72,
+                  objectFit: 'contain',
+                  opacity: isActive ? 1 : 0.75,
+                  transition: 'opacity 400ms cubic-bezier(0.22, 0.61, 0.36, 1)',
+                }}
+              />
+            ) : Icon ? (
+              <Icon
+                size={20}
+                weight="regular"
+                className="transition-colors duration-500"
+                style={{
+                  color: isActive ? COLORS.textPrimary : COLORS.textSecondary,
+                }}
+              />
+            ) : null}
+          </div>
+
+          {/* Label - positioned after the fixed icon column */}
+          <span
+            className="absolute left-[52px] top-0 h-full flex items-center z-10 text-[15px] font-semibold tracking-[-0.01em]"
+            style={labelStyle}
+          >
+            {item.label}
+          </span>
+
+          {/* Active indicator */}
+          <span
+            className="absolute rounded-full transition-all duration-200 ease-out origin-center"
+            style={activeIndicatorStyle}
+          />
+
+          {/* Hover underline */}
+          <span
+            className="absolute rounded-full transition-all duration-200 ease-out origin-center opacity-0 group-hover:opacity-70 group-hover:scale-x-100"
+            style={hoverIndicatorStyle}
+          />
+        </div>
+      </NavLink>
+
+      {/* Sub-items */}
+      {hasSubItems && isActive && isExpanded && (
+        <div
+          className="mb-2 ml-[26px] pl-[18px]"
+          style={{ borderLeft: `1px solid ${COLORS.border}` }}
+        >
+          {item.subItems!.map((sub, idx) => {
+            const isSubActive = activeSubItem === sub.id;
+            return (
+              <button
+                key={sub.id}
+                onClick={(e) => {
+                  e.preventDefault();
+                  onSubItemClick(sub.id);
+                }}
+                className="group/sub relative w-full text-left py-2 pl-1 flex items-center"
+                style={{
+                  animation: `fadeSlideIn 300ms cubic-bezier(0.22, 0.61, 0.36, 1) ${idx * 50}ms both`,
+                }}
+              >
+                <span
+                  className="text-[14px] font-medium tracking-[-0.01em] transition-colors duration-200 group-hover/sub:text-stone-900"
+                  style={{
+                    color: isSubActive ? COLORS.textPrimary : COLORS.textMuted,
+                  }}
+                >
+                  {sub.label}
+                </span>
+
+                {isSubActive && (
+                  <CaretRight
+                    size={12}
+                    weight="bold"
+                    className="ml-auto"
+                    style={{ color: COLORS.accent }}
+                  />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+});
+
+NavItem.displayName = 'NavItem';
+
+// =============================================================================
+// UPCOMING ITEM COMPONENT - Memoized for performance
+// =============================================================================
+interface UpcomingItemProps {
+  label: string;
+  icon: Icon;
+}
+
+const UpcomingItem = memo<UpcomingItemProps>(({ label, icon: Icon }) => (
+  <div
+    className="relative cursor-not-allowed opacity-40"
+    style={{ height: 40 }}
+  >
+    {/* Icon - FIXED position */}
+    <div className="absolute left-0 top-0 w-[52px] h-full flex items-center justify-center">
+      <Icon size={18} weight="regular" style={{ color: COLORS.textDisabled }} />
+    </div>
+    {/* Label - positioned after fixed icon column */}
+    <span
+      className="absolute left-[52px] top-0 h-full flex items-center text-[14px] font-medium tracking-[-0.01em]"
+      style={{ color: COLORS.textDisabled }}
+    >
+      {label}
+    </span>
+  </div>
+));
+
+UpcomingItem.displayName = 'UpcomingItem';
+
 export const Sidebar: React.FC<SidebarProps> = ({
   mobileMenuOpen = false,
   setMobileMenuOpen,
@@ -167,26 +424,131 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const isExpanded = mobileMenuOpen || !isCollapsed;
   const glassStyle = isExpanded ? GLASS_STYLES.expanded : GLASS_STYLES.collapsed;
 
-  const handleSubItemClick = (itemId: string) => {
+  const handleSubItemClick = useCallback((itemId: string) => {
     const newParams = new URLSearchParams(searchParams);
     newParams.set('tab', itemId);
     setSearchParams(newParams, { replace: true });
     setMobileMenuOpen?.(false);
-  };
+  }, [searchParams, setSearchParams, setMobileMenuOpen]);
 
-  const getActiveSubItem = (path: string, subItems?: { id: string }[]) => {
+  const getActiveSubItem = useCallback((path: string, subItems?: { id: string }[]) => {
     if (currentPath !== path || !subItems) return null;
     return searchParams.get('tab') || subItems[0]?.id;
-  };
+  }, [currentPath, searchParams]);
 
-  const closeMobile = () => setMobileMenuOpen?.(false);
+  const closeMobile = useCallback(() => setMobileMenuOpen?.(false), [setMobileMenuOpen]);
 
   // Sync status
   const [isSyncing, setIsSyncing] = useState(false);
-  const handleSync = () => {
+  const handleSync = useCallback(() => {
     setIsSyncing(true);
     setTimeout(() => setIsSyncing(false), 2000);
-  };
+  }, []);
+
+  // Memoized styles that depend on state
+  const sidebarStyle = useMemo<React.CSSProperties>(() => ({
+    top: 12,
+    left: 12,
+    bottom: 12,
+    width: isExpanded ? 280 : 68,
+    borderRadius: 24,
+    overflow: 'visible',
+    ...glassStyle,
+    transition: `
+      width 400ms cubic-bezier(0.22, 0.61, 0.36, 1),
+      transform 400ms cubic-bezier(0.22, 0.61, 0.36, 1),
+      opacity 300ms ease,
+      background 400ms ease,
+      box-shadow 400ms ease,
+      border 400ms ease
+    `,
+  }), [isExpanded, glassStyle]);
+
+  const wordmarkStyle = useMemo<React.CSSProperties>(() => ({
+    fontSize: '1.65rem',
+    color: COLORS.textPrimary,
+    opacity: isExpanded ? 1 : 0,
+    transform: isExpanded ? 'translateX(0)' : 'translateX(-8px)',
+    transition: 'opacity 500ms cubic-bezier(0.22, 0.61, 0.36, 1), transform 500ms cubic-bezier(0.22, 0.61, 0.36, 1)',
+    transitionDelay: isExpanded ? '100ms' : '0ms',
+    pointerEvents: isExpanded ? 'auto' : 'none',
+  }), [isExpanded]);
+
+  const syncButtonStyle = useMemo<React.CSSProperties>(() => ({
+    width: isExpanded ? '100%' : 52,
+    height: 36,
+    borderRadius: 18,
+    padding: 0,
+    background: isExpanded ? 'rgba(120, 113, 108, 0.045)' : 'transparent',
+    cursor: 'pointer',
+    transition: 'width 500ms cubic-bezier(0.22, 0.61, 0.36, 1), background 500ms cubic-bezier(0.22, 0.61, 0.36, 1)',
+  }), [isExpanded]);
+
+  const comingSoonStyle = useMemo<React.CSSProperties>(() => ({
+    borderTop: `1px solid ${COLORS.border}`,
+    opacity: isExpanded ? 1 : 0,
+    transition: 'opacity 500ms cubic-bezier(0.22, 0.61, 0.36, 1)',
+  }), [isExpanded]);
+
+  const userInfoStyle = useMemo<React.CSSProperties>(() => ({
+    opacity: isExpanded ? 1 : 0,
+    transform: isExpanded ? 'translateX(0)' : 'translateX(-4px)',
+    transition: 'opacity 500ms cubic-bezier(0.22, 0.61, 0.36, 1), transform 500ms cubic-bezier(0.22, 0.61, 0.36, 1)',
+    transitionDelay: isExpanded ? '80ms' : '0ms',
+    pointerEvents: isExpanded ? 'auto' : 'none',
+  }), [isExpanded]);
+
+  const gearStyle = useMemo<React.CSSProperties>(() => ({
+    opacity: isExpanded ? 1 : 0,
+    transition: 'opacity 500ms ease, transform 300ms ease',
+    color: COLORS.textMuted,
+  }), [isExpanded]);
+
+  // Memoized sync indicator styles
+  const bezelStyle = useMemo<React.CSSProperties>(() => ({
+    width: 28,
+    height: 28,
+    borderRadius: '50%',
+    background: `conic-gradient(
+      from 0deg,
+      ${isSyncing ? 'rgba(245, 158, 11, 0.12)' : 'rgba(34, 197, 94, 0.08)'} 0deg,
+      ${isSyncing ? 'rgba(245, 158, 11, 0.03)' : 'rgba(34, 197, 94, 0.02)'} 180deg,
+      ${isSyncing ? 'rgba(245, 158, 11, 0.12)' : 'rgba(34, 197, 94, 0.08)'} 360deg
+    )`,
+    boxShadow: isSyncing
+      ? 'inset 0 0 0 1px rgba(245, 158, 11, 0.15)'
+      : 'inset 0 0 0 1px rgba(34, 197, 94, 0.1)',
+    animation: isSyncing ? 'bezelRotate 3s linear infinite' : 'none',
+  }), [isSyncing]);
+
+  const glowLayerStyle = useMemo<React.CSSProperties>(() => ({
+    width: 18,
+    height: 18,
+    borderRadius: '50%',
+    background: isSyncing
+      ? 'radial-gradient(circle, rgba(245, 158, 11, 0.25) 0%, rgba(245, 158, 11, 0) 70%)'
+      : 'radial-gradient(circle, rgba(34, 197, 94, 0.2) 0%, rgba(34, 197, 94, 0) 70%)',
+    animation: isSyncing ? 'glowPulse 2s ease-in-out infinite' : 'none',
+  }), [isSyncing]);
+
+  const coreGemStyle = useMemo<React.CSSProperties>(() => ({
+    width: 8,
+    height: 8,
+    borderRadius: '50%',
+    background: isSyncing
+      ? `radial-gradient(circle at 30% 30%, #fcd34d 0%, ${COLORS.statusSyncing} 50%, #d97706 100%)`
+      : `radial-gradient(circle at 30% 30%, #4ade80 0%, ${COLORS.statusSynced} 50%, #16a34a 100%)`,
+    boxShadow: isSyncing
+      ? '0 0 12px 2px rgba(245, 158, 11, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.3)'
+      : '0 0 8px 1px rgba(34, 197, 94, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.25)',
+    animation: isSyncing ? 'corePulse 2s ease-in-out infinite' : 'none',
+  }), [isSyncing]);
+
+  const expandedContentStyle = useMemo<React.CSSProperties>(() => ({
+    opacity: isExpanded ? 1 : 0,
+    transition: 'opacity 400ms cubic-bezier(0.22, 0.61, 0.36, 1)',
+    transitionDelay: isExpanded ? '150ms' : '0ms',
+  }), [isExpanded]);
 
   return (
     <>
@@ -195,11 +557,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div
           className="fixed inset-0 z-40 lg:hidden"
           onClick={closeMobile}
-          style={{
-            background: 'rgba(254, 250, 245, 0.6)',
-            backdropFilter: 'blur(12px)',
-            WebkitBackdropFilter: 'blur(12px)',
-          }}
+          style={MOBILE_BACKDROP_STYLE}
         />
       )}
 
@@ -212,36 +570,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
           ${mobileMenuOpen ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0'}
           lg:translate-x-0 lg:opacity-100
         `}
-        style={{
-          // Floating position with margin from edges
-          top: 12,
-          left: 12,
-          bottom: 12,
-          width: isExpanded ? 280 : 68,
-          // Pill shape - rounded on all sides since it's floating
-          borderRadius: 24,
-          // Allow compass icon to overflow
-          overflow: 'visible',
-          // Glassmorphic styling
-          ...glassStyle,
-          // Smooth transitions
-          transition: `
-            width 400ms cubic-bezier(0.22, 0.61, 0.36, 1),
-            transform 400ms cubic-bezier(0.22, 0.61, 0.36, 1),
-            opacity 300ms ease,
-            background 400ms ease,
-            box-shadow 400ms ease,
-            border 400ms ease
-          `,
-        }}
+        style={sidebarStyle}
       >
         {/* Subtle top highlight for glass edge - LP style */}
         <div
           className="absolute inset-x-0 top-0 h-px pointer-events-none"
-          style={{
-            borderRadius: '24px 24px 0 0',
-            background: 'linear-gradient(90deg, transparent 10%, rgba(255, 255, 255, 0.4) 50%, transparent 90%)',
-          }}
+          style={TOP_HIGHLIGHT_STYLE}
         />
 
         {/* Mobile close button - LP style */}
@@ -259,46 +593,31 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* ══════════════ HEADER ══════════════ */}
         <div
           className="flex-shrink-0 relative"
-          style={{
-            padding: '20px 8px 16px',
-            transition: 'padding 500ms cubic-bezier(0.22, 0.61, 0.36, 1)',
-          }}
+          style={HEADER_TRANSITION_STYLE}
         >
           {/* Logo + Brand - LP nav style */}
           <a
             href="#"
-            className="flex items-center group"
-            style={{
-              transition: 'all 200ms ease-out',
-            }}
+            className="relative block group"
+            style={{ height: 44 }}
           >
-            {/* Logo mark - 52px container to center in collapsed state */}
+            {/* Logo mark - FIXED position, never moves */}
             <div
-              className="relative flex items-center justify-center flex-shrink-0 transition-transform duration-200 group-hover:scale-[1.02]"
-              style={{ width: 52 }}
+              className="absolute left-0 top-0 flex items-center justify-center transition-transform duration-200 group-hover:scale-[1.02]"
+              style={{ width: 52, height: 44 }}
             >
               <img
                 src="/cortexa-mark.png"
                 alt="Cortexa"
                 className="h-11 w-auto object-contain"
-                style={{
-                  filter: 'drop-shadow(0 2px 8px rgba(120, 100, 80, 0.12))',
-                }}
+                style={LOGO_SHADOW_STYLE}
               />
             </div>
 
-            {/* Wordmark - matches LP exactly */}
+            {/* Wordmark - positioned after the fixed logo column */}
             <span
-              className="font-medium tracking-[-0.02em] leading-none"
-              style={{
-                fontSize: '1.65rem',
-                color: COLORS.textPrimary,
-                opacity: isExpanded ? 1 : 0,
-                transform: isExpanded ? 'translateX(0)' : 'translateX(-8px)',
-                transition: 'all 500ms cubic-bezier(0.22, 0.61, 0.36, 1)',
-                transitionDelay: isExpanded ? '100ms' : '0ms',
-                pointerEvents: isExpanded ? 'auto' : 'none',
-              }}
+              className="absolute left-[52px] top-0 h-full flex items-center font-medium tracking-[-0.02em] leading-none"
+              style={wordmarkStyle}
             >
               Cortexa
             </span>
@@ -311,7 +630,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               Swiss precision - zero unnecessary movement
           ═══════════════════════════════════════════════════════════════════ */}
           <div
-            className="flex items-center"
+            className="relative"
             style={{
               marginTop: 16,
               height: 36,
@@ -319,86 +638,39 @@ export const Sidebar: React.FC<SidebarProps> = ({
           >
             <button
               onClick={handleSync}
-              className="group relative flex items-center"
-              style={{
-                width: isExpanded ? '100%' : 52,
-                height: 36,
-                borderRadius: 18,
-                padding: 0,
-                background: isExpanded
-                  ? 'rgba(120, 113, 108, 0.045)'
-                  : 'transparent',
-                cursor: 'pointer',
-                transition: 'width 500ms cubic-bezier(0.22, 0.61, 0.36, 1), background 500ms cubic-bezier(0.22, 0.61, 0.36, 1)',
-              }}
+              className="group relative block"
+              style={syncButtonStyle}
             >
               {/* ─────────── THE STATUS JEWEL ─────────── */}
-              {/* Fixed 52px container - jewel is ALWAYS centered here, never moves */}
+              {/* FIXED position - jewel never moves */}
               <div
-                className="relative flex-shrink-0 flex items-center justify-center"
+                className="absolute left-0 top-0 flex items-center justify-center"
                 style={{ width: 52, height: 36 }}
               >
                 {/* Outer bezel - architectural frame */}
                 <div
                   className="absolute transition-all duration-300"
-                  style={{
-                    width: 28,
-                    height: 28,
-                    borderRadius: '50%',
-                    background: `conic-gradient(
-                      from 0deg,
-                      ${isSyncing ? 'rgba(245, 158, 11, 0.12)' : 'rgba(34, 197, 94, 0.08)'} 0deg,
-                      ${isSyncing ? 'rgba(245, 158, 11, 0.03)' : 'rgba(34, 197, 94, 0.02)'} 180deg,
-                      ${isSyncing ? 'rgba(245, 158, 11, 0.12)' : 'rgba(34, 197, 94, 0.08)'} 360deg
-                    )`,
-                    boxShadow: isSyncing
-                      ? 'inset 0 0 0 1px rgba(245, 158, 11, 0.15)'
-                      : 'inset 0 0 0 1px rgba(34, 197, 94, 0.1)',
-                    animation: isSyncing ? 'bezelRotate 3s linear infinite' : 'none',
-                  }}
+                  style={bezelStyle}
                 />
 
                 {/* Middle glow layer - ambient luminosity */}
                 <div
                   className="absolute transition-all duration-300"
-                  style={{
-                    width: 18,
-                    height: 18,
-                    borderRadius: '50%',
-                    background: isSyncing
-                      ? 'radial-gradient(circle, rgba(245, 158, 11, 0.25) 0%, rgba(245, 158, 11, 0) 70%)'
-                      : 'radial-gradient(circle, rgba(34, 197, 94, 0.2) 0%, rgba(34, 197, 94, 0) 70%)',
-                    animation: isSyncing ? 'glowPulse 2s ease-in-out infinite' : 'none',
-                  }}
+                  style={glowLayerStyle}
                 />
 
                 {/* Core status gem - the heart */}
                 <div
                   className="absolute transition-all duration-300"
-                  style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: '50%',
-                    background: isSyncing
-                      ? `radial-gradient(circle at 30% 30%, #fcd34d 0%, ${COLORS.statusSyncing} 50%, #d97706 100%)`
-                      : `radial-gradient(circle at 30% 30%, #4ade80 0%, ${COLORS.statusSynced} 50%, #16a34a 100%)`,
-                    boxShadow: isSyncing
-                      ? '0 0 12px 2px rgba(245, 158, 11, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.3)'
-                      : '0 0 8px 1px rgba(34, 197, 94, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.25)',
-                    animation: isSyncing ? 'corePulse 2s ease-in-out infinite' : 'none',
-                  }}
+                  style={coreGemStyle}
                 />
               </div>
 
               {/* ─────────── EXPANDED CONTENT ─────────── */}
-              {/* Text and icon reveal to the right of the fixed jewel */}
+              {/* Text positioned after the fixed jewel column */}
               <div
-                className="flex items-center justify-between flex-1 overflow-hidden"
-                style={{
-                  opacity: isExpanded ? 1 : 0,
-                  transition: 'opacity 400ms cubic-bezier(0.22, 0.61, 0.36, 1)',
-                  transitionDelay: isExpanded ? '150ms' : '0ms',
-                }}
+                className="absolute left-[52px] top-0 right-0 h-full flex items-center justify-between overflow-hidden"
+                style={expandedContentStyle}
               >
                 <span
                   className="text-[13px] font-medium tracking-[-0.01em] whitespace-nowrap group-hover:text-stone-800 transition-colors duration-200"
@@ -424,165 +696,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
           style={{ padding: '0 8px', overflowX: 'visible' }}
         >
           <div className="space-y-4">
-            {NAV_ITEMS.map((item) => {
-              const isActive = currentPath === item.path;
-              const activeSubItem = getActiveSubItem(item.path, item.subItems);
-              const hasSubItems = item.subItems && item.subItems.length > 0;
-              const Icon = item.icon;
-
-              return (
-                <div key={item.path}>
-                  <NavLink
-                    to={item.path}
-                    onClick={closeMobile}
-                    className="group relative block"
-                  >
-                    {/* Container with icon + label */}
-                    <div
-                      className="relative flex items-center"
-                      style={{
-                        height: 48,
-                        overflow: 'visible',
-                        transition: 'all 400ms cubic-bezier(0.22, 0.61, 0.36, 1)',
-                      }}
-                    >
-                      {/* Icon - 52px to center in 68px collapsed (68 - 16px padding = 52) */}
-                      <div
-                        className="flex items-center justify-center flex-shrink-0 relative z-10"
-                        style={{
-                          width: 52,
-                          height: 48,
-                          overflow: 'visible',
-                          transition: 'all 400ms cubic-bezier(0.22, 0.61, 0.36, 1)',
-                        }}
-                      >
-                        {useIllustratedIcons && item.imageSrc ? (
-                          <img
-                            src={item.imageSrc}
-                            alt={item.label}
-                            style={{
-                              width: item.imageSize || 72,
-                              height: item.imageSize || 72,
-                              objectFit: 'contain',
-                              opacity: isActive ? 1 : 0.75,
-                              transition: 'all 400ms cubic-bezier(0.22, 0.61, 0.36, 1)',
-                            }}
-                          />
-                        ) : Icon ? (
-                          <Icon
-                            size={20}
-                            weight="regular"
-                            className="transition-colors duration-500"
-                            style={{
-                              color: isActive ? COLORS.textPrimary : COLORS.textSecondary,
-                            }}
-                          />
-                        ) : null}
-                      </div>
-
-                      {/* Label - LP nav style */}
-                      <span
-                        className="relative z-10 text-[15px] font-semibold tracking-[-0.01em] transition-colors duration-500"
-                        style={{
-                          color: isActive ? COLORS.textPrimary : COLORS.textSecondary,
-                          opacity: isExpanded ? 1 : 0,
-                          transform: isExpanded ? 'translateX(0)' : 'translateX(-4px)',
-                          transition: 'opacity 500ms cubic-bezier(0.22, 0.61, 0.36, 1), transform 500ms cubic-bezier(0.22, 0.61, 0.36, 1), color 500ms cubic-bezier(0.22, 0.61, 0.36, 1)',
-                          transitionDelay: isExpanded ? '80ms' : '0ms',
-                          pointerEvents: isExpanded ? 'auto' : 'none',
-                        }}
-                      >
-                        {item.label}
-                      </span>
-
-                      {/* Active indicator - amber gradient underline (LP style) */}
-                      <span
-                        className="absolute rounded-full transition-all duration-200 ease-out origin-center"
-                        style={{
-                          left: 8,
-                          right: isExpanded ? 8 : 8,
-                          bottom: -2,
-                          height: 2,
-                          background: 'linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%)',
-                          opacity: isActive ? 1 : 0,
-                          transform: isActive ? 'scaleX(1)' : 'scaleX(0)',
-                        }}
-                      />
-
-                      {/* Hover underline - appears on non-active items */}
-                      <span
-                        className="absolute rounded-full transition-all duration-200 ease-out origin-center opacity-0 group-hover:opacity-70 group-hover:scale-x-100"
-                        style={{
-                          left: 8,
-                          right: isExpanded ? 8 : 8,
-                          bottom: -2,
-                          height: 2,
-                          background: 'linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%)',
-                          transform: 'scaleX(0)',
-                          display: isActive ? 'none' : 'block',
-                        }}
-                      />
-                    </div>
-                  </NavLink>
-
-                  {/* Sub-items - refined LP style */}
-                  {hasSubItems && isActive && isExpanded && (
-                    <div
-                      className="mb-2 ml-[26px] pl-[18px]"
-                      style={{
-                        borderLeft: `1px solid ${COLORS.border}`,
-                      }}
-                    >
-                      {item.subItems!.map((sub, idx) => {
-                        const isSubActive = activeSubItem === sub.id;
-                        return (
-                          <button
-                            key={sub.id}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              handleSubItemClick(sub.id);
-                            }}
-                            className="group/sub relative w-full text-left py-2 pl-1 flex items-center"
-                            style={{
-                              animation: `fadeSlideIn 300ms cubic-bezier(0.22, 0.61, 0.36, 1) ${idx * 50}ms both`,
-                            }}
-                          >
-                            <span
-                              className="text-[14px] font-medium tracking-[-0.01em] transition-colors duration-200 group-hover/sub:text-stone-900"
-                              style={{
-                                color: isSubActive ? COLORS.textPrimary : COLORS.textMuted,
-                              }}
-                            >
-                              {sub.label}
-                            </span>
-
-                            {/* Sub-item active indicator */}
-                            {isSubActive && (
-                              <CaretRight
-                                size={12}
-                                weight="bold"
-                                className="ml-auto"
-                                style={{ color: COLORS.accent }}
-                              />
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+            {NAV_ITEMS.map((item) => (
+              <NavItem
+                key={item.path}
+                item={item}
+                isExpanded={isExpanded}
+                currentPath={currentPath}
+                activeSubItem={getActiveSubItem(item.path, item.subItems)}
+                useIllustratedIcons={useIllustratedIcons}
+                onClose={closeMobile}
+                onSubItemClick={handleSubItemClick}
+              />
+            ))}
           </div>
 
           {/* Coming Soon - subtle, muted */}
           <div
             className="mt-8 pt-4"
-            style={{
-              borderTop: `1px solid ${COLORS.border}`,
-              opacity: isExpanded ? 1 : 0,
-              transition: 'opacity 500ms cubic-bezier(0.22, 0.61, 0.36, 1)',
-            }}
+            style={comingSoonStyle}
           >
             <div
               className="mb-3 text-[10px] font-semibold tracking-[0.08em] uppercase"
@@ -590,26 +721,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
             >
               Coming Soon
             </div>
-            {UPCOMING.map((item) => {
-              const Icon = item.icon;
-              return (
-                <div
-                  key={item.label}
-                  className="flex items-center cursor-not-allowed opacity-40"
-                  style={{ height: 40 }}
-                >
-                  <div className="w-[52px] flex items-center justify-center">
-                    <Icon size={18} weight="regular" style={{ color: COLORS.textDisabled }} />
-                  </div>
-                  <span
-                    className="text-[14px] font-medium tracking-[-0.01em]"
-                    style={{ color: COLORS.textDisabled }}
-                  >
-                    {item.label}
-                  </span>
-                </div>
-              );
-            })}
+            {UPCOMING.map((item) => (
+              <UpcomingItem key={item.label} label={item.label} icon={item.icon} />
+            ))}
           </div>
         </nav>
 
@@ -628,21 +742,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
           >
             {({ isActive }) => (
               <div
-                className="relative flex items-center"
+                className="relative"
                 style={{ height: 52 }}
               >
-                {/* Avatar - 52px container to match nav icons */}
+                {/* Avatar - FIXED position, never moves */}
                 <div
-                  className="flex items-center justify-center flex-shrink-0 relative transition-transform duration-200 group-hover:scale-[1.02]"
-                  style={{ width: 52 }}
+                  className="absolute left-0 top-0 flex items-center justify-center transition-transform duration-200 group-hover:scale-[1.02]"
+                  style={{ width: 52, height: 52 }}
                 >
                   <img
                     src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=100&h=100&fit=crop&crop=face"
                     alt="Profile"
+                    loading="lazy"
                     className="w-10 h-10 rounded-full object-cover"
-                    style={{
-                      border: '2px solid rgba(168, 154, 140, 0.3)',
-                    }}
+                    style={AVATAR_BORDER_STYLE}
                   />
                   {/* Online indicator */}
                   <div
@@ -655,16 +768,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   />
                 </div>
 
-                {/* User info */}
+                {/* User info - positioned after fixed avatar column */}
                 <div
-                  className="flex-1 min-w-0"
-                  style={{
-                    opacity: isExpanded ? 1 : 0,
-                    transform: isExpanded ? 'translateX(0)' : 'translateX(-4px)',
-                    transition: 'all 500ms cubic-bezier(0.22, 0.61, 0.36, 1)',
-                    transitionDelay: isExpanded ? '80ms' : '0ms',
-                    pointerEvents: isExpanded ? 'auto' : 'none',
-                  }}
+                  className="absolute left-[52px] top-0 h-full flex flex-col justify-center min-w-0 pr-8"
+                  style={userInfoStyle}
                 >
                   <p
                     className="text-[14px] font-semibold tracking-[-0.01em] truncate transition-colors duration-500"
@@ -683,12 +790,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <Gear
                   size={16}
                   weight="regular"
-                  className="flex-shrink-0 transition-all duration-200 group-hover:rotate-45 mr-2"
-                  style={{
-                    opacity: isExpanded ? 1 : 0,
-                    transition: 'opacity 500ms ease, transform 300ms ease',
-                    color: COLORS.textMuted,
-                  }}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 transition-all duration-200 group-hover:rotate-45"
+                  style={gearStyle}
                 />
 
                 {/* Active indicator - amber underline */}
@@ -722,35 +825,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
       </aside>
 
-      {/* Keyframes for animations */}
-      <style>{`
-        @keyframes fadeSlideIn {
-          from {
-            opacity: 0;
-            transform: translateX(-8px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-
-        /* Luxury horology-inspired animations */
-        @keyframes bezelRotate {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-
-        @keyframes glowPulse {
-          0%, 100% { opacity: 0.7; transform: scale(1); }
-          50% { opacity: 1; transform: scale(1.15); }
-        }
-
-        @keyframes corePulse {
-          0%, 100% { box-shadow: 0 0 10px 2px rgba(245, 158, 11, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.3); }
-          50% { box-shadow: 0 0 16px 4px rgba(245, 158, 11, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.4); }
-        }
-      `}</style>
+      {/* Keyframes for animations - defined once outside component */}
+      <style>{KEYFRAME_STYLES}</style>
     </>
   );
 };

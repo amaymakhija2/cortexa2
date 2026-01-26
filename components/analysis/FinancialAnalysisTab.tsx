@@ -425,6 +425,7 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
             value={timeSelection}
             onChange={onTimeSelectionChange}
             showAggregateOption={true}
+            aggregateOnly={true}
             variant="header"
           />
         }

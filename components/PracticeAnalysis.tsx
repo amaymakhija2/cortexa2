@@ -8,6 +8,7 @@ import { ToggleButton, GoalIndicator, ActionButton } from './design-system';
 import { TimeSelector, TimeSelectorValue } from './design-system/controls/TimeSelector';
 import { FinancialAnalysisTab, SessionsAnalysisTab, CapacityClientTab, RetentionTab, InsuranceTab, AdminTab, ConsultationsAnalysisTab } from './analysis';
 import { ClientRoster } from './ClientRoster';
+import { useSettings } from '../context/SettingsContext';
 // Note: Clinician last names in chart data (Chen, Rodriguez, Patel, Kim, Johnson)
 // match master list in data/clinicians.ts
 
@@ -533,6 +534,7 @@ const MONTH_MAP: { [key: string]: number } = {
 export const PracticeAnalysis: React.FC = () => {
   const isMobile = useIsMobile(1024);
   const [searchParams] = useSearchParams();
+  const { settings } = useSettings();
 
   // Read active tab from URL search params (managed by UnifiedNavigation)
   const activeTab = (searchParams.get('tab') || 'clients') as TabType;
@@ -893,7 +895,7 @@ export const PracticeAnalysis: React.FC = () => {
         />
       )}
 
-      {isConsultationsTab && (
+      {isConsultationsTab && settings.showConsultationMetrics && (
         <ConsultationsAnalysisTab
           timePeriod={timePeriod}
           onTimePeriodChange={setTimePeriod}
