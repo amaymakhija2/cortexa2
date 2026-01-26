@@ -261,22 +261,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   filter: 'drop-shadow(0 2px 8px rgba(120, 100, 80, 0.12))',
                 }}
               />
-              {/* Sync status dot - visible when collapsed */}
-              <div
-                className="absolute transition-all duration-300"
-                style={{
-                  bottom: -2,
-                  right: 4,
-                  width: isSyncing ? 10 : 8,
-                  height: isSyncing ? 10 : 8,
-                  borderRadius: '50%',
-                  backgroundColor: isSyncing ? COLORS.statusSyncing : COLORS.statusSynced,
-                  border: '2px solid rgba(253, 252, 251, 0.95)',
-                  boxShadow: `0 0 ${isSyncing ? '8px' : '6px'} ${isSyncing ? 'rgba(245, 158, 11, 0.5)' : 'rgba(34, 197, 94, 0.4)'}`,
-                  opacity: isExpanded ? 0 : 1,
-                  transform: isExpanded ? 'scale(0)' : 'scale(1)',
-                }}
-              />
             </div>
 
             {/* Wordmark - matches LP exactly */}
@@ -296,43 +280,116 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </span>
           </a>
 
-          {/* Sync status row - minimal, refined */}
+          {/* ═══════════════════════════════════════════════════════════════════
+              UNIFIED SYNC STATUS - Precision Morphing Element
+              Collapsed: Jewel-like indicator centered in 52px column
+              Expanded: Content reveals to the right, jewel stays FIXED
+              Swiss precision - zero unnecessary movement
+          ═══════════════════════════════════════════════════════════════════ */}
           <div
+            className="flex items-center"
             style={{
               marginTop: 16,
-              opacity: isExpanded ? 1 : 0,
-              maxHeight: isExpanded ? 40 : 0,
-              overflow: 'hidden',
-              transition: 'all 500ms cubic-bezier(0.22, 0.61, 0.36, 1)',
-              transitionDelay: isExpanded ? '80ms' : '0ms',
+              height: 36,
             }}
           >
             <button
               onClick={handleSync}
-              className="group flex items-center gap-2.5 px-3 py-2 rounded-full w-full transition-all duration-200"
+              className="group relative flex items-center"
               style={{
-                background: 'rgba(120, 113, 108, 0.05)',
+                width: isExpanded ? '100%' : 52,
+                height: 36,
+                borderRadius: 18,
+                padding: 0,
+                background: isExpanded
+                  ? 'rgba(120, 113, 108, 0.045)'
+                  : 'transparent',
+                cursor: 'pointer',
+                transition: 'width 500ms cubic-bezier(0.22, 0.61, 0.36, 1), background 500ms cubic-bezier(0.22, 0.61, 0.36, 1)',
               }}
             >
+              {/* ─────────── THE STATUS JEWEL ─────────── */}
+              {/* Fixed 52px container - jewel is ALWAYS centered here, never moves */}
               <div
-                className="w-2 h-2 rounded-full transition-all duration-300"
-                style={{
-                  backgroundColor: isSyncing ? COLORS.statusSyncing : COLORS.statusSynced,
-                  boxShadow: `0 0 ${isSyncing ? '8px' : '6px'} ${isSyncing ? 'rgba(245, 158, 11, 0.5)' : 'rgba(34, 197, 94, 0.4)'}`,
-                }}
-              />
-              <span
-                className="text-[13px] font-medium tracking-[-0.01em] transition-colors duration-200 group-hover:text-stone-800"
-                style={{ color: COLORS.textSecondary }}
+                className="relative flex-shrink-0 flex items-center justify-center"
+                style={{ width: 52, height: 36 }}
               >
-                {isSyncing ? 'Syncing...' : 'Synced 2h ago'}
-              </span>
-              <RefreshCw
-                size={13}
-                strokeWidth={2}
-                className={`ml-auto transition-all duration-200 group-hover:text-stone-600 ${isSyncing ? 'animate-spin' : ''}`}
-                style={{ color: COLORS.textMuted }}
-              />
+                {/* Outer bezel - architectural frame */}
+                <div
+                  className="absolute transition-all duration-300"
+                  style={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: '50%',
+                    background: `conic-gradient(
+                      from 0deg,
+                      ${isSyncing ? 'rgba(245, 158, 11, 0.12)' : 'rgba(34, 197, 94, 0.08)'} 0deg,
+                      ${isSyncing ? 'rgba(245, 158, 11, 0.03)' : 'rgba(34, 197, 94, 0.02)'} 180deg,
+                      ${isSyncing ? 'rgba(245, 158, 11, 0.12)' : 'rgba(34, 197, 94, 0.08)'} 360deg
+                    )`,
+                    boxShadow: isSyncing
+                      ? 'inset 0 0 0 1px rgba(245, 158, 11, 0.15)'
+                      : 'inset 0 0 0 1px rgba(34, 197, 94, 0.1)',
+                    animation: isSyncing ? 'bezelRotate 3s linear infinite' : 'none',
+                  }}
+                />
+
+                {/* Middle glow layer - ambient luminosity */}
+                <div
+                  className="absolute transition-all duration-300"
+                  style={{
+                    width: 18,
+                    height: 18,
+                    borderRadius: '50%',
+                    background: isSyncing
+                      ? 'radial-gradient(circle, rgba(245, 158, 11, 0.25) 0%, rgba(245, 158, 11, 0) 70%)'
+                      : 'radial-gradient(circle, rgba(34, 197, 94, 0.2) 0%, rgba(34, 197, 94, 0) 70%)',
+                    animation: isSyncing ? 'glowPulse 2s ease-in-out infinite' : 'none',
+                  }}
+                />
+
+                {/* Core status gem - the heart */}
+                <div
+                  className="absolute transition-all duration-300"
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    background: isSyncing
+                      ? `radial-gradient(circle at 30% 30%, #fcd34d 0%, ${COLORS.statusSyncing} 50%, #d97706 100%)`
+                      : `radial-gradient(circle at 30% 30%, #4ade80 0%, ${COLORS.statusSynced} 50%, #16a34a 100%)`,
+                    boxShadow: isSyncing
+                      ? '0 0 12px 2px rgba(245, 158, 11, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.3)'
+                      : '0 0 8px 1px rgba(34, 197, 94, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.25)',
+                    animation: isSyncing ? 'corePulse 2s ease-in-out infinite' : 'none',
+                  }}
+                />
+              </div>
+
+              {/* ─────────── EXPANDED CONTENT ─────────── */}
+              {/* Text and icon reveal to the right of the fixed jewel */}
+              <div
+                className="flex items-center justify-between flex-1 overflow-hidden"
+                style={{
+                  opacity: isExpanded ? 1 : 0,
+                  transition: 'opacity 400ms cubic-bezier(0.22, 0.61, 0.36, 1)',
+                  transitionDelay: isExpanded ? '150ms' : '0ms',
+                }}
+              >
+                <span
+                  className="text-[13px] font-medium tracking-[-0.01em] whitespace-nowrap group-hover:text-stone-800 transition-colors duration-200"
+                  style={{ color: COLORS.textSecondary }}
+                >
+                  {isSyncing ? 'Syncing...' : 'Synced 2h ago'}
+                </span>
+
+                <RefreshCw
+                  size={13}
+                  strokeWidth={2}
+                  className={`mr-3 transition-colors duration-200 group-hover:text-stone-600 ${isSyncing ? 'animate-spin' : ''}`}
+                  style={{ color: COLORS.textMuted }}
+                />
+              </div>
             </button>
           </div>
         </div>
@@ -627,6 +684,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
             opacity: 1;
             transform: translateX(0);
           }
+        }
+
+        /* Luxury horology-inspired animations */
+        @keyframes bezelRotate {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+
+        @keyframes glowPulse {
+          0%, 100% { opacity: 0.7; transform: scale(1); }
+          50% { opacity: 1; transform: scale(1.15); }
+        }
+
+        @keyframes corePulse {
+          0%, 100% { box-shadow: 0 0 10px 2px rgba(245, 158, 11, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.3); }
+          50% { box-shadow: 0 0 16px 4px rgba(245, 158, 11, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.4); }
         }
       `}</style>
     </>
