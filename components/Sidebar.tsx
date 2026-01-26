@@ -8,17 +8,16 @@ import {
   X,
   BarChart3,
   MessageSquare,
-  ChevronRight,
-  Lock,
   Settings,
   Sliders,
   RefreshCw,
+  ChevronDown,
 } from 'lucide-react';
 
 // =============================================================================
-// SIDEBAR NAVIGATION
-// Smooth hover-to-expand with fixed icon rail architecture
-// Icons never move - only the expanded content panel slides in
+// GLASSMORPHIC FLOATING SIDEBAR
+// Warm translucent glass with blur, inspired by the Cortexa LP navigation pill.
+// Floats over content with pill-shaped edges and sophisticated shadows.
 // =============================================================================
 
 interface SidebarProps {
@@ -28,180 +27,74 @@ interface SidebarProps {
   setIsCollapsed?: (collapsed: boolean) => void;
 }
 
-// Dimensions - icon rail is always 72px, expanded adds 228px more
-const ICON_RAIL_WIDTH = 72;
-const EXPANDED_CONTENT_WIDTH = 228;
-const COLLAPSED_WIDTH = ICON_RAIL_WIDTH;
-const EXPANDED_WIDTH = ICON_RAIL_WIDTH + EXPANDED_CONTENT_WIDTH;
+const NAV_ITEMS = [
+  {
+    path: '/dashboard',
+    label: 'Overview',
+    icon: LayoutGrid,
+    subItems: [
+      { id: 'summary', label: 'Summary' },
+      { id: 'compare', label: 'Compare' },
+    ]
+  },
+  {
+    path: '/clinician-overview',
+    label: 'Clinicians',
+    icon: Users,
+    subItems: [
+      { id: 'ranking', label: 'Spotlight' },
+      { id: 'details', label: 'Details' },
+    ]
+  },
+  {
+    path: '/practice-analysis',
+    label: 'Practice',
+    icon: BarChart3,
+    subItems: [
+      { id: 'clients', label: 'Roster' },
+      { id: 'consultations', label: 'Consults' },
+      { id: 'financial', label: 'Financial' },
+      { id: 'sessions', label: 'Sessions' },
+      { id: 'retention', label: 'Retention' },
+      { id: 'insurance', label: 'Insurance' },
+    ]
+  },
+  {
+    path: '/consultations',
+    label: 'Pipeline',
+    icon: MessageSquare,
+  },
+];
 
-// Timing
-const COLLAPSE_DELAY = 250;
-const TRANSITION_DURATION = '200ms';
-const TRANSITION_EASING = 'cubic-bezier(0.25, 0.1, 0.25, 1)';
+const FOOTER_ITEMS = [
+  { path: '/components', label: 'Components', icon: LayoutGrid },
+  { path: '/configure', label: 'Configure', icon: Sliders },
+];
 
-// Navigation structure
-const NAVIGATION = {
-  main: [
-    {
-      path: '/dashboard',
-      label: 'Overview',
-      icon: LayoutGrid,
-      description: 'Key metrics & insights',
-      subItems: [
-        { id: 'summary', label: 'Summary' },
-        { id: 'compare', label: 'Quick Compare' },
-      ]
-    },
-    {
-      path: '/clinician-overview',
-      label: 'Clinicians',
-      icon: Users,
-      description: 'Team performance',
-      subItems: [
-        { id: 'ranking', label: 'Spotlight' },
-        { id: 'details', label: 'Individual Details' },
-      ]
-    },
-    {
-      path: '/practice-analysis',
-      label: 'Practice',
-      icon: BarChart3,
-      description: 'Operations & analytics',
-      subItems: [
-        { id: 'clients', label: 'Client Roster' },
-        { id: 'consultations', label: 'Consultations' },
-        { id: 'financial', label: 'Financial' },
-        { id: 'sessions', label: 'Sessions' },
-        { id: 'capacity-client', label: 'Clients' },
-        { id: 'retention', label: 'Retention' },
-        { id: 'insurance', label: 'Insurance' },
-        { id: 'admin', label: 'Admin' },
-      ]
-    },
-  ],
-  footer: [
-    { path: '/components', label: 'Components', icon: LayoutGrid },
-    { path: '/configure', label: 'Configure', icon: Sliders },
-  ],
-  secondary: [
-    { path: '/consultations', label: 'Consultations', icon: MessageSquare, description: 'Client pipeline' },
-  ],
-  upcoming: [
-    { label: 'Accounting', icon: Calculator },
-    { label: 'Payroll', icon: Banknote },
-  ],
-};
+const UPCOMING = [
+  { label: 'Accounting', icon: Calculator },
+  { label: 'Payroll', icon: Banknote },
+];
 
-// =============================================================================
-// NAV ITEM COMPONENT - Refined styling matching reference design
-// =============================================================================
-
-interface NavItemProps {
-  path: string;
-  label: string;
-  icon: React.ElementType;
-  description?: string;
-  isExpanded: boolean;
-  hasSubItems?: boolean;
-  isActive?: boolean;
-  onMobileClose?: () => void;
-  size?: 'normal' | 'small';
-}
-
-const NavItem: React.FC<NavItemProps> = ({
-  path,
-  label,
-  icon: Icon,
-  description,
-  isExpanded,
-  hasSubItems,
-  isActive: isActiveProp,
-  onMobileClose,
-  size = 'normal',
-}) => {
-  const iconSize = size === 'small' ? 20 : 22;
-
-  return (
-    <NavLink
-      to={path}
-      onClick={onMobileClose}
-      className="group block"
-      title={!isExpanded ? label : undefined}
-    >
-      {({ isActive: isRouteActive }) => {
-        const isActive = isActiveProp !== undefined ? isActiveProp : isRouteActive;
-
-        return (
-          <div
-            className={`
-              relative mx-3 rounded-xl
-              transition-all duration-200
-              ${isActive
-                ? 'bg-[#1f1e1c]'
-                : 'hover:bg-white/[0.04]'
-              }
-            `}
-            style={{
-              border: isActive ? '1px solid rgba(180, 140, 80, 0.5)' : '1px solid transparent',
-              boxShadow: isActive ? 'inset 0 1px 0 rgba(255,255,255,0.03)' : 'none',
-            }}
-          >
-            <div className={`flex items-center ${hasSubItems && isActive ? 'py-3' : 'h-12'}`}>
-              {/* Icon - fixed position, never moves */}
-              <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
-                <Icon
-                  size={iconSize}
-                  strokeWidth={1.8}
-                  className={`transition-colors duration-200 ${
-                    isActive ? 'text-amber-400' : 'text-stone-500 group-hover:text-stone-300'
-                  }`}
-                />
-              </div>
-
-              {/* Expanded content - slides in with opacity */}
-              <div
-                className="flex-1 min-w-0 flex items-center pr-4 overflow-hidden"
-                style={{
-                  opacity: isExpanded ? 1 : 0,
-                  transition: `opacity ${TRANSITION_DURATION} ${TRANSITION_EASING}`,
-                }}
-              >
-                <div className="flex-1 min-w-0">
-                  <div
-                    className={`text-[18px] font-semibold tracking-[-0.01em] whitespace-nowrap transition-colors duration-200 ${
-                      isActive ? 'text-white' : 'text-stone-100 group-hover:text-white'
-                    }`}
-                  >
-                    {label}
-                  </div>
-                  {/* Show description for non-active items that have no sub-items */}
-                  {description && !isActive && isExpanded && (
-                    <div
-                      className="text-[13px] text-stone-400 truncate mt-0.5 transition-colors duration-200 group-hover:text-stone-300"
-                    >
-                      {description}
-                    </div>
-                  )}
-                </div>
-                {/* Dropdown chevron for active items with sub-items */}
-                {hasSubItems && isActive && (
-                  <ChevronRight
-                    size={18}
-                    className="text-stone-500 rotate-90 flex-shrink-0 ml-2"
-                  />
-                )}
-              </div>
-            </div>
-          </div>
-        );
-      }}
-    </NavLink>
-  );
-};
-
-// =============================================================================
-// MAIN SIDEBAR COMPONENT
-// =============================================================================
+// Glassmorphic style constants (matching LP navigation pill)
+// READABILITY FIX: Higher opacity when expanded for text contrast
+const GLASS_STYLES = {
+  collapsed: {
+    background: 'rgba(253, 252, 251, 0.65)',
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
+    border: '1px solid rgba(168, 154, 140, 0.25)',
+    boxShadow: '0 4px 20px -4px rgba(120, 100, 80, 0.1), 0 8px 32px -8px rgba(0, 0, 0, 0.06)',
+  },
+  expanded: {
+    // Higher opacity (0.88) ensures text is readable while maintaining glass feel
+    background: 'rgba(253, 252, 251, 0.88)',
+    backdropFilter: 'blur(24px)',
+    WebkitBackdropFilter: 'blur(24px)',
+    border: '1px solid rgba(168, 154, 140, 0.3)',
+    boxShadow: '0 8px 32px -4px rgba(120, 100, 80, 0.15), 0 16px 48px -8px rgba(0, 0, 0, 0.1)',
+  },
+} as const;
 
 export const Sidebar: React.FC<SidebarProps> = ({
   mobileMenuOpen = false,
@@ -214,7 +107,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const currentPath = location.pathname;
   const collapseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Hover handlers with delayed collapse
   const handleMouseEnter = useCallback(() => {
     if (collapseTimeoutRef.current) {
       clearTimeout(collapseTimeoutRef.current);
@@ -226,23 +118,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const handleMouseLeave = useCallback(() => {
     collapseTimeoutRef.current = setTimeout(() => {
       setIsCollapsed?.(true);
-    }, COLLAPSE_DELAY);
+    }, 400);
   }, [setIsCollapsed]);
 
   const isExpanded = mobileMenuOpen || !isCollapsed;
-
-  // Data sync state
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [lastSyncTime] = useState(() => {
-    const time = new Date();
-    time.setHours(time.getHours() - 2);
-    return time;
-  });
-
-  const handleRefresh = () => {
-    setIsSyncing(true);
-    setTimeout(() => setIsSyncing(false), 3000);
-  };
+  const glassStyle = isExpanded ? GLASS_STYLES.expanded : GLASS_STYLES.collapsed;
 
   const handleSubItemClick = (itemId: string) => {
     const newParams = new URLSearchParams(searchParams);
@@ -258,452 +138,522 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const closeMobile = () => setMobileMenuOpen?.(false);
 
+  // Sync status
+  const [isSyncing, setIsSyncing] = useState(false);
+  const handleSync = () => {
+    setIsSyncing(true);
+    setTimeout(() => setIsSyncing(false), 2000);
+  };
+
   return (
     <>
-      {/* Mobile overlay */}
+      {/* Mobile backdrop - frosted glass effect */}
       {mobileMenuOpen && (
         <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+          className="fixed inset-0 z-40 lg:hidden"
           onClick={closeMobile}
+          style={{
+            background: 'rgba(254, 250, 245, 0.6)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+          }}
         />
       )}
 
+      {/* Floating Glassmorphic Sidebar */}
       <aside
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         className={`
-          fixed inset-y-0 left-0 z-50
-          ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
-          lg:translate-x-0
-          flex flex-col
+          fixed z-50 flex flex-col
+          ${mobileMenuOpen ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0'}
+          lg:translate-x-0 lg:opacity-100
         `}
         style={{
-          width: mobileMenuOpen ? EXPANDED_WIDTH : (isExpanded ? EXPANDED_WIDTH : COLLAPSED_WIDTH),
-          background: 'linear-gradient(180deg, #1a1918 0%, #141312 100%)',
-          transition: `width ${TRANSITION_DURATION} ${TRANSITION_EASING}`,
-          boxShadow: isExpanded
-            ? '4px 0 32px rgba(0, 0, 0, 0.3), 1px 0 0 rgba(255,255,255,0.03)'
-            : '1px 0 0 rgba(255,255,255,0.05)',
+          // Floating position with margin from edges
+          top: 12,
+          left: 12,
+          bottom: 12,
+          width: isExpanded ? 280 : 68,
+          // Pill shape - rounded on all sides since it's floating
+          borderRadius: 24,
+          // Glassmorphic styling
+          ...glassStyle,
+          // Smooth transitions
+          transition: `
+            width 400ms cubic-bezier(0.22, 0.61, 0.36, 1),
+            transform 400ms cubic-bezier(0.22, 0.61, 0.36, 1),
+            opacity 300ms ease,
+            background 400ms ease,
+            box-shadow 400ms ease,
+            border 400ms ease
+          `,
         }}
       >
+        {/* Inner glow overlay for depth + frosted edge highlights */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            borderRadius: 24,
+            background: `
+              linear-gradient(180deg,
+                rgba(255, 255, 255, 0.5) 0%,
+                rgba(255, 255, 255, 0.15) 8%,
+                rgba(255, 255, 255, 0) 25%,
+                rgba(255, 255, 255, 0) 75%,
+                rgba(250, 248, 245, 0.2) 100%
+              )
+            `,
+          }}
+        />
+
+        {/* Subtle inner border for glass edge definition */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            borderRadius: 24,
+            boxShadow: 'inset 0 1px 1px rgba(255, 255, 255, 0.4), inset 0 -1px 1px rgba(168, 154, 140, 0.1)',
+          }}
+        />
+
         {/* Mobile close button */}
         <button
-          className="lg:hidden absolute top-4 right-4 w-10 h-10 flex items-center justify-center text-stone-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors z-10"
+          className="lg:hidden absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-stone-500 hover:text-stone-800 rounded-full transition-all z-10"
           onClick={closeMobile}
+          style={{
+            background: 'rgba(168, 154, 140, 0.1)',
+            backdropFilter: 'blur(8px)',
+          }}
         >
-          <X size={20} />
+          <X size={16} strokeWidth={2} />
         </button>
 
-        {/* ==================== HEADER ==================== */}
-        <div className="pt-6 pb-4">
-          {/* Logo row */}
-          <div className="flex items-center h-12 mx-3">
-            {/* Logo - fixed position */}
-            <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center"
+        {/* ══════════════ HEADER ══════════════ */}
+        <div
+          className="flex-shrink-0 relative"
+          style={{
+            padding: isExpanded ? '20px 16px 14px' : '20px 10px 14px',
+            transition: 'padding 400ms cubic-bezier(0.22, 0.61, 0.36, 1)',
+          }}
+        >
+          {/* Logo + Brand */}
+          <div className="flex items-center gap-2">
+            <div className="relative flex-shrink-0">
+              <img
+                src="/cortexa-mark.png"
+                alt="Cortexa"
+                className="w-12 h-12 object-contain"
                 style={{
-                  background: 'linear-gradient(135deg, #fcd34d 0%, #f59e0b 100%)',
-                  boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)',
+                  filter: 'drop-shadow(0 2px 8px rgba(120, 100, 80, 0.12))',
                 }}
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="#1a1918"/>
-                  <path d="M2 17L12 22L22 17" stroke="#1a1918" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M2 12L12 17L22 12" stroke="#1a1918" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </div>
+              />
             </div>
 
-            {/* Brand name - fades in */}
             <div
-              className="flex-1 overflow-hidden"
               style={{
                 opacity: isExpanded ? 1 : 0,
-                transition: `opacity ${TRANSITION_DURATION} ${TRANSITION_EASING}`,
+                transform: isExpanded ? 'translateX(0)' : 'translateX(-8px)',
+                transition: 'all 350ms cubic-bezier(0.22, 0.61, 0.36, 1)',
+                transitionDelay: isExpanded ? '100ms' : '0ms',
+                pointerEvents: isExpanded ? 'auto' : 'none',
               }}
             >
               <span
-                className="text-2xl font-semibold tracking-tight text-stone-50 whitespace-nowrap"
-                style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
+                className="text-[22px] font-medium tracking-[-0.02em] text-stone-800"
+                style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
               >
                 Cortexa
               </span>
             </div>
           </div>
 
-          {/* Data freshness indicator - refined status badge */}
-          <div className="mt-4 mx-3 overflow-hidden">
-            <div
-              className="group flex items-center h-11 rounded-lg"
-              style={{
-                /* Fixed width prevents layout shift during transition */
-                width: `${EXPANDED_CONTENT_WIDTH + ICON_RAIL_WIDTH - 24}px`,
-                background: isExpanded
-                  ? 'linear-gradient(135deg, rgba(52, 211, 153, 0.06) 0%, rgba(52, 211, 153, 0.02) 100%)'
-                  : 'transparent',
-                border: isExpanded ? '1px solid rgba(52, 211, 153, 0.12)' : '1px solid transparent',
-                transition: `background ${TRANSITION_DURATION} ${TRANSITION_EASING}, border ${TRANSITION_DURATION} ${TRANSITION_EASING}`,
-              }}
+          {/* Sync status row */}
+          <div
+            style={{
+              marginTop: 14,
+              paddingTop: 12,
+              borderTop: '1px solid rgba(168, 154, 140, 0.15)',
+              opacity: isExpanded ? 1 : 0,
+              maxHeight: isExpanded ? 50 : 0,
+              overflow: 'hidden',
+              transition: 'all 350ms cubic-bezier(0.22, 0.61, 0.36, 1)',
+              transitionDelay: isExpanded ? '50ms' : '0ms',
+            }}
+          >
+            <button
+              onClick={handleSync}
+              className="group flex items-center gap-2 w-full"
             >
-              {/* Dot - fixed in icon rail, never moves */}
-              <div className="w-12 h-11 flex items-center justify-center flex-shrink-0">
-                <div className="relative">
-                  {/* Soft glow */}
-                  <div
-                    className="absolute -inset-2 rounded-full opacity-60"
-                    style={{
-                      background: 'radial-gradient(circle, rgba(52, 211, 153, 0.4) 0%, transparent 70%)',
-                    }}
-                  />
-                  {/* Dot */}
-                  <div
-                    className="relative w-2 h-2 rounded-full"
-                    style={{
-                      backgroundColor: '#34d399',
-                      boxShadow: '0 0 8px rgba(52, 211, 153, 0.6)',
-                    }}
-                  />
-                </div>
+              <div className="relative">
+                <div
+                  className="w-2 h-2 rounded-full"
+                  style={{
+                    backgroundColor: isSyncing ? '#f59e0b' : '#10b981',
+                    boxShadow: `0 0 8px ${isSyncing ? 'rgba(245, 158, 11, 0.5)' : 'rgba(16, 185, 129, 0.4)'}`,
+                  }}
+                />
               </div>
-
-              {/* Content - fixed width, fades in/out, clipped by parent */}
-              <div
-                className="pr-3 whitespace-nowrap"
-                style={{
-                  width: `${EXPANDED_CONTENT_WIDTH - 24}px`,
-                  opacity: isExpanded ? 1 : 0,
-                  transition: `opacity ${TRANSITION_DURATION} ${TRANSITION_EASING}`,
-                }}
+              <span
+                className="text-[12px] text-stone-500 group-hover:text-stone-700 transition-colors"
+                style={{ fontFamily: "'Suisse Intl', system-ui, sans-serif" }}
               >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="text-[13px] font-medium text-stone-300">
-                      Data synced
-                    </span>
-                    <span className="text-[12px] text-stone-600 ml-2">
-                      2h ago
-                    </span>
-                  </div>
-                  {/* Subtle refresh hint on hover */}
-                  <div
-                    className="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                  >
-                    <RefreshCw
-                      size={13}
-                      className="text-stone-600 hover:text-emerald-400 cursor-pointer transition-colors"
-                      onClick={handleRefresh}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
+                {isSyncing ? 'Syncing...' : 'Synced 2h ago'}
+              </span>
+              <RefreshCw
+                size={11}
+                className={`ml-auto text-stone-400 group-hover:text-stone-600 transition-all ${isSyncing ? 'animate-spin' : ''}`}
+              />
+            </button>
           </div>
         </div>
 
-        {/* ==================== NAVIGATION ==================== */}
-        <nav className="flex-1 overflow-y-auto overflow-x-hidden py-2">
-          {/* Section label */}
-          <div
-            className="h-10 flex items-center mx-6 mb-3"
-            style={{
-              opacity: isExpanded ? 1 : 0,
-              transition: `opacity ${TRANSITION_DURATION} ${TRANSITION_EASING}`,
-            }}
-          >
-            <span
-              className="text-[12px] font-semibold uppercase tracking-[0.2em]"
-              style={{ color: 'rgb(180, 140, 80)' }}
-            >
-              Analytics
-            </span>
-          </div>
-
-          {/* Main nav items */}
-          <div className="space-y-2">
-            {NAVIGATION.main.map((item) => {
+        {/* ══════════════ NAVIGATION ══════════════ */}
+        <nav
+          className="flex-1 overflow-y-auto overflow-x-hidden relative"
+          style={{ padding: '0 8px' }}
+        >
+          <div className="space-y-1">
+            {NAV_ITEMS.map((item) => {
               const isActive = currentPath === item.path;
               const activeSubItem = getActiveSubItem(item.path, item.subItems);
               const hasSubItems = item.subItems && item.subItems.length > 0;
               const Icon = item.icon;
 
               return (
-                <div key={item.path} className="mx-3 overflow-hidden">
-                  {/* Custom nav item with integrated sub-items */}
+                <div key={item.path}>
                   <NavLink
                     to={item.path}
                     onClick={closeMobile}
                     className="group block"
-                    title={!isExpanded ? item.label : undefined}
                   >
                     <div
-                      className={`
-                        relative rounded-xl
-                        ${isActive
-                          ? 'bg-[#1f1e1c]'
-                          : 'hover:bg-white/[0.04]'
-                        }
-                      `}
+                      className="relative flex items-center overflow-hidden"
                       style={{
-                        /* Fixed width prevents layout shift during transition */
-                        width: `${EXPANDED_WIDTH - 24}px`,
-                        border: isActive && isExpanded ? '1px solid rgba(180, 140, 80, 0.5)' : '1px solid transparent',
-                        boxShadow: isActive && isExpanded ? 'inset 0 1px 0 rgba(255,255,255,0.03)' : 'none',
+                        height: 48,
+                        borderRadius: 16,
+                        background: isActive
+                          ? 'rgba(245, 158, 11, 0.12)'
+                          : 'transparent',
+                        transition: 'background 250ms ease',
                       }}
                     >
-                      {/* Main item row */}
-                      <div className="flex items-center h-12">
-                        {/* Icon - fixed position */}
-                        <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
-                          <Icon
-                            size={22}
-                            strokeWidth={1.8}
-                            className={`transition-colors duration-200 ${
-                              isActive ? 'text-amber-400' : 'text-stone-500 group-hover:text-stone-300'
-                            }`}
-                          />
-                        </div>
+                      {/* Hover state - subtle glass effect */}
+                      <div
+                        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                        style={{
+                          background: isActive ? 'transparent' : 'rgba(168, 154, 140, 0.08)',
+                          borderRadius: 16,
+                        }}
+                      />
 
-                        {/* Expanded content - fixed width */}
+                      {/* Active indicator - amber gradient underline */}
+                      {isActive && (
                         <div
-                          className="pr-4 whitespace-nowrap"
+                          className="absolute bottom-2 left-3 right-3 h-[2px] rounded-full"
                           style={{
-                            width: `${EXPANDED_CONTENT_WIDTH - 16}px`,
-                            opacity: isExpanded ? 1 : 0,
-                            transition: `opacity ${TRANSITION_DURATION} ${TRANSITION_EASING}`,
+                            background: 'linear-gradient(90deg, #f59e0b 0%, #d97706 100%)',
+                            boxShadow: '0 0 8px rgba(245, 158, 11, 0.3)',
                           }}
-                        >
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <div
-                                className={`text-[18px] font-semibold tracking-[-0.01em] transition-colors duration-200 ${
-                                  isActive ? 'text-white' : 'text-stone-100 group-hover:text-white'
-                                }`}
-                              >
-                                {item.label}
-                              </div>
-                              {/* Description for non-active items */}
-                              {item.description && !isActive && (
-                                <div
-                                  className="text-[13px] text-stone-400 mt-0.5 transition-colors duration-200 group-hover:text-stone-300"
-                                >
-                                  {item.description}
-                                </div>
-                              )}
-                            </div>
-                            {/* Dropdown chevron */}
-                            {hasSubItems && isActive && (
-                              <ChevronRight
-                                size={18}
-                                className="text-stone-500 rotate-90 flex-shrink-0 ml-2"
-                              />
-                            )}
-                          </div>
-                        </div>
+                        />
+                      )}
+
+                      {/* Icon */}
+                      <div
+                        className="flex items-center justify-center flex-shrink-0 relative z-10"
+                        style={{ width: 52, height: 48 }}
+                      >
+                        <Icon
+                          size={20}
+                          strokeWidth={1.75}
+                          style={{
+                            color: isActive ? '#d97706' : '#78716c',
+                            transition: 'color 200ms ease',
+                          }}
+                          className="group-hover:text-stone-700"
+                        />
                       </div>
 
-                      {/* Sub-items inside the bordered container */}
-                      {isActive && hasSubItems && isExpanded && (
-                        <div
-                          className="pb-3 pl-4 pr-3"
+                      {/* Label */}
+                      <div
+                        className="flex-1 flex items-center justify-between pr-3 relative z-10"
+                        style={{
+                          opacity: isExpanded ? 1 : 0,
+                          transform: isExpanded ? 'translateX(0)' : 'translateX(-4px)',
+                          transition: 'all 250ms cubic-bezier(0.22, 0.61, 0.36, 1)',
+                          transitionDelay: isExpanded ? '80ms' : '0ms',
+                          pointerEvents: isExpanded ? 'auto' : 'none',
+                        }}
+                      >
+                        <span
+                          className="text-[14px] font-semibold tracking-[-0.01em]"
                           style={{
-                            opacity: isExpanded ? 1 : 0,
-                            transition: `opacity 200ms ease`,
+                            color: isActive ? '#292524' : '#57534e',
+                            fontFamily: "'Suisse Intl', system-ui, sans-serif",
+                            transition: 'color 200ms ease',
                           }}
                         >
-                          <div className="ml-8 border-l border-stone-700/50 pl-0">
-                            {item.subItems!.map((subItem) => {
-                              const isSubActive = activeSubItem === subItem.id;
-                              return (
-                                <button
-                                  key={subItem.id}
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    handleSubItemClick(subItem.id);
-                                  }}
-                                  className={`
-                                    w-full text-left pl-4 pr-3 py-2.5 text-[15px] font-medium
-                                    relative whitespace-nowrap tracking-[-0.01em]
-                                    transition-colors duration-150
-                                    ${isSubActive
-                                      ? 'text-stone-50'
-                                      : 'text-stone-400 hover:text-stone-100'
-                                    }
-                                  `}
-                                  style={{
-                                    marginLeft: '-1px',
-                                    borderLeft: isSubActive ? '2px solid rgb(180, 140, 80)' : '2px solid transparent',
-                                  }}
-                                >
-                                  {subItem.label}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
+                          {item.label}
+                        </span>
+
+                        {hasSubItems && (
+                          <ChevronDown
+                            size={14}
+                            style={{
+                              color: isActive ? '#d97706' : '#a8a29e',
+                              transform: isActive ? 'rotate(180deg)' : 'rotate(0deg)',
+                              transition: 'all 250ms ease',
+                            }}
+                          />
+                        )}
+                      </div>
                     </div>
                   </NavLink>
+
+                  {/* Sub-items with staggered animation */}
+                  {hasSubItems && isActive && isExpanded && (
+                    <div
+                      className="mt-1 mb-2"
+                      style={{
+                        marginLeft: 24,
+                        paddingLeft: 18,
+                        borderLeft: '1px solid rgba(168, 154, 140, 0.18)',
+                      }}
+                    >
+                      {item.subItems!.map((sub, idx) => {
+                        const isSubActive = activeSubItem === sub.id;
+                        return (
+                          <button
+                            key={sub.id}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleSubItemClick(sub.id);
+                            }}
+                            className="group/sub w-full text-left py-2 flex items-center gap-2"
+                            style={{
+                              opacity: 1,
+                              animation: `fadeSlideIn 250ms cubic-bezier(0.22, 0.61, 0.36, 1) ${idx * 40}ms both`,
+                            }}
+                          >
+                            {/* Active dot with glow */}
+                            <div
+                              className="w-1.5 h-1.5 rounded-full transition-all duration-200"
+                              style={{
+                                backgroundColor: isSubActive ? '#d97706' : 'transparent',
+                                border: isSubActive ? 'none' : '1.5px solid #a8a29e',
+                                transform: isSubActive ? 'scale(1)' : 'scale(0.85)',
+                                boxShadow: isSubActive ? '0 0 6px rgba(217, 119, 6, 0.4)' : 'none',
+                              }}
+                            />
+                            <span
+                              className="text-[13px] transition-colors duration-200"
+                              style={{
+                                color: isSubActive ? '#292524' : '#78716c',
+                                fontFamily: "'Suisse Intl', system-ui, sans-serif",
+                                fontWeight: isSubActive ? 600 : 500,
+                              }}
+                            >
+                              {sub.label}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               );
             })}
           </div>
 
-          {/* Operations section */}
-          <div className="mt-6 pt-4 border-t border-stone-800/50">
-            {/* Section label */}
-            <div
-              className="h-10 flex items-center mx-6 mb-3"
-              style={{
-                opacity: isExpanded ? 1 : 0,
-                transition: `opacity ${TRANSITION_DURATION} ${TRANSITION_EASING}`,
-              }}
-            >
-              <span
-                className="text-[12px] font-semibold uppercase tracking-[0.2em]"
-                style={{ color: 'rgb(6, 182, 212)' }}
-              >
-                Operations
-              </span>
-            </div>
-
-            {/* Secondary nav items */}
-            <div className="space-y-1">
-              {NAVIGATION.secondary.map((item) => (
-                <NavItem
-                  key={item.path}
-                  path={item.path}
-                  label={item.label}
-                  icon={item.icon}
-                  description={item.description}
-                  isExpanded={isExpanded}
-                  onMobileClose={closeMobile}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Coming Soon section */}
+          {/* Coming Soon - muted section */}
           <div
-            className="mt-6 pt-4 border-t border-stone-800/50"
+            className="mt-6 pt-4"
             style={{
-              opacity: isExpanded ? 1 : 0,
-              pointerEvents: isExpanded ? 'auto' : 'none',
-              transition: `opacity ${TRANSITION_DURATION} ${TRANSITION_EASING}`,
+              borderTop: '1px solid rgba(168, 154, 140, 0.12)',
+              opacity: isExpanded ? 0.5 : 0,
+              transition: 'opacity 350ms ease',
             }}
           >
-            <div className="h-8 flex items-center mx-3 mb-2">
-              <div className="w-12 flex-shrink-0" />
-              <div className="flex items-center gap-2">
-                <span className="text-[11px] font-bold uppercase tracking-[0.15em] text-stone-500">
-                  Coming Soon
-                </span>
-                <Lock size={12} className="text-stone-500" />
-              </div>
+            <div
+              className="px-3 mb-2 text-[10px] font-semibold tracking-[0.1em] uppercase"
+              style={{
+                color: '#a8a29e',
+                fontFamily: "'Suisse Intl', system-ui, sans-serif",
+              }}
+            >
+              Coming Soon
             </div>
-
-            <div className="space-y-1">
-              {NAVIGATION.upcoming.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <div
-                    key={item.label}
-                    className="flex items-center h-10 mx-3 rounded-lg cursor-not-allowed hover:bg-white/[0.02] transition-colors"
-                  >
-                    <div className="w-12 h-10 flex items-center justify-center flex-shrink-0">
-                      <Icon size={18} strokeWidth={1.5} className="text-stone-500" />
-                    </div>
-                    <span className="text-[14px] text-stone-400">{item.label}</span>
+            {UPCOMING.map((item) => {
+              const Icon = item.icon;
+              return (
+                <div
+                  key={item.label}
+                  className="flex items-center h-10 rounded-xl cursor-not-allowed"
+                >
+                  <div className="w-[52px] flex items-center justify-center">
+                    <Icon size={18} strokeWidth={1.5} className="text-stone-400" />
                   </div>
-                );
-              })}
-            </div>
+                  <span
+                    className="text-[13px] text-stone-400"
+                    style={{ fontFamily: "'Suisse Intl', system-ui, sans-serif" }}
+                  >
+                    {item.label}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </nav>
 
-        {/* ==================== FOOTER ==================== */}
-        <div className="pb-4 border-t border-stone-800/50">
+        {/* ══════════════ FOOTER ══════════════ */}
+        <div
+          className="flex-shrink-0 relative"
+          style={{
+            padding: '12px 8px 14px',
+            borderTop: '1px solid rgba(168, 154, 140, 0.12)',
+          }}
+        >
           {/* Footer nav items */}
-          <div className="pt-3 space-y-1">
-            {NAVIGATION.footer.map((item) => (
-              <NavItem
-                key={item.path}
-                path={item.path}
-                label={item.label}
-                icon={item.icon}
-                isExpanded={isExpanded}
-                onMobileClose={closeMobile}
-                size="small"
-              />
-            ))}
-          </div>
-
-          {/* User profile */}
-          <div className="mt-3 pt-3 border-t border-stone-800/50 mx-3">
-            <NavLink
-              to="/settings"
-              onClick={closeMobile}
-              title={!isExpanded ? 'Settings' : undefined}
-              className="group block"
-            >
-              {({ isActive }) => (
-                <div
-                  className={`
-                    flex items-center h-14 rounded-xl -mx-0
-                    transition-colors duration-200
-                    ${isActive ? 'bg-white/[0.08]' : 'hover:bg-white/[0.04]'}
-                  `}
+          <div className="space-y-0.5 mb-3">
+            {FOOTER_ITEMS.map((item) => {
+              const Icon = item.icon;
+              return (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  onClick={closeMobile}
+                  className="group flex items-center h-10 rounded-xl transition-all duration-200"
+                  style={{
+                    background: 'transparent',
+                  }}
                 >
-                  {/* Avatar - fixed position */}
-                  <div className="w-12 h-14 flex items-center justify-center flex-shrink-0">
-                    <div
-                      className={`
-                        w-9 h-9 rounded-lg overflow-hidden
-                        ring-2 transition-all duration-200
-                        ${isActive ? 'ring-amber-500/50' : 'ring-stone-700 group-hover:ring-stone-600'}
-                      `}
-                    >
-                      <img
-                        src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=100&h=100&fit=crop&crop=face"
-                        alt="Profile"
-                        className="w-full h-full object-cover"
+                  {({ isActive }) => (
+                    <>
+                      <div
+                        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-xl"
+                        style={{ background: 'rgba(168, 154, 140, 0.08)' }}
                       />
-                    </div>
-                  </div>
-
-                  {/* User info - fades in */}
-                  <div
-                    className="flex-1 min-w-0 flex items-center pr-3 overflow-hidden"
-                    style={{
-                      opacity: isExpanded ? 1 : 0,
-                      transition: `opacity ${TRANSITION_DURATION} ${TRANSITION_EASING}`,
-                    }}
-                  >
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-[14px] font-medium truncate transition-colors ${
-                        isActive ? 'text-white' : 'text-stone-200 group-hover:text-white'
-                      }`}>
-                        Sarah Mitchell
-                      </p>
-                      <p className="text-[12px] text-stone-500 truncate">
-                        Practice Admin
-                      </p>
-                    </div>
-                    <Settings
-                      size={16}
-                      strokeWidth={1.5}
-                      className={`flex-shrink-0 ml-2 transition-colors ${
-                        isActive ? 'text-amber-400' : 'text-stone-600 group-hover:text-stone-400'
-                      }`}
-                    />
-                  </div>
-                </div>
-              )}
-            </NavLink>
+                      <div className="w-[52px] flex items-center justify-center relative z-10">
+                        <Icon
+                          size={18}
+                          strokeWidth={1.5}
+                          style={{
+                            color: isActive ? '#d97706' : '#78716c',
+                            transition: 'color 200ms ease',
+                          }}
+                        />
+                      </div>
+                      <span
+                        className="text-[13px] relative z-10"
+                        style={{
+                          opacity: isExpanded ? 1 : 0,
+                          color: isActive ? '#292524' : '#78716c',
+                          fontFamily: "'Suisse Intl', system-ui, sans-serif",
+                          fontWeight: isActive ? 600 : 500,
+                          transition: 'opacity 250ms ease, color 200ms ease',
+                        }}
+                      >
+                        {item.label}
+                      </span>
+                    </>
+                  )}
+                </NavLink>
+              );
+            })}
           </div>
+
+          {/* User profile card - glassmorphic */}
+          <NavLink
+            to="/settings"
+            onClick={closeMobile}
+            className="group block"
+          >
+            {({ isActive }) => (
+              <div
+                className="flex items-center gap-3 transition-all duration-300"
+                style={{
+                  padding: isExpanded ? '10px 12px' : '8px',
+                  borderRadius: 16,
+                  background: isActive
+                    ? 'rgba(245, 158, 11, 0.1)'
+                    : 'rgba(168, 154, 140, 0.08)',
+                  border: isActive
+                    ? '1px solid rgba(245, 158, 11, 0.2)'
+                    : '1px solid rgba(168, 154, 140, 0.12)',
+                  backdropFilter: 'blur(8px)',
+                }}
+              >
+                {/* Avatar with status indicator */}
+                <div className="relative flex-shrink-0">
+                  <img
+                    src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=100&h=100&fit=crop&crop=face"
+                    alt="Profile"
+                    className="w-9 h-9 rounded-xl object-cover"
+                    style={{
+                      border: '2px solid rgba(168, 154, 140, 0.2)',
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+                    }}
+                  />
+                  <div
+                    className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full"
+                    style={{
+                      backgroundColor: '#10b981',
+                      border: '2px solid rgba(253, 252, 251, 0.9)',
+                      boxShadow: '0 0 6px rgba(16, 185, 129, 0.4)',
+                    }}
+                  />
+                </div>
+
+                {/* User info */}
+                <div
+                  className="flex-1 min-w-0"
+                  style={{
+                    opacity: isExpanded ? 1 : 0,
+                    transform: isExpanded ? 'translateX(0)' : 'translateX(-4px)',
+                    transition: 'all 250ms cubic-bezier(0.22, 0.61, 0.36, 1)',
+                    pointerEvents: isExpanded ? 'auto' : 'none',
+                  }}
+                >
+                  <p
+                    className="text-[13px] font-medium text-stone-800 truncate"
+                    style={{ fontFamily: "'Suisse Intl', system-ui, sans-serif" }}
+                  >
+                    Sarah Mitchell
+                  </p>
+                  <p
+                    className="text-[11px] text-stone-500 truncate"
+                    style={{ fontFamily: "'Suisse Intl', system-ui, sans-serif" }}
+                  >
+                    Practice Admin
+                  </p>
+                </div>
+
+                <Settings
+                  size={14}
+                  className="text-stone-400 group-hover:text-stone-600 transition-colors flex-shrink-0"
+                  style={{
+                    opacity: isExpanded ? 1 : 0,
+                    transition: 'opacity 250ms ease',
+                  }}
+                />
+              </div>
+            )}
+          </NavLink>
         </div>
       </aside>
+
+      {/* Keyframes for animations */}
+      <style>{`
+        @keyframes fadeSlideIn {
+          from {
+            opacity: 0;
+            transform: translateX(-8px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+      `}</style>
     </>
   );
 };

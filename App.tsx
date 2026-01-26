@@ -114,15 +114,50 @@ const ProtectedApp: React.FC = () => {
     );
   }
 
-  // Dynamic margin based on sidebar state
-  const sidebarWidth = sidebarCollapsed ? 72 : 300;
+  // Fixed sidebar width for left padding (collapsed state only, since sidebar floats over content)
+  const sidebarCollapsedWidth = 92; // 68px sidebar + 12px margin + 12px gap
 
   return (
-    <div className="flex h-screen w-full bg-gradient-to-br from-[#fef5e7] via-[#fae5c1] to-[#f5d5a8] overflow-hidden relative">
-      {/* Sophisticated overlay gradients for depth */}
-      <div className="absolute inset-0 bg-gradient-to-tr from-amber-100/20 via-transparent to-orange-50/30 pointer-events-none"></div>
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-yellow-100/40 via-transparent to-transparent pointer-events-none"></div>
+    <div className="flex h-screen w-full overflow-hidden relative" style={{ backgroundColor: '#fafaf9' }}>
+      {/*
+        REFINED BACKGROUND SYSTEM - Matching Cortexa LP aesthetic
+        Base: stone-50 (#fafaf9) - clean, neutral warmth
+        Layers: Subtle radial warmth + ambient light effects
+      */}
 
+      {/* Layer 1: Subtle warm radial from center-bottom - mimics ambient warmth */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: 'radial-gradient(ellipse 120% 80% at 50% 100%, rgba(254, 243, 199, 0.25) 0%, rgba(254, 249, 239, 0.15) 40%, transparent 70%)',
+        }}
+      />
+
+      {/* Layer 2: Top-right ambient light - creates depth and direction */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: 'radial-gradient(ellipse 80% 60% at 85% 10%, rgba(255, 251, 245, 0.6) 0%, rgba(250, 248, 244, 0.3) 30%, transparent 60%)',
+        }}
+      />
+
+      {/* Layer 3: Soft left-side warmth - balances the composition */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: 'radial-gradient(ellipse 60% 80% at 10% 60%, rgba(253, 246, 236, 0.2) 0%, transparent 50%)',
+        }}
+      />
+
+      {/* Layer 4: Gentle overall warm tint - cohesive warmth without saturation */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: 'linear-gradient(180deg, rgba(252, 250, 247, 0.4) 0%, rgba(250, 248, 244, 0.2) 50%, rgba(248, 245, 240, 0.3) 100%)',
+        }}
+      />
+
+      {/* Floating Glassmorphic Sidebar - hovers over content */}
       <Sidebar
         mobileMenuOpen={mobileMenuOpen}
         setMobileMenuOpen={setMobileMenuOpen}
@@ -130,53 +165,42 @@ const ProtectedApp: React.FC = () => {
         setIsCollapsed={setSidebarCollapsed}
       />
 
-      {/* Main content - dynamic margin based on sidebar state */}
-      <div
-        className="flex flex-col flex-1 h-full relative"
-      >
-        {/* Inject dynamic margin for desktop and CSS variable for sidebar width */}
+      {/* Main content - fixed left padding to account for collapsed sidebar */}
+      <div className="flex flex-col flex-1 h-full relative">
+        {/* Fixed left margin for desktop to prevent content under collapsed sidebar */}
         <style>{`
-          :root {
-            --sidebar-width: ${sidebarWidth}px;
-          }
           @media (min-width: 1024px) {
             #main-content {
-              margin-left: ${sidebarWidth}px;
-              transition: margin-left 350ms cubic-bezier(0.4, 0, 0.2, 1);
+              padding-left: ${sidebarCollapsedWidth}px;
             }
           }
         `}</style>
         <div id="main-content" className="flex flex-col flex-1 h-full relative">
-        {/* Premium background gradients */}
-        <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-0">
-          <div className="absolute inset-0 bg-gradient-to-b from-white/40 via-transparent to-amber-50/20"></div>
-          <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-orange-50/10 to-yellow-50/20"></div>
-        </div>
 
-        <div className="relative z-10 flex flex-col h-full">
-          {/* Mobile Header */}
-          <MobileHeader onMenuOpen={() => setMobileMenuOpen(true)} />
+          <div className="relative z-10 flex flex-col h-full">
+            {/* Mobile Header */}
+            <MobileHeader onMenuOpen={() => setMobileMenuOpen(true)} />
 
-          {/* Main content area - add bottom padding for BottomNav on mobile/tablet */}
-          <div className="flex-1 flex flex-col pb-16 lg:pb-0 overflow-auto">
-            <Routes>
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/practice-analysis" element={<PracticeAnalysis />} />
-              <Route path="/clinician-overview" element={<ClinicianOverview />} />
-              <Route path="/clinician-details" element={<ClinicianDetails />} />
-              <Route path="/clinician/:clinicianId/session-history" element={<SessionHistoryPage />} />
-              <Route path="/consultations" element={<Consultations />} />
-              <Route path="/configure" element={<PracticeConfigurationPage />} />
-              <Route path="/components" element={<Components />} />
-              <Route path="/settings" element={<SettingsPage />} />
-              <Route path="*" element={<Navigate to="/dashboard" replace />} />
-            </Routes>
+            {/* Main content area - add bottom padding for BottomNav on mobile/tablet */}
+            <div className="flex-1 flex flex-col pb-16 lg:pb-0 overflow-auto">
+              <Routes>
+                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/practice-analysis" element={<PracticeAnalysis />} />
+                <Route path="/clinician-overview" element={<ClinicianOverview />} />
+                <Route path="/clinician-details" element={<ClinicianDetails />} />
+                <Route path="/clinician/:clinicianId/session-history" element={<SessionHistoryPage />} />
+                <Route path="/consultations" element={<Consultations />} />
+                <Route path="/configure" element={<PracticeConfigurationPage />} />
+                <Route path="/components" element={<Components />} />
+                <Route path="/settings" element={<SettingsPage />} />
+                <Route path="*" element={<Navigate to="/dashboard" replace />} />
+              </Routes>
+            </div>
+
+            {/* Mobile Bottom Navigation */}
+            <BottomNav />
           </div>
-
-          {/* Mobile Bottom Navigation */}
-          <BottomNav />
-        </div>
         </div>
       </div>
     </div>
