@@ -186,7 +186,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
 
   return (
     <div
-      className="relative"
+      className="relative z-10"
       data-theme="dark"
       style={{
         background: 'linear-gradient(135deg, #1c1917 0%, #292524 50%, #1c1917 100%)'
@@ -214,7 +214,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
       </div>
 
       <div
-        className={`relative ${sizeConfig.padding} overflow-x-auto ${isSpotlightSize ? 'flex items-center' : ''}`}
+        className={`relative ${sizeConfig.padding} ${isSpotlightSize ? 'flex items-center overflow-visible' : 'overflow-x-auto'}`}
         style={sizeConfig.minHeight ? { minHeight: sizeConfig.minHeight } : undefined}
       >
         {/* Header row */}

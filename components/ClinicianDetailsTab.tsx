@@ -2467,26 +2467,28 @@ export const ClinicianDetailsTab: React.FC = () => {
                       />
                     </button>
 
-                    {/* Clinician Dropdown with Search */}
+                    {/* Clinician Dropdown with Search - Glassmorphic */}
                     {isClinicianDropdownOpen && (
                       <div
                         className="absolute top-full left-0 mt-2 z-[100000] overflow-hidden"
                         style={{
-                          minWidth: '340px',
-                          background: 'linear-gradient(135deg, #292524 0%, #1c1917 100%)',
-                          border: '1px solid rgba(255, 255, 255, 0.1)',
+                          minWidth: '300px',
+                          background: 'rgba(253, 252, 251, 0.88)',
+                          backdropFilter: 'blur(20px)',
+                          WebkitBackdropFilter: 'blur(20px)',
+                          border: '1px solid rgba(168, 154, 140, 0.25)',
                           borderRadius: '16px',
-                          boxShadow: '0 20px 40px -12px rgba(0, 0, 0, 0.5)',
-                          animation: 'dropdownReveal 0.2s ease-out',
+                          boxShadow: '0 4px 20px -4px rgba(120, 100, 80, 0.12), 0 8px 32px -8px rgba(0, 0, 0, 0.08)',
+                          animation: 'dropdownReveal 0.15s ease-out',
                         }}
                       >
                         {/* Search Input */}
-                        <div className="p-3 border-b border-white/10">
+                        <div className="p-3" style={{ borderBottom: '1px solid rgba(168, 154, 140, 0.2)' }}>
                           <div
-                            className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-all duration-200"
+                            className="flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all duration-200"
                             style={{
-                              background: 'rgba(255, 255, 255, 0.06)',
-                              border: '1px solid rgba(255, 255, 255, 0.08)',
+                              background: 'rgba(168, 154, 140, 0.08)',
+                              border: '1px solid rgba(168, 154, 140, 0.15)',
                             }}
                           >
                             <Search size={16} className="text-stone-500" />
@@ -2497,8 +2499,8 @@ export const ClinicianDetailsTab: React.FC = () => {
                               onChange={(e) => setDropdownSearch(e.target.value)}
                               onKeyDown={handleDropdownKeyDown}
                               placeholder="Search clinicians..."
-                              className="flex-1 bg-transparent outline-none text-white placeholder:text-stone-500 text-sm"
-                              style={{ fontFamily: "'Suisse Intl', sans-serif" }}
+                              className="flex-1 bg-transparent outline-none text-sm"
+                              style={{ fontFamily: "'Suisse Intl', sans-serif", color: '#1c1917' }}
                             />
                             {dropdownSearch && (
                               <button
@@ -2507,7 +2509,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                                   setHighlightedIndex(-1);
                                   dropdownSearchRef.current?.focus();
                                 }}
-                                className="p-1 hover:bg-white/10 rounded-md transition-colors"
+                                className="p-1 hover:bg-stone-200/50 rounded-md transition-colors"
                               >
                                 <X size={14} className="text-stone-500" />
                               </button>
@@ -2515,25 +2517,20 @@ export const ClinicianDetailsTab: React.FC = () => {
                           </div>
                         </div>
 
-                        <div className="p-2 max-h-[320px] overflow-y-auto">
-                          <div className="px-3 py-1.5 text-xs font-medium text-stone-500 uppercase tracking-wider flex items-center justify-between">
-                            <span>
-                              {dropdownSearch
-                                ? `${filteredDropdownClinicians.length} result${filteredDropdownClinicians.length !== 1 ? 's' : ''}`
-                                : 'Switch Clinician'
-                              }
-                            </span>
-                            {highlightedIndex >= 0 && (
-                              <span className="text-amber-500/70 normal-case tracking-normal">↑↓ navigate · ↵ select</span>
-                            )}
+                        <div className="p-2 max-h-[320px] overflow-y-auto" style={{ scrollbarWidth: 'none' }}>
+                          <div className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide" style={{ color: '#57534e' }}>
+                            {dropdownSearch
+                              ? `${filteredDropdownClinicians.length} Result${filteredDropdownClinicians.length !== 1 ? 's' : ''}`
+                              : 'Switch Clinician'
+                            }
                           </div>
 
                           {filteredDropdownClinicians.length === 0 ? (
                             <div className="px-3 py-6 text-center">
-                              <div className="w-10 h-10 mx-auto mb-2 rounded-xl bg-white/5 flex items-center justify-center">
-                                <Users size={18} className="text-stone-500" />
+                              <div className="w-10 h-10 mx-auto mb-2 rounded-xl flex items-center justify-center" style={{ background: 'rgba(168, 154, 140, 0.1)' }}>
+                                <Users size={18} className="text-stone-400" />
                               </div>
-                              <p className="text-stone-400 text-sm">No clinicians found</p>
+                              <p className="text-sm" style={{ color: '#57534e' }}>No clinicians found</p>
                             </div>
                           ) : (
                             filteredDropdownClinicians.map((clinician, index) => {
@@ -2545,23 +2542,34 @@ export const ClinicianDetailsTab: React.FC = () => {
                                   key={clinician.id}
                                   onClick={() => handleClinicianSelect(clinician)}
                                   onMouseEnter={() => setHighlightedIndex(index)}
-                                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-150 ${
-                                    isSelectedClin
-                                      ? 'bg-white/10'
+                                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg"
+                                  style={{
+                                    background: isSelectedClin
+                                      ? 'rgba(251, 191, 36, 0.15)'
                                       : isHighlighted
-                                        ? 'bg-amber-500/15'
-                                        : 'hover:bg-white/5'
-                                  }`}
+                                        ? 'rgba(251, 191, 36, 0.1)'
+                                        : 'transparent',
+                                  }}
                                 >
+                                  {/* Amber accent bar for selected */}
+                                  <span
+                                    className="w-[3px] h-8 rounded-full flex-shrink-0"
+                                    style={{
+                                      background: isSelectedClin ? '#f59e0b' : 'transparent',
+                                    }}
+                                  />
                                   <div
-                                    className={`w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold text-white flex-shrink-0 transition-transform duration-150 ${isHighlighted ? 'scale-105' : ''}`}
+                                    className="w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
                                     style={{ background: clinician.color }}
                                   >
                                     {clinician.initials}
                                   </div>
                                   <div className="flex-1 text-left min-w-0">
                                     <div className="flex items-center gap-2">
-                                      <span className={`text-sm font-medium truncate ${isSelectedClin || isHighlighted ? 'text-white' : 'text-stone-300'}`}>
+                                      <span
+                                        className={`text-sm truncate ${isSelectedClin ? 'font-semibold' : 'font-medium'}`}
+                                        style={{ color: '#1c1917' }}
+                                      >
                                         {highlightMatch(clinician.name, dropdownSearch)}
                                       </span>
                                       <div
@@ -2569,13 +2577,13 @@ export const ClinicianDetailsTab: React.FC = () => {
                                         style={{ background: cHealth.color }}
                                       />
                                     </div>
-                                    <span className="text-xs text-stone-500">
+                                    <span className="text-xs" style={{ color: '#57534e' }}>
                                       {highlightMatch(clinician.role, dropdownSearch)}
                                     </span>
                                   </div>
-                                  {isSelectedClin && <Check size={16} className="text-amber-400 flex-shrink-0" />}
+                                  {isSelectedClin && <Check size={16} style={{ color: '#f59e0b' }} className="flex-shrink-0" />}
                                   {isHighlighted && !isSelectedClin && (
-                                    <ArrowRight size={14} className="text-amber-400/60 flex-shrink-0" />
+                                    <ArrowRight size={14} style={{ color: '#d97706' }} className="flex-shrink-0" />
                                   )}
                                 </button>
                               );
@@ -2583,14 +2591,6 @@ export const ClinicianDetailsTab: React.FC = () => {
                           )}
                         </div>
 
-                        {/* Keyboard hint footer */}
-                        {!dropdownSearch && filteredDropdownClinicians.length > 3 && (
-                          <div className="px-4 py-2 border-t border-white/5 text-center">
-                            <span className="text-xs text-stone-600">
-                              Type to search · Esc to close
-                            </span>
-                          </div>
-                        )}
                       </div>
                     )}
                   </div>

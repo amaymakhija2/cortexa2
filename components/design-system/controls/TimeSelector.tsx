@@ -299,7 +299,7 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
                           onClick={() => !isDisabled && select({ month: idx, year: pickerYear })}
                           disabled={isDisabled}
                           className={`
-                            h-9 rounded-lg text-[13px] font-medium transition-all duration-150
+                            h-9 rounded-lg text-[13px] font-medium transition-colors duration-75
                             disabled:opacity-30 disabled:cursor-not-allowed
                             ${isMonthSelected
                               ? 'bg-stone-800 text-white'
@@ -328,14 +328,14 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
                           <button
                             key={option.value}
                             onClick={() => select(option.value)}
-                            className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-all duration-150"
+                            className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors duration-75"
                             style={{
                               background: selected ? 'rgba(251, 191, 36, 0.15)' : 'transparent',
                             }}
                           >
                             {/* Amber accent bar for selected */}
                             <span
-                              className="w-[3px] h-4 rounded-full transition-all duration-150"
+                              className="w-[3px] h-4 rounded-full transition-colors duration-75"
                               style={{
                                 background: selected ? '#f59e0b' : 'transparent',
                               }}
@@ -389,14 +389,14 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
                               <button
                                 key={`${month}-${year}`}
                                 onClick={() => select({ month, year })}
-                                className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-all duration-150"
+                                className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors duration-75"
                                 style={{
                                   background: selected ? 'rgba(251, 191, 36, 0.15)' : 'transparent',
                                 }}
                               >
                                 {/* Amber accent bar for selected */}
                                 <span
-                                  className="w-[3px] h-4 rounded-full transition-all duration-150"
+                                  className="w-[3px] h-4 rounded-full transition-colors duration-75"
                                   style={{
                                     background: selected ? '#f59e0b' : 'transparent',
                                   }}
@@ -465,7 +465,7 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
         className={`
           group inline-flex items-center gap-2 px-3.5 py-2 rounded-xl
           text-[14px] font-medium
-          transition-all duration-150
+          transition-colors duration-75
           ${className}
         `}
         style={{
@@ -515,14 +515,14 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
                     <button
                       key={option.value}
                       onClick={() => select(option.value)}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-all duration-150"
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors duration-75"
                       style={{
                         background: selected ? 'rgba(251, 191, 36, 0.15)' : 'transparent',
                       }}
                     >
                       {/* Amber accent bar for selected */}
                       <span
-                        className="w-[3px] h-4 rounded-full transition-all duration-150"
+                        className="w-[3px] h-4 rounded-full transition-colors duration-75"
                         style={{
                           background: selected ? '#f59e0b' : 'transparent',
                         }}
@@ -566,14 +566,14 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
                         <button
                           key={`${month}-${year}`}
                           onClick={() => select({ month, year })}
-                          className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-all duration-150"
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors duration-75"
                           style={{
                             background: selected ? 'rgba(251, 191, 36, 0.15)' : 'transparent',
                           }}
                         >
                           {/* Amber accent bar for selected */}
                           <span
-                            className="w-[3px] h-4 rounded-full transition-all duration-150"
+                            className="w-[3px] h-4 rounded-full transition-colors duration-75"
                             style={{
                               background: selected ? '#f59e0b' : 'transparent',
                             }}
