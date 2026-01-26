@@ -209,7 +209,7 @@ export const AnimatedPageContent: React.FC<AnimatedPageContentProps> = ({
 }) => {
   return (
     <div
-      className={`px-4 sm:px-6 lg:px-8 xl:px-10 py-6 xl:py-10 space-y-6 xl:space-y-8 animate-page-content ${className}`}
+      className={`px-4 sm:px-6 lg:pl-[100px] lg:pr-8 xl:pl-[100px] xl:pr-10 py-6 xl:py-10 space-y-6 xl:space-y-8 animate-page-content ${className}`}
       style={{
         animationDelay: `${baseDelay}ms`,
       }}

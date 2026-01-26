@@ -137,7 +137,7 @@ export const PageContent: React.FC<PageContentProps> = ({
   children,
 }) => {
   return (
-    <div className={`px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 py-6 xl:py-10 2xl:py-12 space-y-6 xl:space-y-8 2xl:space-y-10 ${className}`}>
+    <div className={`px-4 sm:px-6 lg:pl-[100px] lg:pr-8 xl:pl-[100px] xl:pr-10 2xl:pr-12 py-6 xl:py-10 2xl:py-12 space-y-6 xl:space-y-8 2xl:space-y-10 ${className}`}>
       {children}
     </div>
   );
