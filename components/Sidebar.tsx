@@ -394,6 +394,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const { settings } = useSettings();
   const useIllustratedIcons = settings.iconStyle === 'illustrated';
   const currentPath = location.pathname;
+
+
+  // Filter NAV_ITEMS to hide consultations sub-item if toggle is off
+  const filteredNavItems = useMemo(() => {
+    return NAV_ITEMS.map(item => {
+      if (item.path === '/practice-analysis' && item.subItems && !settings.showConsultationMetrics) {
+        return {
+          ...item,
+          subItems: item.subItems.filter(sub => sub.id !== 'consultations')
+        };
+      }
+      return item;
+    });
+  }, [settings.showConsultationMetrics]);
   const expandTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const collapseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -696,7 +710,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           style={{ padding: '0 8px', overflowX: 'visible' }}
         >
           <div className="space-y-4">
-            {NAV_ITEMS.map((item) => (
+            {filteredNavItems.map((item) => (
               <NavItem
                 key={item.path}
                 item={item}

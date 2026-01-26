@@ -2436,23 +2436,18 @@ export const ClinicianDetailsTab: React.FC = () => {
           />
         </div>
 
-        <div className="relative px-6 sm:px-8 lg:pl-[100px] lg:pr-12 py-8 lg:py-12" style={{ zIndex: 1 }}>
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="relative px-6 sm:px-8 lg:pl-[100px] lg:pr-12 py-5 lg:py-6" style={{ zIndex: 1, minHeight: 164 }}>
+          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 mb-1">
             {/* Left: Title Area */}
-            <div className="min-w-0">
+            <div className="min-w-0 flex-shrink-0 lg:flex-shrink">
               {!isSpotlightMode ? (
                 /* Pre-selection mode - standard title */
-                <>
-                  <h1
-                    className="text-4xl sm:text-5xl lg:text-6xl text-white tracking-tight"
-                    style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
-                  >
-                    Clinician Details
-                  </h1>
-                  <p className="text-stone-400 text-base mt-2">
-                    Select a clinician to view detailed performance metrics
-                  </p>
-                </>
+                <h1
+                  className="text-4xl sm:text-5xl lg:text-6xl text-white tracking-tight"
+                  style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
+                >
+                  Clinician Details
+                </h1>
               ) : selectedClinician && healthConfig && (
                 /* Spotlight mode - clinician info */
                 <div className={`transition-all duration-300 ${isTransitioning ? 'opacity-0 transform translate-y-1' : 'opacity-100 transform translate-y-0'}`}>
@@ -2657,6 +2652,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                 variant="header"
               />
 
+{/* Goals button hidden for now
               {isSpotlightMode && (
                 <button
                   onClick={() => {
@@ -2669,6 +2665,7 @@ export const ClinicianDetailsTab: React.FC = () => {
                   <span className="text-white text-sm font-medium">Goals</span>
                 </button>
               )}
+              */}
             </div>
           </div>
         </div>

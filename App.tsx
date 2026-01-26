@@ -47,6 +47,7 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({ onMenuOpen }) => {
   return (
     <header
       className="lg:hidden flex items-center justify-between px-4 py-3 sticky top-0 z-30"
+      data-theme="dark"
       style={{
         background: 'linear-gradient(180deg, rgba(26, 24, 22, 0.98) 0%, rgba(26, 24, 22, 0.95) 100%)',
         backdropFilter: 'blur(12px)',

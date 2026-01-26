@@ -166,6 +166,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   return (
     <div
       className="relative"
+      data-theme="dark"
       style={{
         background: 'linear-gradient(135deg, #1c1917 0%, #292524 50%, #1c1917 100%)'
       }}
