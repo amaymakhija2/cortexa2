@@ -236,7 +236,7 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
               style={{
                 top: position.top,
                 left: position.left,
-                width: showMonthPicker ? '340px' : '280px',
+                width: showMonthPicker ? '360px' : '300px',
                 background: 'linear-gradient(135deg, #292524 0%, #1c1917 100%)',
                 border: '1px solid rgba(255, 255, 255, 0.1)',
                 borderRadius: '20px',
@@ -335,8 +335,8 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
                   {/* Aggregate options - time ranges */}
                   {showAggregateOption && (
                     <>
-                      <div className="px-5 pt-3 pb-2">
-                        <span className="text-[11px] font-medium text-stone-500 uppercase tracking-wide">
+                      <div className="px-5 pt-4 pb-2">
+                        <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
                           Time range
                         </span>
                       </div>
@@ -350,7 +350,7 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
                           <button
                             key={option.value}
                             onClick={() => select(option.value)}
-                            className="w-full flex items-center gap-3 px-5 py-3 text-left transition-all duration-200 group/item"
+                            className="w-full flex items-center gap-3 px-5 py-3.5 text-left transition-all duration-200 group/item"
                             style={{
                               background: selected
                                 ? 'linear-gradient(90deg, rgba(251, 191, 36, 0.15) 0%, transparent 100%)'
@@ -358,23 +358,23 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
                             }}
                           >
                             <TrendingUp
-                              size={16}
+                              size={18}
                               className={selected ? 'text-amber-400' : 'text-stone-500 group-hover/item:text-stone-400'}
                             />
-                            <span className={`flex-1 text-[15px] font-medium ${selected ? 'text-amber-300' : 'text-stone-300 group-hover/item:text-white'}`}>
+                            <span className={`flex-1 text-base font-medium ${selected ? 'text-amber-300' : 'text-stone-300 group-hover/item:text-white'}`}>
                               {option.label}
                             </span>
-                            {selected && <Check size={14} className="text-amber-400" />}
+                            {selected && <Check size={16} className="text-amber-400" />}
                           </button>
                         );
                       })}
-                      <div className="mx-5 my-2 h-px bg-white/10" />
+                      <div className="mx-5 my-3 h-px bg-white/10" />
                     </>
                   )}
 
                   {/* Specific month section */}
-                  <div className="px-5 pt-2 pb-2 flex items-center justify-between">
-                    <span className="text-[11px] font-medium text-stone-500 uppercase tracking-wide">
+                  <div className="px-5 pt-3 pb-2 flex items-center justify-between">
+                    <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
                       Specific month
                     </span>
                     <button
@@ -385,46 +385,63 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
                         }
                         setShowMonthPicker(true);
                       }}
-                      className="text-[11px] font-medium text-amber-400/80 hover:text-amber-400 uppercase tracking-wide transition-colors"
+                      className="text-xs font-semibold text-amber-400/80 hover:text-amber-400 uppercase tracking-wider transition-colors"
                     >
                       Calendar →
                     </button>
                   </div>
 
-                  {/* Recent months list */}
-                  <div className="max-h-[240px] overflow-y-auto pb-2">
-                    {monthOptions.slice(0, 12).map(({ month, year, isCurrent }) => {
-                      const selected = isSelected(month, year);
-                      return (
-                        <button
-                          key={`${month}-${year}`}
-                          onClick={() => select({ month, year })}
-                          className={`
-                            w-full flex items-center justify-between px-5 py-2.5
-                            text-left text-[14px] transition-all duration-200
-                            ${selected
-                              ? 'bg-white/10 font-medium text-white'
-                              : 'hover:bg-white/5 text-stone-400 hover:text-stone-200'
-                            }
-                          `}
-                        >
-                          <span className="flex items-center gap-2">
-                            {MONTHS[month]} {year}
-                            {isCurrent && (
-                              <span className="text-[10px] font-semibold text-amber-400/70 uppercase">
-                                Now
-                              </span>
-                            )}
-                          </span>
-                          {selected && <Check size={14} className="text-amber-400" />}
-                        </button>
-                      );
-                    })}
+                  {/* Recent months list - height adjusts based on whether aggregate options are shown */}
+                  <div className="relative">
+                    <div
+                      className="overflow-y-auto pb-1 months-scroll-dark"
+                      style={{
+                        // Show ~3 months when aggregate options present, ~6 when not
+                        maxHeight: showAggregateOption ? '144px' : '288px',
+                        scrollbarWidth: 'thin',
+                        scrollbarColor: 'rgba(251, 191, 36, 0.3) transparent',
+                      }}
+                    >
+                      {monthOptions.slice(0, 12).map(({ month, year, isCurrent }) => {
+                        const selected = isSelected(month, year);
+                        return (
+                          <button
+                            key={`${month}-${year}`}
+                            onClick={() => select({ month, year })}
+                            className={`
+                              w-full flex items-center justify-between px-5 py-3
+                              text-left text-base transition-all duration-200
+                              ${selected
+                                ? 'bg-white/10 font-medium text-white'
+                                : 'hover:bg-white/5 text-stone-400 hover:text-stone-200'
+                              }
+                            `}
+                          >
+                            <span className="flex items-center gap-2.5">
+                              {MONTHS[month]} {year}
+                              {isCurrent && (
+                                <span className="text-[11px] font-semibold text-amber-400/70 uppercase">
+                                  Now
+                                </span>
+                              )}
+                            </span>
+                            {selected && <Check size={16} className="text-amber-400" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {/* Bottom fade gradient to indicate more content */}
+                    <div
+                      className="absolute bottom-0 left-0 right-2 h-8 pointer-events-none"
+                      style={{
+                        background: 'linear-gradient(to top, #1c1917 0%, transparent 100%)',
+                      }}
+                    />
                   </div>
                 </div>
               )}
 
-              {/* CSS Animation */}
+              {/* CSS Animation & Scrollbar Styling */}
               <style>{`
                 @keyframes dropdownReveal {
                   from {
@@ -435,6 +452,25 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
                     opacity: 1;
                     transform: translateY(0) scale(1);
                   }
+                }
+
+                .months-scroll-dark::-webkit-scrollbar {
+                  width: 6px;
+                }
+
+                .months-scroll-dark::-webkit-scrollbar-track {
+                  background: rgba(255, 255, 255, 0.05);
+                  border-radius: 3px;
+                  margin: 4px 0;
+                }
+
+                .months-scroll-dark::-webkit-scrollbar-thumb {
+                  background: linear-gradient(180deg, rgba(251, 191, 36, 0.4) 0%, rgba(251, 191, 36, 0.2) 100%);
+                  border-radius: 3px;
+                }
+
+                .months-scroll-dark::-webkit-scrollbar-thumb:hover {
+                  background: linear-gradient(180deg, rgba(251, 191, 36, 0.6) 0%, rgba(251, 191, 36, 0.3) 100%);
                 }
               `}</style>
             </div>
@@ -471,7 +507,7 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
         isOpen && (
           <div
             ref={dropdownRef}
-            className="fixed z-[100000] w-[280px] bg-white rounded-xl border border-stone-200 overflow-hidden"
+            className="fixed z-[100000] w-[300px] bg-white rounded-xl border border-stone-200 overflow-hidden"
             style={{
               top: position.top,
               left: position.left,
@@ -481,8 +517,8 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
             {/* Aggregate options - period ranges */}
             {showAggregateOption && (
               <>
-                <div className="px-4 pt-3 pb-2">
-                  <span className="text-[11px] font-medium text-stone-400 uppercase tracking-wide">
+                <div className="px-5 pt-4 pb-2">
+                  <span className="text-xs font-semibold text-stone-400 uppercase tracking-wider">
                     Time range
                   </span>
                 </div>
@@ -497,7 +533,7 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
                       key={option.value}
                       onClick={() => select(option.value)}
                       className={`
-                        w-full flex items-center gap-3 px-4 py-3
+                        w-full flex items-center gap-3 px-5 py-3.5
                         text-left transition-colors border-l-2
                         ${selected
                           ? 'bg-amber-50/80 border-l-amber-500'
@@ -506,57 +542,96 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
                       `}
                     >
                       <TrendingUp
-                        size={16}
+                        size={18}
                         className={selected ? 'text-amber-600' : 'text-stone-400'}
                       />
-                      <span className={`flex-1 text-[14px] font-medium ${selected ? 'text-amber-900' : 'text-stone-700'}`}>
+                      <span className={`flex-1 text-base font-medium ${selected ? 'text-amber-900' : 'text-stone-700'}`}>
                         {option.label}
                       </span>
-                      {selected && <Check size={14} className="text-amber-600" />}
+                      {selected && <Check size={16} className="text-amber-600" />}
                     </button>
                   );
                 })}
-                <div className="mx-4 my-2 h-px bg-stone-200" />
+                <div className="mx-5 my-3 h-px bg-stone-200" />
               </>
             )}
 
             {/* Section label */}
-            <div className="px-4 pt-3 pb-2">
-              <span className="text-[11px] font-medium text-stone-400 uppercase tracking-wide">
+            <div className="px-5 pt-3 pb-2">
+              <span className="text-xs font-semibold text-stone-400 uppercase tracking-wider">
                 Specific month
               </span>
             </div>
 
-            {/* Month list */}
-            <div className="max-h-[280px] overflow-y-auto pb-2">
-              {monthOptions.map(({ month, year, isCurrent }) => {
-                const selected = isSelected(month, year);
-                return (
-                  <button
-                    key={`${month}-${year}`}
-                    onClick={() => select({ month, year })}
-                    className={`
-                      w-full flex items-center justify-between px-4 py-2.5
-                      text-left text-[14px] transition-colors
-                      ${selected
-                        ? 'bg-stone-100 font-medium text-stone-900'
-                        : 'hover:bg-stone-50 text-stone-600'
-                      }
-                    `}
-                  >
-                    <span className="flex items-center gap-2">
-                      {MONTHS[month]} {year}
-                      {isCurrent && (
-                        <span className="text-[10px] font-medium text-stone-400 uppercase">
-                          Now
-                        </span>
-                      )}
-                    </span>
-                    {selected && <Check size={14} className="text-stone-500" />}
-                  </button>
-                );
-              })}
+            {/* Month list - height adjusts based on whether aggregate options are shown */}
+            <div className="relative">
+              <div
+                className="overflow-y-auto pb-2 months-scroll-light"
+                style={{
+                  // Show ~3 months when aggregate options present, ~6 when not
+                  maxHeight: showAggregateOption ? '144px' : '288px',
+                  scrollbarWidth: 'thin',
+                  scrollbarColor: 'rgba(120, 113, 108, 0.3) transparent',
+                }}
+              >
+                {monthOptions.map(({ month, year, isCurrent }) => {
+                  const selected = isSelected(month, year);
+                  return (
+                    <button
+                      key={`${month}-${year}`}
+                      onClick={() => select({ month, year })}
+                      className={`
+                        w-full flex items-center justify-between px-5 py-3
+                        text-left text-base transition-colors
+                        ${selected
+                          ? 'bg-stone-100 font-medium text-stone-900'
+                          : 'hover:bg-stone-50 text-stone-600'
+                        }
+                      `}
+                    >
+                      <span className="flex items-center gap-2.5">
+                        {MONTHS[month]} {year}
+                        {isCurrent && (
+                          <span className="text-[11px] font-semibold text-stone-400 uppercase">
+                            Now
+                          </span>
+                        )}
+                      </span>
+                      {selected && <Check size={16} className="text-stone-500" />}
+                    </button>
+                  );
+                })}
+              </div>
+              {/* Bottom fade gradient to indicate more content */}
+              <div
+                className="absolute bottom-0 left-0 right-2 h-8 pointer-events-none"
+                style={{
+                  background: 'linear-gradient(to top, white 0%, transparent 100%)',
+                }}
+              />
             </div>
+
+            {/* Scrollbar styling for light variant */}
+            <style>{`
+              .months-scroll-light::-webkit-scrollbar {
+                width: 6px;
+              }
+
+              .months-scroll-light::-webkit-scrollbar-track {
+                background: rgba(0, 0, 0, 0.03);
+                border-radius: 3px;
+                margin: 4px 0;
+              }
+
+              .months-scroll-light::-webkit-scrollbar-thumb {
+                background: rgba(120, 113, 108, 0.25);
+                border-radius: 3px;
+              }
+
+              .months-scroll-light::-webkit-scrollbar-thumb:hover {
+                background: rgba(120, 113, 108, 0.4);
+              }
+            `}</style>
           </div>
         ),
         document.body
