@@ -157,6 +157,76 @@ const ProtectedApp: React.FC = () => {
         }}
       />
 
+      {/* ═══════════════════════════════════════════════════════════════════════
+          SIDEBAR AMBIENT GLOW - Sunset-inspired background flair
+          Inspired by Cortexa LP hero→video transition gradient
+          Creates warm, luminous depth behind the glassmorphic sidebar
+      ═══════════════════════════════════════════════════════════════════════ */}
+      <div
+        className="hidden lg:block fixed pointer-events-none"
+        style={{
+          top: 0,
+          left: 0,
+          width: 320,
+          height: '100%',
+          zIndex: 40, // Below sidebar (z-50) but above background layers
+        }}
+      >
+        {/* Primary aurora: Warm peach/amber glow - top portion */}
+        <div
+          style={{
+            position: 'absolute',
+            top: 40,
+            left: 20,
+            width: 200,
+            height: 280,
+            background: 'radial-gradient(ellipse 100% 100% at 30% 30%, rgba(255, 200, 160, 0.35) 0%, rgba(251, 191, 36, 0.15) 40%, transparent 70%)',
+            filter: 'blur(40px)',
+            transform: 'rotate(-10deg)',
+          }}
+        />
+
+        {/* Secondary aurora: Mauve/rose accent - middle */}
+        <div
+          style={{
+            position: 'absolute',
+            top: '35%',
+            left: 10,
+            width: 180,
+            height: 220,
+            background: 'radial-gradient(ellipse 100% 100% at 50% 50%, rgba(189, 96, 152, 0.18) 0%, rgba(219, 130, 180, 0.08) 50%, transparent 75%)',
+            filter: 'blur(50px)',
+            transform: 'rotate(5deg)',
+          }}
+        />
+
+        {/* Tertiary aurora: Warm orange glow - bottom portion */}
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 80,
+            left: 30,
+            width: 160,
+            height: 200,
+            background: 'radial-gradient(ellipse 100% 100% at 40% 70%, rgba(255, 165, 99, 0.25) 0%, rgba(245, 158, 11, 0.12) 45%, transparent 70%)',
+            filter: 'blur(45px)',
+            transform: 'rotate(-5deg)',
+          }}
+        />
+
+        {/* Soft edge blend: Fades the glow into the main background */}
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            right: 0,
+            width: 120,
+            height: '100%',
+            background: 'linear-gradient(90deg, transparent 0%, rgba(250, 250, 249, 0.8) 60%, rgba(250, 250, 249, 1) 100%)',
+          }}
+        />
+      </div>
+
       {/* Floating Glassmorphic Sidebar - hovers over content */}
       <Sidebar
         mobileMenuOpen={mobileMenuOpen}
