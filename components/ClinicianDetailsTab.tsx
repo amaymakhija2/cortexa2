@@ -2450,7 +2450,7 @@ export const ClinicianDetailsTab: React.FC = () => {
               <div>
                 {/* Clinician name with switcher */}
                 <div className="flex items-center gap-3">
-                  <div className="relative" ref={clinicianDropdownRef}>
+                  <div className="relative z-[100]" ref={clinicianDropdownRef}>
                     <button
                       onClick={() => setIsClinicianDropdownOpen(!isClinicianDropdownOpen)}
                       className="group flex items-center gap-2 hover:opacity-80 transition-opacity"
