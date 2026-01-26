@@ -20,9 +20,9 @@ const ACCENT_COLORS: Record<AccentColor, { glow: string; glowSecondary: string; 
 };
 
 // Size presets for visual hierarchy
-export type PageHeaderSize = 'compact' | 'standard' | 'hero';
+export type PageHeaderSize = 'compact' | 'standard' | 'hero' | 'spotlight';
 
-const SIZE_CONFIGS: Record<PageHeaderSize, { title: string; subtitle: string; padding: string }> = {
+const SIZE_CONFIGS: Record<PageHeaderSize, { title: string; subtitle: string; padding: string; minHeight?: string }> = {
   compact: {
     title: 'text-2xl sm:text-3xl lg:text-4xl',
     subtitle: 'text-sm sm:text-base',
@@ -38,6 +38,12 @@ const SIZE_CONFIGS: Record<PageHeaderSize, { title: string; subtitle: string; pa
     subtitle: 'text-base sm:text-lg',
     padding: 'px-6 sm:px-8 lg:pl-[100px] lg:pr-12 py-5 lg:py-6',
   },
+  spotlight: {
+    title: 'text-4xl sm:text-5xl lg:text-6xl',
+    subtitle: 'text-base sm:text-lg',
+    padding: 'px-6 sm:px-8 lg:pl-[100px] lg:pr-12',
+    minHeight: '164px',
+  },
 };
 
 export type TimePeriod = 'last-12-months' | 'this-year' | 'this-quarter' | 'last-quarter' | 'this-month' | 'last-month' | '2024' | '2023' | 'custom';
@@ -50,7 +56,7 @@ export interface Tab {
 export interface PageHeaderProps {
   /** The accent color for the glow effect */
   accent?: AccentColor;
-  /** Size preset for visual hierarchy: compact (analysis tabs), standard (Dashboard, Compare), hero (ClinicianOverview, ClientRoster) */
+  /** Size preset for visual hierarchy: compact (analysis tabs), standard (Dashboard, Compare), hero (ClinicianOverview, ClientRoster), spotlight (clinician details) */
   size?: PageHeaderSize;
   /** Small uppercase label above the title */
   label?: string;
@@ -83,6 +89,17 @@ export interface PageHeaderProps {
    * Use this instead of `actions` for the new prominent time selector design.
    */
   timeSelector?: React.ReactNode;
+  /**
+   * Custom hero content that replaces the default title/label/subtitle.
+   * Use this for spotlight-style headers with avatar, custom layouts, etc.
+   */
+  heroContent?: React.ReactNode;
+  /**
+   * Dynamic glow color override (CSS color string).
+   * When set, overrides the accent color for the glow effect.
+   * Useful for clinician-specific colors in spotlight mode.
+   */
+  glowColor?: string;
   /** Children rendered below the header content */
   children?: React.ReactNode;
 }
@@ -113,10 +130,14 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   onTabChange,
   actions,
   timeSelector,
+  heroContent,
+  glowColor,
   children,
 }) => {
   const accentConfig = ACCENT_COLORS[accent];
   const sizeConfig = SIZE_CONFIGS[size];
+  const effectiveGlowColor = glowColor || accentConfig.glow;
+  const isSpotlightSize = size === 'spotlight';
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [showCustomPicker, setShowCustomPicker] = useState(false);
   const [customStartMonth, setCustomStartMonth] = useState(0);
@@ -187,37 +208,47 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
 
         {/* Primary glow accent */}
         <div
-          className="absolute top-0 left-1/4 w-96 h-96 rounded-full opacity-20 blur-3xl"
-          style={{ background: `radial-gradient(circle, ${accentConfig.glow} 0%, transparent 70%)` }}
+          className="absolute top-0 left-1/4 w-96 h-96 rounded-full opacity-20 blur-3xl transition-all duration-500"
+          style={{ background: `radial-gradient(circle, ${effectiveGlowColor} 0%, transparent 70%)` }}
         />
       </div>
 
-      <div className={`relative ${sizeConfig.padding} overflow-x-auto`}>
+      <div
+        className={`relative ${sizeConfig.padding} overflow-x-auto ${isSpotlightSize ? 'flex items-center' : ''}`}
+        style={sizeConfig.minHeight ? { minHeight: sizeConfig.minHeight } : undefined}
+      >
         {/* Header row */}
-        <div className={`flex flex-col ${actions || showTimePeriod ? 'lg:flex-row lg:items-end' : ''} justify-between gap-4 ${timeSelector ? 'mb-1' : 'mb-3'} min-w-max lg:min-w-0`}>
+        <div className={`flex flex-col ${actions || showTimePeriod ? 'lg:flex-row lg:items-end' : ''} justify-between gap-4 ${timeSelector ? 'mb-1' : children ? 'mb-3' : ''} min-w-max lg:min-w-0 ${isSpotlightSize ? 'w-full' : ''}`}>
           <div className="min-w-0 flex-shrink-0 lg:flex-shrink">
-            {label && (
-              <p className={`${accentConfig.labelClass} text-sm font-semibold tracking-widest uppercase mb-2`}>
-                {label}
-              </p>
-            )}
-            <div className="flex items-center gap-10 flex-wrap">
-              <h1
-                className={`${sizeConfig.title} text-white tracking-tight`}
-                style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
-              >
-                {title}
-              </h1>
-              {titleAction}
-            </div>
-            {subtitle && (
-              <p className={`text-stone-400 ${sizeConfig.subtitle} mt-2`}>{subtitle}</p>
-            )}
-            {/* Time Selector - rendered under the title */}
-            {timeSelector && (
-              <div className="mt-4">
-                {timeSelector}
-              </div>
+            {/* Custom hero content or default title area */}
+            {heroContent ? (
+              heroContent
+            ) : (
+              <>
+                {label && (
+                  <p className={`${accentConfig.labelClass} text-sm font-semibold tracking-widest uppercase mb-2`}>
+                    {label}
+                  </p>
+                )}
+                <div className="flex items-center gap-10 flex-wrap">
+                  <h1
+                    className={`${sizeConfig.title} text-white tracking-tight`}
+                    style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
+                  >
+                    {title}
+                  </h1>
+                  {titleAction}
+                </div>
+                {subtitle && (
+                  <p className={`text-stone-400 ${sizeConfig.subtitle} mt-2`}>{subtitle}</p>
+                )}
+                {/* Time Selector - rendered under the title */}
+                {timeSelector && (
+                  <div className="mt-4">
+                    {timeSelector}
+                  </div>
+                )}
+              </>
             )}
           </div>
 
