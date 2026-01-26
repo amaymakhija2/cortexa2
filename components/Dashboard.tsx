@@ -1,10 +1,84 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+
+// =============================================================================
+// DRAG TO SCROLL HOOK (Performance optimized with refs)
+// =============================================================================
+
+const useDragToScroll = () => {
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const isDraggingRef = React.useRef(false);
+  const startXRef = React.useRef(0);
+  const scrollLeftRef = React.useRef(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [, forceUpdate] = useState(0); // Trigger re-run when ref is set
+
+  // Callback ref to detect when element mounts
+  const setRef = React.useCallback((node: HTMLDivElement | null) => {
+    containerRef.current = node;
+    forceUpdate(n => n + 1); // Trigger effect re-run
+  }, []);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleMouseDown = (e: MouseEvent) => {
+      isDraggingRef.current = true;
+      startXRef.current = e.pageX - container.offsetLeft;
+      scrollLeftRef.current = container.scrollLeft;
+      setIsDragging(true);
+      container.style.scrollSnapType = 'none';
+      container.style.cursor = 'grabbing';
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDraggingRef.current) return;
+      e.preventDefault();
+      const x = e.pageX - container.offsetLeft;
+      const walk = (x - startXRef.current) * 1.2;
+      container.scrollLeft = scrollLeftRef.current - walk;
+    };
+
+    const handleMouseUp = () => {
+      if (!isDraggingRef.current) return;
+      isDraggingRef.current = false;
+      setIsDragging(false);
+      container.style.scrollSnapType = '';
+      container.style.cursor = '';
+    };
+
+    const handleMouseLeave = () => {
+      if (!isDraggingRef.current) return;
+      isDraggingRef.current = false;
+      setIsDragging(false);
+      container.style.scrollSnapType = '';
+      container.style.cursor = '';
+    };
+
+    container.addEventListener('mousedown', handleMouseDown);
+    container.addEventListener('mousemove', handleMouseMove);
+    container.addEventListener('mouseup', handleMouseUp);
+    container.addEventListener('mouseleave', handleMouseLeave);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      container.removeEventListener('mousedown', handleMouseDown);
+      container.removeEventListener('mousemove', handleMouseMove);
+      container.removeEventListener('mouseup', handleMouseUp);
+      container.removeEventListener('mouseleave', handleMouseLeave);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [containerRef.current]); // Re-run when container element changes
+
+  return { ref: setRef, isDragging };
+};
 import { motion } from 'framer-motion';
 import { MetricsRow } from './MetricsRow';
 import { SimpleAlertCard } from './SimpleAlertCard';
+import { PriorityTasksEmptyState } from './PriorityTasksEmptyState';
 import { TimeSelector, TimeSelectorValue } from './design-system/controls/TimeSelector';
 import { CompareTab } from './CompareTab';
 import { PageHeader, SectionHeader } from './design-system';
@@ -234,6 +308,13 @@ export const Dashboard: React.FC = () => {
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+  const { ref: dragScrollRef, isDragging } = useDragToScroll();
+
+  // Combined ref for both drag scroll and navigation
+  const setCombinedRef = React.useCallback((node: HTMLDivElement | null) => {
+    (scrollContainerRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
+    dragScrollRef(node);
+  }, [dragScrollRef]);
   const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
   const now = new Date();
   // Dashboard defaults to current month (no aggregate option)
@@ -412,7 +493,7 @@ export const Dashboard: React.FC = () => {
               className="!mb-4"
               actions={
                 <div className="flex items-center gap-4">
-                  {needsNavigation && (
+                  {needsNavigation && !settings.showPriorityTasksEmptyState && (
                     <>
                       {/* Progress Bar */}
                       <div className="hidden sm:flex items-center gap-3">
@@ -456,25 +537,43 @@ export const Dashboard: React.FC = () => {
 
             {/* Cards Container - breaks out of parent padding to extend to viewport edge */}
             <div className="relative flex-1 min-h-[560px] -mr-6 sm:-mr-8 lg:-mr-12">
-              <div
-                ref={scrollContainerRef}
-                className="absolute inset-0 flex gap-4 lg:gap-5 overflow-x-auto overflow-y-hidden snap-x snap-mandatory scrollbar-hide pb-2 pr-6 sm:pr-8 lg:pr-12"
-                style={{
-                  scrollbarWidth: 'none',
-                  msOverflowStyle: 'none',
-                  WebkitOverflowScrolling: 'touch',
-                }}
-              >
-                {priorityCards.map((card, index) => (
+              {settings.showPriorityTasksEmptyState ? (
+                /* Empty State Preview */
+                <div className="absolute inset-0 flex gap-4 lg:gap-5 pb-2 pr-6 sm:pr-8 lg:pr-12">
                   <div
-                    key={index}
-                    className="snap-start flex-shrink-0 h-[540px]"
+                    className="flex-shrink-0 h-[540px]"
                     style={{ width: 'clamp(320px, 38vw, 520px)' }}
                   >
-                    {card}
+                    <PriorityTasksEmptyState index={0} />
                   </div>
-                ))}
-              </div>
+                </div>
+              ) : (
+                /* Priority Cards Carousel */
+                <div
+                  ref={setCombinedRef}
+                  className={`absolute inset-0 flex gap-4 lg:gap-5 overflow-x-auto overflow-y-hidden snap-x snap-mandatory scrollbar-hide pb-2 pr-6 sm:pr-8 lg:pr-12 cursor-grab ${
+                    isDragging ? 'select-none' : ''
+                  }`}
+                  style={{
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none',
+                    WebkitOverflowScrolling: 'touch',
+                  }}
+                >
+                  {priorityCards.map((card, index) => (
+                    <div
+                      key={index}
+                      className="snap-start flex-shrink-0 h-[540px]"
+                      style={{
+                        width: 'clamp(320px, 38vw, 520px)',
+                        pointerEvents: isDragging ? 'none' : 'auto', // Prevent clicks while dragging
+                      }}
+                    >
+                      {card}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>

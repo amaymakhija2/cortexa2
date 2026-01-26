@@ -1,7 +1,80 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { PracticeMetrics } from '../types';
 import { MetricCard, ExpandableBarChart } from './design-system/cards/MetricCard';
+
+// =============================================================================
+// DRAG TO SCROLL HOOK (Performance optimized with refs)
+// =============================================================================
+
+const useDragToScroll = () => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isDraggingRef = useRef(false);
+  const startXRef = useRef(0);
+  const scrollLeftRef = useRef(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [, forceUpdate] = useState(0);
+
+  // Callback ref to detect when element mounts
+  const setRef = useCallback((node: HTMLDivElement | null) => {
+    containerRef.current = node;
+    forceUpdate(n => n + 1);
+  }, []);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleMouseDown = (e: MouseEvent) => {
+      isDraggingRef.current = true;
+      startXRef.current = e.pageX - container.offsetLeft;
+      scrollLeftRef.current = container.scrollLeft;
+      setIsDragging(true);
+      container.style.scrollSnapType = 'none';
+      container.style.cursor = 'grabbing';
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDraggingRef.current) return;
+      e.preventDefault();
+      const x = e.pageX - container.offsetLeft;
+      const walk = (x - startXRef.current) * 1.2;
+      container.scrollLeft = scrollLeftRef.current - walk;
+    };
+
+    const handleMouseUp = () => {
+      if (!isDraggingRef.current) return;
+      isDraggingRef.current = false;
+      setIsDragging(false);
+      container.style.scrollSnapType = '';
+      container.style.cursor = '';
+    };
+
+    const handleMouseLeave = () => {
+      if (!isDraggingRef.current) return;
+      isDraggingRef.current = false;
+      setIsDragging(false);
+      container.style.scrollSnapType = '';
+      container.style.cursor = '';
+    };
+
+    container.addEventListener('mousedown', handleMouseDown);
+    container.addEventListener('mousemove', handleMouseMove);
+    container.addEventListener('mouseup', handleMouseUp);
+    container.addEventListener('mouseleave', handleMouseLeave);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      container.removeEventListener('mousedown', handleMouseDown);
+      container.removeEventListener('mousemove', handleMouseMove);
+      container.removeEventListener('mouseup', handleMouseUp);
+      container.removeEventListener('mouseleave', handleMouseLeave);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [containerRef.current]);
+
+  return { ref: setRef, isDragging };
+};
 
 // =============================================================================
 // CLIENT GROWTH EXPANDABLE CONTENT
@@ -243,7 +316,7 @@ export const MetricsRow: React.FC<MetricsRowProps> = ({ metrics, isLive = true, 
     />,
   ];
 
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const { ref: dragScrollRef, isDragging } = useDragToScroll();
 
   // Card width: minimum 260px for readability, scales up to 400px on large screens
   // Shows ~3.5 cards on large screens to indicate scrollability
@@ -256,8 +329,10 @@ export const MetricsRow: React.FC<MetricsRowProps> = ({ metrics, isLive = true, 
     <div className="relative min-h-[240px] -mr-6 sm:-mr-8 lg:-mr-12">
       {/* Scroll Container - absolute positioning for width constraint */}
       <div
-        ref={scrollContainerRef}
-        className="absolute inset-0 flex gap-4 overflow-x-auto snap-x snap-mandatory py-2 pr-6 sm:pr-8 lg:pr-12"
+        ref={dragScrollRef}
+        className={`absolute inset-0 flex gap-4 overflow-x-auto snap-x snap-mandatory py-2 pr-6 sm:pr-8 lg:pr-12 cursor-grab ${
+          isDragging ? 'select-none' : ''
+        }`}
         style={{
           scrollbarWidth: 'none',
           msOverflowStyle: 'none',
@@ -268,7 +343,10 @@ export const MetricsRow: React.FC<MetricsRowProps> = ({ metrics, isLive = true, 
           <div
             key={index}
             className="snap-start flex-shrink-0 h-full"
-            style={cardStyle}
+            style={{
+              ...cardStyle,
+              pointerEvents: isDragging ? 'none' : 'auto', // Prevent clicks while dragging
+            }}
           >
             {card}
           </div>

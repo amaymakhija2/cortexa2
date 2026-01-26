@@ -212,6 +212,7 @@ interface AppSettings {
   anonymizeClinicianNames: boolean;
   hideAIInsights: boolean;
   showConsultationMetrics: boolean;
+  showPriorityTasksEmptyState: boolean; // Preview empty state for priority tasks
   iconStyle: IconStyle; // Sidebar icon style
   practiceGoals: PracticeGoals;
   thresholds: MetricThresholds;
@@ -365,6 +366,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   anonymizeClinicianNames: false,
   hideAIInsights: true,
   showConsultationMetrics: false,
+  showPriorityTasksEmptyState: true, // Default to empty state preview
   iconStyle: 'illustrated', // Default to illustrated icons
   practiceGoals: DEFAULT_PRACTICE_GOALS,
   thresholds: DEFAULT_THRESHOLDS,

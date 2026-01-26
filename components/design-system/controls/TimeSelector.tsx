@@ -242,69 +242,51 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
               style={{
                 top: position.top,
                 left: position.left,
-                width: showMonthPicker ? '360px' : '300px',
-                background: 'linear-gradient(135deg, #292524 0%, #1c1917 100%)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                borderRadius: '20px',
-                boxShadow: '0 25px 60px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05)',
-                animation: 'dropdownReveal 0.2s ease-out',
+                width: showMonthPicker ? '320px' : '260px',
+                background: 'rgba(253, 252, 251, 0.88)',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                border: '1px solid rgba(168, 154, 140, 0.25)',
+                borderRadius: '16px',
+                boxShadow: '0 4px 20px -4px rgba(120, 100, 80, 0.12), 0 8px 32px -8px rgba(0, 0, 0, 0.08)',
+                animation: 'dropdownFade 0.15s ease-out',
               }}
             >
-              {/* Decorative top glow */}
-              <div
-                className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-16 opacity-30 pointer-events-none"
-                style={{
-                  background: 'radial-gradient(ellipse at center top, #f59e0b 0%, transparent 70%)',
-                }}
-              />
-
               {showMonthPicker ? (
-                // Month Picker View
-                <div className="relative p-5">
-                  {/* Header with back button */}
-                  <div className="flex items-center justify-between mb-5">
+                <div className="p-4">
+                  {/* Back + Year row */}
+                  <div className="flex items-center justify-between mb-4">
                     <button
                       onClick={() => setShowMonthPicker(false)}
-                      className="flex items-center gap-2 text-stone-400 hover:text-white transition-colors"
+                      className="flex items-center gap-1 transition-colors hover:opacity-70"
+                      style={{ color: '#1c1917' }}
                     >
-                      <ChevronLeft size={18} />
-                      <span className="text-sm font-medium">Back</span>
+                      <ChevronLeft size={16} />
+                      <span className="text-[13px] font-semibold">Back</span>
                     </button>
-                    <h3
-                      className="text-white text-lg font-semibold"
-                      style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
-                    >
-                      Select Month
-                    </h3>
-                    <div className="w-16" /> {/* Spacer for alignment */}
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setPickerYear(prev => Math.max(minYear, prev - 1))}
+                        disabled={pickerYear <= minYear}
+                        className="w-7 h-7 rounded-full flex items-center justify-center text-stone-600 hover:text-stone-900 hover:bg-stone-100 transition-all disabled:opacity-30"
+                      >
+                        <ChevronLeft size={14} />
+                      </button>
+                      <span className="text-stone-800 text-[15px] font-semibold tabular-nums w-12 text-center">
+                        {pickerYear}
+                      </span>
+                      <button
+                        onClick={() => setPickerYear(prev => Math.min(maxYear, prev + 1))}
+                        disabled={pickerYear >= maxYear}
+                        className="w-7 h-7 rounded-full flex items-center justify-center text-stone-600 hover:text-stone-900 hover:bg-stone-100 transition-all disabled:opacity-30"
+                      >
+                        <ChevronRight size={14} />
+                      </button>
+                    </div>
                   </div>
 
-                  {/* Year selector */}
-                  <div className="flex items-center justify-center gap-4 mb-5 pb-5 border-b border-white/10">
-                    <button
-                      onClick={() => setPickerYear(prev => Math.max(minYear, prev - 1))}
-                      disabled={pickerYear <= minYear}
-                      className="w-10 h-10 rounded-full flex items-center justify-center text-stone-400 hover:text-white hover:bg-white/10 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                    >
-                      <ChevronLeft size={20} />
-                    </button>
-                    <span
-                      className="text-white text-2xl font-bold tabular-nums w-20 text-center"
-                      style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
-                    >
-                      {pickerYear}
-                    </span>
-                    <button
-                      onClick={() => setPickerYear(prev => Math.min(maxYear, prev + 1))}
-                      disabled={pickerYear >= maxYear}
-                      className="w-10 h-10 rounded-full flex items-center justify-center text-stone-400 hover:text-white hover:bg-white/10 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                    >
-                      <ChevronRight size={20} />
-                    </button>
-                  </div>
-
-                  {/* Month grid */}
-                  <div className="grid grid-cols-4 gap-2">
+                  {/* Month grid - compact */}
+                  <div className="grid grid-cols-4 gap-1.5">
                     {SHORT_MONTHS.map((month, idx) => {
                       const isMonthSelected = !isAggregateValue(value) && value.month === idx && value.year === pickerYear;
                       const isFutureMonth = pickerYear === currentYear && idx > currentMonth;
@@ -316,18 +298,14 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
                           key={month}
                           onClick={() => !isDisabled && select({ month: idx, year: pickerYear })}
                           disabled={isDisabled}
-                          className="h-11 rounded-xl text-sm font-semibold transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed"
-                          style={{
-                            background: isMonthSelected
-                              ? 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)'
-                              : 'rgba(255, 255, 255, 0.05)',
-                            color: isMonthSelected
-                              ? '#1c1917'
-                              : '#a8a29e',
-                            boxShadow: isMonthSelected
-                              ? '0 2px 8px rgba(251, 191, 36, 0.3)'
-                              : 'none',
-                          }}
+                          className={`
+                            h-9 rounded-lg text-[13px] font-medium transition-all duration-150
+                            disabled:opacity-30 disabled:cursor-not-allowed
+                            ${isMonthSelected
+                              ? 'bg-stone-800 text-white'
+                              : 'text-stone-700 hover:bg-stone-100 hover:text-stone-900'
+                            }
+                          `}
                         >
                           {month}
                         </button>
@@ -336,16 +314,10 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
                   </div>
                 </div>
               ) : (
-                // Main dropdown view
-                <div className="relative py-2">
-                  {/* Aggregate options - time ranges */}
+                <div className="py-2">
+                  {/* Aggregate options */}
                   {showAggregateOption && (
                     <>
-                      <div className="px-5 pt-4 pb-2">
-                        <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
-                          Time range
-                        </span>
-                      </div>
                       {[
                         { value: 'last-12-months' as const, label: 'Last 12 Months' },
                         { value: 'last-6-months' as const, label: 'Last 6 Months' },
@@ -356,60 +328,59 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
                           <button
                             key={option.value}
                             onClick={() => select(option.value)}
-                            className="w-full flex items-center gap-3 px-5 py-3.5 text-left transition-all duration-200 group/item"
+                            className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-all duration-150"
                             style={{
-                              background: selected
-                                ? 'linear-gradient(90deg, rgba(251, 191, 36, 0.15) 0%, transparent 100%)'
-                                : 'transparent',
+                              background: selected ? 'rgba(251, 191, 36, 0.15)' : 'transparent',
                             }}
                           >
-                            <TrendingUp
-                              size={18}
-                              className={selected ? 'text-amber-400' : 'text-stone-500 group-hover/item:text-stone-400'}
+                            {/* Amber accent bar for selected */}
+                            <span
+                              className="w-[3px] h-4 rounded-full transition-all duration-150"
+                              style={{
+                                background: selected ? '#f59e0b' : 'transparent',
+                              }}
                             />
-                            <span className={`flex-1 text-base font-medium ${selected ? 'text-amber-300' : 'text-stone-300 group-hover/item:text-white'}`}>
+                            <span
+                              className={`text-[14px] ${selected ? 'font-semibold' : 'font-medium'}`}
+                              style={{ color: '#1c1917' }}
+                            >
                               {option.label}
                             </span>
-                            {selected && <Check size={16} className="text-amber-400" />}
                           </button>
                         );
                       })}
                       {!aggregateOnly && (
-                        <div className="mx-5 my-3 h-px bg-white/10" />
+                        <div className="mx-4 my-2 h-px" style={{ background: 'rgba(168, 154, 140, 0.2)' }} />
                       )}
                     </>
                   )}
 
-                  {/* Specific month section - hidden when aggregateOnly */}
+                  {/* Specific month section */}
                   {!aggregateOnly && (
                     <>
-                      <div className="px-5 pt-3 pb-2 flex items-center justify-between">
-                        <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
-                          Specific month
+                      <div className="px-4 pt-1 pb-2 flex items-center justify-between">
+                        <span className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: '#57534e' }}>
+                          By Month
                         </span>
                         <button
                           onClick={() => {
-                            // Set picker year to current selection's year if applicable
-                            if (!isAggregateValue(value)) {
-                              setPickerYear(value.year);
-                            }
+                            if (!isAggregateValue(value)) setPickerYear(value.year);
                             setShowMonthPicker(true);
                           }}
-                          className="text-xs font-semibold text-amber-400/80 hover:text-amber-400 uppercase tracking-wider transition-colors"
+                          className="text-[11px] font-semibold transition-colors hover:opacity-70"
+                          style={{ color: '#d97706' }}
                         >
-                          Calendar →
+                          See Calendar
                         </button>
                       </div>
 
-                      {/* Recent months list - height adjusts based on whether aggregate options are shown */}
                       <div className="relative">
                         <div
-                          className="overflow-y-auto pb-1 months-scroll-dark"
+                          className="overflow-y-auto"
                           style={{
-                            // Show ~3 months when aggregate options present, ~6 when not
-                            maxHeight: showAggregateOption ? '144px' : '288px',
-                            scrollbarWidth: 'thin',
-                            scrollbarColor: 'rgba(251, 191, 36, 0.3) transparent',
+                            maxHeight: showAggregateOption ? '132px' : '264px',
+                            scrollbarWidth: 'none',
+                            msOverflowStyle: 'none',
                           }}
                         >
                           {monthOptions.slice(0, 12).map(({ month, year, isCurrent }) => {
@@ -418,33 +389,43 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
                               <button
                                 key={`${month}-${year}`}
                                 onClick={() => select({ month, year })}
-                                className={`
-                                  w-full flex items-center justify-between px-5 py-3
-                                  text-left text-base transition-all duration-200
-                                  ${selected
-                                    ? 'bg-white/10 font-medium text-white'
-                                    : 'hover:bg-white/5 text-stone-400 hover:text-stone-200'
-                                  }
-                                `}
+                                className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-all duration-150"
+                                style={{
+                                  background: selected ? 'rgba(251, 191, 36, 0.15)' : 'transparent',
+                                }}
                               >
-                                <span className="flex items-center gap-2.5">
-                                  {MONTHS[month]} {year}
+                                {/* Amber accent bar for selected */}
+                                <span
+                                  className="w-[3px] h-4 rounded-full transition-all duration-150"
+                                  style={{
+                                    background: selected ? '#f59e0b' : 'transparent',
+                                  }}
+                                />
+                                <span className="flex items-center gap-2">
+                                  <span
+                                    className={`text-[14px] ${selected ? 'font-semibold' : 'font-medium'}`}
+                                    style={{ color: '#1c1917' }}
+                                  >
+                                    {MONTHS[month]} {year}
+                                  </span>
                                   {isCurrent && (
-                                    <span className="text-[11px] font-semibold text-amber-400/70 uppercase">
-                                      Now
+                                    <span
+                                      className="text-[10px] font-semibold px-1.5 py-0.5 rounded"
+                                      style={{ color: '#92400e', background: 'rgba(251, 191, 36, 0.2)' }}
+                                    >
+                                      This Month
                                     </span>
                                   )}
                                 </span>
-                                {selected && <Check size={16} className="text-amber-400" />}
                               </button>
                             );
                           })}
                         </div>
-                        {/* Bottom fade gradient to indicate more content */}
+                        {/* Subtle fade */}
                         <div
-                          className="absolute bottom-0 left-0 right-2 h-8 pointer-events-none"
+                          className="absolute bottom-0 left-0 right-0 h-6 pointer-events-none"
                           style={{
-                            background: 'linear-gradient(to top, #1c1917 0%, transparent 100%)',
+                            background: 'linear-gradient(to top, rgba(253, 252, 251, 0.9) 0%, transparent 100%)',
                           }}
                         />
                       </div>
@@ -453,36 +434,10 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
                 </div>
               )}
 
-              {/* CSS Animation & Scrollbar Styling */}
               <style>{`
-                @keyframes dropdownReveal {
-                  from {
-                    opacity: 0;
-                    transform: translateY(-8px) scale(0.96);
-                  }
-                  to {
-                    opacity: 1;
-                    transform: translateY(0) scale(1);
-                  }
-                }
-
-                .months-scroll-dark::-webkit-scrollbar {
-                  width: 6px;
-                }
-
-                .months-scroll-dark::-webkit-scrollbar-track {
-                  background: rgba(255, 255, 255, 0.05);
-                  border-radius: 3px;
-                  margin: 4px 0;
-                }
-
-                .months-scroll-dark::-webkit-scrollbar-thumb {
-                  background: linear-gradient(180deg, rgba(251, 191, 36, 0.4) 0%, rgba(251, 191, 36, 0.2) 100%);
-                  border-radius: 3px;
-                }
-
-                .months-scroll-dark::-webkit-scrollbar-thumb:hover {
-                  background: linear-gradient(180deg, rgba(251, 191, 36, 0.6) 0%, rgba(251, 191, 36, 0.3) 100%);
+                @keyframes dropdownFade {
+                  from { opacity: 0; transform: translateY(-4px); }
+                  to { opacity: 1; transform: translateY(0); }
                 }
               `}</style>
             </div>
@@ -494,7 +449,13 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
   }
 
   // ==========================================================================
-  // DEFAULT VARIANT - Compact button style
+  // DEFAULT VARIANT - Glassmorphic floating pill (matches sidebar aesthetic)
+  // ==========================================================================
+  // Design: Warm translucent glass with amber accents
+  // - Frosted backdrop blur effect
+  // - Multi-layer soft shadows for depth
+  // - Warm stone borders with subtle opacity
+  // - Smooth 400ms transitions matching sidebar
   // ==========================================================================
   return (
     <>
@@ -502,16 +463,24 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
         ref={triggerRef}
         onClick={() => setIsOpen(!isOpen)}
         className={`
-          inline-flex items-center gap-2.5 px-4 py-2.5 rounded-xl
-          text-[15px] font-medium transition-colors
-          bg-white hover:bg-stone-50 text-stone-800 border border-stone-200
+          group inline-flex items-center gap-2 px-3.5 py-2 rounded-xl
+          text-[14px] font-medium
+          transition-all duration-150
           ${className}
         `}
+        style={{
+          background: 'rgba(253, 252, 251, 0.85)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(168, 154, 140, 0.25)',
+          boxShadow: '0 2px 8px -2px rgba(120, 100, 80, 0.08)',
+          color: '#44403c',
+        }}
       >
         <span>{getLabel()}</span>
         <ChevronDown
-          size={16}
-          className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''} text-stone-400`}
+          size={14}
+          className={`text-stone-600 transition-transform duration-150 ${isOpen ? 'rotate-180' : ''}`}
         />
       </button>
 
@@ -519,21 +488,23 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
         isOpen && (
           <div
             ref={dropdownRef}
-            className="fixed z-[100000] w-[300px] bg-white rounded-xl border border-stone-200 overflow-hidden"
+            className="fixed z-[100000] overflow-hidden"
             style={{
               top: position.top,
               left: position.left,
-              boxShadow: '0 4px 24px rgba(0,0,0,0.12)',
+              width: '260px',
+              background: 'rgba(253, 252, 251, 0.88)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              border: '1px solid rgba(168, 154, 140, 0.25)',
+              borderRadius: '16px',
+              boxShadow: '0 4px 20px -4px rgba(120, 100, 80, 0.12), 0 8px 32px -8px rgba(0, 0, 0, 0.08)',
+              animation: 'dropdownFadeDefault 0.15s ease-out',
             }}
           >
-            {/* Aggregate options - period ranges */}
+            {/* Aggregate options */}
             {showAggregateOption && (
               <>
-                <div className="px-5 pt-4 pb-2">
-                  <span className="text-xs font-semibold text-stone-400 uppercase tracking-wider">
-                    Time range
-                  </span>
-                </div>
                 {[
                   { value: 'last-12-months' as const, label: 'Last 12 Months' },
                   { value: 'last-6-months' as const, label: 'Last 6 Months' },
@@ -544,50 +515,49 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
                     <button
                       key={option.value}
                       onClick={() => select(option.value)}
-                      className={`
-                        w-full flex items-center gap-3 px-5 py-3.5
-                        text-left transition-colors border-l-2
-                        ${selected
-                          ? 'bg-amber-50/80 border-l-amber-500'
-                          : 'hover:bg-stone-50 border-l-transparent'
-                        }
-                      `}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-all duration-150"
+                      style={{
+                        background: selected ? 'rgba(251, 191, 36, 0.15)' : 'transparent',
+                      }}
                     >
-                      <TrendingUp
-                        size={18}
-                        className={selected ? 'text-amber-600' : 'text-stone-400'}
+                      {/* Amber accent bar for selected */}
+                      <span
+                        className="w-[3px] h-4 rounded-full transition-all duration-150"
+                        style={{
+                          background: selected ? '#f59e0b' : 'transparent',
+                        }}
                       />
-                      <span className={`flex-1 text-base font-medium ${selected ? 'text-amber-900' : 'text-stone-700'}`}>
+                      <span
+                        className={`text-[14px] ${selected ? 'font-semibold' : 'font-medium'}`}
+                        style={{ color: '#1c1917' }}
+                      >
                         {option.label}
                       </span>
-                      {selected && <Check size={16} className="text-amber-600" />}
                     </button>
                   );
                 })}
                 {!aggregateOnly && (
-                  <div className="mx-5 my-3 h-px bg-stone-200" />
+                  <div className="mx-4 my-2 h-px" style={{ background: 'rgba(168, 154, 140, 0.2)' }} />
                 )}
               </>
             )}
 
-            {/* Section label - hidden when aggregateOnly */}
+            {/* Specific month section */}
             {!aggregateOnly && (
               <>
-                <div className="px-5 pt-3 pb-2">
-                  <span className="text-xs font-semibold text-stone-400 uppercase tracking-wider">
-                    Specific month
+                <div className="px-4 pt-1 pb-2">
+                  <span className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: '#57534e' }}>
+                    By Month
                   </span>
                 </div>
 
-                {/* Month list - height adjusts based on whether aggregate options are shown */}
                 <div className="relative">
                   <div
-                    className="overflow-y-auto pb-2 months-scroll-light"
+                    className="overflow-y-auto"
                     style={{
-                      // Show ~3 months when aggregate options present, ~6 when not
-                      maxHeight: showAggregateOption ? '144px' : '288px',
-                      scrollbarWidth: 'thin',
-                      scrollbarColor: 'rgba(120, 113, 108, 0.3) transparent',
+                      maxHeight: showAggregateOption ? '132px' : '264px',
+                      scrollbarWidth: 'none',
+                      msOverflowStyle: 'none',
                     }}
                   >
                     {monthOptions.map(({ month, year, isCurrent }) => {
@@ -596,58 +566,50 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
                         <button
                           key={`${month}-${year}`}
                           onClick={() => select({ month, year })}
-                          className={`
-                            w-full flex items-center justify-between px-5 py-3
-                            text-left text-base transition-colors
-                            ${selected
-                              ? 'bg-stone-100 font-medium text-stone-900'
-                              : 'hover:bg-stone-50 text-stone-600'
-                            }
-                          `}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-all duration-150"
+                          style={{
+                            background: selected ? 'rgba(251, 191, 36, 0.15)' : 'transparent',
+                          }}
                         >
-                          <span className="flex items-center gap-2.5">
-                            {MONTHS[month]} {year}
+                          {/* Amber accent bar for selected */}
+                          <span
+                            className="w-[3px] h-4 rounded-full transition-all duration-150"
+                            style={{
+                              background: selected ? '#f59e0b' : 'transparent',
+                            }}
+                          />
+                          <span className="flex items-center gap-2">
+                            <span
+                              className={`text-[14px] ${selected ? 'font-semibold' : 'font-medium'}`}
+                              style={{ color: '#1c1917' }}
+                            >
+                              {MONTHS[month]} {year}
+                            </span>
                             {isCurrent && (
-                              <span className="text-[11px] font-semibold text-stone-400 uppercase">
-                                Now
+                              <span
+                                className="text-[10px] font-semibold px-1.5 py-0.5 rounded"
+                                style={{ color: '#92400e', background: 'rgba(251, 191, 36, 0.2)' }}
+                              >
+                                This Month
                               </span>
                             )}
                           </span>
-                          {selected && <Check size={16} className="text-stone-500" />}
                         </button>
                       );
                     })}
                   </div>
-                  {/* Bottom fade gradient to indicate more content */}
                   <div
-                    className="absolute bottom-0 left-0 right-2 h-8 pointer-events-none"
-                    style={{
-                      background: 'linear-gradient(to top, white 0%, transparent 100%)',
-                    }}
+                    className="absolute bottom-0 left-0 right-0 h-6 pointer-events-none"
+                    style={{ background: 'linear-gradient(to top, rgba(253, 252, 251, 0.9) 0%, transparent 100%)' }}
                   />
                 </div>
               </>
             )}
 
-            {/* Scrollbar styling for light variant */}
             <style>{`
-              .months-scroll-light::-webkit-scrollbar {
-                width: 6px;
-              }
-
-              .months-scroll-light::-webkit-scrollbar-track {
-                background: rgba(0, 0, 0, 0.03);
-                border-radius: 3px;
-                margin: 4px 0;
-              }
-
-              .months-scroll-light::-webkit-scrollbar-thumb {
-                background: rgba(120, 113, 108, 0.25);
-                border-radius: 3px;
-              }
-
-              .months-scroll-light::-webkit-scrollbar-thumb:hover {
-                background: rgba(120, 113, 108, 0.4);
+              @keyframes dropdownFadeDefault {
+                from { opacity: 0; transform: translateY(-4px); }
+                to { opacity: 1; transform: translateY(0); }
               }
             `}</style>
           </div>

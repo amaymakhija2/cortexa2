@@ -23,6 +23,7 @@ import {
   X,
   AlertCircle,
   Palette,
+  Inbox,
 } from 'lucide-react';
 import { PageHeader } from './design-system';
 
@@ -902,6 +903,16 @@ export const SettingsPage: React.FC = () => {
                   <ToggleSwitch
                     enabled={settings.iconStyle === 'illustrated'}
                     onChange={(enabled) => updateSettings({ iconStyle: enabled ? 'illustrated' : 'phosphor' })}
+                  />
+                </SettingRow>
+                <SettingRow
+                  icon={Inbox}
+                  label="Priority Tasks Empty State"
+                  description="Preview empty state when no priority tasks exist"
+                >
+                  <ToggleSwitch
+                    enabled={settings.showPriorityTasksEmptyState}
+                    onChange={(enabled) => updateSettings({ showPriorityTasksEmptyState: enabled })}
                   />
                 </SettingRow>
               </SettingsSection>
