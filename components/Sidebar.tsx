@@ -1,23 +1,28 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { NavLink, useLocation, useSearchParams } from 'react-router-dom';
 import {
-  LayoutGrid,
+  Compass,
   Users,
   Calculator,
   Banknote,
   X,
-  BarChart3,
-  MessageSquare,
+  Activity,
+  Inbox,
   Settings,
-  Sliders,
   RefreshCw,
-  ChevronDown,
+  ArrowRight,
 } from 'lucide-react';
 
 // =============================================================================
 // GLASSMORPHIC FLOATING SIDEBAR
-// Warm translucent glass with blur, inspired by the Cortexa LP navigation pill.
-// Floats over content with pill-shaped edges and sophisticated shadows.
+// Matches the Cortexa LP navigation pill aesthetic exactly.
+// Amber accent system, stone neutrals, luminous glass effects.
+//
+// COLOR PALETTE: LP Nav Pill System
+// - Primary accent: Amber (#f59e0b / #fbbf24) - warm, energetic
+// - Active states: Amber gradient underlines, not background fills
+// - Text: Stone scale (stone-600 → stone-900 on hover/active)
+// - Glass: Warm translucent with 20px blur
 // =============================================================================
 
 interface SidebarProps {
@@ -27,11 +32,33 @@ interface SidebarProps {
   setIsCollapsed?: (collapsed: boolean) => void;
 }
 
+// Color palette - matching LP Navigation pill exactly
+const COLORS = {
+  // Primary accent - amber (from LP nav active underline)
+  accent: '#f59e0b',        // amber-500
+  accentLight: '#fbbf24',   // amber-400
+  accentGlow: 'rgba(251, 191, 36, 0.4)',
+
+  // Text colors - stone scale (from LP nav)
+  textPrimary: '#1c1917',   // stone-900
+  textSecondary: '#57534e', // stone-600
+  textMuted: '#78716c',     // stone-500
+  textDisabled: '#a8a29e',  // stone-400
+
+  // Borders and dividers - warm stone
+  border: 'rgba(168, 154, 140, 0.25)',
+  borderHover: 'rgba(168, 154, 140, 0.4)',
+
+  // Status colors - refined
+  statusSynced: '#22c55e',  // green-500
+  statusSyncing: '#f59e0b', // amber-500
+} as const;
+
 const NAV_ITEMS = [
   {
     path: '/dashboard',
     label: 'Overview',
-    icon: LayoutGrid,
+    icon: Compass,
     subItems: [
       { id: 'summary', label: 'Summary' },
       { id: 'compare', label: 'Compare' },
@@ -49,7 +76,7 @@ const NAV_ITEMS = [
   {
     path: '/practice-analysis',
     label: 'Practice',
-    icon: BarChart3,
+    icon: Activity,
     subItems: [
       { id: 'clients', label: 'Roster' },
       { id: 'consultations', label: 'Consults' },
@@ -62,13 +89,8 @@ const NAV_ITEMS = [
   {
     path: '/consultations',
     label: 'Pipeline',
-    icon: MessageSquare,
+    icon: Inbox,
   },
-];
-
-const FOOTER_ITEMS = [
-  { path: '/components', label: 'Components', icon: LayoutGrid },
-  { path: '/configure', label: 'Configure', icon: Sliders },
 ];
 
 const UPCOMING = [
@@ -76,8 +98,7 @@ const UPCOMING = [
   { label: 'Payroll', icon: Banknote },
 ];
 
-// Glassmorphic style constants (matching LP navigation pill)
-// READABILITY FIX: Higher opacity when expanded for text contrast
+// Glassmorphic style constants - higher opacity for readability
 const GLASS_STYLES = {
   collapsed: {
     background: 'rgba(253, 252, 251, 0.65)',
@@ -190,118 +211,127 @@ export const Sidebar: React.FC<SidebarProps> = ({
           `,
         }}
       >
-        {/* Inner glow overlay for depth + frosted edge highlights */}
+        {/* Subtle top highlight for glass edge - LP style */}
         <div
-          className="absolute inset-0 pointer-events-none"
+          className="absolute inset-x-0 top-0 h-px pointer-events-none"
           style={{
-            borderRadius: 24,
-            background: `
-              linear-gradient(180deg,
-                rgba(255, 255, 255, 0.5) 0%,
-                rgba(255, 255, 255, 0.15) 8%,
-                rgba(255, 255, 255, 0) 25%,
-                rgba(255, 255, 255, 0) 75%,
-                rgba(250, 248, 245, 0.2) 100%
-              )
-            `,
+            borderRadius: '24px 24px 0 0',
+            background: 'linear-gradient(90deg, transparent 10%, rgba(255, 255, 255, 0.4) 50%, transparent 90%)',
           }}
         />
 
-        {/* Subtle inner border for glass edge definition */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            borderRadius: 24,
-            boxShadow: 'inset 0 1px 1px rgba(255, 255, 255, 0.4), inset 0 -1px 1px rgba(168, 154, 140, 0.1)',
-          }}
-        />
-
-        {/* Mobile close button */}
+        {/* Mobile close button - LP style */}
         <button
-          className="lg:hidden absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-stone-500 hover:text-stone-800 rounded-full transition-all z-10"
+          className="lg:hidden absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full transition-all duration-200 z-10 hover:scale-105 active:scale-95"
           onClick={closeMobile}
           style={{
-            background: 'rgba(168, 154, 140, 0.1)',
-            backdropFilter: 'blur(8px)',
+            color: COLORS.textSecondary,
+            background: 'transparent',
           }}
         >
-          <X size={16} strokeWidth={2} />
+          <X size={18} strokeWidth={2} />
         </button>
 
         {/* ══════════════ HEADER ══════════════ */}
         <div
           className="flex-shrink-0 relative"
           style={{
-            padding: isExpanded ? '20px 16px 14px' : '20px 10px 14px',
-            transition: 'padding 400ms cubic-bezier(0.22, 0.61, 0.36, 1)',
+            padding: '20px 8px 16px',
+            transition: 'padding 500ms cubic-bezier(0.22, 0.61, 0.36, 1)',
           }}
         >
-          {/* Logo + Brand */}
-          <div className="flex items-center gap-2">
-            <div className="relative flex-shrink-0">
+          {/* Logo + Brand - LP nav style */}
+          <a
+            href="#"
+            className="flex items-center group"
+            style={{
+              transition: 'all 200ms ease-out',
+            }}
+          >
+            {/* Logo mark - 52px container to center in collapsed state */}
+            <div
+              className="relative flex items-center justify-center flex-shrink-0 transition-transform duration-200 group-hover:scale-[1.02]"
+              style={{ width: 52 }}
+            >
               <img
                 src="/cortexa-mark.png"
                 alt="Cortexa"
-                className="w-12 h-12 object-contain"
+                className="h-11 w-auto object-contain"
                 style={{
                   filter: 'drop-shadow(0 2px 8px rgba(120, 100, 80, 0.12))',
                 }}
               />
+              {/* Sync status dot - visible when collapsed */}
+              <div
+                className="absolute transition-all duration-300"
+                style={{
+                  bottom: -2,
+                  right: 4,
+                  width: isSyncing ? 10 : 8,
+                  height: isSyncing ? 10 : 8,
+                  borderRadius: '50%',
+                  backgroundColor: isSyncing ? COLORS.statusSyncing : COLORS.statusSynced,
+                  border: '2px solid rgba(253, 252, 251, 0.95)',
+                  boxShadow: `0 0 ${isSyncing ? '8px' : '6px'} ${isSyncing ? 'rgba(245, 158, 11, 0.5)' : 'rgba(34, 197, 94, 0.4)'}`,
+                  opacity: isExpanded ? 0 : 1,
+                  transform: isExpanded ? 'scale(0)' : 'scale(1)',
+                }}
+              />
             </div>
 
-            <div
+            {/* Wordmark - matches LP exactly */}
+            <span
+              className="font-medium tracking-[-0.02em] leading-none"
               style={{
+                fontSize: '1.65rem',
+                color: COLORS.textPrimary,
                 opacity: isExpanded ? 1 : 0,
                 transform: isExpanded ? 'translateX(0)' : 'translateX(-8px)',
-                transition: 'all 350ms cubic-bezier(0.22, 0.61, 0.36, 1)',
+                transition: 'all 500ms cubic-bezier(0.22, 0.61, 0.36, 1)',
                 transitionDelay: isExpanded ? '100ms' : '0ms',
                 pointerEvents: isExpanded ? 'auto' : 'none',
               }}
             >
-              <span
-                className="text-[22px] font-medium tracking-[-0.02em] text-stone-800"
-                style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
-              >
-                Cortexa
-              </span>
-            </div>
-          </div>
+              Cortexa
+            </span>
+          </a>
 
-          {/* Sync status row */}
+          {/* Sync status row - minimal, refined */}
           <div
             style={{
-              marginTop: 14,
-              paddingTop: 12,
-              borderTop: '1px solid rgba(168, 154, 140, 0.15)',
+              marginTop: 16,
               opacity: isExpanded ? 1 : 0,
-              maxHeight: isExpanded ? 50 : 0,
+              maxHeight: isExpanded ? 40 : 0,
               overflow: 'hidden',
-              transition: 'all 350ms cubic-bezier(0.22, 0.61, 0.36, 1)',
-              transitionDelay: isExpanded ? '50ms' : '0ms',
+              transition: 'all 500ms cubic-bezier(0.22, 0.61, 0.36, 1)',
+              transitionDelay: isExpanded ? '80ms' : '0ms',
             }}
           >
             <button
               onClick={handleSync}
-              className="group flex items-center gap-2 w-full"
+              className="group flex items-center gap-2.5 px-3 py-2 rounded-full w-full transition-all duration-200"
+              style={{
+                background: 'rgba(120, 113, 108, 0.05)',
+              }}
             >
-              <div className="relative">
-                <div
-                  className="w-2 h-2 rounded-full"
-                  style={{
-                    backgroundColor: isSyncing ? '#f59e0b' : '#10b981',
-                    boxShadow: `0 0 8px ${isSyncing ? 'rgba(245, 158, 11, 0.5)' : 'rgba(16, 185, 129, 0.4)'}`,
-                  }}
-                />
-              </div>
+              <div
+                className="w-2 h-2 rounded-full transition-all duration-300"
+                style={{
+                  backgroundColor: isSyncing ? COLORS.statusSyncing : COLORS.statusSynced,
+                  boxShadow: `0 0 ${isSyncing ? '8px' : '6px'} ${isSyncing ? 'rgba(245, 158, 11, 0.5)' : 'rgba(34, 197, 94, 0.4)'}`,
+                }}
+              />
               <span
-                className="text-[12px] text-stone-500 group-hover:text-stone-700 transition-colors"
-                style={{ fontFamily: "'Suisse Intl', system-ui, sans-serif" }}
+                className="text-[13px] font-medium tracking-[-0.01em] transition-colors duration-200 group-hover:text-stone-800"
+                style={{ color: COLORS.textSecondary }}
               >
                 {isSyncing ? 'Syncing...' : 'Synced 2h ago'}
               </span>
               <RefreshCw
-                size={11}
-                className={`ml-auto text-stone-400 group-hover:text-stone-600 transition-all ${isSyncing ? 'animate-spin' : ''}`}
+                size={13}
+                strokeWidth={2}
+                className={`ml-auto transition-all duration-200 group-hover:text-stone-600 ${isSyncing ? 'animate-spin' : ''}`}
+                style={{ color: COLORS.textMuted }}
               />
             </button>
           </div>
@@ -312,7 +342,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           className="flex-1 overflow-y-auto overflow-x-hidden relative"
           style={{ padding: '0 8px' }}
         >
-          <div className="space-y-1">
+          <div className="space-y-0.5">
             {NAV_ITEMS.map((item) => {
               const isActive = currentPath === item.path;
               const activeSubItem = getActiveSubItem(item.path, item.subItems);
@@ -324,99 +354,77 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <NavLink
                     to={item.path}
                     onClick={closeMobile}
-                    className="group block"
+                    className="group relative block"
                   >
+                    {/* Container with icon + label */}
                     <div
-                      className="relative flex items-center overflow-hidden"
-                      style={{
-                        height: 48,
-                        borderRadius: 16,
-                        background: isActive
-                          ? 'rgba(245, 158, 11, 0.12)'
-                          : 'transparent',
-                        transition: 'background 250ms ease',
-                      }}
+                      className="relative flex items-center"
+                      style={{ height: 48 }}
                     >
-                      {/* Hover state - subtle glass effect */}
-                      <div
-                        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                        style={{
-                          background: isActive ? 'transparent' : 'rgba(168, 154, 140, 0.08)',
-                          borderRadius: 16,
-                        }}
-                      />
-
-                      {/* Active indicator - amber gradient underline */}
-                      {isActive && (
-                        <div
-                          className="absolute bottom-2 left-3 right-3 h-[2px] rounded-full"
-                          style={{
-                            background: 'linear-gradient(90deg, #f59e0b 0%, #d97706 100%)',
-                            boxShadow: '0 0 8px rgba(245, 158, 11, 0.3)',
-                          }}
-                        />
-                      )}
-
-                      {/* Icon */}
+                      {/* Icon - 52px to center in 68px collapsed (68 - 16px padding = 52) */}
                       <div
                         className="flex items-center justify-center flex-shrink-0 relative z-10"
                         style={{ width: 52, height: 48 }}
                       >
                         <Icon
                           size={20}
-                          strokeWidth={1.75}
+                          strokeWidth={1.8}
+                          className="transition-colors duration-500"
                           style={{
-                            color: isActive ? '#d97706' : '#78716c',
-                            transition: 'color 200ms ease',
+                            color: isActive ? COLORS.textPrimary : COLORS.textSecondary,
                           }}
-                          className="group-hover:text-stone-700"
                         />
                       </div>
 
-                      {/* Label */}
-                      <div
-                        className="flex-1 flex items-center justify-between pr-3 relative z-10"
+                      {/* Label - LP nav style */}
+                      <span
+                        className="relative z-10 text-[15px] font-semibold tracking-[-0.01em] transition-colors duration-500"
                         style={{
+                          color: isActive ? COLORS.textPrimary : COLORS.textSecondary,
                           opacity: isExpanded ? 1 : 0,
                           transform: isExpanded ? 'translateX(0)' : 'translateX(-4px)',
-                          transition: 'all 250ms cubic-bezier(0.22, 0.61, 0.36, 1)',
+                          transition: 'opacity 500ms cubic-bezier(0.22, 0.61, 0.36, 1), transform 500ms cubic-bezier(0.22, 0.61, 0.36, 1), color 500ms cubic-bezier(0.22, 0.61, 0.36, 1)',
                           transitionDelay: isExpanded ? '80ms' : '0ms',
                           pointerEvents: isExpanded ? 'auto' : 'none',
                         }}
                       >
-                        <span
-                          className="text-[14px] font-semibold tracking-[-0.01em]"
-                          style={{
-                            color: isActive ? '#292524' : '#57534e',
-                            fontFamily: "'Suisse Intl', system-ui, sans-serif",
-                            transition: 'color 200ms ease',
-                          }}
-                        >
-                          {item.label}
-                        </span>
+                        {item.label}
+                      </span>
 
-                        {hasSubItems && (
-                          <ChevronDown
-                            size={14}
-                            style={{
-                              color: isActive ? '#d97706' : '#a8a29e',
-                              transform: isActive ? 'rotate(180deg)' : 'rotate(0deg)',
-                              transition: 'all 250ms ease',
-                            }}
-                          />
-                        )}
-                      </div>
+                      {/* Active indicator - amber gradient underline (LP style) */}
+                      <span
+                        className="absolute bottom-1.5 rounded-full transition-all duration-200 ease-out origin-center"
+                        style={{
+                          left: 8,
+                          right: isExpanded ? 8 : 8,
+                          height: 2,
+                          background: 'linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%)',
+                          opacity: isActive ? 1 : 0,
+                          transform: isActive ? 'scaleX(1)' : 'scaleX(0)',
+                        }}
+                      />
+
+                      {/* Hover underline - appears on non-active items */}
+                      <span
+                        className="absolute bottom-1.5 rounded-full transition-all duration-200 ease-out origin-center opacity-0 group-hover:opacity-70 group-hover:scale-x-100"
+                        style={{
+                          left: 8,
+                          right: isExpanded ? 8 : 8,
+                          height: 2,
+                          background: 'linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%)',
+                          transform: 'scaleX(0)',
+                          display: isActive ? 'none' : 'block',
+                        }}
+                      />
                     </div>
                   </NavLink>
 
-                  {/* Sub-items with staggered animation */}
+                  {/* Sub-items - refined LP style */}
                   {hasSubItems && isActive && isExpanded && (
                     <div
-                      className="mt-1 mb-2"
+                      className="mb-2 ml-[26px] pl-[18px]"
                       style={{
-                        marginLeft: 24,
-                        paddingLeft: 18,
-                        borderLeft: '1px solid rgba(168, 154, 140, 0.18)',
+                        borderLeft: `1px solid ${COLORS.border}`,
                       }}
                     >
                       {item.subItems!.map((sub, idx) => {
@@ -428,32 +436,29 @@ export const Sidebar: React.FC<SidebarProps> = ({
                               e.preventDefault();
                               handleSubItemClick(sub.id);
                             }}
-                            className="group/sub w-full text-left py-2 flex items-center gap-2"
+                            className="group/sub relative w-full text-left py-2 pl-1 flex items-center"
                             style={{
-                              opacity: 1,
-                              animation: `fadeSlideIn 250ms cubic-bezier(0.22, 0.61, 0.36, 1) ${idx * 40}ms both`,
+                              animation: `fadeSlideIn 300ms cubic-bezier(0.22, 0.61, 0.36, 1) ${idx * 50}ms both`,
                             }}
                           >
-                            {/* Active dot with glow */}
-                            <div
-                              className="w-1.5 h-1.5 rounded-full transition-all duration-200"
-                              style={{
-                                backgroundColor: isSubActive ? '#d97706' : 'transparent',
-                                border: isSubActive ? 'none' : '1.5px solid #a8a29e',
-                                transform: isSubActive ? 'scale(1)' : 'scale(0.85)',
-                                boxShadow: isSubActive ? '0 0 6px rgba(217, 119, 6, 0.4)' : 'none',
-                              }}
-                            />
                             <span
-                              className="text-[13px] transition-colors duration-200"
+                              className="text-[14px] font-medium tracking-[-0.01em] transition-colors duration-200 group-hover/sub:text-stone-900"
                               style={{
-                                color: isSubActive ? '#292524' : '#78716c',
-                                fontFamily: "'Suisse Intl', system-ui, sans-serif",
-                                fontWeight: isSubActive ? 600 : 500,
+                                color: isSubActive ? COLORS.textPrimary : COLORS.textMuted,
                               }}
                             >
                               {sub.label}
                             </span>
+
+                            {/* Sub-item active indicator */}
+                            {isSubActive && (
+                              <ArrowRight
+                                size={12}
+                                strokeWidth={2.5}
+                                className="ml-auto"
+                                style={{ color: COLORS.accent }}
+                              />
+                            )}
                           </button>
                         );
                       })}
@@ -464,21 +469,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
             })}
           </div>
 
-          {/* Coming Soon - muted section */}
+          {/* Coming Soon - subtle, muted */}
           <div
-            className="mt-6 pt-4"
+            className="mt-8 pt-4"
             style={{
-              borderTop: '1px solid rgba(168, 154, 140, 0.12)',
-              opacity: isExpanded ? 0.5 : 0,
-              transition: 'opacity 350ms ease',
+              borderTop: `1px solid ${COLORS.border}`,
+              opacity: isExpanded ? 1 : 0,
+              transition: 'opacity 500ms cubic-bezier(0.22, 0.61, 0.36, 1)',
             }}
           >
             <div
-              className="px-3 mb-2 text-[10px] font-semibold tracking-[0.1em] uppercase"
-              style={{
-                color: '#a8a29e',
-                fontFamily: "'Suisse Intl', system-ui, sans-serif",
-              }}
+              className="mb-3 text-[10px] font-semibold tracking-[0.08em] uppercase"
+              style={{ color: COLORS.textDisabled, paddingLeft: 20 }}
             >
               Coming Soon
             </div>
@@ -487,14 +489,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
               return (
                 <div
                   key={item.label}
-                  className="flex items-center h-10 rounded-xl cursor-not-allowed"
+                  className="flex items-center cursor-not-allowed opacity-40"
+                  style={{ height: 40 }}
                 >
                   <div className="w-[52px] flex items-center justify-center">
-                    <Icon size={18} strokeWidth={1.5} className="text-stone-400" />
+                    <Icon size={18} strokeWidth={1.8} style={{ color: COLORS.textDisabled }} />
                   </div>
                   <span
-                    className="text-[13px] text-stone-400"
-                    style={{ fontFamily: "'Suisse Intl', system-ui, sans-serif" }}
+                    className="text-[14px] font-medium tracking-[-0.01em]"
+                    style={{ color: COLORS.textDisabled }}
                   >
                     {item.label}
                   </span>
@@ -508,97 +511,40 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div
           className="flex-shrink-0 relative"
           style={{
-            padding: '12px 8px 14px',
-            borderTop: '1px solid rgba(168, 154, 140, 0.12)',
+            padding: '12px 8px 16px',
           }}
         >
-          {/* Footer nav items */}
-          <div className="space-y-0.5 mb-3">
-            {FOOTER_ITEMS.map((item) => {
-              const Icon = item.icon;
-              return (
-                <NavLink
-                  key={item.path}
-                  to={item.path}
-                  onClick={closeMobile}
-                  className="group flex items-center h-10 rounded-xl transition-all duration-200"
-                  style={{
-                    background: 'transparent',
-                  }}
-                >
-                  {({ isActive }) => (
-                    <>
-                      <div
-                        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-xl"
-                        style={{ background: 'rgba(168, 154, 140, 0.08)' }}
-                      />
-                      <div className="w-[52px] flex items-center justify-center relative z-10">
-                        <Icon
-                          size={18}
-                          strokeWidth={1.5}
-                          style={{
-                            color: isActive ? '#d97706' : '#78716c',
-                            transition: 'color 200ms ease',
-                          }}
-                        />
-                      </div>
-                      <span
-                        className="text-[13px] relative z-10"
-                        style={{
-                          opacity: isExpanded ? 1 : 0,
-                          color: isActive ? '#292524' : '#78716c',
-                          fontFamily: "'Suisse Intl', system-ui, sans-serif",
-                          fontWeight: isActive ? 600 : 500,
-                          transition: 'opacity 250ms ease, color 200ms ease',
-                        }}
-                      >
-                        {item.label}
-                      </span>
-                    </>
-                  )}
-                </NavLink>
-              );
-            })}
-          </div>
-
-          {/* User profile card - glassmorphic */}
+          {/* Settings link - LP nav style */}
           <NavLink
             to="/settings"
             onClick={closeMobile}
-            className="group block"
+            className="group relative block"
           >
             {({ isActive }) => (
               <div
-                className="flex items-center gap-3 transition-all duration-300"
-                style={{
-                  padding: isExpanded ? '10px 12px' : '8px',
-                  borderRadius: 16,
-                  background: isActive
-                    ? 'rgba(245, 158, 11, 0.1)'
-                    : 'rgba(168, 154, 140, 0.08)',
-                  border: isActive
-                    ? '1px solid rgba(245, 158, 11, 0.2)'
-                    : '1px solid rgba(168, 154, 140, 0.12)',
-                  backdropFilter: 'blur(8px)',
-                }}
+                className="relative flex items-center"
+                style={{ height: 52 }}
               >
-                {/* Avatar with status indicator */}
-                <div className="relative flex-shrink-0">
+                {/* Avatar - 52px container to match nav icons */}
+                <div
+                  className="flex items-center justify-center flex-shrink-0 relative transition-transform duration-200 group-hover:scale-[1.02]"
+                  style={{ width: 52 }}
+                >
                   <img
                     src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=100&h=100&fit=crop&crop=face"
                     alt="Profile"
-                    className="w-9 h-9 rounded-xl object-cover"
+                    className="w-10 h-10 rounded-full object-cover"
                     style={{
-                      border: '2px solid rgba(168, 154, 140, 0.2)',
-                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+                      border: '2px solid rgba(168, 154, 140, 0.3)',
                     }}
                   />
+                  {/* Online indicator */}
                   <div
-                    className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full"
+                    className="absolute bottom-1 right-1 w-3 h-3 rounded-full"
                     style={{
-                      backgroundColor: '#10b981',
+                      backgroundColor: COLORS.statusSynced,
                       border: '2px solid rgba(253, 252, 251, 0.9)',
-                      boxShadow: '0 0 6px rgba(16, 185, 129, 0.4)',
+                      boxShadow: '0 0 6px rgba(34, 197, 94, 0.4)',
                     }}
                   />
                 </div>
@@ -609,30 +555,59 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   style={{
                     opacity: isExpanded ? 1 : 0,
                     transform: isExpanded ? 'translateX(0)' : 'translateX(-4px)',
-                    transition: 'all 250ms cubic-bezier(0.22, 0.61, 0.36, 1)',
+                    transition: 'all 500ms cubic-bezier(0.22, 0.61, 0.36, 1)',
+                    transitionDelay: isExpanded ? '80ms' : '0ms',
                     pointerEvents: isExpanded ? 'auto' : 'none',
                   }}
                 >
                   <p
-                    className="text-[13px] font-medium text-stone-800 truncate"
-                    style={{ fontFamily: "'Suisse Intl', system-ui, sans-serif" }}
+                    className="text-[14px] font-semibold tracking-[-0.01em] truncate transition-colors duration-500"
+                    style={{ color: isActive ? COLORS.textPrimary : COLORS.textSecondary }}
                   >
                     Sarah Mitchell
                   </p>
                   <p
-                    className="text-[11px] text-stone-500 truncate"
-                    style={{ fontFamily: "'Suisse Intl', system-ui, sans-serif" }}
+                    className="text-[12px] font-medium truncate"
+                    style={{ color: COLORS.textMuted }}
                   >
                     Practice Admin
                   </p>
                 </div>
 
                 <Settings
-                  size={14}
-                  className="text-stone-400 group-hover:text-stone-600 transition-colors flex-shrink-0"
+                  size={16}
+                  strokeWidth={1.8}
+                  className="flex-shrink-0 transition-all duration-200 group-hover:rotate-45 mr-2"
                   style={{
                     opacity: isExpanded ? 1 : 0,
-                    transition: 'opacity 250ms ease',
+                    transition: 'opacity 500ms ease, transform 300ms ease',
+                    color: COLORS.textMuted,
+                  }}
+                />
+
+                {/* Active indicator - amber underline */}
+                <span
+                  className="absolute bottom-0 rounded-full transition-all duration-200 ease-out origin-center"
+                  style={{
+                    left: 8,
+                    right: 8,
+                    height: 2,
+                    background: 'linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%)',
+                    opacity: isActive ? 1 : 0,
+                    transform: isActive ? 'scaleX(1)' : 'scaleX(0)',
+                  }}
+                />
+
+                {/* Hover underline */}
+                <span
+                  className="absolute bottom-0 rounded-full transition-all duration-200 ease-out origin-center opacity-0 group-hover:opacity-70 group-hover:scale-x-100"
+                  style={{
+                    left: 8,
+                    right: 8,
+                    height: 2,
+                    background: 'linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%)',
+                    transform: 'scaleX(0)',
+                    display: isActive ? 'none' : 'block',
                   }}
                 />
               </div>
