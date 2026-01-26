@@ -22,6 +22,7 @@ export const InsuranceTab: React.FC<BaseAnalysisTabProps> = ({
     <div className="min-h-full">
       <PageHeader
         accent="amber"
+        showGridPattern
         title="Insurance"
         timeSelector={
           <TimeSelector

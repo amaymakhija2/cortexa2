@@ -238,6 +238,7 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
       {/* Page Header */}
       <PageHeader
         accent="amber"
+        showGridPattern
         title="Retention"
         timeSelector={
           <TimeSelector

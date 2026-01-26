@@ -309,6 +309,7 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
       {/* Page Header */}
       <PageHeader
         accent="amber"
+        showGridPattern
         title="Client & Capacity"
         timeSelector={
           <TimeSelector

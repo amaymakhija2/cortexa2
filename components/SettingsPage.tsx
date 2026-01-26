@@ -743,6 +743,7 @@ export const SettingsPage: React.FC = () => {
               ============================================= */}
           <PageHeader
             accent="violet"
+            showGridPattern
             title="Settings"
             subtitle="Manage your account preferences and practice configuration"
           />

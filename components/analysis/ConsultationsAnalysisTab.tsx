@@ -317,6 +317,7 @@ export const ConsultationsAnalysisTab: React.FC<ConsultationsAnalysisTabProps> =
       {/* Page Header */}
       <PageHeader
         accent="amber"
+        showGridPattern
         title="Consultations"
         timeSelector={
           <TimeSelector

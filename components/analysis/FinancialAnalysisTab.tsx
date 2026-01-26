@@ -419,6 +419,7 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
       {/* Page Header */}
       <PageHeader
         accent="amber"
+        showGridPattern
         title="Financial Performance"
         timeSelector={
           <TimeSelector

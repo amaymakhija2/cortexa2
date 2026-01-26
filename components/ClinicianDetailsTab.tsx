@@ -2421,6 +2421,7 @@ export const ClinicianDetailsTab: React.FC = () => {
           ================================================================= */}
       <PageHeader
         accent="blue"
+        showGridPattern
         size="spotlight"
         title="Clinician Details"
         glowColor={selectedClinician?.color}

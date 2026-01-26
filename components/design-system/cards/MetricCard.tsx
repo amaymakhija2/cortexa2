@@ -330,6 +330,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
               {hasExpandable && (
                 <button
                   onClick={() => setIsExpanded(!isExpanded)}
+                  onMouseDown={(e) => e.stopPropagation()}
                   className={`flex items-center justify-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-lg sm:rounded-full text-sm font-medium transition-all duration-300 w-full sm:w-auto ${
                     isExpanded
                       ? 'bg-stone-900 text-white'
@@ -346,6 +347,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
               {hasNavigation && !hasExpandable && (
                 <button
                   onClick={() => navigate(navigateTo!.path)}
+                  onMouseDown={(e) => e.stopPropagation()}
                   className="flex items-center justify-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-lg sm:rounded-full text-sm font-medium transition-all duration-300 bg-stone-100 text-stone-600 hover:bg-stone-200 w-full sm:w-auto"
                 >
                   <span>{navigateTo!.label}</span>

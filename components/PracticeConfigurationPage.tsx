@@ -2702,6 +2702,7 @@ export const PracticeConfigurationPage: React.FC = () => {
       {/* Page Header with Tabs */}
       <PageHeader
         accent="violet"
+        showGridPattern
         label="Settings"
         title="Configure"
         subtitle="Set up your practice structure, goals, and metrics"

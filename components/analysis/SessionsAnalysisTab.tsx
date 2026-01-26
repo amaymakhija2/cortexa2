@@ -331,6 +331,7 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
       {/* Page Header */}
       <PageHeader
         accent="amber"
+        showGridPattern
         title="Sessions Performance"
         timeSelector={
           <TimeSelector

@@ -443,6 +443,7 @@ export const Dashboard: React.FC = () => {
             ============================================= */}
         <PageHeader
           accent="rose"
+          showGridPattern
           title="Practice Overview"
           timeSelector={
             <TimeSelector

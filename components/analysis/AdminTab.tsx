@@ -22,6 +22,7 @@ export const AdminTab: React.FC<BaseAnalysisTabProps> = ({
     <div className="min-h-full">
       <PageHeader
         accent="amber"
+        showGridPattern
         title="Admin"
         timeSelector={
           <TimeSelector
