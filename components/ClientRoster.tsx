@@ -289,8 +289,6 @@ export const ClientRoster: React.FC = () => {
                   className="group bg-white rounded-xl lg:rounded-2xl overflow-hidden transition-all duration-300 hover:scale-[1.01]"
                   style={{ boxShadow: '0 2px 12px -2px rgba(0, 0, 0, 0.08)' }}
                 >
-                  {/* Accent bar */}
-                  <div className={`h-1 ${statusColor.dot}`} />
 
                   <div className="px-4 sm:px-6 lg:px-8 py-4 lg:py-6">
                     {/* Mobile layout */}
