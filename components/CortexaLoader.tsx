@@ -53,15 +53,6 @@ function easeOutQuart(t: number) {
   return 1 - Math.pow(1 - clamp01(t), 4);
 }
 
-function easeOutExpo(t: number) {
-  t = clamp01(t);
-  return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
-}
-
-function easeInOutSine(t: number) {
-  return -(Math.cos(Math.PI * clamp01(t)) - 1) / 2;
-}
-
 function smoothstep(edge0: number, edge1: number, x: number) {
   const t = clamp01((x - edge0) / (edge1 - edge0));
   return t * t * (3 - 2 * t);
@@ -208,9 +199,8 @@ export const CortexaLoader: React.FC<CortexaLoaderProps> = ({
       // 0.18 - 0.30: Wordmark letters cascade in
       // 0.30 - 0.42: Hold at full presence with subtle breathing
       // 0.42 - 0.52: Logo lifts up and fades gracefully
-      // 0.45 - 0.92: DOTS DISPERSE - the star of the show (extended!)
-      // 0.55 - 0.88: Background crossfades to warm homepage
-      // 0.88 - 1.00: Final gentle fade out
+      // 0.45 - 0.92: DOTS DISPERSE - the star of the show
+      // 0.55 - 0.92: Dark background fades out revealing homepage
 
       const time = now * 0.001;
 
@@ -239,17 +229,13 @@ export const CortexaLoader: React.FC<CortexaLoaderProps> = ({
       // Use easeOutCubic for a gentler, more graceful dispersion
       const disperseProgress = easeOutCubic(disperseRaw);
 
-      // Background crossfade - gradual transition from dark to warm
+      // Dark background fades out to reveal homepage directly underneath
       const darkFadeStart = 0.55;
-      const darkFadeEnd = 0.88;
-      const darkOpacity = 1 - easeInOutSine(smoothstep(darkFadeStart, darkFadeEnd, t));
+      const darkFadeEnd = 0.92;
+      const darkOpacity = 1 - easeOutCubic(smoothstep(darkFadeStart, darkFadeEnd, t));
 
-      // Warm overlay fades IN as dark fades out (crossfade)
-      const warmFadeIn = easeInOutSine(smoothstep(0.58, 0.85, t));
-
-      // Final fade of entire component - longer, gentler
-      const finalFade = smoothstep(0.88, 1.0, t);
-      const overlayOpacity = 1 - finalFade;
+      // Component is done when dark fully fades
+      const overlayOpacity = darkOpacity > 0.001 ? 1 : 0;
 
       // Ambient glow
       const glowBreath = 0.4 + 0.1 * Math.sin(time * 1.6);
@@ -299,20 +285,14 @@ export const CortexaLoader: React.FC<CortexaLoaderProps> = ({
           // Subtle twinkle for life
           const twinkle = 0.88 + 0.12 * Math.sin(time * 1.8 + d.phase);
 
-          // Transition dot color from bright cream (on dark) to warm tan (matching homepage)
-          const colorTransition = warmFadeIn;
-          const r = Math.round(245 - colorTransition * 65); // 245 -> 180
-          const g = Math.round(240 - colorTransition * 68); // 240 -> 172
-          const b = Math.round(230 - colorTransition * 70); // 230 -> 160
-
-          // Higher base opacity for visibility
+          // Cream colored dots
           const alpha = dotFadeIn * edgeFade * timeFade * twinkle * 0.78;
 
           if (alpha <= 0.001) continue;
 
           // Draw dot with subtle size variation based on progress
           ctx.beginPath();
-          ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${alpha})`;
+          ctx.fillStyle = `rgba(245, 240, 230, ${alpha})`;
           const currentRadius = dotR * (0.85 + 0.25 * dotProgress);
           ctx.arc(currentX, currentY, currentRadius, 0, Math.PI * 2);
           ctx.fill();
@@ -342,11 +322,9 @@ export const CortexaLoader: React.FC<CortexaLoaderProps> = ({
       // Root opacity for final fade
       root.style.opacity = String(overlayOpacity);
 
-      // Update dark/warm background opacity for crossfade
+      // Update dark background opacity
       const darkBgs = root.querySelectorAll<HTMLDivElement>('[data-loader-dark]');
-      const warmBgs = root.querySelectorAll<HTMLDivElement>('[data-loader-warm]');
       darkBgs.forEach(el => { el.style.opacity = String(darkOpacity); });
-      warmBgs.forEach(el => { el.style.opacity = String(warmFadeIn); });
 
       // Letter stagger for wordmark
       const letters = wordmark.querySelectorAll<HTMLSpanElement>(".loader-letter");
@@ -357,8 +335,8 @@ export const CortexaLoader: React.FC<CortexaLoaderProps> = ({
         letter.style.transform = `translateY(${(1 - letterProgress) * 6}px)`;
       });
 
-      // End
-      if (tRaw >= 1) {
+      // End when dark has fully faded out
+      if (darkOpacity <= 0.001) {
         if (rafRef.current) cancelAnimationFrame(rafRef.current);
         rafRef.current = null;
         onDone?.();
@@ -390,37 +368,7 @@ export const CortexaLoader: React.FC<CortexaLoaderProps> = ({
       }}
       aria-hidden="true"
     >
-      {/* Warm homepage-matching background (fades IN during exit) */}
-      <div
-        data-loader-warm
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: "#fafaf9",
-          opacity: 0,
-        }}
-      />
-      {/* Warm radial gradients matching homepage */}
-      <div
-        data-loader-warm
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: "radial-gradient(ellipse 120% 80% at 50% 100%, rgba(254, 243, 199, 0.25) 0%, rgba(254, 249, 239, 0.15) 40%, transparent 70%)",
-          opacity: 0,
-        }}
-      />
-      <div
-        data-loader-warm
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: "radial-gradient(ellipse 80% 60% at 85% 10%, rgba(255, 251, 245, 0.6) 0%, rgba(250, 248, 244, 0.3) 30%, transparent 60%)",
-          opacity: 0,
-        }}
-      />
-
-      {/* Deep charcoal-black base (fades OUT during exit) */}
+      {/* Deep charcoal-black base (fades OUT during exit to reveal homepage) */}
       <div
         data-loader-dark
         style={{
