@@ -436,7 +436,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignUp }) => {
             }}
           />
           <span
-            className="font-body text-[1.5rem] font-medium text-stone-900 leading-none"
+            className="font-body text-[1.75rem] font-medium text-stone-900 leading-none mt-1"
             style={{ letterSpacing: '-0.02em' }}
           >
             Cortexa

@@ -367,7 +367,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   hideAIInsights: true,
   showConsultationMetrics: false,
   showPriorityTasksEmptyState: true, // Default to empty state preview
-  iconStyle: 'illustrated', // Default to illustrated icons
+  iconStyle: 'phosphor', // Default to phosphor icons
   practiceGoals: DEFAULT_PRACTICE_GOALS,
   thresholds: DEFAULT_THRESHOLDS,
   clinicianGoals: {}, // Legacy, kept for backward compatibility

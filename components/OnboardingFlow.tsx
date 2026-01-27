@@ -1713,7 +1713,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onSw
               }}
             />
             <span
-              className="font-body text-[1.25rem] font-medium text-stone-900 leading-none"
+              className="font-body text-[1.5rem] font-medium text-stone-900 leading-none mt-0.5"
               style={{ letterSpacing: '-0.02em' }}
             >
               Cortexa
