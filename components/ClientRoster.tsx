@@ -214,11 +214,6 @@ export const ClientRoster: React.FC = () => {
             </div>
           }
         >
-          {/* Segment selector label */}
-          <p className="text-stone-500 text-sm font-medium mb-4 uppercase tracking-wider">
-            Select client segment to view
-          </p>
-
           {/* Segment selector buttons - 6 items in 2 rows of 3 */}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {CLIENT_SEGMENTS.map((segment) => {
