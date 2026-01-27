@@ -1,7 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FallingLinesCanvas } from './FallingLinesCanvas';
 import { usePictureInPicture } from './PiPCopyWidget';
+
+// Premium easing curves matching LoginPage
+const easeOutQuint = [0.22, 1, 0.36, 1] as const;
+const easeOutExpo = [0.16, 1, 0.3, 1] as const;
 
 // ============================================================================
 // CONFIGURATION
@@ -87,46 +90,21 @@ const generateEmailFromPractice = (practiceName: string): string => {
 // ============================================================================
 
 const ProgressIndicator: React.FC<{ currentStep: number; totalSteps: number }> = ({ currentStep, totalSteps }) => {
-  // Generate steps dynamically based on totalSteps
-  // When COLLECT_PASSWORD_IN_SIGNUP is true: 6 steps (no Account step)
-  // When COLLECT_PASSWORD_IN_SIGNUP is false: 7 steps (includes Account step)
-  const stepLabelsShort = totalSteps === 6
-    ? ['Start', 'EHR', 'Legal', 'Connect', 'Subscribe', 'Done']
-    : ['Start', 'EHR', 'Legal', 'Connect', 'Subscribe', 'Account', 'Done'];
-
-  const steps = stepLabelsShort.map((label, index) => ({ num: index, label }));
-
+  // Simple dot indicator for compact display
   return (
-    <div className="flex items-center gap-2">
-      {steps.map((step, index) => (
-        <React.Fragment key={step.num}>
-          <div
-            className={`
-              w-8 h-8 rounded-full flex items-center justify-center text-sm font-body font-medium
-              transition-all duration-300
-              ${currentStep > step.num
-                ? 'bg-amber-500 text-stone-900'
-                : currentStep === step.num
-                  ? 'bg-amber-500/20 text-amber-500 border-2 border-amber-500'
-                  : 'bg-stone-800 text-stone-500 border border-stone-700'}
-            `}
-          >
-            {currentStep > step.num ? (
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-              </svg>
-            ) : step.num === 0 ? (
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-            ) : (
-              step.num
-            )}
-          </div>
-          {index < steps.length - 1 && (
-            <div className={`w-6 h-0.5 rounded-full transition-colors duration-300 ${currentStep > step.num ? 'bg-amber-500' : 'bg-stone-700'}`} />
-          )}
-        </React.Fragment>
+    <div className="flex items-center gap-1.5">
+      {Array.from({ length: totalSteps }).map((_, index) => (
+        <div
+          key={index}
+          className={`
+            w-2 h-2 rounded-full transition-all duration-300
+            ${currentStep > index
+              ? 'bg-amber-500'
+              : currentStep === index
+                ? 'bg-amber-400 ring-2 ring-amber-200'
+                : 'bg-stone-200'}
+          `}
+        />
       ))}
     </div>
   );
@@ -142,10 +120,10 @@ const StepGetStarted: React.FC<{
   onContinue: () => void;
   onSwitchToLogin?: () => void;
   collectPassword?: boolean;
-}> = ({ formData, onFormChange, onContinue, onSwitchToLogin, collectPassword = false }) => {
+  isVisible: boolean;
+}> = ({ formData, onFormChange, onContinue, onSwitchToLogin, collectPassword = false, isVisible }) => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [focusedField, setFocusedField] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (field: keyof FormData) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -170,7 +148,6 @@ const StepGetStarted: React.FC<{
     if (!formData.phone.trim()) return 'Please enter your phone number';
     if (!/^[\d\s\-\+\(\)]{10,}$/.test(formData.phone.replace(/\s/g, ''))) return 'Please enter a valid phone number';
 
-    // Password validation only if collecting password in this step
     if (collectPassword) {
       if (!formData.password) return 'Please create a password';
       if (formData.password.length < 8) return 'Password must be at least 8 characters';
@@ -191,88 +168,85 @@ const StepGetStarted: React.FC<{
 
     setError('');
     setIsLoading(true);
-
-    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 800));
-
     setIsLoading(false);
     onContinue();
   };
 
   const inputFields = [
-    { key: 'name', label: 'Your Name', placeholder: 'Enter your full name', type: 'text', required: true, autoComplete: 'name' },
-    { key: 'email', label: 'Email', placeholder: 'you@yourpractice.com', type: 'email', required: true, autoComplete: 'email' },
-    { key: 'practiceName', label: 'Practice Name', placeholder: 'Enter your practice name', type: 'text', required: true, autoComplete: 'organization' },
-    { key: 'phone', label: 'Phone Number', placeholder: '+1 (555) 000-0000', type: 'tel', required: true, autoComplete: 'tel' },
+    { key: 'name', label: 'Your Name', placeholder: 'Enter your full name', type: 'text', autoComplete: 'name' },
+    { key: 'email', label: 'Email', placeholder: 'you@yourpractice.com', type: 'email', autoComplete: 'email' },
+    { key: 'practiceName', label: 'Practice Name', placeholder: 'Enter your practice name', type: 'text', autoComplete: 'organization' },
+    { key: 'phone', label: 'Phone Number', placeholder: '+1 (555) 000-0000', type: 'tel', autoComplete: 'tel' },
   ];
 
   return (
     <div>
       {/* Header */}
-      <div className="mb-6 sm:mb-10">
-        <h2 className="font-display text-3xl sm:text-4xl text-white mb-3 sm:mb-4">Get started</h2>
-        <p className="font-body text-stone-300 text-lg leading-relaxed">
-          See what's really happening in your practice —<br />
-          <span className="text-stone-400">no spreadsheets, no guesswork.</span>
-        </p>
-        <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-stone-800/80 border border-stone-700/50">
-          <svg className="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <span className="font-body text-sm text-stone-400">Takes about 5 minutes</span>
-        </div>
-      </div>
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 12 }}
+        transition={{ duration: 0.7, ease: easeOutQuint, delay: 0.1 }}
+        className="mb-1"
+      >
+        <h1 className="font-display text-[1.75rem] leading-[1.15] text-stone-900" style={{ letterSpacing: '-0.01em' }}>
+          Get started
+        </h1>
+      </motion.div>
+
+      <motion.p
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 10 }}
+        transition={{ duration: 0.6, ease: easeOutQuint, delay: 0.2 }}
+        className="font-body text-stone-500 text-sm mb-5"
+      >
+        See what's really happening in your practice
+      </motion.p>
 
       {/* Error Message */}
       <AnimatePresence>
         {error && (
           <motion.div
-            initial={{ opacity: 0, y: -10, height: 0 }}
-            animate={{ opacity: 1, y: 0, height: 'auto' }}
-            exit={{ opacity: 0, y: -10, height: 0 }}
-            className="mb-6 overflow-hidden"
+            initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+            animate={{ opacity: 1, height: 'auto', marginBottom: 16 }}
+            exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+            className="overflow-hidden"
           >
-            <div className="p-4 rounded-xl bg-red-500/10 border-2 border-red-500/20 flex items-center gap-3">
-              <svg className="w-5 h-5 text-red-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div
+              className="p-3 rounded-lg flex items-center gap-2 error-shake"
+              style={{
+                background: 'linear-gradient(135deg, #fef2f2 0%, #fff1f2 100%)',
+                border: '1px solid rgba(239, 68, 68, 0.15)',
+              }}
+            >
+              <svg className="w-4 h-4 text-red-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span className="font-body text-red-400 text-base">{error}</span>
+              <span className="font-body text-red-600 text-xs font-medium">{error}</span>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-4">
         {inputFields.map((field, index) => (
           <motion.div
             key={field.key}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 + index * 0.05, duration: 0.4 }}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 12 }}
+            transition={{ duration: 0.5, ease: easeOutQuint, delay: 0.25 + index * 0.04 }}
           >
-            <label className="font-body text-sm text-stone-500 uppercase tracking-wider font-medium block mb-2">
+            <label className="font-body text-xs font-medium text-stone-600 block mb-1.5">
               {field.label}
             </label>
             <input
               type={field.type}
               value={formData[field.key as keyof FormData]}
               onChange={handleChange(field.key as keyof FormData)}
-              onFocus={() => setFocusedField(field.key)}
-              onBlur={() => setFocusedField(null)}
-              className={`
-                font-body w-full px-4 py-3
-                bg-stone-800 border rounded-xl
-                text-white text-lg
-                placeholder-stone-500
-                transition-all duration-200
-                outline-none input-glow
-                ${focusedField === field.key
-                  ? 'border-amber-500/50 bg-stone-800/90'
-                  : 'border-stone-700 hover:border-stone-600'}
-              `}
+              className="input-refined font-body w-full px-3.5 py-3 rounded-xl text-stone-900 text-sm placeholder-stone-400 outline-none"
               placeholder={field.placeholder}
-              required={field.required}
+              required
               autoComplete={field.autoComplete}
             />
           </motion.div>
@@ -280,56 +254,42 @@ const StepGetStarted: React.FC<{
 
         {/* Role Dropdown */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 + inputFields.length * 0.05, duration: 0.4 }}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 12 }}
+          transition={{ duration: 0.5, ease: easeOutQuint, delay: 0.45 }}
         >
-          <label className="font-body text-sm text-stone-500 uppercase tracking-wider font-medium block mb-2">
+          <label className="font-body text-xs font-medium text-stone-600 block mb-1.5">
             Your Role (Optional)
           </label>
           <div className="relative">
             <select
               value={formData.title}
               onChange={handleChange('title')}
-              onFocus={() => setFocusedField('title')}
-              onBlur={() => setFocusedField(null)}
-              className={`
-                font-body w-full px-4 py-3
-                bg-stone-800 border rounded-xl
-                text-lg
-                transition-all duration-200
-                outline-none input-glow
-                appearance-none cursor-pointer
-                ${!formData.title ? 'text-stone-500' : 'text-white'}
-                ${focusedField === 'title'
-                  ? 'border-amber-500/50 bg-stone-800/90'
-                  : 'border-stone-700 hover:border-stone-600'}
-              `}
+              className={`input-refined font-body w-full px-3.5 py-3 rounded-xl text-sm outline-none appearance-none cursor-pointer ${!formData.title ? 'text-stone-400' : 'text-stone-900'}`}
             >
               {titleOptions.map(option => (
-                <option key={option.value} value={option.value} className="bg-stone-800 text-white">
+                <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
               ))}
             </select>
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-              <svg className="w-5 h-5 text-stone-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none">
+              <svg className="w-4 h-4 text-stone-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </div>
           </div>
         </motion.div>
 
-        {/* Password Fields - Only shown when collectPassword is true */}
+        {/* Password Fields */}
         {collectPassword && (
           <>
-            {/* Password */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.35, duration: 0.4 }}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 12 }}
+              transition={{ duration: 0.5, ease: easeOutQuint, delay: 0.5 }}
             >
-              <label className="font-body text-sm text-stone-500 uppercase tracking-wider font-medium block mb-2">
+              <label className="font-body text-xs font-medium text-stone-600 block mb-1.5">
                 Create Password
               </label>
               <div className="relative">
@@ -337,19 +297,7 @@ const StepGetStarted: React.FC<{
                   type={showPassword ? 'text' : 'password'}
                   value={formData.password}
                   onChange={handleChange('password')}
-                  onFocus={() => setFocusedField('password')}
-                  onBlur={() => setFocusedField(null)}
-                  className={`
-                    font-body w-full px-4 py-3 pr-12
-                    bg-stone-800 border rounded-xl
-                    text-white text-lg
-                    placeholder-stone-500
-                    transition-all duration-200
-                    outline-none input-glow
-                    ${focusedField === 'password'
-                      ? 'border-amber-500/50 bg-stone-800/90'
-                      : 'border-stone-700 hover:border-stone-600'}
-                  `}
+                  className="input-refined font-body w-full px-3.5 py-3 pr-11 rounded-xl text-stone-900 text-sm placeholder-stone-400 outline-none"
                   placeholder="At least 8 characters"
                   required
                   autoComplete="new-password"
@@ -357,48 +305,35 @@ const StepGetStarted: React.FC<{
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-500 hover:text-stone-300 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-stone-400 hover:text-stone-600 transition-colors duration-200 rounded-lg hover:bg-stone-100/50"
                 >
                   {showPassword ? (
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
                     </svg>
                   ) : (
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
                   )}
                 </button>
               </div>
             </motion.div>
 
-            {/* Confirm Password */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4, duration: 0.4 }}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 12 }}
+              transition={{ duration: 0.5, ease: easeOutQuint, delay: 0.55 }}
             >
-              <label className="font-body text-sm text-stone-500 uppercase tracking-wider font-medium block mb-2">
+              <label className="font-body text-xs font-medium text-stone-600 block mb-1.5">
                 Confirm Password
               </label>
               <input
                 type={showPassword ? 'text' : 'password'}
                 value={formData.confirmPassword}
                 onChange={handleChange('confirmPassword')}
-                onFocus={() => setFocusedField('confirmPassword')}
-                onBlur={() => setFocusedField(null)}
-                className={`
-                  font-body w-full px-4 py-3
-                  bg-stone-800 border rounded-xl
-                  text-white text-lg
-                  placeholder-stone-500
-                  transition-all duration-200
-                  outline-none input-glow
-                  ${focusedField === 'confirmPassword'
-                    ? 'border-amber-500/50 bg-stone-800/90'
-                    : 'border-stone-700 hover:border-stone-600'}
-                `}
+                className="input-refined font-body w-full px-3.5 py-3 rounded-xl text-stone-900 text-sm placeholder-stone-400 outline-none"
                 placeholder="Re-enter your password"
                 required
                 autoComplete="new-password"
@@ -409,64 +344,54 @@ const StepGetStarted: React.FC<{
 
         {/* Submit Button */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.4 }}
-          className="pt-6"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 12 }}
+          transition={{ duration: 0.5, ease: easeOutQuint, delay: 0.55 }}
+          className="pt-1"
         >
-          <motion.button
+          <button
             type="submit"
             disabled={isLoading}
-            whileHover={{ scale: 1.01 }}
-            whileTap={{ scale: 0.99 }}
-            className={`
-              font-body relative w-full py-4
-              bg-white text-stone-900
-              text-lg font-semibold
-              rounded-2xl
-              transition-all duration-300
-              disabled:opacity-60 disabled:cursor-not-allowed
-              hover:shadow-lg hover:shadow-white/10
-            `}
+            className="cta-threshold font-body relative w-full py-3.5 px-6 text-white text-sm font-semibold rounded-xl"
           >
-            <span className={`flex items-center justify-center gap-3 ${isLoading ? 'opacity-0' : 'opacity-100'}`}>
+            <span className={`flex items-center justify-center gap-2 ${isLoading ? 'opacity-0' : 'opacity-100'}`}>
               Continue
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              <svg className="w-4 h-4 arrow-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
               </svg>
             </span>
 
             {isLoading && (
               <div className="absolute inset-0 flex items-center justify-center">
-                <svg className="animate-spin h-6 w-6 text-stone-900" viewBox="0 0 24 24">
+                <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
               </div>
             )}
-          </motion.button>
+          </button>
         </motion.div>
       </form>
 
       {/* Footer - Switch to Login */}
       <motion.div
         initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5, duration: 0.4 }}
-        className="mt-8 text-center"
+        animate={{ opacity: isVisible ? 1 : 0 }}
+        transition={{ duration: 0.5, ease: easeOutQuint, delay: 0.6 }}
+        className="mt-6 text-center"
       >
-        <p className="font-body text-stone-500 text-base">
+        <p className="font-body text-stone-500 text-xs">
           Already have an account?{' '}
           {onSwitchToLogin ? (
             <button
               type="button"
               onClick={onSwitchToLogin}
-              className="text-amber-500 hover:text-amber-400 transition-colors font-medium"
+              className="text-amber-600 hover:text-amber-700 transition-colors font-medium"
             >
               Sign in
             </button>
           ) : (
-            <span className="text-amber-500 font-medium">Sign in</span>
+            <span className="text-amber-600 font-medium">Sign in</span>
           )}
         </p>
       </motion.div>
@@ -488,44 +413,47 @@ const StepSelectEhr: React.FC<{
   const otherEhrs = EHR_OPTIONS.filter(e => !e.popular);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="font-display text-3xl sm:text-4xl text-white mb-3">Which EHR do you use?</h2>
-        <p className="font-body text-stone-400 text-lg">We'll connect to pull your practice data automatically.</p>
-        {/* HIPAA + Read-only trust signals */}
-        <div className="mt-4 flex items-center gap-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-stone-800/80 border border-stone-700/50">
-            <svg className="w-4 h-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="mb-1">
+        <h2 className="font-display text-[1.75rem] leading-[1.15] text-stone-900 mb-1" style={{ letterSpacing: '-0.01em' }}>
+          Which EHR do you use?
+        </h2>
+        <p className="font-body text-stone-500 text-sm">We'll connect to pull your practice data automatically.</p>
+        {/* Trust signals */}
+        <div className="mt-3 flex items-center gap-3">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200/60">
+            <svg className="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
             </svg>
-            <span className="font-body text-sm text-stone-400">HIPAA Compliant</span>
+            <span className="font-body text-xs font-medium text-emerald-700">HIPAA Compliant</span>
           </div>
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-stone-800/80 border border-stone-700/50">
-            <svg className="w-4 h-4 text-stone-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-stone-100 border border-stone-200/60">
+            <svg className="w-3.5 h-3.5 text-stone-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
             </svg>
-            <span className="font-body text-sm text-stone-400">Read-only access</span>
+            <span className="font-body text-xs font-medium text-stone-600">Read-only</span>
           </div>
         </div>
       </div>
 
       {/* Popular EHRs */}
-      <div className="space-y-3">
-        <p className="font-body text-sm text-stone-500 uppercase tracking-wider font-medium">Popular</p>
-        <div className="grid grid-cols-1 gap-3">
+      <div className="space-y-2">
+        <p className="font-body text-xs text-stone-500 uppercase tracking-wider font-medium">Popular</p>
+        <div className="grid grid-cols-1 gap-2">
           {popularEhrs.map((ehr) => (
             <button
               key={ehr.id}
               onClick={() => onSelect(ehr.id)}
               className={`
-                p-4 rounded-xl border-2 text-left transition-all duration-200
+                p-3 rounded-xl border-[1.5px] text-left transition-all duration-300
                 ${selectedEhr === ehr.id
-                  ? 'border-amber-500 bg-amber-500/10'
-                  : 'border-stone-700/50 bg-stone-800/50 hover:border-stone-600'}
+                  ? 'border-amber-400 bg-amber-50/80 shadow-sm shadow-amber-100/50'
+                  : 'border-stone-200 bg-white hover:border-stone-300 hover:shadow-sm'}
               `}
             >
-              <span className={`font-body text-lg font-medium ${selectedEhr === ehr.id ? 'text-white' : 'text-stone-300'}`}>
+              <span className={`font-body text-sm font-medium ${selectedEhr === ehr.id ? 'text-amber-900' : 'text-stone-700'}`}>
                 {ehr.name}
               </span>
             </button>
@@ -534,21 +462,21 @@ const StepSelectEhr: React.FC<{
       </div>
 
       {/* Other EHRs */}
-      <div className="space-y-3">
-        <p className="font-body text-sm text-stone-500 uppercase tracking-wider font-medium">Others</p>
-        <div className="grid grid-cols-2 gap-3">
+      <div className="space-y-2">
+        <p className="font-body text-xs text-stone-500 uppercase tracking-wider font-medium">Others</p>
+        <div className="grid grid-cols-2 gap-2">
           {otherEhrs.map((ehr) => (
             <button
               key={ehr.id}
               onClick={() => onSelect(ehr.id)}
               className={`
-                p-3 rounded-xl border-2 text-left transition-all duration-200
+                p-2.5 rounded-xl border-[1.5px] text-left transition-all duration-300
                 ${selectedEhr === ehr.id
-                  ? 'border-amber-500 bg-amber-500/10'
-                  : 'border-stone-700/50 bg-stone-800/50 hover:border-stone-600'}
+                  ? 'border-amber-400 bg-amber-50/80 shadow-sm shadow-amber-100/50'
+                  : 'border-stone-200 bg-white hover:border-stone-300 hover:shadow-sm'}
               `}
             >
-              <span className={`font-body text-base ${selectedEhr === ehr.id ? 'text-white' : 'text-stone-400'}`}>
+              <span className={`font-body text-xs font-medium ${selectedEhr === ehr.id ? 'text-amber-900' : 'text-stone-600'}`}>
                 {ehr.name}
               </span>
             </button>
@@ -556,30 +484,31 @@ const StepSelectEhr: React.FC<{
         </div>
       </div>
 
-      <button className="font-body text-stone-500 hover:text-stone-300 text-base transition-colors">
+      <button className="font-body text-amber-600 hover:text-amber-700 text-xs transition-colors">
         Don't see yours? Let us know →
       </button>
 
       {/* Continue Button */}
-      <motion.button
-        onClick={onContinue}
-        disabled={!selectedEhr}
-        whileHover={selectedEhr ? { scale: 1.01 } : {}}
-        whileTap={selectedEhr ? { scale: 0.99 } : {}}
-        className={`
-          w-full py-4 rounded-2xl font-body text-lg font-semibold transition-all duration-300
-          ${selectedEhr
-            ? 'bg-white text-stone-900 hover:shadow-lg hover:shadow-white/10'
-            : 'bg-stone-700 text-stone-500 cursor-not-allowed'}
-        `}
-      >
-        Continue
-      </motion.button>
+      <div className="pt-1">
+        <button
+          onClick={onContinue}
+          disabled={!selectedEhr}
+          className={`cta-threshold font-body relative w-full py-3 px-6 text-sm font-semibold rounded-xl transition-all duration-300 ${!selectedEhr ? 'opacity-50 cursor-not-allowed' : ''}`}
+          style={{ color: 'white' }}
+        >
+          <span className="flex items-center justify-center gap-2">
+            Continue
+            <svg className="w-4 h-4 arrow-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+            </svg>
+          </span>
+        </button>
+      </div>
 
-      {/* Back Button - Consistent */}
+      {/* Back Button */}
       <button
         onClick={onBack}
-        className="w-full py-3 rounded-xl font-body text-base font-medium text-stone-500 hover:text-stone-300 hover:bg-white/5 transition-all duration-200 flex items-center justify-center gap-2"
+        className="w-full py-2.5 rounded-xl font-body text-sm font-medium text-stone-500 hover:text-stone-700 hover:bg-stone-100/50 transition-all duration-200 flex items-center justify-center gap-2"
       >
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -605,32 +534,48 @@ const StepLegalAgreements: React.FC<{
   const canContinue = agreedToTerms && agreedToBaa;
 
   return (
-    <div className="space-y-8">
-      <div className="mb-2">
-        <h2 className="font-display text-3xl sm:text-4xl text-white mb-3 sm:mb-4">Quick legal stuff</h2>
-        <p className="font-body text-stone-400 text-lg">We take your data security seriously.</p>
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="mb-1">
+        <h2 className="font-display text-[1.75rem] leading-[1.15] text-stone-900 mb-1" style={{ letterSpacing: '-0.01em' }}>
+          Quick legal stuff
+        </h2>
+        <p className="font-body text-stone-500 text-sm">We take your data security seriously.</p>
       </div>
 
-      <div className="space-y-5">
+      <div className="space-y-3">
         {/* Terms */}
         <div
           onClick={onToggleTerms}
-          className={`p-5 rounded-2xl border-2 cursor-pointer transition-all duration-200 ${agreedToTerms ? 'border-amber-500/50 bg-amber-500/5' : 'border-stone-700/50 bg-stone-800/50 hover:border-stone-600'}`}
+          className={`p-3.5 rounded-xl border-[1.5px] cursor-pointer transition-all duration-300 ${
+            agreedToTerms
+              ? 'border-amber-400 bg-amber-50/80 shadow-sm shadow-amber-100/50'
+              : 'border-stone-200 bg-white hover:border-stone-300 hover:shadow-sm'
+          }`}
         >
-          <div className="flex items-start gap-4">
-            <div className={`w-6 h-6 rounded border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${agreedToTerms ? 'border-amber-500 bg-amber-500' : 'border-stone-600'}`}>
+          <div className="flex items-start gap-3">
+            <div className={`w-5 h-5 rounded border-[1.5px] flex items-center justify-center flex-shrink-0 mt-0.5 transition-all duration-300 ${
+              agreedToTerms ? 'border-amber-500 bg-amber-500' : 'border-stone-300 bg-white'
+            }`}>
               {agreedToTerms && (
-                <svg className="w-4 h-4 text-stone-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                 </svg>
               )}
             </div>
-            <div className="flex-1">
-              <div className="flex items-center justify-between">
-                <h3 className="font-body font-semibold text-white text-lg">Terms of Service</h3>
-                <button onClick={(e) => e.stopPropagation()} className="font-body text-base text-amber-500 hover:text-amber-400">View</button>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-2">
+                <h3 className={`font-body font-semibold text-sm ${agreedToTerms ? 'text-amber-900' : 'text-stone-800'}`}>
+                  Terms of Service
+                </h3>
+                <button
+                  onClick={(e) => e.stopPropagation()}
+                  className="font-body text-xs text-amber-600 hover:text-amber-700 font-medium"
+                >
+                  View
+                </button>
               </div>
-              <p className="font-body text-base text-stone-500 mt-1">Standard platform usage terms</p>
+              <p className="font-body text-xs text-stone-500 mt-0.5">Standard platform usage terms</p>
             </div>
           </div>
         </div>
@@ -638,46 +583,65 @@ const StepLegalAgreements: React.FC<{
         {/* BAA */}
         <div
           onClick={onToggleBaa}
-          className={`p-5 rounded-2xl border-2 cursor-pointer transition-all duration-200 ${agreedToBaa ? 'border-amber-500/50 bg-amber-500/5' : 'border-stone-700/50 bg-stone-800/50 hover:border-stone-600'}`}
+          className={`p-3.5 rounded-xl border-[1.5px] cursor-pointer transition-all duration-300 ${
+            agreedToBaa
+              ? 'border-amber-400 bg-amber-50/80 shadow-sm shadow-amber-100/50'
+              : 'border-stone-200 bg-white hover:border-stone-300 hover:shadow-sm'
+          }`}
         >
-          <div className="flex items-start gap-4">
-            <div className={`w-6 h-6 rounded border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${agreedToBaa ? 'border-amber-500 bg-amber-500' : 'border-stone-600'}`}>
+          <div className="flex items-start gap-3">
+            <div className={`w-5 h-5 rounded border-[1.5px] flex items-center justify-center flex-shrink-0 mt-0.5 transition-all duration-300 ${
+              agreedToBaa ? 'border-amber-500 bg-amber-500' : 'border-stone-300 bg-white'
+            }`}>
               {agreedToBaa && (
-                <svg className="w-4 h-4 text-stone-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                 </svg>
               )}
             </div>
-            <div className="flex-1">
-              <div className="flex items-center justify-between">
-                <h3 className="font-body font-semibold text-white text-lg">Business Associate Agreement</h3>
-                <button onClick={(e) => e.stopPropagation()} className="font-body text-base text-amber-500 hover:text-amber-400">View</button>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-2">
+                <h3 className={`font-body font-semibold text-sm ${agreedToBaa ? 'text-amber-900' : 'text-stone-800'}`}>
+                  Business Associate Agreement
+                </h3>
+                <button
+                  onClick={(e) => e.stopPropagation()}
+                  className="font-body text-xs text-amber-600 hover:text-amber-700 font-medium"
+                >
+                  View
+                </button>
               </div>
-              <p className="font-body text-base text-stone-500 mt-1">HIPAA-required for handling your data</p>
+              <p className="font-body text-xs text-stone-500 mt-0.5">HIPAA-required for handling your data</p>
             </div>
           </div>
         </div>
       </div>
 
-      <p className="font-body text-base text-stone-500">
+      <p className="font-body text-xs text-stone-500">
         By checking above, you confirm you have authority to sign on behalf of your practice.
       </p>
 
       {/* Continue Button */}
-      <motion.button
-        onClick={onContinue}
-        disabled={!canContinue}
-        whileHover={canContinue ? { scale: 1.01 } : {}}
-        whileTap={canContinue ? { scale: 0.99 } : {}}
-        className={`w-full py-4 rounded-2xl font-body text-lg font-semibold transition-all duration-300 ${canContinue ? 'bg-white text-stone-900 hover:shadow-lg hover:shadow-white/10' : 'bg-stone-700 text-stone-500 cursor-not-allowed'}`}
-      >
-        I Agree & Continue
-      </motion.button>
+      <div className="pt-1">
+        <button
+          onClick={onContinue}
+          disabled={!canContinue}
+          className={`cta-threshold font-body relative w-full py-3 px-6 text-sm font-semibold rounded-xl transition-all duration-300 ${!canContinue ? 'opacity-50 cursor-not-allowed' : ''}`}
+          style={{ color: 'white' }}
+        >
+          <span className="flex items-center justify-center gap-2">
+            I Agree & Continue
+            <svg className="w-4 h-4 arrow-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+            </svg>
+          </span>
+        </button>
+      </div>
 
-      {/* Back Button - Consistent */}
+      {/* Back Button */}
       <button
         onClick={onBack}
-        className="w-full py-3 rounded-xl font-body text-base font-medium text-stone-500 hover:text-stone-300 hover:bg-white/5 transition-all duration-200 flex items-center justify-center gap-2"
+        className="w-full py-2.5 rounded-xl font-body text-sm font-medium text-stone-500 hover:text-stone-700 hover:bg-stone-100/50 transition-all duration-200 flex items-center justify-center gap-2"
       >
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -733,21 +697,21 @@ const StepConnectEhr: React.FC<{
 
   // Shared Help Section component
   const HelpSection = () => (
-    <div className="flex items-center justify-center gap-4 pt-2">
+    <div className="flex items-center justify-center gap-3">
       <button
         onClick={() => window.open('https://calendly.com/cortexa', '_blank')}
-        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 font-body text-base font-medium hover:bg-amber-500/20 transition-all"
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-200/60 text-amber-700 font-body text-xs font-medium hover:bg-amber-100/80 transition-all"
       >
-        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
         </svg>
         Book a call
       </button>
       <button
         onClick={() => window.open('https://www.loom.com/cortexa-setup', '_blank')}
-        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-stone-700/50 border border-stone-600/50 text-stone-300 font-body text-base font-medium hover:bg-stone-700 transition-all"
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-stone-100 border border-stone-200/60 text-stone-600 font-body text-xs font-medium hover:bg-stone-200/60 transition-all"
       >
-        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
@@ -759,11 +723,13 @@ const StepConnectEhr: React.FC<{
   // STATE 2: After user has visited EHR
   if (hasVisitedEhr) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4">
         {/* Header */}
-        <div>
-          <h2 className="font-display text-3xl sm:text-4xl text-white mb-3">Working in {ehrName}?</h2>
-          <p className="font-body text-stone-400 text-lg">
+        <div className="mb-1">
+          <h2 className="font-display text-[1.75rem] leading-[1.15] text-stone-900 mb-1" style={{ letterSpacing: '-0.01em' }}>
+            Working in {ehrName}?
+          </h2>
+          <p className="font-body text-stone-500 text-sm">
             Add the biller account, then come back here to confirm.
           </p>
         </div>
@@ -773,27 +739,31 @@ const StepConnectEhr: React.FC<{
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center gap-3"
+            className="p-3 rounded-xl bg-amber-50 border border-amber-200/60 flex items-center justify-center gap-2"
           >
-            <div className="w-5 h-5 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
-            <p className="font-body text-amber-400 text-lg">Checking for connection...</p>
+            <div className="w-4 h-4 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
+            <p className="font-body text-amber-700 text-sm font-medium">Checking for connection...</p>
           </motion.div>
         ) : (
-          <motion.button
+          <button
             onClick={onStartWaiting}
-            whileHover={{ scale: 1.01 }}
-            whileTap={{ scale: 0.99 }}
-            className="w-full py-4 rounded-xl font-body text-lg font-semibold transition-all duration-300 bg-white text-stone-900 hover:shadow-lg hover:shadow-white/10"
+            className="cta-threshold font-body relative w-full py-3 px-6 text-sm font-semibold rounded-xl"
+            style={{ color: 'white' }}
           >
-            I've Added the Biller
-          </motion.button>
+            <span className="flex items-center justify-center gap-2">
+              I've Added the Biller
+              <svg className="w-4 h-4 arrow-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </span>
+          </button>
         )}
 
         {/* Copy Helper Link */}
         <div className="flex items-center justify-center">
           <button
             onClick={openPiP}
-            className="font-body text-amber-500 hover:text-amber-400 transition-colors text-base"
+            className="font-body text-amber-600 hover:text-amber-700 transition-colors text-xs font-medium"
           >
             Open copy helper
           </button>
@@ -802,10 +772,10 @@ const StepConnectEhr: React.FC<{
         {/* Help section */}
         <HelpSection />
 
-        {/* Back Button - Consistent */}
+        {/* Back Button */}
         <button
           onClick={onBack}
-          className="w-full py-3 rounded-xl font-body text-base font-medium text-stone-500 hover:text-stone-300 hover:bg-white/5 transition-all duration-200 flex items-center justify-center gap-2"
+          className="w-full py-2.5 rounded-xl font-body text-sm font-medium text-stone-500 hover:text-stone-700 hover:bg-stone-100/50 transition-all duration-200 flex items-center justify-center gap-2"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -818,65 +788,67 @@ const StepConnectEhr: React.FC<{
 
   // STATE 1: Copy phase (initial)
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {/* Header */}
-      <div>
-        <h2 className="font-display text-3xl sm:text-4xl text-white mb-2">Connect {ehrName}</h2>
-        <p className="font-body text-stone-400 text-base">
-          Create a <span className="text-amber-400">Biller account</span> using these details.
+      <div className="mb-1">
+        <h2 className="font-display text-[1.75rem] leading-[1.15] text-stone-900 mb-1" style={{ letterSpacing: '-0.01em' }}>
+          Connect {ehrName}
+        </h2>
+        <p className="font-body text-stone-500 text-sm">
+          Create a <span className="text-amber-600 font-medium">Biller account</span> using these details.
         </p>
       </div>
 
       {/* Copy Fields */}
-      <div className="p-4 rounded-2xl bg-stone-800/50 border border-stone-700/50 space-y-3">
+      <div className="p-3 rounded-xl bg-white border-[1.5px] border-stone-200 shadow-sm space-y-2">
         <div className="flex items-center justify-between">
           <div>
-            <p className="font-body text-xs text-stone-500 mb-0.5">First Name</p>
-            <p className="font-body text-lg text-white font-medium">{copyValues.firstName}</p>
+            <p className="font-body text-[10px] text-stone-400 uppercase tracking-wider">First Name</p>
+            <p className="font-body text-sm text-stone-900 font-medium">{copyValues.firstName}</p>
           </div>
           <motion.button
             onClick={() => handleCopy('firstName', copyValues.firstName)}
             whileTap={{ scale: 0.95 }}
-            className={`px-3 py-1.5 rounded-lg font-body text-sm font-semibold transition-all ${
+            className={`px-2.5 py-1 rounded-lg font-body text-xs font-semibold transition-all ${
               copiedField === 'firstName'
-                ? 'bg-green-500/20 text-green-400'
-                : 'bg-amber-500 text-stone-900 hover:bg-amber-400'
+                ? 'bg-emerald-100 text-emerald-700'
+                : 'bg-amber-500 text-white hover:bg-amber-600'
             }`}
           >
             {copiedField === 'firstName' ? 'Copied!' : 'Copy'}
           </motion.button>
         </div>
-        <div className="border-t border-stone-700/50" />
+        <div className="border-t border-stone-100" />
         <div className="flex items-center justify-between">
           <div>
-            <p className="font-body text-xs text-stone-500 mb-0.5">Last Name</p>
-            <p className="font-body text-lg text-white font-medium">{copyValues.lastName}</p>
+            <p className="font-body text-[10px] text-stone-400 uppercase tracking-wider">Last Name</p>
+            <p className="font-body text-sm text-stone-900 font-medium">{copyValues.lastName}</p>
           </div>
           <motion.button
             onClick={() => handleCopy('lastName', copyValues.lastName)}
             whileTap={{ scale: 0.95 }}
-            className={`px-3 py-1.5 rounded-lg font-body text-sm font-semibold transition-all ${
+            className={`px-2.5 py-1 rounded-lg font-body text-xs font-semibold transition-all ${
               copiedField === 'lastName'
-                ? 'bg-green-500/20 text-green-400'
-                : 'bg-amber-500 text-stone-900 hover:bg-amber-400'
+                ? 'bg-emerald-100 text-emerald-700'
+                : 'bg-amber-500 text-white hover:bg-amber-600'
             }`}
           >
             {copiedField === 'lastName' ? 'Copied!' : 'Copy'}
           </motion.button>
         </div>
-        <div className="border-t border-stone-700/50" />
+        <div className="border-t border-stone-100" />
         <div className="flex items-center justify-between">
-          <div>
-            <p className="font-body text-xs text-stone-500 mb-0.5">Email</p>
-            <p className="font-mono text-base text-amber-400 font-medium">{copyValues.email}</p>
+          <div className="min-w-0 flex-1 mr-2">
+            <p className="font-body text-[10px] text-stone-400 uppercase tracking-wider">Email</p>
+            <p className="font-mono text-xs text-amber-600 font-medium truncate">{copyValues.email}</p>
           </div>
           <motion.button
             onClick={() => handleCopy('email', copyValues.email)}
             whileTap={{ scale: 0.95 }}
-            className={`px-3 py-1.5 rounded-lg font-body text-sm font-semibold transition-all ${
+            className={`px-2.5 py-1 rounded-lg font-body text-xs font-semibold transition-all flex-shrink-0 ${
               copiedField === 'email'
-                ? 'bg-green-500/20 text-green-400'
-                : 'bg-amber-500 text-stone-900 hover:bg-amber-400'
+                ? 'bg-emerald-100 text-emerald-700'
+                : 'bg-amber-500 text-white hover:bg-amber-600'
             }`}
           >
             {copiedField === 'email' ? 'Copied!' : 'Copy'}
@@ -885,36 +857,37 @@ const StepConnectEhr: React.FC<{
       </div>
 
       {/* Instructions */}
-      <div className="p-4 rounded-xl bg-stone-800/60 border border-stone-700/50 space-y-1">
-        <p className="font-body text-stone-300 text-base">
-          In {ehrName}: <span className="text-white font-medium">Settings → Team Members → Add New</span>
+      <div className="p-3 rounded-xl bg-stone-50 border border-stone-200/60 space-y-0.5">
+        <p className="font-body text-stone-600 text-xs">
+          In {ehrName}: <span className="text-stone-900 font-medium">Settings → Team Members → Add New</span>
         </p>
-        <p className="font-body text-stone-300 text-base">
-          Select <span className="text-white font-medium">"Biller"</span> as the role
+        <p className="font-body text-stone-600 text-xs">
+          Select <span className="text-stone-900 font-medium">"Biller"</span> as the role
         </p>
-        <p className="font-body text-stone-300 text-base">
-          Leave all permissions <span className="text-white font-medium">unchecked</span>
+        <p className="font-body text-stone-600 text-xs">
+          Leave all permissions <span className="text-stone-900 font-medium">unchecked</span>
         </p>
       </div>
 
       {/* Primary CTA */}
-      <motion.button
+      <button
         onClick={handleGoToEhr}
-        whileHover={{ scale: 1.01 }}
-        whileTap={{ scale: 0.99 }}
-        className="w-full py-4 rounded-xl font-body text-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 bg-white text-stone-900 hover:shadow-lg hover:shadow-white/10"
+        className="cta-threshold font-body relative w-full py-3 px-6 text-sm font-semibold rounded-xl"
+        style={{ color: 'white' }}
       >
-        Go to {ehrName}
-        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-        </svg>
-      </motion.button>
+        <span className="flex items-center justify-center gap-2">
+          Go to {ehrName}
+          <svg className="w-4 h-4 arrow-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          </svg>
+        </span>
+      </button>
 
       {/* Copy Helper Link */}
       <div className="flex items-center justify-center">
         <button
           onClick={openPiP}
-          className="font-body text-amber-500 hover:text-amber-400 transition-colors text-base"
+          className="font-body text-amber-600 hover:text-amber-700 transition-colors text-xs font-medium"
         >
           Open copy helper
         </button>
@@ -923,10 +896,10 @@ const StepConnectEhr: React.FC<{
       {/* Help section */}
       <HelpSection />
 
-      {/* Back Button - Consistent */}
+      {/* Back Button */}
       <button
         onClick={onBack}
-        className="w-full py-3 rounded-xl font-body text-base font-medium text-stone-500 hover:text-stone-300 hover:bg-white/5 transition-all duration-200 flex items-center justify-center gap-2"
+        className="w-full py-2.5 rounded-xl font-body text-sm font-medium text-stone-500 hover:text-stone-700 hover:bg-stone-100/50 transition-all duration-200 flex items-center justify-center gap-2"
       >
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -952,8 +925,6 @@ const StepPayment: React.FC<{
 
   const handleSubscribe = async () => {
     setIsProcessing(true);
-    // TODO: Integrate with Stripe Checkout
-    // In production: redirect to Stripe or open Stripe Elements modal
     await new Promise(resolve => setTimeout(resolve, 1500));
     setIsProcessing(false);
     onContinue();
@@ -967,26 +938,24 @@ const StepPayment: React.FC<{
   const currentPlan = plans[selectedPlan];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Success Header */}
-      <div className="text-center mb-8">
+      <div className="text-center mb-2">
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-          className="w-16 h-16 mx-auto mb-5 rounded-full flex items-center justify-center"
-          style={{
-            background: 'linear-gradient(135deg, rgba(52, 211, 153, 0.2) 0%, rgba(52, 211, 153, 0.05) 100%)',
-            border: '2px solid rgba(52, 211, 153, 0.3)',
-          }}
+          className="w-12 h-12 mx-auto mb-3 rounded-full flex items-center justify-center bg-emerald-50 border-2 border-emerald-200"
         >
-          <svg className="w-8 h-8 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="w-6 h-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
           </svg>
         </motion.div>
-        <h2 className="font-display text-3xl text-white mb-2">You're connected!</h2>
-        <p className="font-body text-stone-400 text-lg">
-          {ehrName} is linked to <span className="text-white">{practiceName}</span>
+        <h2 className="font-display text-[1.5rem] leading-[1.15] text-stone-900 mb-1" style={{ letterSpacing: '-0.01em' }}>
+          You're connected!
+        </h2>
+        <p className="font-body text-stone-500 text-sm">
+          {ehrName} is linked to <span className="text-stone-900 font-medium">{practiceName}</span>
         </p>
       </div>
 
@@ -995,25 +964,21 @@ const StepPayment: React.FC<{
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="rounded-2xl overflow-hidden"
-        style={{
-          background: 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)',
-          border: '1px solid rgba(255,255,255,0.1)',
-        }}
+        className="rounded-xl overflow-hidden bg-white border-[1.5px] border-stone-200 shadow-sm"
       >
         {/* Plan Header */}
-        <div className="px-6 py-5 border-b border-white/5">
-          <div className="flex items-baseline gap-2">
-            <span className="font-display text-3xl sm:text-4xl text-white">${currentPlan.price}</span>
-            <span className="font-body text-stone-400 text-lg">/{currentPlan.period}</span>
+        <div className="px-4 py-3 border-b border-stone-100">
+          <div className="flex items-baseline gap-1">
+            <span className="font-display text-2xl text-stone-900">${currentPlan.price}</span>
+            <span className="font-body text-stone-500 text-sm">/{currentPlan.period}</span>
           </div>
-          <p className="font-body text-stone-500 mt-1">
+          <p className="font-body text-stone-500 text-xs mt-0.5">
             Everything you need to understand your practice
           </p>
         </div>
 
         {/* Features */}
-        <div className="px-6 py-5 space-y-3">
+        <div className="px-4 py-3 space-y-1.5">
           {[
             'Full dashboard access',
             'All clinician analytics',
@@ -1026,67 +991,55 @@ const StepPayment: React.FC<{
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 + index * 0.05 }}
-              className="flex items-center gap-3"
+              className="flex items-center gap-2"
             >
-              <div className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
-                <svg className="w-3 h-3 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="w-4 h-4 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                <svg className="w-2.5 h-2.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <span className="font-body text-stone-300 text-base">{feature}</span>
+              <span className="font-body text-stone-600 text-xs">{feature}</span>
             </motion.div>
           ))}
         </div>
 
         {/* Money-back Guarantee */}
-        <div className="mx-6 mb-5">
-          <div
-            className="px-4 py-3 rounded-xl flex items-center gap-3"
-            style={{
-              background: 'linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, rgba(251, 191, 36, 0.05) 100%)',
-              border: '1px solid rgba(251, 191, 36, 0.2)',
-            }}
-          >
-            <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
-              <svg className="w-5 h-5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="mx-4 mb-3">
+          <div className="px-3 py-2 rounded-lg flex items-center gap-2 bg-amber-50 border border-amber-200/60">
+            <div className="w-7 h-7 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+              <svg className="w-3.5 h-3.5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </svg>
             </div>
             <div>
-              <p className="font-body font-semibold text-amber-300 text-sm">30-Day Money-Back Guarantee</p>
-              <p className="font-body text-amber-400/70 text-sm">Not what you expected? Full refund, no questions asked.</p>
+              <p className="font-body font-semibold text-amber-800 text-xs">30-Day Money-Back Guarantee</p>
+              <p className="font-body text-amber-700/70 text-[10px]">Full refund, no questions asked.</p>
             </div>
           </div>
         </div>
 
         {/* CTA Button */}
-        <div className="px-6 pb-6">
-          <motion.button
+        <div className="px-4 pb-4">
+          <button
             onClick={handleSubscribe}
             disabled={isProcessing}
-            whileHover={{ scale: 1.01 }}
-            whileTap={{ scale: 0.99 }}
-            className="w-full py-4 rounded-xl font-body text-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
-            style={{
-              background: 'linear-gradient(135deg, #ffffff 0%, #f5f5f4 100%)',
-              color: '#1c1917',
-              boxShadow: '0 4px 20px rgba(255, 255, 255, 0.15)',
-            }}
+            className={`cta-threshold font-body relative w-full py-3 px-6 text-sm font-semibold rounded-xl ${isProcessing ? 'opacity-60 cursor-not-allowed' : ''}`}
+            style={{ color: 'white' }}
           >
             {isProcessing ? (
-              <>
-                <div className="w-5 h-5 border-2 border-stone-900 border-t-transparent rounded-full animate-spin" />
-                <span>Processing...</span>
-              </>
+              <span className="flex items-center justify-center gap-2">
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Processing...
+              </span>
             ) : (
-              <>
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <span className="flex items-center justify-center gap-2">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
-                <span>Subscribe & Continue</span>
-              </>
+                Subscribe & Continue
+              </span>
             )}
-          </motion.button>
+          </button>
         </div>
       </motion.div>
 
@@ -1095,55 +1048,48 @@ const StepPayment: React.FC<{
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5 }}
-        className="flex items-center justify-center gap-6 pt-2"
+        className="flex items-center justify-center gap-4"
       >
-        <div className="flex items-center gap-2 text-stone-500">
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="flex items-center gap-1.5 text-stone-400">
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
           </svg>
-          <span className="font-body text-sm">Secure payment</span>
+          <span className="font-body text-xs">Secure payment</span>
         </div>
-        <div className="flex items-center gap-2 text-stone-500">
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="flex items-center gap-1.5 text-stone-400">
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
           </svg>
-          <span className="font-body text-sm">Cancel anytime</span>
+          <span className="font-body text-xs">Cancel anytime</span>
         </div>
       </motion.div>
 
-      {/* Book a Call - Prominent */}
+      {/* Book a Call */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.55 }}
-        className="pt-4"
       >
         <button
           onClick={() => window.open('https://calendly.com/cortexa', '_blank')}
-          className="w-full py-3 rounded-xl font-body text-base font-medium transition-all duration-200 flex items-center justify-center gap-2"
-          style={{
-            background: 'rgba(251, 191, 36, 0.1)',
-            border: '1px solid rgba(251, 191, 36, 0.25)',
-            color: '#fbbf24',
-          }}
+          className="w-full py-2 rounded-lg font-body text-xs font-medium transition-all duration-200 flex items-center justify-center gap-1.5 bg-amber-50 border border-amber-200/60 text-amber-700 hover:bg-amber-100/80"
         >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
           </svg>
           Questions? Book a quick call
         </button>
       </motion.div>
 
-      {/* Back Button - Consistent */}
+      {/* Back Button */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.6 }}
-        className="pt-2"
       >
         <button
           onClick={onBack}
-          className="w-full py-3 rounded-xl font-body text-base font-medium text-stone-500 hover:text-stone-300 hover:bg-white/5 transition-all duration-200 flex items-center justify-center gap-2"
+          className="w-full py-2.5 rounded-xl font-body text-sm font-medium text-stone-500 hover:text-stone-700 hover:bg-stone-100/50 transition-all duration-200 flex items-center justify-center gap-2"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -1173,7 +1119,6 @@ const StepCreateAccount: React.FC<{
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
-    // TODO: Implement actual Google OAuth
     await new Promise(resolve => setTimeout(resolve, 1000));
     setIsLoading(false);
     onContinue();
@@ -1193,53 +1138,52 @@ const StepCreateAccount: React.FC<{
     }
 
     setIsLoading(true);
-    // TODO: Implement actual password account creation
     await new Promise(resolve => setTimeout(resolve, 800));
     setIsLoading(false);
     onContinue();
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Final Step Badge */}
       <div className="flex justify-center">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-          <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200/60">
+          <svg className="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
-          <span className="font-body text-sm font-medium text-emerald-400">Final step</span>
+          <span className="font-body text-xs font-medium text-emerald-700">Final step</span>
         </div>
       </div>
 
       {/* Header */}
-      <div className="text-center">
-        <h2 className="font-display text-3xl sm:text-4xl text-white mb-3">You're almost there!</h2>
-        <p className="font-body text-stone-400 text-lg">
+      <div className="text-center mb-1">
+        <h2 className="font-display text-[1.75rem] leading-[1.15] text-stone-900 mb-1" style={{ letterSpacing: '-0.01em' }}>
+          You're almost there!
+        </h2>
+        <p className="font-body text-stone-500 text-sm">
           Create your login to access your practice dashboard.
         </p>
       </div>
 
       {/* Email display */}
-      <div className="p-4 rounded-xl bg-stone-800/50 border border-stone-700/50">
-        <p className="font-body text-xs text-stone-500 mb-1">Account email</p>
-        <p className="font-body text-lg text-white">{email}</p>
+      <div className="p-3 rounded-xl bg-white border-[1.5px] border-stone-200 shadow-sm">
+        <p className="font-body text-[10px] text-stone-400 uppercase tracking-wider">Account email</p>
+        <p className="font-body text-sm text-stone-900 font-medium">{email}</p>
       </div>
 
       {!showPasswordForm ? (
         <>
           {/* Google OAuth - Primary */}
-          <motion.button
+          <button
             onClick={handleGoogleSignIn}
             disabled={isLoading}
-            whileHover={{ scale: 1.01 }}
-            whileTap={{ scale: 0.99 }}
-            className="w-full py-4 rounded-xl font-body text-lg font-semibold transition-all duration-300 flex items-center justify-center gap-3 bg-white text-stone-900 hover:shadow-lg hover:shadow-white/10 disabled:opacity-60"
+            className={`w-full py-3 rounded-xl font-body text-sm font-semibold transition-all duration-300 flex items-center justify-center gap-2.5 bg-white border-[1.5px] border-stone-200 text-stone-700 hover:border-stone-300 hover:shadow-sm ${isLoading ? 'opacity-60 cursor-not-allowed' : ''}`}
           >
             {isLoading ? (
-              <div className="w-6 h-6 border-2 border-stone-900 border-t-transparent rounded-full animate-spin" />
+              <div className="w-5 h-5 border-2 border-stone-400 border-t-transparent rounded-full animate-spin" />
             ) : (
               <>
-                <svg className="w-5 h-5" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                   <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
                   <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
@@ -1248,19 +1192,19 @@ const StepCreateAccount: React.FC<{
                 Continue with Google
               </>
             )}
-          </motion.button>
+          </button>
 
           {/* Divider */}
-          <div className="flex items-center gap-4">
-            <div className="flex-1 h-px bg-stone-700/50" />
-            <span className="font-body text-stone-500 text-sm">or</span>
-            <div className="flex-1 h-px bg-stone-700/50" />
+          <div className="flex items-center gap-3">
+            <div className="flex-1 h-px bg-stone-200" />
+            <span className="font-body text-stone-400 text-xs">or</span>
+            <div className="flex-1 h-px bg-stone-200" />
           </div>
 
           {/* Password option */}
           <button
             onClick={() => setShowPasswordForm(true)}
-            className="w-full py-4 rounded-xl font-body text-lg font-medium transition-all duration-300 flex items-center justify-center gap-2 bg-stone-800 text-stone-300 border border-stone-700 hover:border-stone-600 hover:text-white"
+            className="w-full py-3 rounded-xl font-body text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2 bg-stone-100 text-stone-600 hover:bg-stone-200/70 hover:text-stone-800"
           >
             Create a password instead
           </button>
@@ -1268,46 +1212,46 @@ const StepCreateAccount: React.FC<{
       ) : (
         <>
           {/* Password form */}
-          <form onSubmit={handlePasswordSubmit} className="space-y-4">
+          <form onSubmit={handlePasswordSubmit} className="space-y-3">
             {/* Error message */}
             {error && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center gap-2"
+                className="p-2.5 rounded-lg bg-red-50 border border-red-200/60 flex items-center gap-2"
               >
-                <svg className="w-5 h-5 text-red-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-4 h-4 text-red-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span className="font-body text-red-400 text-sm">{error}</span>
+                <span className="font-body text-red-600 text-xs">{error}</span>
               </motion.div>
             )}
 
             {/* Password field */}
             <div>
-              <label className="font-body text-sm text-stone-500 block mb-2">Password</label>
+              <label className="font-body text-xs font-medium text-stone-600 block mb-1.5">Password</label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="font-body w-full px-4 py-3 pr-12 bg-stone-800 border border-stone-700 rounded-xl text-white text-lg placeholder-stone-500 transition-all duration-200 outline-none focus:border-amber-500/50"
+                  className="input-refined font-body w-full px-3.5 py-3 pr-10 rounded-xl text-stone-900 text-sm placeholder-stone-400 outline-none"
                   placeholder="At least 8 characters"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-500 hover:text-stone-300 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 transition-colors"
                 >
                   {showPassword ? (
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
                     </svg>
                   ) : (
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
                   )}
                 </button>
@@ -1316,47 +1260,53 @@ const StepCreateAccount: React.FC<{
 
             {/* Confirm password field */}
             <div>
-              <label className="font-body text-sm text-stone-500 block mb-2">Confirm Password</label>
+              <label className="font-body text-xs font-medium text-stone-600 block mb-1.5">Confirm Password</label>
               <input
                 type={showPassword ? 'text' : 'password'}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="font-body w-full px-4 py-3 bg-stone-800 border border-stone-700 rounded-xl text-white text-lg placeholder-stone-500 transition-all duration-200 outline-none focus:border-amber-500/50"
+                className="input-refined font-body w-full px-3.5 py-3 rounded-xl text-stone-900 text-sm placeholder-stone-400 outline-none"
                 placeholder="Re-enter your password"
                 required
               />
             </div>
 
             {/* Submit button */}
-            <motion.button
-              type="submit"
-              disabled={isLoading}
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
-              className="w-full py-4 rounded-xl font-body text-lg font-semibold transition-all duration-300 bg-white text-stone-900 hover:shadow-lg hover:shadow-white/10 disabled:opacity-60"
-            >
-              {isLoading ? (
-                <div className="w-6 h-6 border-2 border-stone-900 border-t-transparent rounded-full animate-spin mx-auto" />
-              ) : (
-                'Create Account'
-              )}
-            </motion.button>
+            <div className="pt-1">
+              <button
+                type="submit"
+                disabled={isLoading}
+                className={`cta-threshold font-body relative w-full py-3 px-6 text-sm font-semibold rounded-xl ${isLoading ? 'opacity-60 cursor-not-allowed' : ''}`}
+                style={{ color: 'white' }}
+              >
+                {isLoading ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" />
+                ) : (
+                  <span className="flex items-center justify-center gap-2">
+                    Create Account
+                    <svg className="w-4 h-4 arrow-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                    </svg>
+                  </span>
+                )}
+              </button>
+            </div>
           </form>
 
           {/* Back to OAuth options */}
           <button
             onClick={() => setShowPasswordForm(false)}
-            className="w-full font-body text-stone-500 hover:text-white text-base transition-colors"
+            className="w-full font-body text-amber-600 hover:text-amber-700 text-xs font-medium transition-colors"
           >
             ← Back to sign in options
           </button>
         </>
       )}
 
-      {/* Back Button - Consistent */}
+      {/* Back Button */}
       <button
         onClick={onBack}
-        className="w-full py-3 rounded-xl font-body text-base font-medium text-stone-500 hover:text-stone-300 hover:bg-white/5 transition-all duration-200 flex items-center justify-center gap-2"
+        className="w-full py-2.5 rounded-xl font-body text-sm font-medium text-stone-500 hover:text-stone-700 hover:bg-stone-100/50 transition-all duration-200 flex items-center justify-center gap-2"
       >
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -1400,37 +1350,42 @@ const StepComplete: React.FC<{
   };
 
   return (
-    <div className="space-y-8 text-center py-12">
+    <div className="space-y-5 text-center py-6">
       <motion.div
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-        className="w-28 h-28 mx-auto rounded-full bg-gradient-to-br from-amber-500/20 to-amber-600/10 flex items-center justify-center"
-        style={{ border: '3px solid rgba(245, 158, 11, 0.3)', boxShadow: '0 0 60px rgba(245, 158, 11, 0.15)' }}
+        className="w-20 h-20 mx-auto rounded-full flex items-center justify-center"
+        style={{
+          background: 'linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(251, 191, 36, 0.05) 100%)',
+          border: '2px solid rgba(251, 191, 36, 0.25)',
+          boxShadow: '0 0 40px rgba(251, 191, 36, 0.1)',
+        }}
       >
         {status === 'ready' ? (
-          <svg className="w-14 h-14 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="w-10 h-10 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
         ) : (
-          <div className="w-14 h-14 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
+          <div className="w-10 h-10 border-3 border-amber-500 border-t-transparent rounded-full animate-spin" />
         )}
       </motion.div>
 
       <div>
-        <h2 className="font-display text-3xl sm:text-4xl text-white mb-3">
+        <h2 className="font-display text-[1.75rem] leading-[1.15] text-stone-900 mb-1" style={{ letterSpacing: '-0.01em' }}>
           {status === 'ready' ? `Welcome, ${practiceName}!` : statusMessages[status]}
         </h2>
-        <p className="font-body text-stone-400 text-lg sm:text-xl">
+        <p className="font-body text-stone-500 text-sm">
           {status === 'ready' ? 'Your practice dashboard is ready.' : 'This usually takes less than a minute.'}
         </p>
       </div>
 
       {status !== 'ready' && (
-        <div className="max-w-sm mx-auto">
-          <div className="h-2 bg-stone-800 rounded-full overflow-hidden">
+        <div className="max-w-xs mx-auto">
+          <div className="h-1.5 bg-stone-200 rounded-full overflow-hidden">
             <motion.div
-              className="h-full bg-gradient-to-r from-amber-500 to-amber-400 rounded-full"
+              className="h-full rounded-full"
+              style={{ background: 'linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%)' }}
               initial={{ width: 0 }}
               animate={{ width: `${Math.min(progress, 100)}%` }}
             />
@@ -1440,30 +1395,37 @@ const StepComplete: React.FC<{
 
       {status === 'ready' && (
         <>
-          <motion.button
+          <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            onClick={onComplete}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="px-12 py-4 rounded-2xl font-body text-xl font-semibold bg-white text-stone-900 hover:shadow-lg hover:shadow-white/10 transition-all"
           >
-            Go to Dashboard →
-          </motion.button>
+            <button
+              onClick={onComplete}
+              className="cta-threshold font-body px-10 py-3 rounded-xl text-sm font-semibold"
+              style={{ color: 'white' }}
+            >
+              <span className="flex items-center justify-center gap-2">
+                Go to Dashboard
+                <svg className="w-4 h-4 arrow-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                </svg>
+              </span>
+            </button>
+          </motion.div>
 
           {/* Social proof */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
-            className="mt-10 max-w-md mx-auto"
+            className="mt-4 max-w-sm mx-auto"
           >
-            <div className="p-5 rounded-2xl bg-stone-800/50 border border-stone-700/50">
-              <p className="font-body text-stone-300 text-base italic leading-relaxed">
+            <div className="p-4 rounded-xl bg-white border-[1.5px] border-stone-200 shadow-sm">
+              <p className="font-body text-stone-600 text-xs italic leading-relaxed">
                 "I finally know what's happening in my practice without digging through spreadsheets."
               </p>
-              <p className="font-body text-stone-500 text-sm mt-3">
+              <p className="font-body text-stone-400 text-[10px] mt-2">
                 — Practice Owner, Brooklyn
               </p>
             </div>
@@ -1480,6 +1442,7 @@ const StepComplete: React.FC<{
 
 export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onSwitchToLogin }) => {
   const [currentStep, setCurrentStep] = useState(0);
+  const [isVisible, setIsVisible] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     name: '',
     email: '',
@@ -1502,12 +1465,28 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onSw
     connectionStatus: 'pending',
   });
 
+  // Trigger entrance animation
+  useEffect(() => {
+    const timer = setTimeout(() => setIsVisible(true), 50);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Calculate color progress based on all form fields
+  const totalChars = useMemo(() => {
+    return formData.name.length + formData.email.length + formData.practiceName.length + formData.phone.length;
+  }, [formData.name, formData.email, formData.practiceName, formData.phone]);
+
+  const TARGET_CHARS = 40; // More fields = higher target
+  const linearProgress = Math.min(totalChars / TARGET_CHARS, 1);
+  const colorProgress = 1 - Math.pow(1 - linearProgress, 3);
+  const grayscaleAmount = 1 - colorProgress;
+  const saturationAmount = colorProgress * 1.15;
+
   const handleFormChange = (field: keyof FormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleStep0Complete = () => {
-    // Transfer form data to onboarding data
     setData(prev => ({
       ...prev,
       name: formData.name,
@@ -1526,101 +1505,226 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onSw
 
   const handleStartWaiting = () => {
     setData(prev => ({ ...prev, connectionStatus: 'waiting' }));
-    // Simulate connection (in real app: webhook/polling)
     setTimeout(() => {
       setData(prev => ({ ...prev, connectionStatus: 'connected' }));
-      setCurrentStep(4); // Go to Payment step
+      setCurrentStep(4);
     }, 3000);
   };
 
   const goToStep = (step: number) => setCurrentStep(step);
 
-  // Get EHR name for display
   const getEhrName = () => {
     const ehr = EHR_OPTIONS.find(e => e.id === data.selectedEhr);
     return ehr?.name || 'your EHR';
   };
 
-  // Step labels change based on whether we collect password in signup
-  // When COLLECT_PASSWORD_IN_SIGNUP is true:
-  //   Steps: 0=Start, 1=EHR, 2=Legal, 3=Connect, 4=Subscribe, 5=Complete (6 steps)
-  // When COLLECT_PASSWORD_IN_SIGNUP is false:
-  //   Steps: 0=Start, 1=EHR, 2=Legal, 3=Connect, 4=Subscribe, 5=Account, 6=Complete (7 steps)
   const stepLabels = COLLECT_PASSWORD_IN_SIGNUP
     ? ['Get Started', 'Select EHR', 'Legal', 'Connect EHR', 'Subscribe', 'Complete']
     : ['Get Started', 'Select EHR', 'Legal', 'Connect EHR', 'Subscribe', 'Create Account', 'Complete'];
 
   return (
-    <div className="h-screen w-full flex overflow-hidden">
-      {/* Styles */}
+    <div className="h-screen w-full flex overflow-hidden bg-stone-50">
+      {/* Styles - matching LoginPage */}
       <style>{`
-        .font-display { font-family: 'Tiempos Headline', Georgia, serif; }
-        .font-body { font-family: 'Suisse Intl', system-ui, sans-serif; }
-
-        .input-glow:focus {
-          box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.3),
-                      0 0 20px -5px rgba(245, 158, 11, 0.2);
+        .font-display {
+          font-family: 'Tiempos Headline', Georgia, serif;
+          font-feature-settings: 'liga' 1, 'kern' 1;
         }
 
-        .noise-overlay {
-          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-          opacity: 0.03;
+        .font-body {
+          font-family: 'Suisse Intl', system-ui, sans-serif;
+          font-feature-settings: 'liga' 1, 'kern' 1;
         }
 
-        @keyframes checkmark {
-          0% { stroke-dashoffset: 24; }
-          100% { stroke-dashoffset: 0; }
+        .input-refined {
+          background: white;
+          border: 1.5px solid rgba(168, 162, 158, 0.3);
+          box-shadow:
+            0 1px 2px rgba(0, 0, 0, 0.02),
+            0 0 0 0px rgba(245, 158, 11, 0),
+            inset 0 1px 2px rgba(0, 0, 0, 0.02);
+          transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
         }
 
-        .checkmark-animate {
-          stroke-dasharray: 24;
-          stroke-dashoffset: 24;
-          animation: checkmark 0.4s ease-out 0.2s forwards;
+        .input-refined:hover {
+          border-color: rgba(168, 162, 158, 0.5);
+        }
+
+        .input-refined:focus {
+          border-color: rgba(245, 158, 11, 0.5);
+          box-shadow:
+            0 4px 16px rgba(245, 158, 11, 0.08),
+            0 0 0 4px rgba(245, 158, 11, 0.08),
+            inset 0 1px 2px rgba(0, 0, 0, 0.01);
+        }
+
+        .cta-threshold {
+          background: linear-gradient(135deg, #1c1917 0%, #292524 50%, #1c1917 100%);
+          background-size: 200% 200%;
+          box-shadow:
+            0 2px 4px rgba(0, 0, 0, 0.1),
+            0 8px 24px -4px rgba(0, 0, 0, 0.2),
+            0 0 0 1px rgba(255, 255, 255, 0.03) inset,
+            0 1px 0 rgba(255, 255, 255, 0.05) inset;
+          transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+          position: relative;
+          overflow: hidden;
+        }
+
+        .cta-threshold::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 60%;
+          height: 100%;
+          background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.03) 30%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.03) 70%, transparent 100%);
+          transform: skewX(-20deg);
+          transition: left 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .cta-threshold:hover::before {
+          left: 150%;
+        }
+
+        .cta-threshold:hover {
+          transform: translateY(-2px);
+          box-shadow:
+            0 4px 8px rgba(0, 0, 0, 0.15),
+            0 16px 40px -8px rgba(0, 0, 0, 0.3),
+            0 0 50px -15px rgba(251, 191, 36, 0.25),
+            0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+        }
+
+        .cta-threshold:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+          transform: none !important;
+        }
+
+        .cta-threshold .arrow-icon {
+          transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .cta-threshold:hover .arrow-icon {
+          transform: translateX(4px);
+        }
+
+        .grain-texture {
+          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+          opacity: 0.02;
+          pointer-events: none;
+        }
+
+        .cinematic-vignette {
+          background: radial-gradient(ellipse 80% 60% at 50% 50%, transparent 40%, rgba(28, 25, 23, 0.15) 100%);
+        }
+
+        @keyframes error-shake {
+          0%, 100% { transform: translateX(0); }
+          20% { transform: translateX(-8px); }
+          40% { transform: translateX(8px); }
+          60% { transform: translateX(-4px); }
+          80% { transform: translateX(4px); }
+        }
+
+        .error-shake {
+          animation: error-shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97);
         }
       `}</style>
 
-      {/* LEFT SIDE - Falling Lines Animation (50% width) */}
+      {/* ==========================================
+          LEFT PANEL - Japanese Maple Artwork
+          Grayscale → Color transition on keystrokes
+          ========================================== */}
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 1 }}
-        className="hidden lg:block lg:w-1/2 relative overflow-hidden"
+        initial={{ opacity: 0, clipPath: 'inset(0 100% 0 0)' }}
+        animate={{ opacity: 1, clipPath: 'inset(0 0% 0 0)' }}
+        transition={{ duration: 1.2, ease: easeOutExpo }}
+        className="hidden lg:block lg:w-[52%] relative overflow-hidden"
       >
-        <FallingLinesCanvas />
-        <div className="absolute inset-0 pointer-events-none bg-gradient-to-r from-transparent via-transparent to-black/30" />
-        <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-black/20 via-transparent to-black/40" />
-
-        {/* Step indicator on left panel */}
+        {/* The artwork image with dynamic color */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.8 }}
-          className="absolute bottom-12 left-12 z-10"
+          initial={{ opacity: 0, scale: 1.05 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 1.5, ease: easeOutQuint, delay: 0.6 }}
+          className="absolute inset-0"
+          style={{
+            filter: `grayscale(${grayscaleAmount}) saturate(${saturationAmount})`,
+            transition: 'filter 0.4s cubic-bezier(0.22, 1, 0.36, 1)',
+          }}
         >
-          <p className="font-body text-white/40 text-lg tracking-widest uppercase">
-            {stepLabels[currentStep]}
-          </p>
+          <img
+            src="/login-artwork.png"
+            alt="Japanese maple in misty mountains"
+            className="w-full h-full object-cover"
+          />
         </motion.div>
+
+        {/* Subtle warm overlay that intensifies with color */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: `radial-gradient(ellipse 80% 60% at 30% 30%, rgba(251, 191, 36, ${0.05 * colorProgress}) 0%, transparent 60%)`,
+            transition: 'background 0.4s cubic-bezier(0.22, 1, 0.36, 1)',
+          }}
+        />
+
+        {/* Cinematic vignette */}
+        <div className="absolute inset-0 cinematic-vignette pointer-events-none" />
+
+        {/* Grain texture */}
+        <div className="absolute inset-0 grain-texture" />
       </motion.div>
 
-      {/* RIGHT SIDE - Onboarding Content (50% width) */}
-      <div className="w-full lg:w-1/2 h-full relative flex flex-col bg-stone-900">
-        {/* Noise overlay */}
-        <div className="absolute inset-0 noise-overlay pointer-events-none" />
+      {/* ==========================================
+          RIGHT PANEL - Onboarding Content
+          ========================================== */}
+      <div className="w-full lg:w-[48%] h-full relative flex flex-col">
+        {/* Background warmth gradient */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background: `
+              radial-gradient(ellipse 120% 80% at 30% 20%, rgba(251, 191, 36, 0.04) 0%, transparent 50%),
+              radial-gradient(ellipse 80% 100% at 100% 100%, rgba(168, 162, 158, 0.05) 0%, transparent 50%),
+              #fafaf9
+            `,
+          }}
+        />
 
-        {/* Gradient overlays */}
-        <div className="absolute inset-0 bg-gradient-to-br from-stone-900 via-stone-800/50 to-stone-900" />
-        <div className="absolute top-0 right-0 w-96 h-96 -translate-y-1/2 translate-x-1/2 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(245, 158, 11, 0.05) 0%, transparent 70%)' }} />
+        {/* Grain texture */}
+        <div className="absolute inset-0 grain-texture" />
 
-        {/* Header - fixed height, doesn't scroll */}
-        <header className="relative z-10 px-6 sm:px-10 py-4 sm:py-6 flex items-center justify-between border-b border-stone-800/50 flex-shrink-0">
-          <h1 className="font-display text-2xl sm:text-3xl text-white">Cortexa</h1>
+        {/* Top Left Logo */}
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : -8 }}
+          transition={{ duration: 0.6, ease: easeOutQuint, delay: 0.1 }}
+          className="relative z-10 flex items-center justify-between px-6 md:px-10 pt-6 flex-shrink-0"
+        >
+          <div className="flex items-center gap-2">
+            <img
+              src="/cortexa-mark.png"
+              alt="Cortexa"
+              className="h-9 w-auto object-contain"
+              style={{
+                filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.06)) drop-shadow(0 4px 12px rgba(120, 90, 50, 0.08))'
+              }}
+            />
+            <span
+              className="font-body text-[1.25rem] font-medium text-stone-900 leading-none"
+              style={{ letterSpacing: '-0.02em' }}
+            >
+              Cortexa
+            </span>
+          </div>
           <ProgressIndicator currentStep={currentStep} totalSteps={stepLabels.length} />
-        </header>
+        </motion.div>
 
-        {/* Content - scrollable area */}
-        <main className="relative z-10 flex-1 min-h-0 overflow-y-auto overscroll-contain">
-          <div className="w-full max-w-lg mx-auto px-6 sm:px-10 py-6 sm:py-8 pb-8 sm:pb-12">
+        {/* Form container - scrollable */}
+        <div className="relative z-10 flex-1 min-h-0 overflow-y-auto px-6 md:px-10">
+          <div className="w-full max-w-[400px] mx-auto py-6">
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentStep}
@@ -1636,6 +1740,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onSw
                     onContinue={handleStep0Complete}
                     onSwitchToLogin={onSwitchToLogin}
                     collectPassword={COLLECT_PASSWORD_IN_SIGNUP}
+                    isVisible={isVisible}
                   />
                 )}
                 {currentStep === 1 && (
@@ -1691,14 +1796,15 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onSw
               </motion.div>
             </AnimatePresence>
           </div>
-        </main>
+        </div>
 
-        {/* Footer - fixed height, doesn't scroll */}
-        <footer className="relative z-10 px-6 sm:px-10 py-4 sm:py-5 text-center border-t border-stone-800/50 flex-shrink-0">
-          <p className="font-body text-stone-500 text-sm sm:text-base">
-            Questions? support@usecortexa.com
-          </p>
-        </footer>
+        {/* Decorative corner accent */}
+        <div
+          className="absolute bottom-0 right-0 w-48 h-48 pointer-events-none opacity-30"
+          style={{
+            background: 'radial-gradient(circle at 100% 100%, rgba(251, 191, 36, 0.15) 0%, transparent 60%)',
+          }}
+        />
       </div>
     </div>
   );

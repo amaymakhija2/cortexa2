@@ -26,6 +26,11 @@ const useDragToScroll = () => {
     if (!container) return;
 
     const handleMouseDown = (e: MouseEvent) => {
+      // Don't initiate drag if clicking on interactive elements
+      const target = e.target as HTMLElement;
+      if (target.closest('button, a, [role="button"], input, select, textarea')) {
+        return;
+      }
       isDraggingRef.current = true;
       startXRef.current = e.pageX - container.offsetLeft;
       scrollLeftRef.current = container.scrollLeft;
