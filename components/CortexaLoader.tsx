@@ -23,6 +23,8 @@ type Dot = {
   angle: number;
   dist: number;
   phase: number;
+  speed: number; // Individual speed multiplier for organic feel
+  delay: number; // Staggered start based on distance from center
 };
 
 // Easing functions
@@ -49,6 +51,15 @@ function easeInCubic(t: number) {
 
 function easeOutQuart(t: number) {
   return 1 - Math.pow(1 - clamp01(t), 4);
+}
+
+function easeOutExpo(t: number) {
+  t = clamp01(t);
+  return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+}
+
+function easeInOutSine(t: number) {
+  return -(Math.cos(Math.PI * clamp01(t)) - 1) / 2;
 }
 
 function smoothstep(edge0: number, edge1: number, x: number) {
@@ -80,7 +91,7 @@ function generateNoiseTexture(): string {
 }
 
 export const CortexaLoader: React.FC<CortexaLoaderProps> = ({
-  durationMs = 2800,
+  durationMs = 4800,
   onDone,
 }) => {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -107,19 +118,28 @@ export const CortexaLoader: React.FC<CortexaLoaderProps> = ({
   function rebuildDots(w: number, h: number) {
     const cx = w / 2;
     const cy = h / 2;
-    const spacing = Math.max(28, Math.min(42, Math.round(Math.min(w, h) / 24)));
+    // Larger spacing = fewer, more prominent dots
+    const spacing = Math.max(32, Math.min(48, Math.round(Math.min(w, h) / 22)));
+    const maxDist = Math.sqrt(cx * cx + cy * cy);
 
     const dots: Dot[] = [];
     for (let y = spacing / 2; y <= h; y += spacing) {
       for (let x = spacing / 2; x <= w; x += spacing) {
         const dx = x - cx;
         const dy = y - cy;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const normalizedDist = dist / maxDist;
+
         dots.push({
           x,
           y,
           angle: Math.atan2(dy, dx),
-          dist: Math.sqrt(dx * dx + dy * dy),
+          dist,
           phase: Math.random() * Math.PI * 2,
+          // Varied speeds for organic movement - center dots slightly faster
+          speed: 0.6 + Math.random() * 0.5 + (1 - normalizedDist) * 0.3,
+          // Ripple delay - center starts first, spreads outward gracefully
+          delay: normalizedDist * 0.15,
         });
       }
     }
@@ -181,43 +201,55 @@ export const CortexaLoader: React.FC<CortexaLoaderProps> = ({
       const tRaw = (now - startRef.current) / total;
       const t = clamp01(tRaw);
 
-      // === PHASE TIMING ===
-      // 0.00 - 0.05: Initial pause (anticipation)
-      // 0.05 - 0.28: Logo mark fades in with scale
-      // 0.22 - 0.38: Separator line draws from center
-      // 0.30 - 0.52: Wordmark letters cascade in
-      // 0.52 - 0.68: Hold at full presence with subtle breathing
-      // 0.68 - 0.82: Logo lifts up and fades
-      // 0.72 - 0.98: Dots disperse outward + background fades
-      // 0.92 - 1.00: Final fade
+      // === PHASE TIMING (4800ms total - cinematic pacing) ===
+      // 0.00 - 0.03: Initial pause (anticipation)
+      // 0.03 - 0.15: Logo mark fades in with scale
+      // 0.12 - 0.22: Separator line draws from center
+      // 0.18 - 0.30: Wordmark letters cascade in
+      // 0.30 - 0.42: Hold at full presence with subtle breathing
+      // 0.42 - 0.52: Logo lifts up and fades gracefully
+      // 0.45 - 0.92: DOTS DISPERSE - the star of the show (extended!)
+      // 0.55 - 0.88: Background crossfades to warm homepage
+      // 0.88 - 1.00: Final gentle fade out
 
       const time = now * 0.001;
 
       // Logo mark animation
-      const logoIn = easeOutQuint(smoothstep(0.05, 0.28, t));
+      const logoIn = easeOutQuint(smoothstep(0.03, 0.15, t));
 
       // Subtle breathing during hold phase
-      const breathePhase = smoothstep(0.38, 0.55, t) * (1 - smoothstep(0.66, 0.72, t));
+      const breathePhase = smoothstep(0.22, 0.36, t) * (1 - smoothstep(0.40, 0.45, t));
       const breathe = breathePhase * 0.008 * Math.sin(time * 2.0);
       const logoScale = 0.96 + 0.04 * logoIn + breathe;
 
       // Separator line animation
-      const sepIn = easeInOutQuart(smoothstep(0.22, 0.38, t));
+      const sepIn = easeInOutQuart(smoothstep(0.12, 0.22, t));
 
       // Wordmark animation
-      const wordmarkIn = easeOutCubic(smoothstep(0.30, 0.48, t));
+      const wordmarkIn = easeOutCubic(smoothstep(0.18, 0.30, t));
 
-      // Logo exit - lifts up and fades
-      const logoExitProgress = smoothstep(0.68, 0.84, t);
-      const logoLift = easeInCubic(logoExitProgress) * -28;
-      const logoExitOpacity = 1 - easeInCubic(logoExitProgress);
+      // Logo exit - lifts up and fades gracefully
+      const logoExitProgress = smoothstep(0.42, 0.52, t);
+      const logoLift = easeInCubic(logoExitProgress) * -36;
+      const logoExitOpacity = 1 - easeOutQuart(logoExitProgress);
 
-      // Dot dispersion exit
-      const disperseProgress = easeOutQuart(smoothstep(0.72, 0.98, t));
+      // Dot dispersion - THE MAIN EVENT - slow, cinematic, luxurious
+      // Extended from 0.45 to 0.92 = 47% of animation = ~2.25 seconds of dot travel
+      const disperseRaw = smoothstep(0.45, 0.92, t);
+      // Use easeOutCubic for a gentler, more graceful dispersion
+      const disperseProgress = easeOutCubic(disperseRaw);
 
-      // Background fade
-      const bgFade = smoothstep(0.90, 1.0, t);
-      const overlayOpacity = 1 - bgFade;
+      // Background crossfade - gradual transition from dark to warm
+      const darkFadeStart = 0.55;
+      const darkFadeEnd = 0.88;
+      const darkOpacity = 1 - easeInOutSine(smoothstep(darkFadeStart, darkFadeEnd, t));
+
+      // Warm overlay fades IN as dark fades out (crossfade)
+      const warmFadeIn = easeInOutSine(smoothstep(0.58, 0.85, t));
+
+      // Final fade of entire component - longer, gentler
+      const finalFade = smoothstep(0.88, 1.0, t);
+      const overlayOpacity = 1 - finalFade;
 
       // Ambient glow
       const glowBreath = 0.4 + 0.1 * Math.sin(time * 1.6);
@@ -226,32 +258,63 @@ export const CortexaLoader: React.FC<CortexaLoaderProps> = ({
       // === DRAW CANVAS (dots only during exit) ===
       ctx.clearRect(0, 0, w, h);
 
-      if (disperseProgress > 0.001) {
+      if (disperseRaw > 0.001) {
         const dots = dotsRef.current;
-        const dotR = 1.8;
+        // LARGER dots - 3px base radius for visibility
+        const dotR = 3.0;
+        // Maximum travel distance - enough to fully exit the screen
+        const maxTravel = Math.max(w, h) * 0.85;
 
         for (let i = 0; i < dots.length; i++) {
           const d = dots[i];
 
-          // Disperse outward from center
-          const disperseAmt = disperseProgress * 200 * (0.5 + 0.5 * (d.dist / Math.max(w, h)));
-          const currentX = d.x + Math.cos(d.angle) * disperseAmt;
-          const currentY = d.y + Math.sin(d.angle) * disperseAmt;
+          // Per-dot delayed start for ripple effect - creates that satisfying wave
+          const dotT = clamp01((disperseRaw - d.delay) / (1 - d.delay));
+          // Gentle cubic easing for graceful, visible movement
+          const dotProgress = easeOutCubic(dotT);
 
-          // Skip if off screen
-          if (currentX < -30 || currentX > w + 30 || currentY < -30 || currentY > h + 30) continue;
+          // Disperse outward with individual speed
+          const travelDist = dotProgress * maxTravel * d.speed;
+          const currentX = d.x + Math.cos(d.angle) * travelDist;
+          const currentY = d.y + Math.sin(d.angle) * travelDist;
 
-          // Fade in then out
-          const dotFadeIn = smoothstep(0.72, 0.78, t);
-          const dotFadeOut = smoothstep(0.88, 0.98, t);
-          const twinkle = 0.9 + 0.1 * Math.sin(time * 2.2 + d.phase);
-          const alpha = dotFadeIn * (1 - dotFadeOut) * twinkle * 0.6 * overlayOpacity;
+          // Skip if off screen (with generous margin for smooth exit)
+          if (currentX < -80 || currentX > w + 80 || currentY < -80 || currentY > h + 80) continue;
+
+          // Dot opacity: fade in smoothly at start of dispersion
+          const dotFadeIn = smoothstep(0.45, 0.52, t);
+
+          // Fade out based on proximity to screen edge
+          const distFromEdge = Math.min(
+            currentX + 80,
+            w + 80 - currentX,
+            currentY + 80,
+            h + 80 - currentY
+          );
+          const edgeFade = smoothstep(0, 120, distFromEdge);
+
+          // Gentle time-based fade in final stretch
+          const timeFade = 1 - smoothstep(0.85, 0.96, t);
+
+          // Subtle twinkle for life
+          const twinkle = 0.88 + 0.12 * Math.sin(time * 1.8 + d.phase);
+
+          // Transition dot color from bright cream (on dark) to warm tan (matching homepage)
+          const colorTransition = warmFadeIn;
+          const r = Math.round(245 - colorTransition * 65); // 245 -> 180
+          const g = Math.round(240 - colorTransition * 68); // 240 -> 172
+          const b = Math.round(230 - colorTransition * 70); // 230 -> 160
+
+          // Higher base opacity for visibility
+          const alpha = dotFadeIn * edgeFade * timeFade * twinkle * 0.78;
 
           if (alpha <= 0.001) continue;
 
+          // Draw dot with subtle size variation based on progress
           ctx.beginPath();
-          ctx.fillStyle = `rgba(235, 232, 225, ${alpha})`;
-          ctx.arc(currentX, currentY, dotR, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${alpha})`;
+          const currentRadius = dotR * (0.85 + 0.25 * dotProgress);
+          ctx.arc(currentX, currentY, currentRadius, 0, Math.PI * 2);
           ctx.fill();
         }
       }
@@ -279,11 +342,17 @@ export const CortexaLoader: React.FC<CortexaLoaderProps> = ({
       // Root opacity for final fade
       root.style.opacity = String(overlayOpacity);
 
+      // Update dark/warm background opacity for crossfade
+      const darkBgs = root.querySelectorAll<HTMLDivElement>('[data-loader-dark]');
+      const warmBgs = root.querySelectorAll<HTMLDivElement>('[data-loader-warm]');
+      darkBgs.forEach(el => { el.style.opacity = String(darkOpacity); });
+      warmBgs.forEach(el => { el.style.opacity = String(warmFadeIn); });
+
       // Letter stagger for wordmark
       const letters = wordmark.querySelectorAll<HTMLSpanElement>(".loader-letter");
       letters.forEach((letter, i) => {
-        const letterDelay = 0.30 + i * 0.025;
-        const letterProgress = easeOutCubic(smoothstep(letterDelay, letterDelay + 0.12, t));
+        const letterDelay = 0.18 + i * 0.018;
+        const letterProgress = easeOutCubic(smoothstep(letterDelay, letterDelay + 0.08, t));
         letter.style.opacity = String(letterProgress * logoExitOpacity);
         letter.style.transform = `translateY(${(1 - letterProgress) * 6}px)`;
       });
@@ -321,8 +390,39 @@ export const CortexaLoader: React.FC<CortexaLoaderProps> = ({
       }}
       aria-hidden="true"
     >
-      {/* Deep charcoal-black base */}
+      {/* Warm homepage-matching background (fades IN during exit) */}
       <div
+        data-loader-warm
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "#fafaf9",
+          opacity: 0,
+        }}
+      />
+      {/* Warm radial gradients matching homepage */}
+      <div
+        data-loader-warm
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "radial-gradient(ellipse 120% 80% at 50% 100%, rgba(254, 243, 199, 0.25) 0%, rgba(254, 249, 239, 0.15) 40%, transparent 70%)",
+          opacity: 0,
+        }}
+      />
+      <div
+        data-loader-warm
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "radial-gradient(ellipse 80% 60% at 85% 10%, rgba(255, 251, 245, 0.6) 0%, rgba(250, 248, 244, 0.3) 30%, transparent 60%)",
+          opacity: 0,
+        }}
+      />
+
+      {/* Deep charcoal-black base (fades OUT during exit) */}
+      <div
+        data-loader-dark
         style={{
           position: "absolute",
           inset: 0,
@@ -332,6 +432,7 @@ export const CortexaLoader: React.FC<CortexaLoaderProps> = ({
 
       {/* Subtle center spotlight for depth */}
       <div
+        data-loader-dark
         style={{
           position: "absolute",
           inset: 0,
@@ -342,6 +443,7 @@ export const CortexaLoader: React.FC<CortexaLoaderProps> = ({
       {/* Film grain texture */}
       {noiseUrl && (
         <div
+          data-loader-dark
           style={{
             position: "absolute",
             inset: 0,
@@ -450,8 +552,9 @@ export const CortexaLoader: React.FC<CortexaLoaderProps> = ({
         </div>
       </div>
 
-      {/* Subtle corner vignettes */}
+      {/* Subtle corner vignettes - fades with dark theme */}
       <div
+        data-loader-dark
         style={{
           position: "absolute",
           inset: 0,
