@@ -33,3 +33,7 @@ dist-ssr
 
 # Notes
 notes/
+
+# Temporary/draft files
+docs/TAM_Analysis.md
+public/abstract_green_art.png
