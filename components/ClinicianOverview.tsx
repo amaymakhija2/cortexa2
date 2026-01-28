@@ -629,11 +629,8 @@ export const ClinicianOverview: React.FC = () => {
   const [sessionGoalView, setSessionGoalView] = useState<SessionGoalView>('weekly');
 
   const now = new Date();
-  // Default to current month for ranking view
-  const [timeSelection, setTimeSelection] = useState<TimeSelectorValue>({
-    month: now.getMonth(),
-    year: now.getFullYear(),
-  });
+  // Default to last 12 months for ranking view
+  const [timeSelection, setTimeSelection] = useState<TimeSelectorValue>('last-12-months');
 
   // Get active tab from URL search params (managed by UnifiedNavigation)
   const activeTab = (searchParams.get('tab') || 'ranking') as ClinicianTabType;

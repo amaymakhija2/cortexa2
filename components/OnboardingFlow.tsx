@@ -2,16 +2,13 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePictureInPicture } from './PiPCopyWidget';
 
-// Premium easing curves matching LoginPage
+// Premium easing curves matching LP
 const easeOutQuint = [0.22, 1, 0.36, 1] as const;
 const easeOutExpo = [0.16, 1, 0.3, 1] as const;
 
 // ============================================================================
 // CONFIGURATION
 // ============================================================================
-// Toggle this to switch between two onboarding modes:
-// - true:  Password collected in Get Started step (shorter flow, skips Create Account)
-// - false: Separate Create Account step after Payment (longer flow, Google OAuth option)
 const COLLECT_PASSWORD_IN_SIGNUP = false;
 
 // ============================================================================
@@ -86,23 +83,22 @@ const generateEmailFromPractice = (practiceName: string): string => {
 };
 
 // ============================================================================
-// PROGRESS INDICATOR
+// PROGRESS INDICATOR - Refined
 // ============================================================================
 
 const ProgressIndicator: React.FC<{ currentStep: number; totalSteps: number }> = ({ currentStep, totalSteps }) => {
-  // Simple dot indicator for compact display
   return (
     <div className="flex items-center gap-1.5">
       {Array.from({ length: totalSteps }).map((_, index) => (
         <div
           key={index}
           className={`
-            w-2 h-2 rounded-full transition-all duration-300
+            h-1.5 rounded-full transition-all duration-500
             ${currentStep > index
-              ? 'bg-amber-500'
+              ? 'w-1.5 bg-amber-500'
               : currentStep === index
-                ? 'bg-amber-400 ring-2 ring-amber-200'
-                : 'bg-stone-200'}
+                ? 'w-5 bg-amber-400'
+                : 'w-1.5 bg-stone-200'}
           `}
         />
       ))}
@@ -111,7 +107,7 @@ const ProgressIndicator: React.FC<{ currentStep: number; totalSteps: number }> =
 };
 
 // ============================================================================
-// STEP 0: GET STARTED (Sign Up Form)
+// STEP 0: GET STARTED - Single Column, Compact for 720px
 // ============================================================================
 
 const StepGetStarted: React.FC<{
@@ -181,180 +177,174 @@ const StepGetStarted: React.FC<{
   ];
 
   return (
-    <div>
+    <div className="flex flex-col h-full">
       {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 12 }}
-        transition={{ duration: 0.7, ease: easeOutQuint, delay: 0.1 }}
-        className="mb-1"
-      >
-        <h1 className="font-display text-[1.75rem] leading-[1.15] text-stone-900" style={{ letterSpacing: '-0.01em' }}>
+      <div className="mb-8 flex-shrink-0">
+        <motion.h1
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 12 }}
+          transition={{ duration: 0.6, ease: easeOutQuint, delay: 0.1 }}
+          className="font-display text-3xl md:text-4xl leading-[1.1] text-stone-900 tracking-tight"
+        >
           Get started
-        </h1>
-      </motion.div>
-
-      <motion.p
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 10 }}
-        transition={{ duration: 0.6, ease: easeOutQuint, delay: 0.2 }}
-        className="font-body text-stone-500 text-sm mb-5"
-      >
-        See what's really happening in your practice
-      </motion.p>
+        </motion.h1>
+      </div>
 
       {/* Error Message */}
       <AnimatePresence>
         {error && (
           <motion.div
-            initial={{ opacity: 0, height: 0, marginBottom: 0 }}
-            animate={{ opacity: 1, height: 'auto', marginBottom: 16 }}
-            exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-            className="overflow-hidden"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden mb-4"
           >
             <div
-              className="p-3 rounded-lg flex items-center gap-2 error-shake"
+              className="p-3 rounded-xl flex items-center gap-2.5 error-shake"
               style={{
                 background: 'linear-gradient(135deg, #fef2f2 0%, #fff1f2 100%)',
-                border: '1px solid rgba(239, 68, 68, 0.15)',
+                border: '1px solid rgba(239, 68, 68, 0.2)',
               }}
             >
               <svg className="w-4 h-4 text-red-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span className="font-body text-red-600 text-xs font-medium">{error}</span>
+              <span className="font-body text-red-600 text-sm font-medium">{error}</span>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {inputFields.map((field, index) => (
-          <motion.div
-            key={field.key}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 12 }}
-            transition={{ duration: 0.5, ease: easeOutQuint, delay: 0.25 + index * 0.04 }}
-          >
-            <label className="font-body text-xs font-medium text-stone-600 block mb-1.5">
-              {field.label}
-            </label>
-            <input
-              type={field.type}
-              value={formData[field.key as keyof FormData]}
-              onChange={handleChange(field.key as keyof FormData)}
-              className="input-refined font-body w-full px-3.5 py-3 rounded-xl text-stone-900 text-sm placeholder-stone-400 outline-none"
-              placeholder={field.placeholder}
-              required
-              autoComplete={field.autoComplete}
-            />
-          </motion.div>
-        ))}
-
-        {/* Role Dropdown */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 12 }}
-          transition={{ duration: 0.5, ease: easeOutQuint, delay: 0.45 }}
-        >
-          <label className="font-body text-xs font-medium text-stone-600 block mb-1.5">
-            Your Role (Optional)
-          </label>
-          <div className="relative">
-            <select
-              value={formData.title}
-              onChange={handleChange('title')}
-              className={`input-refined font-body w-full px-3.5 py-3 rounded-xl text-sm outline-none appearance-none cursor-pointer ${!formData.title ? 'text-stone-400' : 'text-stone-900'}`}
-            >
-              {titleOptions.map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-            <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none">
-              <svg className="w-4 h-4 text-stone-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Password Fields */}
-        {collectPassword && (
-          <>
+      <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
+        <div className="flex-1 overflow-y-auto space-y-4">
+          {inputFields.map((field, index) => (
             <motion.div
+              key={field.key}
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 12 }}
-              transition={{ duration: 0.5, ease: easeOutQuint, delay: 0.5 }}
+              transition={{ duration: 0.4, ease: easeOutQuint, delay: 0.2 + index * 0.04 }}
             >
-              <label className="font-body text-xs font-medium text-stone-600 block mb-1.5">
-                Create Password
+              <label className="font-body text-sm font-medium text-stone-700 block mb-1.5">
+                {field.label}
               </label>
-              <div className="relative">
+              <input
+                type={field.type}
+                value={formData[field.key as keyof FormData]}
+                onChange={handleChange(field.key as keyof FormData)}
+                className="input-refined font-body w-full px-4 py-3 rounded-xl text-stone-900 text-base placeholder-stone-400 outline-none"
+                placeholder={field.placeholder}
+                required
+                autoComplete={field.autoComplete}
+              />
+            </motion.div>
+          ))}
+
+          {/* Role Dropdown */}
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 12 }}
+            transition={{ duration: 0.4, ease: easeOutQuint, delay: 0.36 }}
+          >
+            <label className="font-body text-sm font-medium text-stone-700 block mb-1.5">
+              Your Role
+              <span className="text-stone-400 font-normal ml-1">(optional)</span>
+            </label>
+            <div className="relative">
+              <select
+                value={formData.title}
+                onChange={handleChange('title')}
+                className={`input-refined font-body w-full px-4 py-3 rounded-xl text-base outline-none appearance-none cursor-pointer ${!formData.title ? 'text-stone-400' : 'text-stone-900'}`}
+              >
+                {titleOptions.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                <svg className="w-4 h-4 text-stone-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Password Fields */}
+          {collectPassword && (
+            <>
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 12 }}
+                transition={{ duration: 0.4, ease: easeOutQuint, delay: 0.4 }}
+              >
+                <label className="font-body text-sm font-medium text-stone-700 block mb-1.5">
+                  Create Password
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={formData.password}
+                    onChange={handleChange('password')}
+                    className="input-refined font-body w-full px-4 py-3 pr-12 rounded-xl text-stone-900 text-base placeholder-stone-400 outline-none"
+                    placeholder="At least 8 characters"
+                    required
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-stone-400 hover:text-stone-600 transition-colors duration-200 rounded-lg hover:bg-stone-100/50"
+                  >
+                    {showPassword ? (
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
+                      </svg>
+                    ) : (
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 12 }}
+                transition={{ duration: 0.4, ease: easeOutQuint, delay: 0.44 }}
+              >
+                <label className="font-body text-sm font-medium text-stone-700 block mb-1.5">
+                  Confirm Password
+                </label>
                 <input
                   type={showPassword ? 'text' : 'password'}
-                  value={formData.password}
-                  onChange={handleChange('password')}
-                  className="input-refined font-body w-full px-3.5 py-3 pr-11 rounded-xl text-stone-900 text-sm placeholder-stone-400 outline-none"
-                  placeholder="At least 8 characters"
+                  value={formData.confirmPassword}
+                  onChange={handleChange('confirmPassword')}
+                  className="input-refined font-body w-full px-4 py-3 rounded-xl text-stone-900 text-base placeholder-stone-400 outline-none"
+                  placeholder="Re-enter your password"
                   required
                   autoComplete="new-password"
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-stone-400 hover:text-stone-600 transition-colors duration-200 rounded-lg hover:bg-stone-100/50"
-                >
-                  {showPassword ? (
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
-                    </svg>
-                  ) : (
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                  )}
-                </button>
-              </div>
-            </motion.div>
+              </motion.div>
+            </>
+          )}
+        </div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 12 }}
-              transition={{ duration: 0.5, ease: easeOutQuint, delay: 0.55 }}
-            >
-              <label className="font-body text-xs font-medium text-stone-600 block mb-1.5">
-                Confirm Password
-              </label>
-              <input
-                type={showPassword ? 'text' : 'password'}
-                value={formData.confirmPassword}
-                onChange={handleChange('confirmPassword')}
-                className="input-refined font-body w-full px-3.5 py-3 rounded-xl text-stone-900 text-sm placeholder-stone-400 outline-none"
-                placeholder="Re-enter your password"
-                required
-                autoComplete="new-password"
-              />
-            </motion.div>
-          </>
-        )}
-
-        {/* Submit Button */}
+        {/* Footer - Pinned to bottom */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 12 }}
-          transition={{ duration: 0.5, ease: easeOutQuint, delay: 0.55 }}
-          className="pt-1"
+          transition={{ duration: 0.4, ease: easeOutQuint, delay: 0.45 }}
+          className="flex-shrink-0 pt-6 mt-auto"
         >
           <button
             type="submit"
             disabled={isLoading}
-            className="cta-threshold font-body relative w-full py-3.5 px-6 text-white text-sm font-semibold rounded-xl"
+            className="cta-threshold font-body relative w-full py-4 px-6 text-white text-base font-semibold rounded-xl"
           >
-            <span className={`flex items-center justify-center gap-2 ${isLoading ? 'opacity-0' : 'opacity-100'}`}>
+            <span className={`flex items-center justify-center gap-2.5 ${isLoading ? 'opacity-0' : 'opacity-100'}`}>
               Continue
               <svg className="w-4 h-4 arrow-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
@@ -363,44 +353,37 @@ const StepGetStarted: React.FC<{
 
             {isLoading && (
               <div className="absolute inset-0 flex items-center justify-center">
-                <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
+                <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
               </div>
             )}
           </button>
+
+          {/* Switch to Login */}
+          <p className="font-body text-stone-500 text-sm text-center mt-4">
+            Already have an account?{' '}
+            {onSwitchToLogin ? (
+              <button
+                type="button"
+                onClick={onSwitchToLogin}
+                className="text-amber-600 hover:text-amber-700 transition-colors font-semibold"
+              >
+                Sign in
+              </button>
+            ) : (
+              <span className="text-amber-600 font-semibold">Sign in</span>
+            )}
+          </p>
         </motion.div>
       </form>
-
-      {/* Footer - Switch to Login */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: isVisible ? 1 : 0 }}
-        transition={{ duration: 0.5, ease: easeOutQuint, delay: 0.6 }}
-        className="mt-6 text-center"
-      >
-        <p className="font-body text-stone-500 text-xs">
-          Already have an account?{' '}
-          {onSwitchToLogin ? (
-            <button
-              type="button"
-              onClick={onSwitchToLogin}
-              className="text-amber-600 hover:text-amber-700 transition-colors font-medium"
-            >
-              Sign in
-            </button>
-          ) : (
-            <span className="text-amber-600 font-medium">Sign in</span>
-          )}
-        </p>
-      </motion.div>
     </div>
   );
 };
 
 // ============================================================================
-// STEP 1: SELECT EHR
+// STEP 1: SELECT EHR - Horizontal Grid Layout
 // ============================================================================
 
 const StepSelectEhr: React.FC<{
@@ -413,114 +396,158 @@ const StepSelectEhr: React.FC<{
   const otherEhrs = EHR_OPTIONS.filter(e => !e.popular);
 
   return (
-    <div className="space-y-4">
-      {/* Header */}
-      <div className="mb-1">
-        <h2 className="font-display text-[1.75rem] leading-[1.15] text-stone-900 mb-1" style={{ letterSpacing: '-0.01em' }}>
-          Which EHR do you use?
-        </h2>
-        <p className="font-body text-stone-500 text-sm">We'll connect to pull your practice data automatically.</p>
-        {/* Trust signals */}
-        <div className="mt-3 flex items-center gap-3">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200/60">
-            <svg className="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-            </svg>
-            <span className="font-body text-xs font-medium text-emerald-700">HIPAA Compliant</span>
-          </div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-stone-100 border border-stone-200/60">
-            <svg className="w-3.5 h-3.5 text-stone-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </svg>
-            <span className="font-body text-xs font-medium text-stone-600">Read-only</span>
-          </div>
-        </div>
+    <div className="flex flex-col h-full">
+      {/* Header - Matches Get Started */}
+      <div className="mb-8 flex-shrink-0">
+        <motion.h1
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: easeOutQuint }}
+          className="font-display text-3xl md:text-4xl leading-[1.1] text-stone-900 tracking-tight"
+        >
+          Select your EHR
+        </motion.h1>
       </div>
 
-      {/* Popular EHRs */}
-      <div className="space-y-2">
-        <p className="font-body text-xs text-stone-500 uppercase tracking-wider font-medium">Popular</p>
-        <div className="grid grid-cols-1 gap-2">
-          {popularEhrs.map((ehr) => (
-            <button
-              key={ehr.id}
-              onClick={() => onSelect(ehr.id)}
-              className={`
-                p-3 rounded-xl border-[1.5px] text-left transition-all duration-300
-                ${selectedEhr === ehr.id
-                  ? 'border-amber-400 bg-amber-50/80 shadow-sm shadow-amber-100/50'
-                  : 'border-stone-200 bg-white hover:border-stone-300 hover:shadow-sm'}
-              `}
-            >
-              <span className={`font-body text-sm font-medium ${selectedEhr === ehr.id ? 'text-amber-900' : 'text-stone-700'}`}>
-                {ehr.name}
-              </span>
-            </button>
-          ))}
-        </div>
-      </div>
+      {/* Main Selection Area - Full Width Cards */}
+      <div className="flex-1 overflow-y-auto space-y-3">
+        {/* Popular EHRs - Large Full-Width Cards */}
+        {popularEhrs.map((ehr, index) => (
+          <motion.button
+            key={ehr.id}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: easeOutQuint, delay: 0.1 + index * 0.05 }}
+            onClick={() => onSelect(ehr.id)}
+            className={`
+              w-full relative overflow-hidden rounded-2xl p-5 text-left transition-all duration-400
+              ${selectedEhr === ehr.id
+                ? 'bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-400 shadow-lg shadow-amber-100/50'
+                : 'bg-white border-2 border-stone-200 hover:border-stone-300 hover:shadow-lg hover:shadow-stone-200/50'}
+            `}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                {/* Selection Indicator */}
+                <div className={`
+                  w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300
+                  ${selectedEhr === ehr.id
+                    ? 'border-amber-500 bg-amber-500'
+                    : 'border-stone-300'}
+                `}>
+                  {selectedEhr === ehr.id && (
+                    <motion.svg
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: 'spring', stiffness: 500, damping: 25 }}
+                      className="w-3.5 h-3.5 text-white"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={3}
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </motion.svg>
+                  )}
+                </div>
 
-      {/* Other EHRs */}
-      <div className="space-y-2">
-        <p className="font-body text-xs text-stone-500 uppercase tracking-wider font-medium">Others</p>
-        <div className="grid grid-cols-2 gap-2">
+                {/* EHR Info */}
+                <span className={`
+                  font-body text-lg font-semibold transition-colors duration-300
+                  ${selectedEhr === ehr.id ? 'text-amber-900' : 'text-stone-900'}
+                `}>
+                  {ehr.name}
+                </span>
+              </div>
+
+            </div>
+          </motion.button>
+        ))}
+
+        {/* Other EHRs - Compact Pill Row */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35 }}
+          className="flex flex-wrap gap-2 pt-3"
+        >
           {otherEhrs.map((ehr) => (
             <button
               key={ehr.id}
               onClick={() => onSelect(ehr.id)}
               className={`
-                p-2.5 rounded-xl border-[1.5px] text-left transition-all duration-300
+                px-4 py-2.5 rounded-xl font-body text-sm font-medium transition-all duration-300
                 ${selectedEhr === ehr.id
-                  ? 'border-amber-400 bg-amber-50/80 shadow-sm shadow-amber-100/50'
-                  : 'border-stone-200 bg-white hover:border-stone-300 hover:shadow-sm'}
+                  ? 'bg-amber-500 text-white shadow-lg shadow-amber-200/50'
+                  : 'bg-stone-100 text-stone-700 hover:bg-stone-200 hover:text-stone-900'}
               `}
             >
-              <span className={`font-body text-xs font-medium ${selectedEhr === ehr.id ? 'text-amber-900' : 'text-stone-600'}`}>
-                {ehr.name}
-              </span>
+              {ehr.name}
             </button>
           ))}
-        </div>
+          <button
+            className="px-4 py-2.5 rounded-xl font-body text-sm font-medium text-amber-600 hover:text-amber-700 hover:bg-amber-50 transition-all duration-300"
+          >
+            Other →
+          </button>
+        </motion.div>
+
+        {/* Trust Badges */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className="flex items-center gap-3 pt-2"
+        >
+          <div className="flex items-center gap-1.5 text-stone-400">
+            <svg className="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+            <span className="font-body text-sm">HIPAA compliant</span>
+          </div>
+          <span className="text-stone-300">·</span>
+          <div className="flex items-center gap-1.5 text-stone-400">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            <span className="font-body text-sm">Read-only access</span>
+          </div>
+        </motion.div>
       </div>
 
-      <button className="font-body text-amber-600 hover:text-amber-700 text-xs transition-colors">
-        Don't see yours? Let us know →
-      </button>
-
-      {/* Continue Button */}
-      <div className="pt-1">
+      {/* Footer Actions - Pinned to bottom */}
+      <div className="flex-shrink-0 pt-6 space-y-2 mt-auto">
         <button
           onClick={onContinue}
           disabled={!selectedEhr}
-          className={`cta-threshold font-body relative w-full py-3 px-6 text-sm font-semibold rounded-xl transition-all duration-300 ${!selectedEhr ? 'opacity-50 cursor-not-allowed' : ''}`}
+          className={`cta-threshold font-body relative w-full py-4 px-6 text-base font-semibold rounded-xl transition-all duration-300 ${!selectedEhr ? 'opacity-40 cursor-not-allowed' : ''}`}
           style={{ color: 'white' }}
         >
-          <span className="flex items-center justify-center gap-2">
+          <span className="flex items-center justify-center gap-2.5">
             Continue
             <svg className="w-4 h-4 arrow-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
             </svg>
           </span>
         </button>
-      </div>
 
-      {/* Back Button */}
-      <button
-        onClick={onBack}
-        className="w-full py-2.5 rounded-xl font-body text-sm font-medium text-stone-500 hover:text-stone-700 hover:bg-stone-100/50 transition-all duration-200 flex items-center justify-center gap-2"
-      >
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-        </svg>
-        Back
-      </button>
+        <button
+          onClick={onBack}
+          className="w-full py-3 rounded-xl font-body text-sm font-medium text-stone-500 hover:text-stone-700 hover:bg-stone-100/50 transition-all duration-200 flex items-center justify-center gap-1.5"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Back
+        </button>
+      </div>
     </div>
   );
 };
 
 // ============================================================================
-// STEP 2: LEGAL AGREEMENTS
+// STEP 2: LEGAL AGREEMENTS - Side by Side Cards
 // ============================================================================
 
 const StepLegalAgreements: React.FC<{
@@ -533,127 +560,143 @@ const StepLegalAgreements: React.FC<{
 }> = ({ agreedToTerms, agreedToBaa, onToggleTerms, onToggleBaa, onContinue, onBack }) => {
   const canContinue = agreedToTerms && agreedToBaa;
 
+  const agreements = [
+    {
+      id: 'terms',
+      title: 'Terms of Service',
+      agreed: agreedToTerms,
+      onToggle: onToggleTerms,
+      icon: (
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+        </svg>
+      ),
+    },
+    {
+      id: 'baa',
+      title: 'Business Associate Agreement',
+      agreed: agreedToBaa,
+      onToggle: onToggleBaa,
+      icon: (
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+        </svg>
+      ),
+    },
+  ];
+
   return (
-    <div className="space-y-4">
-      {/* Header */}
-      <div className="mb-1">
-        <h2 className="font-display text-[1.75rem] leading-[1.15] text-stone-900 mb-1" style={{ letterSpacing: '-0.01em' }}>
-          Quick legal stuff
-        </h2>
-        <p className="font-body text-stone-500 text-sm">We take your data security seriously.</p>
+    <div className="flex flex-col h-full">
+      {/* Header - Matches other screens */}
+      <div className="mb-8 flex-shrink-0">
+        <motion.h1
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: easeOutQuint }}
+          className="font-display text-3xl md:text-4xl leading-[1.1] text-stone-900 tracking-tight"
+        >
+          Review & agree
+        </motion.h1>
       </div>
 
-      <div className="space-y-3">
-        {/* Terms */}
-        <div
-          onClick={onToggleTerms}
-          className={`p-3.5 rounded-xl border-[1.5px] cursor-pointer transition-all duration-300 ${
-            agreedToTerms
-              ? 'border-amber-400 bg-amber-50/80 shadow-sm shadow-amber-100/50'
-              : 'border-stone-200 bg-white hover:border-stone-300 hover:shadow-sm'
-          }`}
-        >
-          <div className="flex items-start gap-3">
-            <div className={`w-5 h-5 rounded border-[1.5px] flex items-center justify-center flex-shrink-0 mt-0.5 transition-all duration-300 ${
-              agreedToTerms ? 'border-amber-500 bg-amber-500' : 'border-stone-300 bg-white'
-            }`}>
-              {agreedToTerms && (
-                <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                </svg>
-              )}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between gap-2">
-                <h3 className={`font-body font-semibold text-sm ${agreedToTerms ? 'text-amber-900' : 'text-stone-800'}`}>
-                  Terms of Service
-                </h3>
-                <button
-                  onClick={(e) => e.stopPropagation()}
-                  className="font-body text-xs text-amber-600 hover:text-amber-700 font-medium"
-                >
-                  View
-                </button>
-              </div>
-              <p className="font-body text-xs text-stone-500 mt-0.5">Standard platform usage terms</p>
-            </div>
-          </div>
-        </div>
+      {/* Agreement Cards - Full Width, Stacked */}
+      <div className="flex-1 overflow-y-auto space-y-3">
+        {agreements.map((agreement, index) => (
+          <motion.button
+            key={agreement.id}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: easeOutQuint, delay: 0.1 + index * 0.05 }}
+            onClick={agreement.onToggle}
+            className={`
+              w-full relative overflow-hidden rounded-2xl p-5 text-left transition-all duration-400
+              ${agreement.agreed
+                ? 'bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-400 shadow-lg shadow-amber-100/50'
+                : 'bg-white border-2 border-stone-200 hover:border-stone-300 hover:shadow-lg hover:shadow-stone-200/50'}
+            `}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                {/* Checkbox */}
+                <div className={`
+                  w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300
+                  ${agreement.agreed
+                    ? 'border-amber-500 bg-amber-500'
+                    : 'border-stone-300'}
+                `}>
+                  {agreement.agreed && (
+                    <motion.svg
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: 'spring', stiffness: 500, damping: 25 }}
+                      className="w-3.5 h-3.5 text-white"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={3}
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </motion.svg>
+                  )}
+                </div>
 
-        {/* BAA */}
-        <div
-          onClick={onToggleBaa}
-          className={`p-3.5 rounded-xl border-[1.5px] cursor-pointer transition-all duration-300 ${
-            agreedToBaa
-              ? 'border-amber-400 bg-amber-50/80 shadow-sm shadow-amber-100/50'
-              : 'border-stone-200 bg-white hover:border-stone-300 hover:shadow-sm'
-          }`}
-        >
-          <div className="flex items-start gap-3">
-            <div className={`w-5 h-5 rounded border-[1.5px] flex items-center justify-center flex-shrink-0 mt-0.5 transition-all duration-300 ${
-              agreedToBaa ? 'border-amber-500 bg-amber-500' : 'border-stone-300 bg-white'
-            }`}>
-              {agreedToBaa && (
-                <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                </svg>
-              )}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between gap-2">
-                <h3 className={`font-body font-semibold text-sm ${agreedToBaa ? 'text-amber-900' : 'text-stone-800'}`}>
-                  Business Associate Agreement
-                </h3>
-                <button
-                  onClick={(e) => e.stopPropagation()}
-                  className="font-body text-xs text-amber-600 hover:text-amber-700 font-medium"
-                >
-                  View
-                </button>
+                {/* Title */}
+                <span className={`
+                  font-body text-lg font-semibold transition-colors duration-300
+                  ${agreement.agreed ? 'text-amber-900' : 'text-stone-900'}
+                `}>
+                  {agreement.title}
+                </span>
               </div>
-              <p className="font-body text-xs text-stone-500 mt-0.5">HIPAA-required for handling your data</p>
+
+              {/* View Link */}
+              <span
+                onClick={(e) => {
+                  e.stopPropagation();
+                  // Open document
+                }}
+                className="font-body text-sm font-medium text-amber-600 hover:text-amber-700 transition-colors duration-300 hover:underline underline-offset-2"
+              >
+                View
+              </span>
             </div>
-          </div>
-        </div>
+          </motion.button>
+        ))}
+
       </div>
 
-      <p className="font-body text-xs text-stone-500">
-        By checking above, you confirm you have authority to sign on behalf of your practice.
-      </p>
-
-      {/* Continue Button */}
-      <div className="pt-1">
+      {/* Footer Actions - Pinned to bottom */}
+      <div className="flex-shrink-0 pt-6 space-y-2 mt-auto">
         <button
           onClick={onContinue}
           disabled={!canContinue}
-          className={`cta-threshold font-body relative w-full py-3 px-6 text-sm font-semibold rounded-xl transition-all duration-300 ${!canContinue ? 'opacity-50 cursor-not-allowed' : ''}`}
+          className={`cta-threshold font-body relative w-full py-4 px-6 text-base font-semibold rounded-xl transition-all duration-300 ${!canContinue ? 'opacity-40 cursor-not-allowed' : ''}`}
           style={{ color: 'white' }}
         >
-          <span className="flex items-center justify-center gap-2">
-            I Agree & Continue
+          <span className="flex items-center justify-center gap-2.5">
+            Continue
             <svg className="w-4 h-4 arrow-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
             </svg>
           </span>
         </button>
-      </div>
 
-      {/* Back Button */}
-      <button
-        onClick={onBack}
-        className="w-full py-2.5 rounded-xl font-body text-sm font-medium text-stone-500 hover:text-stone-700 hover:bg-stone-100/50 transition-all duration-200 flex items-center justify-center gap-2"
-      >
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-        </svg>
-        Back
-      </button>
+        <button
+          onClick={onBack}
+          className="w-full py-3 rounded-xl font-body text-sm font-medium text-stone-500 hover:text-stone-700 hover:bg-stone-100/50 transition-all duration-200 flex items-center justify-center gap-1.5"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Back
+        </button>
+      </div>
     </div>
   );
 };
 
 // ============================================================================
-// STEP 3: CONNECT EHR
+// STEP 3: CONNECT EHR - Horizontal Copy Fields
 // ============================================================================
 
 const StepConnectEhr: React.FC<{
@@ -674,7 +717,6 @@ const StepConnectEhr: React.FC<{
     email: generatedEmail,
   };
 
-  // Picture-in-Picture hook
   const { openPiP } = usePictureInPicture({
     firstName: copyValues.firstName,
     lastName: copyValues.lastName,
@@ -695,87 +737,213 @@ const StepConnectEhr: React.FC<{
     setHasVisitedEhr(true);
   };
 
-  // Shared Help Section component
-  const HelpSection = () => (
-    <div className="flex items-center justify-center gap-3">
-      <button
-        onClick={() => window.open('https://calendly.com/cortexa', '_blank')}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-200/60 text-amber-700 font-body text-xs font-medium hover:bg-amber-100/80 transition-all"
-      >
-        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-        </svg>
-        Book a call
-      </button>
-      <button
-        onClick={() => window.open('https://www.loom.com/cortexa-setup', '_blank')}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-stone-100 border border-stone-200/60 text-stone-600 font-body text-xs font-medium hover:bg-stone-200/60 transition-all"
-      >
-        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        Watch video
-      </button>
-    </div>
-  );
-
-  // STATE 2: After user has visited EHR
+  // After user has visited EHR
   if (hasVisitedEhr) {
     return (
-      <div className="space-y-4">
-        {/* Header */}
-        <div className="mb-1">
-          <h2 className="font-display text-[1.75rem] leading-[1.15] text-stone-900 mb-1" style={{ letterSpacing: '-0.01em' }}>
+      <div className="flex flex-col h-full">
+        <div className="mb-8">
+          <h2 className="font-display text-3xl md:text-4xl leading-[1.1] text-stone-900 tracking-tight mb-2">
             Working in {ehrName}?
           </h2>
-          <p className="font-body text-stone-500 text-sm">
-            Add the biller account, then come back here to confirm.
+          <p className="font-body text-base text-stone-500">
+            Add the biller account, then come back here.
           </p>
         </div>
 
-        {/* Primary CTA */}
-        {connectionStatus === 'waiting' ? (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="p-3 rounded-xl bg-amber-50 border border-amber-200/60 flex items-center justify-center gap-2"
-          >
-            <div className="w-4 h-4 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
-            <p className="font-body text-amber-700 text-sm font-medium">Checking for connection...</p>
-          </motion.div>
-        ) : (
-          <button
-            onClick={onStartWaiting}
-            className="cta-threshold font-body relative w-full py-3 px-6 text-sm font-semibold rounded-xl"
-            style={{ color: 'white' }}
-          >
-            <span className="flex items-center justify-center gap-2">
-              I've Added the Biller
-              <svg className="w-4 h-4 arrow-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-            </span>
-          </button>
-        )}
+        <div className="space-y-4">
+          {connectionStatus === 'waiting' && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-4 rounded-xl bg-amber-50 border border-amber-200/60 flex items-center justify-center gap-2.5"
+            >
+              <div className="w-4 h-4 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
+              <p className="font-body text-amber-700 text-base font-medium">Checking for connection...</p>
+            </motion.div>
+          )}
 
-        {/* Copy Helper Link */}
+          <div className="flex items-center justify-center gap-4">
+            <button
+              onClick={openPiP}
+              className="font-body text-amber-600 hover:text-amber-700 transition-colors text-sm font-semibold"
+            >
+              Open copy helper
+            </button>
+            <span className="text-stone-300">|</span>
+            <button
+              onClick={() => window.open('https://calendly.com/cortexa', '_blank')}
+              className="font-body text-stone-500 hover:text-stone-700 transition-colors text-sm font-medium"
+            >
+              Need help?
+            </button>
+          </div>
+        </div>
+
+        {/* Sticky Footer Actions */}
+        <div className="flex-shrink-0 pt-6 space-y-2 mt-auto">
+          {connectionStatus !== 'waiting' && (
+            <button
+              onClick={onStartWaiting}
+              className="cta-threshold font-body relative w-full py-4 px-6 text-base font-semibold rounded-xl"
+              style={{ color: 'white' }}
+            >
+              <span className="flex items-center justify-center gap-2.5">
+                I've Added the Biller
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              </span>
+            </button>
+          )}
+          <button
+            onClick={onBack}
+            className="w-full py-3 rounded-xl font-body text-sm font-medium text-stone-500 hover:text-stone-700 hover:bg-stone-100/50 transition-all duration-200 flex items-center justify-center gap-1.5"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Back
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Initial copy phase - Horizontal layout
+  return (
+    <div className="flex flex-col h-full">
+      <div className="mb-8">
+        <h2 className="font-display text-3xl md:text-4xl leading-[1.1] text-stone-900 tracking-tight mb-2">
+          Connect {ehrName}
+        </h2>
+        <p className="font-body text-base text-stone-500">
+          Create a <span className="text-amber-600 font-semibold">Biller account</span> using these details.
+        </p>
+      </div>
+
+      <div className="space-y-4">
+        {/* Horizontal Copy Fields - 3 Column Grid */}
+        <div className="grid grid-cols-3 gap-2">
+          {/* First Name */}
+          <div className="p-3 rounded-xl bg-white border-2 border-stone-200">
+            <p className="font-body text-xs text-stone-400 uppercase tracking-wider font-semibold">First Name</p>
+            <p className="font-body text-base text-stone-900 font-semibold mt-0.5 truncate">{copyValues.firstName}</p>
+            <motion.button
+              onClick={() => handleCopy('firstName', copyValues.firstName)}
+              whileTap={{ scale: 0.95 }}
+              className={`w-full mt-2 px-3 py-1.5 rounded-lg font-body text-xs font-semibold transition-all ${
+                copiedField === 'firstName'
+                  ? 'bg-emerald-100 text-emerald-700'
+                  : 'bg-amber-500 text-white hover:bg-amber-600'
+              }`}
+            >
+              {copiedField === 'firstName' ? 'Copied!' : 'Copy'}
+            </motion.button>
+          </div>
+
+          {/* Last Name */}
+          <div className="p-3 rounded-xl bg-white border-2 border-stone-200">
+            <p className="font-body text-xs text-stone-400 uppercase tracking-wider font-semibold">Last Name</p>
+            <p className="font-body text-base text-stone-900 font-semibold mt-0.5 truncate">{copyValues.lastName}</p>
+            <motion.button
+              onClick={() => handleCopy('lastName', copyValues.lastName)}
+              whileTap={{ scale: 0.95 }}
+              className={`w-full mt-2 px-3 py-1.5 rounded-lg font-body text-xs font-semibold transition-all ${
+                copiedField === 'lastName'
+                  ? 'bg-emerald-100 text-emerald-700'
+                  : 'bg-amber-500 text-white hover:bg-amber-600'
+              }`}
+            >
+              {copiedField === 'lastName' ? 'Copied!' : 'Copy'}
+            </motion.button>
+          </div>
+
+          {/* Email */}
+          <div className="p-3 rounded-xl bg-white border-2 border-stone-200">
+            <p className="font-body text-xs text-stone-400 uppercase tracking-wider font-semibold">Email</p>
+            <p className="font-mono text-sm text-amber-600 font-medium mt-0.5 truncate">{copyValues.email}</p>
+            <motion.button
+              onClick={() => handleCopy('email', copyValues.email)}
+              whileTap={{ scale: 0.95 }}
+              className={`w-full mt-2 px-3 py-1.5 rounded-lg font-body text-xs font-semibold transition-all ${
+                copiedField === 'email'
+                  ? 'bg-emerald-100 text-emerald-700'
+                  : 'bg-amber-500 text-white hover:bg-amber-600'
+              }`}
+            >
+              {copiedField === 'email' ? 'Copied!' : 'Copy'}
+            </motion.button>
+          </div>
+        </div>
+
+        {/* Compact Instructions */}
+        <div className="p-3 rounded-xl bg-stone-50 border border-stone-200/60">
+          <div className="flex items-start gap-3">
+            <div className="w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <span className="font-body text-xs font-bold text-amber-700">?</span>
+            </div>
+            <div className="space-y-1 text-sm">
+              <p className="font-body text-stone-600">
+                <span className="text-stone-900 font-semibold">Settings → Team Members → Add New</span>
+              </p>
+              <p className="font-body text-stone-600">
+                Role: <span className="text-stone-900 font-semibold">Biller</span> · Leave permissions <span className="text-stone-900 font-semibold">unchecked</span>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Help links inline */}
+        <div className="flex items-center justify-center gap-4">
+          <button
+            onClick={() => window.open('https://calendly.com/cortexa', '_blank')}
+            className="flex items-center gap-1.5 font-body text-sm text-amber-600 hover:text-amber-700 font-medium transition-colors"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+            </svg>
+            Book a call
+          </button>
+          <button
+            onClick={() => window.open('https://www.loom.com/cortexa-setup', '_blank')}
+            className="flex items-center gap-1.5 font-body text-sm text-stone-500 hover:text-stone-700 font-medium transition-colors"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Watch video
+          </button>
+        </div>
+      </div>
+
+      {/* Sticky Footer */}
+      <div className="flex-shrink-0 pt-6 space-y-2 mt-auto">
+        <button
+          onClick={handleGoToEhr}
+          className="cta-threshold font-body relative w-full py-4 px-6 text-base font-semibold rounded-xl"
+          style={{ color: 'white' }}
+        >
+          <span className="flex items-center justify-center gap-2.5">
+            Go to {ehrName}
+            <svg className="w-4 h-4 arrow-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          </span>
+        </button>
+
         <div className="flex items-center justify-center">
           <button
             onClick={openPiP}
-            className="font-body text-amber-600 hover:text-amber-700 transition-colors text-xs font-medium"
+            className="font-body text-amber-600 hover:text-amber-700 transition-colors text-sm font-semibold"
           >
-            Open copy helper
+            Open copy helper instead
           </button>
         </div>
 
-        {/* Help section */}
-        <HelpSection />
-
-        {/* Back Button */}
         <button
           onClick={onBack}
-          className="w-full py-2.5 rounded-xl font-body text-sm font-medium text-stone-500 hover:text-stone-700 hover:bg-stone-100/50 transition-all duration-200 flex items-center justify-center gap-2"
+          className="w-full py-3 rounded-xl font-body text-sm font-medium text-stone-500 hover:text-stone-700 hover:bg-stone-100/50 transition-all duration-200 flex items-center justify-center gap-1.5"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -783,135 +951,12 @@ const StepConnectEhr: React.FC<{
           Back
         </button>
       </div>
-    );
-  }
-
-  // STATE 1: Copy phase (initial)
-  return (
-    <div className="space-y-4">
-      {/* Header */}
-      <div className="mb-1">
-        <h2 className="font-display text-[1.75rem] leading-[1.15] text-stone-900 mb-1" style={{ letterSpacing: '-0.01em' }}>
-          Connect {ehrName}
-        </h2>
-        <p className="font-body text-stone-500 text-sm">
-          Create a <span className="text-amber-600 font-medium">Biller account</span> using these details.
-        </p>
-      </div>
-
-      {/* Copy Fields */}
-      <div className="p-3 rounded-xl bg-white border-[1.5px] border-stone-200 shadow-sm space-y-2">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="font-body text-[10px] text-stone-400 uppercase tracking-wider">First Name</p>
-            <p className="font-body text-sm text-stone-900 font-medium">{copyValues.firstName}</p>
-          </div>
-          <motion.button
-            onClick={() => handleCopy('firstName', copyValues.firstName)}
-            whileTap={{ scale: 0.95 }}
-            className={`px-2.5 py-1 rounded-lg font-body text-xs font-semibold transition-all ${
-              copiedField === 'firstName'
-                ? 'bg-emerald-100 text-emerald-700'
-                : 'bg-amber-500 text-white hover:bg-amber-600'
-            }`}
-          >
-            {copiedField === 'firstName' ? 'Copied!' : 'Copy'}
-          </motion.button>
-        </div>
-        <div className="border-t border-stone-100" />
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="font-body text-[10px] text-stone-400 uppercase tracking-wider">Last Name</p>
-            <p className="font-body text-sm text-stone-900 font-medium">{copyValues.lastName}</p>
-          </div>
-          <motion.button
-            onClick={() => handleCopy('lastName', copyValues.lastName)}
-            whileTap={{ scale: 0.95 }}
-            className={`px-2.5 py-1 rounded-lg font-body text-xs font-semibold transition-all ${
-              copiedField === 'lastName'
-                ? 'bg-emerald-100 text-emerald-700'
-                : 'bg-amber-500 text-white hover:bg-amber-600'
-            }`}
-          >
-            {copiedField === 'lastName' ? 'Copied!' : 'Copy'}
-          </motion.button>
-        </div>
-        <div className="border-t border-stone-100" />
-        <div className="flex items-center justify-between">
-          <div className="min-w-0 flex-1 mr-2">
-            <p className="font-body text-[10px] text-stone-400 uppercase tracking-wider">Email</p>
-            <p className="font-mono text-xs text-amber-600 font-medium truncate">{copyValues.email}</p>
-          </div>
-          <motion.button
-            onClick={() => handleCopy('email', copyValues.email)}
-            whileTap={{ scale: 0.95 }}
-            className={`px-2.5 py-1 rounded-lg font-body text-xs font-semibold transition-all flex-shrink-0 ${
-              copiedField === 'email'
-                ? 'bg-emerald-100 text-emerald-700'
-                : 'bg-amber-500 text-white hover:bg-amber-600'
-            }`}
-          >
-            {copiedField === 'email' ? 'Copied!' : 'Copy'}
-          </motion.button>
-        </div>
-      </div>
-
-      {/* Instructions */}
-      <div className="p-3 rounded-xl bg-stone-50 border border-stone-200/60 space-y-0.5">
-        <p className="font-body text-stone-600 text-xs">
-          In {ehrName}: <span className="text-stone-900 font-medium">Settings → Team Members → Add New</span>
-        </p>
-        <p className="font-body text-stone-600 text-xs">
-          Select <span className="text-stone-900 font-medium">"Biller"</span> as the role
-        </p>
-        <p className="font-body text-stone-600 text-xs">
-          Leave all permissions <span className="text-stone-900 font-medium">unchecked</span>
-        </p>
-      </div>
-
-      {/* Primary CTA */}
-      <button
-        onClick={handleGoToEhr}
-        className="cta-threshold font-body relative w-full py-3 px-6 text-sm font-semibold rounded-xl"
-        style={{ color: 'white' }}
-      >
-        <span className="flex items-center justify-center gap-2">
-          Go to {ehrName}
-          <svg className="w-4 h-4 arrow-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-          </svg>
-        </span>
-      </button>
-
-      {/* Copy Helper Link */}
-      <div className="flex items-center justify-center">
-        <button
-          onClick={openPiP}
-          className="font-body text-amber-600 hover:text-amber-700 transition-colors text-xs font-medium"
-        >
-          Open copy helper
-        </button>
-      </div>
-
-      {/* Help section */}
-      <HelpSection />
-
-      {/* Back Button */}
-      <button
-        onClick={onBack}
-        className="w-full py-2.5 rounded-xl font-body text-sm font-medium text-stone-500 hover:text-stone-700 hover:bg-stone-100/50 transition-all duration-200 flex items-center justify-center gap-2"
-      >
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-        </svg>
-        Back
-      </button>
     </div>
   );
 };
 
 // ============================================================================
-// STEP 4: PAYMENT
+// STEP 4: PAYMENT - Ultra-Compact Horizontal Layout
 // ============================================================================
 
 const StepPayment: React.FC<{
@@ -937,60 +982,63 @@ const StepPayment: React.FC<{
 
   const currentPlan = plans[selectedPlan];
 
+  const features = [
+    'Full dashboard access',
+    'All clinician analytics',
+    'Client retention tracking',
+    'Revenue & session insights',
+  ];
+
   return (
-    <div className="space-y-4">
-      {/* Success Header */}
-      <div className="text-center mb-2">
+    <div className="flex flex-col h-full">
+      {/* Success Header - Compact inline */}
+      <div className="flex items-center gap-3 mb-8">
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-          className="w-12 h-12 mx-auto mb-3 rounded-full flex items-center justify-center bg-emerald-50 border-2 border-emerald-200"
+          className="w-10 h-10 rounded-full flex items-center justify-center bg-emerald-50 border-2 border-emerald-200 flex-shrink-0"
         >
-          <svg className="w-6 h-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
           </svg>
         </motion.div>
-        <h2 className="font-display text-[1.5rem] leading-[1.15] text-stone-900 mb-1" style={{ letterSpacing: '-0.01em' }}>
-          You're connected!
-        </h2>
-        <p className="font-body text-stone-500 text-sm">
-          {ehrName} is linked to <span className="text-stone-900 font-medium">{practiceName}</span>
-        </p>
-      </div>
-
-      {/* Pricing Card */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="rounded-xl overflow-hidden bg-white border-[1.5px] border-stone-200 shadow-sm"
-      >
-        {/* Plan Header */}
-        <div className="px-4 py-3 border-b border-stone-100">
-          <div className="flex items-baseline gap-1">
-            <span className="font-display text-2xl text-stone-900">${currentPlan.price}</span>
-            <span className="font-body text-stone-500 text-sm">/{currentPlan.period}</span>
-          </div>
-          <p className="font-body text-stone-500 text-xs mt-0.5">
-            Everything you need to understand your practice
+        <div>
+          <h2 className="font-display text-2xl leading-tight text-stone-900 tracking-tight">
+            You're connected!
+          </h2>
+          <p className="font-body text-sm text-stone-500">
+            {ehrName} linked to <span className="text-stone-900 font-medium">{practiceName}</span>
           </p>
         </div>
+      </div>
 
-        {/* Features */}
-        <div className="px-4 py-3 space-y-1.5">
-          {[
-            'Full dashboard access',
-            'All clinician analytics',
-            'Client retention tracking',
-            'Revenue & session insights',
-            'Daily data refresh from ' + ehrName,
-          ].map((feature, index) => (
+      {/* Content Area */}
+      <div>
+      {/* Pricing Card - Compact */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15 }}
+        className="rounded-xl overflow-hidden bg-white border-2 border-stone-200 shadow-lg"
+      >
+        {/* Price Header */}
+        <div className="px-4 py-3 border-b border-stone-100 flex items-baseline justify-between">
+          <div className="flex items-baseline gap-1">
+            <span className="font-display text-4xl text-stone-900">${currentPlan.price}</span>
+            <span className="font-body text-stone-500 text-base">/{currentPlan.period}</span>
+          </div>
+          <span className="font-body text-stone-400 text-sm">Everything included</span>
+        </div>
+
+        {/* Features - 2 Column Grid */}
+        <div className="px-4 py-3 grid grid-cols-2 gap-x-3 gap-y-2">
+          {features.map((feature, index) => (
             <motion.div
               key={feature}
-              initial={{ opacity: 0, x: -10 }}
+              initial={{ opacity: 0, x: -8 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 + index * 0.05 }}
+              transition={{ delay: 0.2 + index * 0.04 }}
               className="flex items-center gap-2"
             >
               <div className="w-4 h-4 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
@@ -998,111 +1046,104 @@ const StepPayment: React.FC<{
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <span className="font-body text-stone-600 text-xs">{feature}</span>
+              <span className="font-body text-stone-700 text-sm">{feature}</span>
             </motion.div>
           ))}
-        </div>
-
-        {/* Money-back Guarantee */}
-        <div className="mx-4 mb-3">
-          <div className="px-3 py-2 rounded-lg flex items-center gap-2 bg-amber-50 border border-amber-200/60">
-            <div className="w-7 h-7 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
-              <svg className="w-3.5 h-3.5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          <motion.div
+            initial={{ opacity: 0, x: -8 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.36 }}
+            className="flex items-center gap-2 col-span-2"
+          >
+            <div className="w-4 h-4 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+              <svg className="w-2.5 h-2.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <div>
-              <p className="font-body font-semibold text-amber-800 text-xs">30-Day Money-Back Guarantee</p>
-              <p className="font-body text-amber-700/70 text-[10px]">Full refund, no questions asked.</p>
-            </div>
+            <span className="font-body text-stone-700 text-sm">Daily data refresh from {ehrName}</span>
+          </motion.div>
+        </div>
+
+        {/* Guarantee */}
+        <div className="px-4 pb-4">
+          <div className="px-3 py-2 rounded-lg flex items-center gap-2.5 bg-amber-50 border border-amber-200/60">
+            <svg className="w-4 h-4 text-amber-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+            <span className="font-body font-medium text-amber-800 text-sm">30-day money-back guarantee</span>
           </div>
         </div>
-
-        {/* CTA Button */}
-        <div className="px-4 pb-4">
-          <button
-            onClick={handleSubscribe}
-            disabled={isProcessing}
-            className={`cta-threshold font-body relative w-full py-3 px-6 text-sm font-semibold rounded-xl ${isProcessing ? 'opacity-60 cursor-not-allowed' : ''}`}
-            style={{ color: 'white' }}
-          >
-            {isProcessing ? (
-              <span className="flex items-center justify-center gap-2">
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Processing...
-              </span>
-            ) : (
-              <span className="flex items-center justify-center gap-2">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-                Subscribe & Continue
-              </span>
-            )}
-          </button>
-        </div>
       </motion.div>
 
-      {/* Trust Elements */}
+      {/* Trust + Help - Inline */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-        className="flex items-center justify-center gap-4"
+        transition={{ delay: 0.4 }}
+        className="pt-3 flex items-center justify-between text-sm"
       >
-        <div className="flex items-center gap-1.5 text-stone-400">
-          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-          </svg>
-          <span className="font-body text-xs">Secure payment</span>
+        <div className="flex items-center gap-4 text-stone-400">
+          <span className="flex items-center gap-1.5">
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            Secure
+          </span>
+          <span className="flex items-center gap-1.5">
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+            Cancel anytime
+          </span>
         </div>
-        <div className="flex items-center gap-1.5 text-stone-400">
-          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-          </svg>
-          <span className="font-body text-xs">Cancel anytime</span>
-        </div>
-      </motion.div>
-
-      {/* Book a Call */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.55 }}
-      >
         <button
           onClick={() => window.open('https://calendly.com/cortexa', '_blank')}
-          className="w-full py-2 rounded-lg font-body text-xs font-medium transition-all duration-200 flex items-center justify-center gap-1.5 bg-amber-50 border border-amber-200/60 text-amber-700 hover:bg-amber-100/80"
+          className="font-body text-amber-600 hover:text-amber-700 font-medium transition-colors"
         >
-          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-          </svg>
-          Questions? Book a quick call
+          Questions?
         </button>
       </motion.div>
+      </div>
 
-      {/* Back Button */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.6 }}
-      >
+      {/* Sticky Footer Actions */}
+      <div className="flex-shrink-0 pt-6 space-y-2 mt-auto">
+        <button
+          onClick={handleSubscribe}
+          disabled={isProcessing}
+          className={`cta-threshold font-body relative w-full py-4 px-6 text-base font-semibold rounded-xl ${isProcessing ? 'opacity-60 cursor-not-allowed' : ''}`}
+          style={{ color: 'white' }}
+        >
+          {isProcessing ? (
+            <span className="flex items-center justify-center gap-2.5">
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              Processing...
+            </span>
+          ) : (
+            <span className="flex items-center justify-center gap-2.5">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+              Subscribe & Continue
+            </span>
+          )}
+        </button>
+
         <button
           onClick={onBack}
-          className="w-full py-2.5 rounded-xl font-body text-sm font-medium text-stone-500 hover:text-stone-700 hover:bg-stone-100/50 transition-all duration-200 flex items-center justify-center gap-2"
+          className="w-full py-3 rounded-xl font-body text-sm font-medium text-stone-500 hover:text-stone-700 hover:bg-stone-100/50 transition-all duration-200 flex items-center justify-center gap-1.5"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
           Back
         </button>
-      </motion.div>
+      </div>
     </div>
   );
 };
 
 // ============================================================================
-// STEP 5: CREATE ACCOUNT
+// STEP 5: CREATE ACCOUNT - Streamlined
 // ============================================================================
 
 const StepCreateAccount: React.FC<{
@@ -1144,105 +1185,98 @@ const StepCreateAccount: React.FC<{
   };
 
   return (
-    <div className="space-y-4">
-      {/* Final Step Badge */}
-      <div className="flex justify-center">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200/60">
+    <div className="flex flex-col h-full">
+      {/* Header with Badge */}
+      <div className="mb-8">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200/60 mb-3">
           <svg className="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
-          <span className="font-body text-xs font-medium text-emerald-700">Final step</span>
+          <span className="font-body text-xs font-semibold text-emerald-700">Final step</span>
         </div>
-      </div>
-
-      {/* Header */}
-      <div className="text-center mb-1">
-        <h2 className="font-display text-[1.75rem] leading-[1.15] text-stone-900 mb-1" style={{ letterSpacing: '-0.01em' }}>
+        <h2 className="font-display text-3xl md:text-4xl leading-[1.1] text-stone-900 tracking-tight mb-2">
           You're almost there!
         </h2>
-        <p className="font-body text-stone-500 text-sm">
-          Create your login to access your practice dashboard.
+        <p className="font-body text-base text-stone-500">
+          Create your login to access your dashboard.
         </p>
       </div>
 
-      {/* Email display */}
-      <div className="p-3 rounded-xl bg-white border-[1.5px] border-stone-200 shadow-sm">
-        <p className="font-body text-[10px] text-stone-400 uppercase tracking-wider">Account email</p>
-        <p className="font-body text-sm text-stone-900 font-medium">{email}</p>
-      </div>
+      <div>
+        {/* Email display */}
+        <div className="p-3 rounded-xl bg-white border-2 border-stone-200 mb-4">
+          <p className="font-body text-xs text-stone-400 uppercase tracking-wider font-semibold">Account email</p>
+          <p className="font-body text-base text-stone-900 font-semibold mt-0.5">{email}</p>
+        </div>
 
-      {!showPasswordForm ? (
-        <>
-          {/* Google OAuth - Primary */}
-          <button
-            onClick={handleGoogleSignIn}
-            disabled={isLoading}
-            className={`w-full py-3 rounded-xl font-body text-sm font-semibold transition-all duration-300 flex items-center justify-center gap-2.5 bg-white border-[1.5px] border-stone-200 text-stone-700 hover:border-stone-300 hover:shadow-sm ${isLoading ? 'opacity-60 cursor-not-allowed' : ''}`}
-          >
-            {isLoading ? (
-              <div className="w-5 h-5 border-2 border-stone-400 border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <>
-                <svg className="w-4 h-4" viewBox="0 0 24 24">
-                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                </svg>
-                Continue with Google
-              </>
-            )}
-          </button>
+        {!showPasswordForm ? (
+          <div className="space-y-3">
+            {/* Google OAuth */}
+            <button
+              onClick={handleGoogleSignIn}
+              disabled={isLoading}
+              className={`w-full py-4 rounded-xl font-body text-base font-semibold transition-all duration-300 flex items-center justify-center gap-2.5 bg-white border-2 border-stone-200 text-stone-700 hover:border-stone-300 hover:shadow-md ${isLoading ? 'opacity-60 cursor-not-allowed' : ''}`}
+            >
+              {isLoading ? (
+                <div className="w-5 h-5 border-2 border-stone-400 border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <>
+                  <svg className="w-4 h-4" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                  </svg>
+                  Continue with Google
+                </>
+              )}
+            </button>
 
-          {/* Divider */}
-          <div className="flex items-center gap-3">
-            <div className="flex-1 h-px bg-stone-200" />
-            <span className="font-body text-stone-400 text-xs">or</span>
-            <div className="flex-1 h-px bg-stone-200" />
+            {/* Divider */}
+            <div className="flex items-center gap-3">
+              <div className="flex-1 h-px bg-stone-200" />
+              <span className="font-body text-stone-400 text-sm">or</span>
+              <div className="flex-1 h-px bg-stone-200" />
+            </div>
+
+            {/* Password option */}
+            <button
+              onClick={() => setShowPasswordForm(true)}
+              className="w-full py-4 rounded-xl font-body text-base font-semibold transition-all duration-300 flex items-center justify-center gap-2.5 bg-stone-100 text-stone-600 hover:bg-stone-200/70 hover:text-stone-800"
+            >
+              Create a password instead
+            </button>
           </div>
-
-          {/* Password option */}
-          <button
-            onClick={() => setShowPasswordForm(true)}
-            className="w-full py-3 rounded-xl font-body text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2 bg-stone-100 text-stone-600 hover:bg-stone-200/70 hover:text-stone-800"
-          >
-            Create a password instead
-          </button>
-        </>
-      ) : (
-        <>
-          {/* Password form */}
-          <form onSubmit={handlePasswordSubmit} className="space-y-3">
-            {/* Error message */}
+        ) : (
+          <form onSubmit={handlePasswordSubmit} className="space-y-4">
             {error && (
               <motion.div
-                initial={{ opacity: 0, y: -10 }}
+                initial={{ opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="p-2.5 rounded-lg bg-red-50 border border-red-200/60 flex items-center gap-2"
+                className="p-3 rounded-xl bg-red-50 border border-red-200/60 flex items-center gap-2.5"
               >
                 <svg className="w-4 h-4 text-red-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span className="font-body text-red-600 text-xs">{error}</span>
+                <span className="font-body text-red-600 text-sm">{error}</span>
               </motion.div>
             )}
 
-            {/* Password field */}
             <div>
-              <label className="font-body text-xs font-medium text-stone-600 block mb-1.5">Password</label>
+              <label className="font-body text-sm font-medium text-stone-700 block mb-1.5">Password</label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="input-refined font-body w-full px-3.5 py-3 pr-10 rounded-xl text-stone-900 text-sm placeholder-stone-400 outline-none"
+                  className="input-refined font-body w-full px-4 py-3 pr-12 rounded-xl text-stone-900 text-base placeholder-stone-400 outline-none"
                   placeholder="At least 8 characters"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-stone-400 hover:text-stone-600 transition-colors"
                 >
                   {showPassword ? (
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -1258,67 +1292,65 @@ const StepCreateAccount: React.FC<{
               </div>
             </div>
 
-            {/* Confirm password field */}
             <div>
-              <label className="font-body text-xs font-medium text-stone-600 block mb-1.5">Confirm Password</label>
+              <label className="font-body text-sm font-medium text-stone-700 block mb-1.5">Confirm Password</label>
               <input
                 type={showPassword ? 'text' : 'password'}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="input-refined font-body w-full px-3.5 py-3 rounded-xl text-stone-900 text-sm placeholder-stone-400 outline-none"
+                className="input-refined font-body w-full px-4 py-3 rounded-xl text-stone-900 text-base placeholder-stone-400 outline-none"
                 placeholder="Re-enter your password"
                 required
               />
             </div>
 
-            {/* Submit button */}
-            <div className="pt-1">
-              <button
-                type="submit"
-                disabled={isLoading}
-                className={`cta-threshold font-body relative w-full py-3 px-6 text-sm font-semibold rounded-xl ${isLoading ? 'opacity-60 cursor-not-allowed' : ''}`}
-                style={{ color: 'white' }}
-              >
-                {isLoading ? (
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" />
-                ) : (
-                  <span className="flex items-center justify-center gap-2">
-                    Create Account
-                    <svg className="w-4 h-4 arrow-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                    </svg>
-                  </span>
-                )}
-              </button>
-            </div>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className={`cta-threshold font-body relative w-full py-4 px-6 text-base font-semibold rounded-xl ${isLoading ? 'opacity-60 cursor-not-allowed' : ''}`}
+              style={{ color: 'white' }}
+            >
+              {isLoading ? (
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" />
+              ) : (
+                <span className="flex items-center justify-center gap-2.5">
+                  Create Account
+                  <svg className="w-4 h-4 arrow-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                  </svg>
+                </span>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowPasswordForm(false)}
+              className="w-full font-body text-amber-600 hover:text-amber-700 text-sm font-semibold transition-colors"
+            >
+              ← Back to sign in options
+            </button>
           </form>
+        )}
+      </div>
 
-          {/* Back to OAuth options */}
-          <button
-            onClick={() => setShowPasswordForm(false)}
-            className="w-full font-body text-amber-600 hover:text-amber-700 text-xs font-medium transition-colors"
-          >
-            ← Back to sign in options
-          </button>
-        </>
-      )}
-
-      {/* Back Button */}
-      <button
-        onClick={onBack}
-        className="w-full py-2.5 rounded-xl font-body text-sm font-medium text-stone-500 hover:text-stone-700 hover:bg-stone-100/50 transition-all duration-200 flex items-center justify-center gap-2"
-      >
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-        </svg>
-        Back
-      </button>
+      {/* Sticky Back Button */}
+      <div className="flex-shrink-0 pt-6 mt-auto">
+        <button
+          onClick={onBack}
+          className="w-full py-3 rounded-xl font-body text-sm font-medium text-stone-500 hover:text-stone-700 hover:bg-stone-100/50 transition-all duration-200 flex items-center justify-center gap-1.5"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Back
+        </button>
+      </div>
     </div>
   );
 };
 
 // ============================================================================
-// STEP 6: COMPLETE
+// STEP 6: COMPLETE - Compact Celebration
 // ============================================================================
 
 const StepComplete: React.FC<{
@@ -1350,16 +1382,16 @@ const StepComplete: React.FC<{
   };
 
   return (
-    <div className="space-y-5 text-center py-6">
+    <div className="flex flex-col items-center justify-center text-center py-8">
       <motion.div
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-        className="w-20 h-20 mx-auto rounded-full flex items-center justify-center"
+        className="w-20 h-20 rounded-full flex items-center justify-center mb-5"
         style={{
           background: 'linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(251, 191, 36, 0.05) 100%)',
-          border: '2px solid rgba(251, 191, 36, 0.25)',
-          boxShadow: '0 0 40px rgba(251, 191, 36, 0.1)',
+          border: '3px solid rgba(251, 191, 36, 0.25)',
+          boxShadow: '0 0 40px rgba(251, 191, 36, 0.15)',
         }}
       >
         {status === 'ready' ? (
@@ -1367,21 +1399,19 @@ const StepComplete: React.FC<{
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
         ) : (
-          <div className="w-10 h-10 border-3 border-amber-500 border-t-transparent rounded-full animate-spin" />
+          <div className="w-10 h-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
         )}
       </motion.div>
 
-      <div>
-        <h2 className="font-display text-[1.75rem] leading-[1.15] text-stone-900 mb-1" style={{ letterSpacing: '-0.01em' }}>
-          {status === 'ready' ? `Welcome, ${practiceName}!` : statusMessages[status]}
-        </h2>
-        <p className="font-body text-stone-500 text-sm">
-          {status === 'ready' ? 'Your practice dashboard is ready.' : 'This usually takes less than a minute.'}
-        </p>
-      </div>
+      <h2 className="font-display text-3xl md:text-4xl leading-[1.1] text-stone-900 tracking-tight mb-2">
+        {status === 'ready' ? `Welcome, ${practiceName}!` : statusMessages[status]}
+      </h2>
+      <p className="font-body text-base text-stone-500 mb-5">
+        {status === 'ready' ? 'Your practice dashboard is ready.' : 'This usually takes less than a minute.'}
+      </p>
 
       {status !== 'ready' && (
-        <div className="max-w-xs mx-auto">
+        <div className="w-full max-w-xs mb-5">
           <div className="h-1.5 bg-stone-200 rounded-full overflow-hidden">
             <motion.div
               className="h-full rounded-full"
@@ -1395,37 +1425,33 @@ const StepComplete: React.FC<{
 
       {status === 'ready' && (
         <>
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
+          <motion.button
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
+            onClick={onComplete}
+            className="cta-threshold font-body px-10 py-4 rounded-xl text-base font-semibold mb-5"
+            style={{ color: 'white' }}
           >
-            <button
-              onClick={onComplete}
-              className="cta-threshold font-body px-10 py-3 rounded-xl text-sm font-semibold"
-              style={{ color: 'white' }}
-            >
-              <span className="flex items-center justify-center gap-2">
-                Go to Dashboard
-                <svg className="w-4 h-4 arrow-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                </svg>
-              </span>
-            </button>
-          </motion.div>
+            <span className="flex items-center justify-center gap-2.5">
+              Go to Dashboard
+              <svg className="w-4 h-4 arrow-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+              </svg>
+            </span>
+          </motion.button>
 
-          {/* Social proof */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
-            className="mt-4 max-w-sm mx-auto"
+            transition={{ delay: 0.5 }}
+            className="max-w-sm"
           >
-            <div className="p-4 rounded-xl bg-white border-[1.5px] border-stone-200 shadow-sm">
-              <p className="font-body text-stone-600 text-xs italic leading-relaxed">
+            <div className="p-4 rounded-xl bg-white border-2 border-stone-200">
+              <p className="font-body text-stone-600 text-sm italic leading-relaxed">
                 "I finally know what's happening in my practice without digging through spreadsheets."
               </p>
-              <p className="font-body text-stone-400 text-[10px] mt-2">
+              <p className="font-body text-stone-400 text-xs mt-2">
                 — Practice Owner, Brooklyn
               </p>
             </div>
@@ -1465,18 +1491,16 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onSw
     connectionStatus: 'pending',
   });
 
-  // Trigger entrance animation
   useEffect(() => {
     const timer = setTimeout(() => setIsVisible(true), 50);
     return () => clearTimeout(timer);
   }, []);
 
-  // Calculate color progress based on all form fields
   const totalChars = useMemo(() => {
     return formData.name.length + formData.email.length + formData.practiceName.length + formData.phone.length;
   }, [formData.name, formData.email, formData.practiceName, formData.phone]);
 
-  const TARGET_CHARS = 40; // More fields = higher target
+  const TARGET_CHARS = 40;
   const linearProgress = Math.min(totalChars / TARGET_CHARS, 1);
   const colorProgress = 1 - Math.pow(1 - linearProgress, 3);
   const grayscaleAmount = 1 - colorProgress;
@@ -1524,7 +1548,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onSw
 
   return (
     <div className="h-screen w-full flex overflow-hidden bg-stone-50">
-      {/* Styles - matching LoginPage */}
+      {/* Styles */}
       <style>{`
         .font-display {
           font-family: 'Tiempos Headline', Georgia, serif;
@@ -1538,7 +1562,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onSw
 
         .input-refined {
           background: white;
-          border: 1.5px solid rgba(168, 162, 158, 0.3);
+          border: 2px solid rgba(168, 162, 158, 0.25);
           box-shadow:
             0 1px 2px rgba(0, 0, 0, 0.02),
             0 0 0 0px rgba(245, 158, 11, 0),
@@ -1547,14 +1571,18 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onSw
         }
 
         .input-refined:hover {
-          border-color: rgba(168, 162, 158, 0.5);
+          border-color: rgba(168, 162, 158, 0.4);
+          box-shadow:
+            0 2px 6px rgba(0, 0, 0, 0.03),
+            0 0 0 0px rgba(245, 158, 11, 0),
+            inset 0 1px 2px rgba(0, 0, 0, 0.02);
         }
 
         .input-refined:focus {
-          border-color: rgba(245, 158, 11, 0.5);
+          border-color: rgba(245, 158, 11, 0.6);
           box-shadow:
-            0 4px 16px rgba(245, 158, 11, 0.08),
-            0 0 0 4px rgba(245, 158, 11, 0.08),
+            0 4px 16px rgba(245, 158, 11, 0.1),
+            0 0 0 3px rgba(245, 158, 11, 0.1),
             inset 0 1px 2px rgba(0, 0, 0, 0.01);
         }
 
@@ -1562,8 +1590,8 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onSw
           background: linear-gradient(135deg, #1c1917 0%, #292524 50%, #1c1917 100%);
           background-size: 200% 200%;
           box-shadow:
-            0 2px 4px rgba(0, 0, 0, 0.1),
-            0 8px 24px -4px rgba(0, 0, 0, 0.2),
+            0 4px 10px rgba(0, 0, 0, 0.12),
+            0 10px 28px -4px rgba(0, 0, 0, 0.2),
             0 0 0 1px rgba(255, 255, 255, 0.03) inset,
             0 1px 0 rgba(255, 255, 255, 0.05) inset;
           transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
@@ -1587,13 +1615,38 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onSw
           left: 150%;
         }
 
+        .cta-threshold::after {
+          content: '';
+          position: absolute;
+          bottom: 0;
+          left: 15%;
+          right: 15%;
+          height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(251, 191, 36, 0) 20%, rgba(251, 191, 36, 0) 80%, transparent);
+          transform: scaleX(0.3);
+          opacity: 0;
+          transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .cta-threshold:hover::after {
+          background: linear-gradient(90deg, transparent, rgba(251, 191, 36, 0.6) 20%, rgba(251, 191, 36, 0.8) 50%, rgba(251, 191, 36, 0.6) 80%, transparent);
+          transform: scaleX(1);
+          opacity: 1;
+        }
+
         .cta-threshold:hover {
           transform: translateY(-2px);
           box-shadow:
-            0 4px 8px rgba(0, 0, 0, 0.15),
-            0 16px 40px -8px rgba(0, 0, 0, 0.3),
+            0 6px 16px rgba(0, 0, 0, 0.15),
+            0 20px 48px -8px rgba(0, 0, 0, 0.3),
             0 0 50px -15px rgba(251, 191, 36, 0.25),
-            0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+            0 0 0 1px rgba(255, 255, 255, 0.05) inset,
+            0 1px 0 rgba(255, 255, 255, 0.08) inset;
+        }
+
+        .cta-threshold:active {
+          transform: translateY(-1px);
+          transition-duration: 0.1s;
         }
 
         .cta-threshold:disabled {
@@ -1622,28 +1675,42 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onSw
 
         @keyframes error-shake {
           0%, 100% { transform: translateX(0); }
-          20% { transform: translateX(-8px); }
-          40% { transform: translateX(8px); }
-          60% { transform: translateX(-4px); }
-          80% { transform: translateX(4px); }
+          20% { transform: translateX(-6px); }
+          40% { transform: translateX(6px); }
+          60% { transform: translateX(-3px); }
+          80% { transform: translateX(3px); }
         }
 
         .error-shake {
           animation: error-shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97);
         }
+
+        /* Custom scrollbar for form panel */
+        .form-scroll::-webkit-scrollbar {
+          width: 4px;
+        }
+
+        .form-scroll::-webkit-scrollbar-track {
+          background: transparent;
+        }
+
+        .form-scroll::-webkit-scrollbar-thumb {
+          background: rgba(168, 162, 158, 0.25);
+          border-radius: 2px;
+        }
+
+        .form-scroll::-webkit-scrollbar-thumb:hover {
+          background: rgba(168, 162, 158, 0.4);
+        }
       `}</style>
 
-      {/* ==========================================
-          LEFT PANEL - Japanese Maple Artwork
-          Grayscale → Color transition on keystrokes
-          ========================================== */}
+      {/* LEFT PANEL - Japanese Maple Artwork */}
       <motion.div
         initial={{ opacity: 0, clipPath: 'inset(0 100% 0 0)' }}
         animate={{ opacity: 1, clipPath: 'inset(0 0% 0 0)' }}
         transition={{ duration: 1.2, ease: easeOutExpo }}
         className="hidden lg:block lg:w-[52%] relative overflow-hidden"
       >
-        {/* The artwork image with dynamic color */}
         <motion.div
           initial={{ opacity: 0, scale: 1.05 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -1661,7 +1728,6 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onSw
           />
         </motion.div>
 
-        {/* Subtle warm overlay that intensifies with color */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
@@ -1670,18 +1736,12 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onSw
           }}
         />
 
-        {/* Cinematic vignette */}
         <div className="absolute inset-0 cinematic-vignette pointer-events-none" />
-
-        {/* Grain texture */}
         <div className="absolute inset-0 grain-texture" />
       </motion.div>
 
-      {/* ==========================================
-          RIGHT PANEL - Onboarding Content
-          ========================================== */}
+      {/* RIGHT PANEL - Onboarding Content */}
       <div className="w-full lg:w-[48%] h-full relative flex flex-col">
-        {/* Background warmth gradient */}
         <div
           className="absolute inset-0"
           style={{
@@ -1693,27 +1753,26 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onSw
           }}
         />
 
-        {/* Grain texture */}
         <div className="absolute inset-0 grain-texture" />
 
-        {/* Top Left Logo */}
+        {/* Header with Logo & Progress */}
         <motion.div
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : -8 }}
           transition={{ duration: 0.6, ease: easeOutQuint, delay: 0.1 }}
-          className="relative z-10 flex items-center justify-between px-6 md:px-10 pt-6 flex-shrink-0"
+          className="relative z-10 flex items-center justify-between px-6 md:px-8 pt-5 flex-shrink-0"
         >
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             <img
               src="/cortexa-mark.png"
               alt="Cortexa"
               className="h-9 w-auto object-contain"
               style={{
-                filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.06)) drop-shadow(0 4px 12px rgba(120, 90, 50, 0.08))'
+                filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.05)) drop-shadow(0 3px 8px rgba(120, 90, 50, 0.06))'
               }}
             />
             <span
-              className="font-body text-[1.5rem] font-medium text-stone-900 leading-none mt-0.5"
+              className="font-body text-xl font-semibold text-stone-900 leading-none"
               style={{ letterSpacing: '-0.02em' }}
             >
               Cortexa
@@ -1722,9 +1781,9 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onSw
           <ProgressIndicator currentStep={currentStep} totalSteps={stepLabels.length} />
         </motion.div>
 
-        {/* Form container - scrollable */}
-        <div className="relative z-10 flex-1 min-h-0 overflow-y-auto px-6 md:px-10">
-          <div className="w-full max-w-[400px] mx-auto py-6">
+        {/* Form container - fills remaining height, scrollable when needed */}
+        <div className="relative z-10 flex-1 min-h-0 overflow-y-auto form-scroll px-6 md:px-8 py-5">
+          <div className="w-full max-w-[420px] mx-auto flex flex-col min-h-full">
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentStep}
@@ -1732,6 +1791,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onSw
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                className="flex-1 flex flex-col"
               >
                 {currentStep === 0 && (
                   <StepGetStarted
@@ -1774,20 +1834,24 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onSw
                   <StepPayment
                     practiceName={data.practiceName}
                     ehrName={getEhrName()}
-                    onContinue={() => goToStep(COLLECT_PASSWORD_IN_SIGNUP ? 5 : 5)}
+                    onContinue={() => {
+                      if (COLLECT_PASSWORD_IN_SIGNUP) {
+                        goToStep(5);
+                      } else {
+                        goToStep(5);
+                      }
+                    }}
                     onBack={() => goToStep(3)}
                   />
                 )}
-                {/* Create Account step - only shown when NOT collecting password in signup */}
-                {!COLLECT_PASSWORD_IN_SIGNUP && currentStep === 5 && (
+                {currentStep === 5 && !COLLECT_PASSWORD_IN_SIGNUP && (
                   <StepCreateAccount
                     email={data.email}
                     onContinue={() => goToStep(6)}
                     onBack={() => goToStep(4)}
                   />
                 )}
-                {/* Complete step - step 5 when collecting password in signup, step 6 otherwise */}
-                {((COLLECT_PASSWORD_IN_SIGNUP && currentStep === 5) || (!COLLECT_PASSWORD_IN_SIGNUP && currentStep === 6)) && (
+                {((currentStep === 5 && COLLECT_PASSWORD_IN_SIGNUP) || (currentStep === 6 && !COLLECT_PASSWORD_IN_SIGNUP)) && (
                   <StepComplete
                     practiceName={data.practiceName}
                     onComplete={onComplete}
@@ -1797,15 +1861,9 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete, onSw
             </AnimatePresence>
           </div>
         </div>
-
-        {/* Decorative corner accent */}
-        <div
-          className="absolute bottom-0 right-0 w-48 h-48 pointer-events-none opacity-30"
-          style={{
-            background: 'radial-gradient(circle at 100% 100%, rgba(251, 191, 36, 0.15) 0%, transparent 60%)',
-          }}
-        />
       </div>
     </div>
   );
 };
+
+export default OnboardingFlow;

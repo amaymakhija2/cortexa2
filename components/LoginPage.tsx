@@ -39,22 +39,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignUp }) => {
   const { login } = useAuth();
 
   // Calculate color progress based on keystrokes
-  // Full color achieved at 20 characters total
   const TARGET_CHARS = 20;
   const totalChars = username.length + password.length;
   const linearProgress = Math.min(totalChars / TARGET_CHARS, 1);
-
-  // Ease-out curve: faster start, slower finish (feels more responsive)
-  // Using cubic ease-out: 1 - (1 - t)^3
   const colorProgress = 1 - Math.pow(1 - linearProgress, 3);
-
-  // Grayscale is inverse of color progress (100% gray at 0, 0% gray at full)
   const grayscaleAmount = 1 - colorProgress;
-
-  // Saturation boost as color comes in (starts at 0, peaks slightly above 1 for vibrancy)
   const saturationAmount = colorProgress * 1.15;
 
-  // Trigger entrance animation
   useEffect(() => {
     const timer = setTimeout(() => setIsVisible(true), 50);
     return () => clearTimeout(timer);
@@ -94,7 +85,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignUp }) => {
            THE THRESHOLD - Warm Light Effects
            ============================================ */
 
-        /* Ambient warmth that breathes */
         @keyframes warmth-breathe {
           0%, 100% {
             opacity: 0.4;
@@ -110,7 +100,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignUp }) => {
           animation: warmth-breathe 8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
         }
 
-        /* Focus beam - light responds to user interaction */
         .focus-beam {
           position: absolute;
           top: 0;
@@ -127,20 +116,20 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignUp }) => {
         }
 
         /* ============================================
-           INPUT STYLING - Refined & Warm
+           INPUT STYLING - Refined & Large
            ============================================ */
         .input-refined {
           background: white;
-          border: 1.5px solid rgba(168, 162, 158, 0.3);
+          border: 2px solid rgba(168, 162, 158, 0.25);
           box-shadow:
-            0 1px 2px rgba(0, 0, 0, 0.02),
+            0 1px 3px rgba(0, 0, 0, 0.02),
             0 0 0 0px rgba(245, 158, 11, 0),
             inset 0 1px 2px rgba(0, 0, 0, 0.02);
           transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
         }
 
         .input-refined:hover {
-          border-color: rgba(168, 162, 158, 0.5);
+          border-color: rgba(168, 162, 158, 0.4);
           box-shadow:
             0 2px 8px rgba(0, 0, 0, 0.04),
             0 0 0 0px rgba(245, 158, 11, 0),
@@ -148,10 +137,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignUp }) => {
         }
 
         .input-refined:focus {
-          border-color: rgba(245, 158, 11, 0.5);
+          border-color: rgba(245, 158, 11, 0.6);
           box-shadow:
-            0 4px 16px rgba(245, 158, 11, 0.08),
-            0 0 0 4px rgba(245, 158, 11, 0.08),
+            0 4px 20px rgba(245, 158, 11, 0.1),
+            0 0 0 4px rgba(245, 158, 11, 0.1),
             inset 0 1px 2px rgba(0, 0, 0, 0.01);
         }
 
@@ -162,8 +151,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignUp }) => {
           background: linear-gradient(135deg, #1c1917 0%, #292524 50%, #1c1917 100%);
           background-size: 200% 200%;
           box-shadow:
-            0 2px 4px rgba(0, 0, 0, 0.1),
-            0 8px 24px -4px rgba(0, 0, 0, 0.2),
+            0 4px 12px rgba(0, 0, 0, 0.15),
+            0 12px 32px -4px rgba(0, 0, 0, 0.25),
             0 0 0 1px rgba(255, 255, 255, 0.03) inset,
             0 1px 0 rgba(255, 255, 255, 0.05) inset;
           transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
@@ -227,17 +216,17 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignUp }) => {
         }
 
         .cta-threshold:hover {
-          transform: translateY(-2px);
+          transform: translateY(-3px);
           box-shadow:
-            0 4px 8px rgba(0, 0, 0, 0.15),
-            0 16px 40px -8px rgba(0, 0, 0, 0.3),
-            0 0 50px -15px rgba(251, 191, 36, 0.25),
+            0 8px 20px rgba(0, 0, 0, 0.2),
+            0 24px 56px -8px rgba(0, 0, 0, 0.35),
+            0 0 60px -15px rgba(251, 191, 36, 0.3),
             0 0 0 1px rgba(255, 255, 255, 0.05) inset,
             0 1px 0 rgba(255, 255, 255, 0.08) inset;
         }
 
         .cta-threshold:active {
-          transform: translateY(0);
+          transform: translateY(-1px);
           transition-duration: 0.1s;
         }
 
@@ -247,13 +236,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignUp }) => {
           transform: none !important;
         }
 
-        /* Arrow spring animation */
         .cta-threshold .arrow-icon {
           transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
         .cta-threshold:hover .arrow-icon {
-          transform: translateX(4px);
+          transform: translateX(5px);
         }
 
         /* ============================================
@@ -281,7 +269,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignUp }) => {
           animation: image-drift 20s cubic-bezier(0.4, 0, 0.2, 1) infinite;
         }
 
-        /* Cinematic vignette */
         .cinematic-vignette {
           background: radial-gradient(
             ellipse 80% 60% at 50% 50%,
@@ -291,18 +278,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignUp }) => {
         }
 
         /* ============================================
-           DECORATIVE ELEMENTS
+           ERROR & DECORATIVE
            ============================================ */
-        @keyframes line-draw {
-          from {
-            stroke-dashoffset: 100;
-          }
-          to {
-            stroke-dashoffset: 0;
-          }
-        }
-
-        /* Error shake */
         @keyframes error-shake {
           0%, 100% { transform: translateX(0); }
           20% { transform: translateX(-8px); }
@@ -333,7 +310,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignUp }) => {
         }}
         className="hidden lg:block lg:w-[52%] relative overflow-hidden"
       >
-        {/* The artwork image with dynamic color */}
         <motion.div
           initial={{ opacity: 0, scale: 1.05 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -355,7 +331,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignUp }) => {
           />
         </motion.div>
 
-        {/* Subtle warm overlay that intensifies with color */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
@@ -368,10 +343,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignUp }) => {
           }}
         />
 
-        {/* Cinematic vignette */}
         <div className="absolute inset-0 cinematic-vignette pointer-events-none" />
-
-        {/* Grain texture */}
         <div className="absolute inset-0 grain-texture" />
       </motion.div>
 
@@ -399,7 +371,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignUp }) => {
           }}
         />
 
-        {/* Focus beam - responds to input focus */}
+        {/* Focus beam */}
         <div
           className={`focus-beam ${focusedField ? 'active' : ''}`}
           style={{
@@ -413,10 +385,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignUp }) => {
           }}
         />
 
-        {/* Grain texture */}
         <div className="absolute inset-0 grain-texture" />
 
-        {/* Top Right Logo */}
+        {/* Top Logo */}
         <motion.div
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : -8 }}
@@ -425,27 +396,27 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignUp }) => {
             ease: easeOutQuint,
             delay: STAGGER.logo / 1000
           }}
-          className="relative z-10 flex items-center justify-start gap-2 px-8 md:px-10 pt-8"
+          className="relative z-10 flex items-center justify-start gap-3 px-8 md:px-12 pt-8"
         >
           <img
             src="/cortexa-mark.png"
             alt="Cortexa"
-            className="h-11 w-auto object-contain"
+            className="h-12 w-auto object-contain"
             style={{
               filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.06)) drop-shadow(0 4px 12px rgba(120, 90, 50, 0.08))'
             }}
           />
           <span
-            className="font-body text-[1.75rem] font-medium text-stone-900 leading-none mt-1"
+            className="font-body text-2xl font-semibold text-stone-900 leading-none"
             style={{ letterSpacing: '-0.02em' }}
           >
             Cortexa
           </span>
         </motion.div>
 
-        {/* Form container - centered vertically */}
-        <div className="relative z-10 flex-1 flex items-center justify-center px-8 md:px-10">
-          <div className="w-full max-w-[400px]">
+        {/* Form container */}
+        <div className="relative z-10 flex-1 flex items-center justify-center px-8 md:px-12">
+          <div className="w-full max-w-[480px]">
 
             {/* Headline */}
             <motion.div
@@ -456,11 +427,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignUp }) => {
                 ease: easeOutQuint,
                 delay: STAGGER.headline / 1000
               }}
-              className="mb-2"
+              className="mb-3"
             >
               <h1
-                className="font-display text-[2rem] leading-[1.15] text-stone-900"
-                style={{ letterSpacing: '-0.01em' }}
+                className="font-display text-4xl md:text-5xl leading-[1.1] text-stone-900 tracking-tight"
               >
                 Welcome back
               </h1>
@@ -475,7 +445,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignUp }) => {
                 ease: easeOutQuint,
                 delay: STAGGER.subtitle / 1000
               }}
-              className="font-body text-stone-500 text-[15px] mb-8"
+              className="font-body text-stone-500 text-lg mb-10"
             >
               Sign in to continue to your dashboard
             </motion.p>
@@ -485,15 +455,15 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignUp }) => {
               {error && (
                 <motion.div
                   initial={{ opacity: 0, height: 0, marginBottom: 0 }}
-                  animate={{ opacity: 1, height: 'auto', marginBottom: 24 }}
+                  animate={{ opacity: 1, height: 'auto', marginBottom: 32 }}
                   exit={{ opacity: 0, height: 0, marginBottom: 0 }}
                   className="overflow-hidden"
                 >
                   <div
-                    className="p-4 rounded-xl flex items-center gap-3 error-shake"
+                    className="p-4 rounded-2xl flex items-center gap-3 error-shake"
                     style={{
                       background: 'linear-gradient(135deg, #fef2f2 0%, #fff1f2 100%)',
-                      border: '1px solid rgba(239, 68, 68, 0.15)',
+                      border: '1px solid rgba(239, 68, 68, 0.2)',
                     }}
                   >
                     <svg
@@ -509,7 +479,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignUp }) => {
                         d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                       />
                     </svg>
-                    <span className="font-body text-red-600 text-sm font-medium">
+                    <span className="font-body text-red-600 text-base font-medium">
                       {error}
                     </span>
                   </div>
@@ -518,7 +488,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignUp }) => {
             </AnimatePresence>
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-6">
               {/* Username */}
               <motion.div
                 initial={{ opacity: 0, y: 16 }}
@@ -529,7 +499,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignUp }) => {
                   delay: STAGGER.username / 1000
                 }}
               >
-                <label className="font-body text-sm font-medium text-stone-600 block mb-2">
+                <label className="font-body text-base font-medium text-stone-700 block mb-2">
                   Username
                 </label>
                 <input
@@ -538,7 +508,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignUp }) => {
                   onChange={(e) => setUsername(e.target.value)}
                   onFocus={() => setFocusedField('username')}
                   onBlur={() => setFocusedField(null)}
-                  className="input-refined font-body w-full px-4 py-3.5 rounded-xl text-stone-900 text-[15px] placeholder-stone-400 outline-none"
+                  className="input-refined font-body w-full px-5 py-4 rounded-2xl text-stone-900 text-lg placeholder-stone-400 outline-none"
                   placeholder="Enter your username"
                   required
                   autoComplete="username"
@@ -555,7 +525,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignUp }) => {
                   delay: STAGGER.password / 1000
                 }}
               >
-                <label className="font-body text-sm font-medium text-stone-600 block mb-2">
+                <label className="font-body text-base font-medium text-stone-700 block mb-2">
                   Password
                 </label>
                 <div className="relative">
@@ -565,7 +535,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignUp }) => {
                     onChange={(e) => setPassword(e.target.value)}
                     onFocus={() => setFocusedField('password')}
                     onBlur={() => setFocusedField(null)}
-                    className="input-refined font-body w-full px-4 py-3.5 pr-12 rounded-xl text-stone-900 text-[15px] placeholder-stone-400 outline-none"
+                    className="input-refined font-body w-full px-5 py-4 pr-14 rounded-2xl text-stone-900 text-lg placeholder-stone-400 outline-none"
                     placeholder="Enter your password"
                     required
                     autoComplete="current-password"
@@ -573,14 +543,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignUp }) => {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-stone-400 hover:text-stone-600 transition-colors duration-200 rounded-lg hover:bg-stone-100/50"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 p-2 text-stone-400 hover:text-stone-600 transition-colors duration-200 rounded-xl hover:bg-stone-100/50"
                   >
                     {showPassword ? (
-                      <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
                       </svg>
                     ) : (
-                      <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
                         <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
@@ -603,12 +573,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignUp }) => {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="cta-threshold font-body relative w-full py-4 px-6 text-white text-[15px] font-semibold rounded-xl"
+                  className="cta-threshold font-body relative w-full py-5 px-8 text-white text-lg font-semibold rounded-2xl"
                 >
-                  <span className={`flex items-center justify-center gap-2.5 ${isLoading ? 'opacity-0' : 'opacity-100'}`}>
+                  <span className={`flex items-center justify-center gap-3 ${isLoading ? 'opacity-0' : 'opacity-100'}`}>
                     Sign In
                     <svg
-                      className="w-[18px] h-[18px] arrow-icon"
+                      className="w-5 h-5 arrow-icon"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -620,7 +590,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignUp }) => {
 
                   {isLoading && (
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
+                      <svg className="animate-spin h-6 w-6 text-white" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                       </svg>
@@ -639,15 +609,15 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignUp }) => {
                 ease: easeOutQuint,
                 delay: STAGGER.footer / 1000
               }}
-              className="mt-10 text-center"
+              className="mt-12 text-center"
             >
               {onSwitchToSignUp && (
-                <p className="font-body text-stone-500 text-sm">
+                <p className="font-body text-stone-500 text-base">
                   Don't have an account?{' '}
                   <button
                     type="button"
                     onClick={onSwitchToSignUp}
-                    className="text-amber-600 hover:text-amber-700 transition-colors font-medium relative group"
+                    className="text-amber-600 hover:text-amber-700 transition-colors font-semibold relative group"
                   >
                     Sign up
                     <span
@@ -664,7 +634,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignUp }) => {
 
         {/* Decorative corner accent */}
         <div
-          className="absolute bottom-0 right-0 w-48 h-48 pointer-events-none opacity-30"
+          className="absolute bottom-0 right-0 w-64 h-64 pointer-events-none opacity-30"
           style={{
             background: `
               radial-gradient(

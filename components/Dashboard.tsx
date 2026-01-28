@@ -322,10 +322,10 @@ export const Dashboard: React.FC = () => {
   }, [dragScrollRef]);
   const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
   const now = new Date();
-  // Dashboard defaults to current month (no aggregate option)
+  // Dashboard defaults to December 2025 (no aggregate option)
   const [timeSelection, setTimeSelection] = useState<TimeSelectorValue>({
-    month: now.getMonth(),
-    year: now.getFullYear(),
+    month: 11,
+    year: 2025,
   });
 
   // Get active tab from URL search params
