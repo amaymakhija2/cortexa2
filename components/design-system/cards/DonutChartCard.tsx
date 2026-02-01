@@ -51,6 +51,8 @@ export interface DonutChartCardProps {
   onExpand?: () => void;
   /** Segment hover callback */
   onSegmentHover?: (segment: DonutSegment | null, percent: number) => void;
+  /** Segment click callback - used for filtering in ExpandedChartView */
+  onSegmentClick?: (segment: DonutSegment) => void;
   /** Additional className */
   className?: string;
 }
@@ -111,6 +113,7 @@ export const DonutChartCard: React.FC<DonutChartCardProps> = ({
   expandable = false,
   onExpand,
   onSegmentHover,
+  onSegmentClick,
   className = '',
 }) => {
   const [hoveredSegment, setHoveredSegment] = useState<string | null>(null);
@@ -256,6 +259,7 @@ export const DonutChartCard: React.FC<DonutChartCardProps> = ({
               }}
               onMouseEnter={() => handleSegmentHover(segment, segment.percent * 100)}
               onMouseLeave={() => handleSegmentHover(null, 0)}
+              onClick={() => onSegmentClick?.(segment)}
             />
           );
         })}
@@ -308,6 +312,14 @@ export const DonutChartCard: React.FC<DonutChartCardProps> = ({
     }
   };
 
+  // Handle legend item click
+  const handleLegendItemClick = (item: LegendItem) => {
+    const segment = segmentPaths.find((s) => s.label === item.label);
+    if (segment && onSegmentClick) {
+      onSegmentClick(segment);
+    }
+  };
+
   // Render legend for WIDE layout - using unified Legend stacked variant
   const renderWideLegend = () => (
     <div
@@ -325,6 +337,7 @@ export const DonutChartCard: React.FC<DonutChartCardProps> = ({
         interactive
         hoveredItem={hoveredSegment}
         onItemHover={handleLegendItemHover}
+        onItemClick={handleLegendItemClick}
       />
     </div>
   );
@@ -346,6 +359,7 @@ export const DonutChartCard: React.FC<DonutChartCardProps> = ({
         interactive
         hoveredItem={hoveredSegment}
         onItemHover={handleLegendItemHover}
+        onItemClick={handleLegendItemClick}
       />
     </div>
   );
@@ -366,6 +380,7 @@ export const DonutChartCard: React.FC<DonutChartCardProps> = ({
         interactive
         hoveredItem={hoveredSegment}
         onItemHover={handleLegendItemHover}
+        onItemClick={handleLegendItemClick}
       />
     </div>
   );

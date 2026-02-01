@@ -52,6 +52,8 @@ export interface LegendProps {
   hoveredItem?: string | null;
   /** Callback when an item is hovered */
   onItemHover?: (item: LegendItem | null) => void;
+  /** Callback when an item is clicked */
+  onItemClick?: (item: LegendItem) => void;
   /** Whether legend is interactive (shows hover states) */
   interactive?: boolean;
   /** Additional className */
@@ -281,6 +283,7 @@ export const Legend: React.FC<LegendProps> = ({
   size = 'md',
   hoveredItem,
   onItemHover,
+  onItemClick,
   interactive = false,
   className = '',
 }) => {
@@ -375,6 +378,7 @@ export const Legend: React.FC<LegendProps> = ({
               }}
               onMouseEnter={() => interactive && onItemHover?.(item)}
               onMouseLeave={() => interactive && onItemHover?.(null)}
+              onClick={() => onItemClick?.(item)}
             >
               <div className={`relative flex items-center ${config.gap} py-3 px-4`}>
                 <LegendIndicator
@@ -441,6 +445,7 @@ export const Legend: React.FC<LegendProps> = ({
               }}
               onMouseEnter={() => interactive && onItemHover?.(item)}
               onMouseLeave={() => interactive && onItemHover?.(null)}
+              onClick={() => onItemClick?.(item)}
             >
               <LegendIndicator
                 type={item.type || 'dot'}
@@ -489,6 +494,7 @@ export const Legend: React.FC<LegendProps> = ({
               }}
               onMouseEnter={() => interactive && onItemHover?.(item)}
               onMouseLeave={() => interactive && onItemHover?.(null)}
+              onClick={() => onItemClick?.(item)}
             >
               <LegendIndicator
                 type={item.type || 'dot'}

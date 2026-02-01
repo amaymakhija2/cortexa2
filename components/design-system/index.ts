@@ -137,3 +137,18 @@ export type { OthersTooltipProps } from './charts';
 
 // Reference Page (for viewing in app)
 export { Reference } from './Reference';
+
+// Expanded Chart View (Split View with Interactive Charts + Data Tables)
+export { ExpandedChartView, ChartPanel, DataPanel, DataTable } from './ExpandedChartView';
+export type {
+  ExpandedChartViewProps,
+  ChartType,
+  SelectedPeriod,
+  ChartPanelProps,
+  DataPanelProps,
+  ClientBreakdownRow,
+  DataTableProps,
+  SortConfig,
+  DataTableColumn,
+  DataTableRow,
+} from './ExpandedChartView';

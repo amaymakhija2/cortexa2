@@ -23,10 +23,11 @@ import {
   DataTableCard,
   StackedBarCard,
   ExpandedChartModal,
+  ExpandedChartView,
   TimeSelector,
   PageHeader,
 } from './design-system';
-import type { ClientData, HoverInfo, SegmentConfig, TimeSelectorValue } from './design-system';
+import type { ClientData, HoverInfo, SegmentConfig, TimeSelectorValue, ClientBreakdownRow, DataTableColumn } from './design-system';
 
 // =============================================================================
 // CLINICIAN DETAILS TAB
@@ -617,6 +618,82 @@ const CLINICIAN_CLIENTS: Record<number, ClinicianClient[]> = {
     { id: 'c5-5', name: 'Thomas Anderson', initials: 'TA', totalSessions: 7, lastSeenDays: 25, nextAppointment: null, status: 'at-risk' },
     { id: 'c5-6', name: 'Maria Santos', initials: 'MS', totalSessions: 2, lastSeenDays: 30, nextAppointment: null, status: 'at-risk' },
   ],
+};
+
+// =============================================================================
+// CLIENT-LEVEL BREAKDOWN DATA FOR EXPANDED CHART VIEW
+// =============================================================================
+// Client-level monthly data to power the split-view expanded charts.
+// Each client has per-month data for revenue, sessions, and cancellations.
+// =============================================================================
+
+interface ClientMonthlyData {
+  clientId: string;
+  clientName: string;
+  months: {
+    [month: string]: {
+      sessions: number;
+      revenue: number;
+      cancelled: number;
+      cancelType: 'client' | 'clinician' | null;
+      lateCancel: number;
+      noShow: number;
+      lastSeen: string | null;
+      nextAppt: string | null;
+      rebooked: boolean;
+    };
+  };
+}
+
+// Generate client monthly data from existing CLINICIAN_CLIENTS
+const generateClientMonthlyData = (clinicianId: number): ClientMonthlyData[] => {
+  const clients = CLINICIAN_CLIENTS[clinicianId] || [];
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const avgSessionRate = clinicianId === 1 ? 185 : clinicianId === 2 ? 172 : clinicianId === 3 ? 158 : clinicianId === 4 ? 165 : 142;
+
+  return clients.map(client => {
+    const baseSessionsPerMonth = client.status === 'healthy' ? 4 : client.status === 'at-risk' ? 2 : 3;
+    const monthlyData: ClientMonthlyData['months'] = {};
+
+    months.forEach((month, idx) => {
+      // Vary sessions slightly by month
+      const variance = Math.floor(Math.random() * 2) - 1;
+      const sessions = Math.max(0, baseSessionsPerMonth + variance);
+      const revenue = sessions * avgSessionRate;
+
+      // Add some cancellations based on client status
+      const hasCancellation = client.status === 'at-risk' && Math.random() > 0.6;
+      const hasLateCancel = client.status === 'at-risk' && Math.random() > 0.8;
+      const hasNoShow = client.status === 'at-risk' && Math.random() > 0.85;
+
+      monthlyData[month] = {
+        sessions,
+        revenue,
+        cancelled: hasCancellation ? 1 : 0,
+        cancelType: hasCancellation ? (Math.random() > 0.5 ? 'client' : 'clinician') : null,
+        lateCancel: hasLateCancel ? 1 : 0,
+        noShow: hasNoShow ? 1 : 0,
+        lastSeen: idx === 11 ? (client.nextAppointment ? `Dec ${10 + Math.floor(Math.random() * 10)}` : null) : null,
+        nextAppt: idx === 11 ? client.nextAppointment : null,
+        rebooked: client.nextAppointment !== null,
+      };
+    });
+
+    return {
+      clientId: client.id,
+      clientName: client.name,
+      months: monthlyData,
+    };
+  });
+};
+
+// Pre-generate client monthly data for all clinicians
+const CLINICIAN_CLIENT_MONTHLY_DATA: Record<number, ClientMonthlyData[]> = {
+  1: generateClientMonthlyData(1),
+  2: generateClientMonthlyData(2),
+  3: generateClientMonthlyData(3),
+  4: generateClientMonthlyData(4),
+  5: generateClientMonthlyData(5),
 };
 
 // Mock retention data for each clinician (12 months of rebook rates)
@@ -2065,6 +2142,434 @@ export const ClinicianDetailsTab: React.FC = () => {
   // Get clients for this clinician (typed to match ClientRosterCard)
   const clinicianClients: ClientData[] = selectedClinician ? CLINICIAN_CLIENTS[selectedClinician.id] || [] : [];
 
+  // Get client monthly data for ExpandedChartView
+  const clientMonthlyData = selectedClinician ? CLINICIAN_CLIENT_MONTHLY_DATA[selectedClinician.id] || [] : [];
+
+  // Period options for dropdown (months)
+  const periodOptions = useMemo(() => [
+    { value: 'Jan', label: 'January' },
+    { value: 'Feb', label: 'February' },
+    { value: 'Mar', label: 'March' },
+    { value: 'Apr', label: 'April' },
+    { value: 'May', label: 'May' },
+    { value: 'Jun', label: 'June' },
+    { value: 'Jul', label: 'July' },
+    { value: 'Aug', label: 'August' },
+    { value: 'Sep', label: 'September' },
+    { value: 'Oct', label: 'October' },
+    { value: 'Nov', label: 'November' },
+    { value: 'Dec', label: 'December' },
+  ], []);
+
+  // Revenue table columns
+  const revenueTableColumns: DataTableColumn[] = useMemo(() => [
+    { key: 'sessions', header: 'Sessions', align: 'right', sortable: true, format: (v) => String(v) },
+    { key: 'revenue', header: 'Revenue', align: 'right', sortable: true, format: (v) => `$${Number(v).toLocaleString()}` },
+    { key: 'avgPerSession', header: 'Avg/Session', align: 'right', sortable: true, format: (v) => `$${Number(v).toLocaleString()}` },
+  ], []);
+
+  // Get client revenue data for a specific month
+  const getRevenueClientData = useCallback((month: string): { rows: ClientBreakdownRow[]; summary: Record<string, number>; summaryLabel: string } => {
+    const rows: ClientBreakdownRow[] = clientMonthlyData
+      .map(client => {
+        const monthData = client.months[month];
+        if (!monthData || monthData.sessions === 0) return null;
+        const avgPerSession = monthData.sessions > 0 ? Math.round(monthData.revenue / monthData.sessions) : 0;
+        return {
+          id: client.clientId,
+          name: client.clientName,
+          values: {
+            sessions: monthData.sessions,
+            revenue: monthData.revenue,
+            avgPerSession,
+          },
+        };
+      })
+      .filter((row): row is ClientBreakdownRow => row !== null)
+      .sort((a, b) => (b.values.revenue as number) - (a.values.revenue as number));
+
+    const totalSessions = rows.reduce((sum, r) => sum + (r.values.sessions as number), 0);
+    const totalRevenue = rows.reduce((sum, r) => sum + (r.values.revenue as number), 0);
+    const avgPerSession = totalSessions > 0 ? Math.round(totalRevenue / totalSessions) : 0;
+
+    return {
+      rows,
+      summary: { sessions: totalSessions, revenue: totalRevenue, avgPerSession },
+      summaryLabel: `Total: $${totalRevenue.toLocaleString()} from ${totalSessions} sessions`,
+    };
+  }, [clientMonthlyData]);
+
+  // Sessions table columns
+  const sessionsTableColumns: DataTableColumn[] = useMemo(() => [
+    { key: 'sessions', header: 'Sessions', align: 'right', sortable: true, format: (v) => String(v) },
+    { key: 'lastSeen', header: 'Last Seen', align: 'left', sortable: false },
+    { key: 'nextAppt', header: 'Next Appt', align: 'left', sortable: false },
+    { key: 'rebooked', header: 'Rebooked', align: 'center', sortable: true, format: (v) => v === 'Yes' ? '\u2713' : '\u26A0' },
+  ], []);
+
+  // Get client sessions data for a specific month
+  const getSessionsClientData = useCallback((month: string): { rows: ClientBreakdownRow[]; summary: Record<string, string | number>; summaryLabel: string } => {
+    const rows: ClientBreakdownRow[] = clientMonthlyData
+      .map(client => {
+        const monthData = client.months[month];
+        if (!monthData || monthData.sessions === 0) return null;
+        return {
+          id: client.clientId,
+          name: client.clientName,
+          values: {
+            sessions: monthData.sessions,
+            lastSeen: monthData.lastSeen || '\u2014',
+            nextAppt: monthData.nextAppt || '\u2014',
+            rebooked: monthData.rebooked ? 'Yes' : 'No',
+          },
+          status: monthData.rebooked ? 'success' as const : 'warning' as const,
+        };
+      })
+      .filter((row): row is ClientBreakdownRow => row !== null)
+      .sort((a, b) => (b.values.sessions as number) - (a.values.sessions as number));
+
+    const totalSessions = rows.reduce((sum, r) => sum + (r.values.sessions as number), 0);
+    const rebookedCount = rows.filter(r => r.values.rebooked === 'Yes').length;
+
+    return {
+      rows,
+      summary: { sessions: totalSessions, lastSeen: '', nextAppt: '', rebooked: `${rebookedCount}/${rows.length}` },
+      summaryLabel: `Total: ${totalSessions} sessions \u00B7 ${rebookedCount} of ${rows.length} clients rebooked`,
+    };
+  }, [clientMonthlyData]);
+
+  // Cancellations table columns
+  const cancellationsTableColumns: DataTableColumn[] = useMemo(() => [
+    { key: 'type', header: 'Type', align: 'left', sortable: true },
+    { key: 'count', header: 'Count', align: 'right', sortable: true, format: (v) => String(v) },
+  ], []);
+
+  // Get client cancellation data for a specific month
+  const getCancellationsClientData = useCallback((month: string): { rows: ClientBreakdownRow[]; summary: Record<string, string | number>; summaryLabel: string } => {
+    // Get cancellation totals from sessionData for this month
+    const monthData = sessionData?.monthlySessions.find(m => m.month === month);
+    const clientCancelCount = monthData?.clientCancelled || 0;
+    const clinicianCancelCount = monthData?.clinicianCancelled || 0;
+
+    // Generate mock client names for cancellations
+    const clientNames = [
+      'Alex Thompson', 'Jordan Mitchell', 'Casey Williams', 'Morgan Davis', 'Riley Johnson',
+      'Taylor Brown', 'Quinn Anderson', 'Avery Martinez', 'Cameron Wilson', 'Drew Taylor',
+      'Jamie Parker', 'Reese Cooper', 'Skyler Reed', 'Dakota Price', 'Finley Hughes'
+    ];
+
+    const rows: ClientBreakdownRow[] = [];
+
+    // Add client-initiated cancellations
+    for (let i = 0; i < clientCancelCount; i++) {
+      rows.push({
+        id: `client-cancel-${month}-${i}`,
+        name: clientNames[i % clientNames.length],
+        values: {
+          type: 'Client',
+          count: 1,
+        },
+        status: 'warning' as const,
+      });
+    }
+
+    // Add clinician-initiated cancellations
+    for (let i = 0; i < clinicianCancelCount; i++) {
+      rows.push({
+        id: `clinician-cancel-${month}-${i}`,
+        name: clientNames[(clientCancelCount + i) % clientNames.length],
+        values: {
+          type: 'Clinician',
+          count: 1,
+        },
+        status: 'info' as const,
+      });
+    }
+
+    const totalCancellations = clientCancelCount + clinicianCancelCount;
+
+    return {
+      rows,
+      summary: { type: '', count: totalCancellations },
+      summaryLabel: `Total: ${totalCancellations} cancellations (${clientCancelCount} client, ${clinicianCancelCount} clinician)`,
+    };
+  }, [sessionData]);
+
+  // No-Show table columns
+  const noShowTableColumns: DataTableColumn[] = useMemo(() => [
+    { key: 'type', header: 'Type', align: 'left', sortable: true },
+    { key: 'count', header: 'Count', align: 'right', sortable: true, format: (v) => String(v) },
+  ], []);
+
+  // Get no-show/late cancel data for a specific month
+  const getNoShowClientData = useCallback((month: string): { rows: ClientBreakdownRow[]; summary: Record<string, string | number>; summaryLabel: string } => {
+    // Get no-show/late cancel totals from sessionData for this month
+    const monthData = sessionData?.monthlySessions.find(m => m.month === month);
+    const lateCancelCount = monthData?.lateCancelled || 0;
+    const noShowCount = monthData?.noShow || 0;
+
+    // Generate mock client names
+    const clientNames = [
+      'Alex Thompson', 'Jordan Mitchell', 'Casey Williams', 'Morgan Davis', 'Riley Johnson',
+      'Taylor Brown', 'Quinn Anderson', 'Avery Martinez', 'Cameron Wilson', 'Drew Taylor',
+      'Jamie Parker', 'Reese Cooper', 'Skyler Reed', 'Dakota Price', 'Finley Hughes'
+    ];
+
+    const rows: ClientBreakdownRow[] = [];
+
+    // Add late cancellations
+    for (let i = 0; i < lateCancelCount; i++) {
+      rows.push({
+        id: `late-cancel-${month}-${i}`,
+        name: clientNames[i % clientNames.length],
+        values: {
+          type: 'Late Cancel',
+          count: 1,
+        },
+        status: 'warning' as const,
+      });
+    }
+
+    // Add no-shows
+    for (let i = 0; i < noShowCount; i++) {
+      rows.push({
+        id: `noshow-${month}-${i}`,
+        name: clientNames[(lateCancelCount + i) % clientNames.length],
+        values: {
+          type: 'No-Show',
+          count: 1,
+        },
+        status: 'error' as const,
+      });
+    }
+
+    const totalMissed = lateCancelCount + noShowCount;
+    const estimatedLost = totalMissed * (financialData?.avgRevenuePerSession || 150);
+
+    return {
+      rows,
+      summary: { type: '', count: totalMissed },
+      summaryLabel: `Total: ${totalMissed} missed · Est. $${estimatedLost.toLocaleString()} lost revenue`,
+    };
+  }, [sessionData, financialData]);
+
+  // Attendance segment options for dropdown
+  const attendanceSegmentOptions = useMemo(() => [
+    { value: 'attended', label: 'Attended' },
+    { value: 'client-cancelled', label: 'Client Cancelled' },
+    { value: 'clinician-cancelled', label: 'Clinician Cancelled' },
+    { value: 'late-cancel', label: 'Late Cancel' },
+    { value: 'no-show', label: 'No-Show' },
+  ], []);
+
+  // Attendance table columns
+  const attendanceTableColumns: DataTableColumn[] = useMemo(() => [
+    { key: 'count', header: 'Count', align: 'right', sortable: true, format: (v) => String(v) },
+    { key: 'total', header: 'Total Booked', align: 'right', sortable: true, format: (v) => String(v) },
+    { key: 'rate', header: 'Rate', align: 'right', sortable: true, format: (v) => `${v}%` },
+  ], []);
+
+  // Get attendance client data for a specific segment
+  const getAttendanceClientData = useCallback((segment: string): { rows: ClientBreakdownRow[]; summary: Record<string, string | number>; summaryLabel: string } => {
+    // Get totals from attendanceSegments
+    const segmentData = attendanceSegments.find(s => {
+      const labelToValue: Record<string, string> = {
+        'Attended': 'attended',
+        'Client Cancelled': 'client-cancelled',
+        'Clinician Cancelled': 'clinician-cancelled',
+        'Late Cancelled': 'late-cancel',
+        'No Show': 'no-show',
+      };
+      return labelToValue[s.label] === segment;
+    });
+
+    const segmentCount = segmentData?.value || 0;
+    const totalBooked = attendanceSegments.reduce((sum, s) => sum + s.value, 0);
+
+    // Generate mock client names
+    const clientNames = [
+      'Alex Thompson', 'Jordan Mitchell', 'Casey Williams', 'Morgan Davis', 'Riley Johnson',
+      'Taylor Brown', 'Quinn Anderson', 'Avery Martinez', 'Cameron Wilson', 'Drew Taylor',
+      'Jamie Parker', 'Reese Cooper', 'Skyler Reed', 'Dakota Price', 'Finley Hughes',
+      'Robin Clarke', 'Sydney Wells', 'Blake Foster', 'Hayden Brooks', 'Peyton Murray'
+    ];
+
+    // Distribute the count among clients (some clients may have more than 1)
+    const clientCounts: Record<string, number> = {};
+    let remaining = segmentCount;
+    let clientIndex = 0;
+
+    while (remaining > 0 && clientIndex < clientNames.length) {
+      const count = Math.min(remaining, Math.floor(Math.random() * 3) + 1);
+      clientCounts[clientNames[clientIndex]] = count;
+      remaining -= count;
+      clientIndex++;
+    }
+
+    const rows: ClientBreakdownRow[] = Object.entries(clientCounts).map(([name, count], idx) => ({
+      id: `${segment}-${idx}`,
+      name,
+      values: {
+        count,
+        total: Math.floor(count * (totalBooked / segmentCount) * (0.8 + Math.random() * 0.4)),
+        rate: segment === 'attended' ? Math.floor(85 + Math.random() * 15) : Math.floor(5 + Math.random() * 20),
+      },
+      status: segment === 'attended' ? 'success' as const : segment === 'no-show' ? 'error' as const : 'warning' as const,
+    })).sort((a, b) => (b.values.count as number) - (a.values.count as number));
+
+    const avgRate = totalBooked > 0 ? Math.round((segmentCount / totalBooked) * 100) : 0;
+    const segmentLabel = attendanceSegmentOptions.find(o => o.value === segment)?.label || segment;
+
+    return {
+      rows,
+      summary: { count: segmentCount, total: totalBooked, rate: avgRate },
+      summaryLabel: `Total: ${segmentCount} ${segmentLabel.toLowerCase()} (${avgRate}% of booked)`,
+    };
+  }, [attendanceSegments, attendanceSegmentOptions]);
+
+  // ==========================================================================
+  // CASELOAD/CAPACITY HELPERS (Post-MVP)
+  // ==========================================================================
+
+  // Caseload table columns
+  const caseloadTableColumns: DataTableColumn[] = useMemo(() => [
+    { key: 'status', header: 'Status', align: 'left', sortable: true },
+    { key: 'frequency', header: 'Frequency', align: 'left', sortable: true },
+    { key: 'totalSessions', header: 'Total Sessions', align: 'right', sortable: true, format: (v) => String(v) },
+    { key: 'tenure', header: 'Client Since', align: 'right', sortable: true },
+  ], []);
+
+  // Get caseload client data for a specific month
+  const getCaseloadClientData = useCallback((month: string): { rows: ClientBreakdownRow[]; summary: Record<string, string | number>; summaryLabel: string } => {
+    // Get active clients for this month
+    const rows: ClientBreakdownRow[] = clinicianClients
+      .filter(client => client.status === 'active' || client.status === 'at-risk')
+      .map(client => {
+        const frequency = client.sessionsPerMonth >= 4 ? 'Weekly' :
+                         client.sessionsPerMonth >= 2 ? 'Bi-weekly' :
+                         client.sessionsPerMonth >= 1 ? 'Monthly' : 'Inconsistent';
+        return {
+          id: client.id,
+          name: client.name,
+          values: {
+            status: client.status === 'at-risk' ? 'At Risk' : 'Active',
+            frequency,
+            totalSessions: client.totalSessions,
+            tenure: client.tenure,
+          },
+          status: client.status === 'at-risk' ? 'warning' as const : 'success' as const,
+        };
+      })
+      .sort((a, b) => (b.values.totalSessions as number) - (a.values.totalSessions as number));
+
+    const activeCount = rows.filter(r => r.values.status === 'Active').length;
+    const atRiskCount = rows.filter(r => r.values.status === 'At Risk').length;
+    const monthData = caseloadData?.monthlyCaseload.find(m => m.month === month);
+    const utilization = monthData && monthData.capacity > 0 ? Math.round((monthData.activeClients / monthData.capacity) * 100) : 0;
+
+    return {
+      rows,
+      summary: { active: activeCount, atRisk: atRiskCount, utilization },
+      summaryLabel: `${rows.length} clients · ${utilization}% utilization`,
+    };
+  }, [clinicianClients, caseloadData]);
+
+  // ==========================================================================
+  // CHURNED CLIENTS HELPERS (Post-MVP)
+  // ==========================================================================
+
+  // Churned table columns
+  const churnedTableColumns: DataTableColumn[] = useMemo(() => [
+    { key: 'lastSession', header: 'Last Session', align: 'left', sortable: true },
+    { key: 'totalSessions', header: 'Total Sessions', align: 'right', sortable: true, format: (v) => String(v) },
+    { key: 'tenure', header: 'Duration', align: 'right', sortable: true },
+  ], []);
+
+  // Get churned clients for a specific month
+  const getChurnedClientData = useCallback((month: string): { rows: ClientBreakdownRow[]; summary: Record<string, string | number>; summaryLabel: string } => {
+    // Generate churned client data based on monthly churn numbers
+    const monthData = caseloadData?.monthlyCaseload.find(m => m.month === month);
+    const churnCount = monthData?.churned || 0;
+
+    // Create mock churned clients for this month
+    const churnedNames = [
+      'Alex Thompson', 'Jordan Mitchell', 'Casey Williams', 'Morgan Davis', 'Riley Johnson',
+      'Taylor Brown', 'Quinn Anderson', 'Avery Martinez', 'Cameron Wilson', 'Drew Taylor'
+    ];
+
+    const rows: ClientBreakdownRow[] = Array.from({ length: churnCount }, (_, i) => ({
+      id: `churned-${month}-${i}`,
+      name: churnedNames[i % churnedNames.length],
+      values: {
+        lastSession: `${month} ${10 + i * 5}`,
+        totalSessions: Math.floor(Math.random() * 20) + 3,
+        tenure: `${Math.floor(Math.random() * 12) + 1} months`,
+      },
+      status: 'error' as const,
+    }));
+
+    return {
+      rows,
+      summary: { churned: churnCount },
+      summaryLabel: `${churnCount} clients churned in ${month}`,
+    };
+  }, [caseloadData]);
+
+  // ==========================================================================
+  // SESSION FREQUENCY HELPERS (Post-MVP)
+  // ==========================================================================
+
+  // Frequency segment options for dropdown
+  const frequencySegmentOptions = useMemo(() => [
+    { value: 'weekly', label: 'Weekly (4+/mo)' },
+    { value: 'biweekly', label: 'Bi-weekly (2-3/mo)' },
+    { value: 'monthly', label: 'Monthly (1/mo)' },
+    { value: 'inconsistent', label: 'Inconsistent' },
+  ], []);
+
+  // Frequency table columns
+  const frequencyTableColumns: DataTableColumn[] = useMemo(() => [
+    { key: 'sessionsPerMonth', header: 'Sessions/Mo', align: 'right', sortable: true, format: (v) => String(v) },
+    { key: 'tenure', header: 'Duration', align: 'right', sortable: true },
+    { key: 'revenuePerMonth', header: 'Revenue/Mo', align: 'right', sortable: true, format: (v) => `$${Number(v).toLocaleString()}` },
+  ], []);
+
+  // Get frequency client data
+  const getFrequencyClientData = useCallback((frequency: string): { rows: ClientBreakdownRow[]; summary: Record<string, string | number>; summaryLabel: string } => {
+    const frequencyRanges: Record<string, [number, number]> = {
+      weekly: [4, Infinity],
+      biweekly: [2, 3.99],
+      monthly: [1, 1.99],
+      inconsistent: [0, 0.99],
+    };
+
+    const [min, max] = frequencyRanges[frequency] || [0, Infinity];
+
+    const rows: ClientBreakdownRow[] = clinicianClients
+      .filter(client => client.sessionsPerMonth >= min && client.sessionsPerMonth <= max)
+      .map(client => ({
+        id: client.id,
+        name: client.name,
+        values: {
+          sessionsPerMonth: client.sessionsPerMonth.toFixed(1),
+          tenure: client.tenure,
+          revenuePerMonth: client.sessionsPerMonth * 150, // Estimated revenue
+        },
+        status: frequency === 'weekly' ? 'success' as const :
+               frequency === 'inconsistent' ? 'warning' as const : undefined,
+      }))
+      .sort((a, b) => Number(b.values.sessionsPerMonth) - Number(a.values.sessionsPerMonth));
+
+    const totalRevenue = rows.reduce((sum, r) => sum + (r.values.revenuePerMonth as number), 0);
+    const segmentLabel = frequencySegmentOptions.find(o => o.value === frequency)?.label || frequency;
+
+    return {
+      rows,
+      summary: { clients: rows.length, totalRevenue },
+      summaryLabel: `${rows.length} ${segmentLabel.toLowerCase()} clients · $${totalRevenue.toLocaleString()}/mo`,
+    };
+  }, [clinicianClients, frequencySegmentOptions]);
+
   // Client movement insights
   const clientMovementInsights = useMemo(() => {
     if (!caseloadData) return [];
@@ -2204,6 +2709,209 @@ export const ClinicianDetailsTab: React.FC = () => {
 
   // Get demographics data for selected clinician
   const demographicsData = selectedClinician ? CLINICIAN_DEMOGRAPHICS[selectedClinician.id] : null;
+
+  // ==========================================================================
+  // CHURN TIMING HELPERS (Post-MVP)
+  // ==========================================================================
+
+  // Churn timing segment options
+  const churnTimingSegmentOptions = useMemo(() => [
+    { value: 'early', label: 'Early (<5 sessions)' },
+    { value: 'medium', label: 'Medium (5-15 sessions)' },
+    { value: 'late', label: 'Late (>15 sessions)' },
+  ], []);
+
+  // Churn timing table columns
+  const churnTimingTableColumns: DataTableColumn[] = useMemo(() => [
+    { key: 'totalSessions', header: 'Sessions', align: 'right', sortable: true, format: (v) => String(v) },
+    { key: 'duration', header: 'Duration', align: 'right', sortable: true },
+    { key: 'lastSeen', header: 'Last Seen', align: 'right', sortable: true },
+  ], []);
+
+  // Get churn timing client data
+  const getChurnTimingClientData = useCallback((stage: string): { rows: ClientBreakdownRow[]; summary: Record<string, string | number>; summaryLabel: string } => {
+    const stageCount = retentionData?.churnTiming?.[stage as keyof typeof retentionData.churnTiming] || 0;
+    const sessionRanges: Record<string, [number, number]> = {
+      early: [1, 4],
+      medium: [5, 15],
+      late: [16, 50],
+    };
+
+    const [min, max] = sessionRanges[stage] || [1, 50];
+    const churnedNames = [
+      'Sam Parker', 'Chris Lee', 'Jamie Chen', 'Pat Morgan', 'Kelly Adams',
+      'Robin Clark', 'Dana White', 'Jesse Brown', 'Blake Davis', 'Reese Miller'
+    ];
+
+    const rows: ClientBreakdownRow[] = Array.from({ length: stageCount }, (_, i) => {
+      const sessions = Math.floor(Math.random() * (max - min + 1)) + min;
+      const durationMonths = stage === 'early' ? Math.floor(Math.random() * 2) + 1 :
+                            stage === 'medium' ? Math.floor(Math.random() * 6) + 2 :
+                            Math.floor(Math.random() * 12) + 6;
+      return {
+        id: `churn-${stage}-${i}`,
+        name: churnedNames[i % churnedNames.length],
+        values: {
+          totalSessions: sessions,
+          duration: `${durationMonths} months`,
+          lastSeen: ['Oct 15', 'Nov 3', 'Nov 20', 'Dec 5', 'Dec 12'][i % 5],
+        },
+        status: stage === 'early' ? 'error' as const :
+               stage === 'medium' ? 'warning' as const : undefined,
+      };
+    });
+
+    const avgSessions = rows.length > 0
+      ? Math.round(rows.reduce((sum, r) => sum + (r.values.totalSessions as number), 0) / rows.length)
+      : 0;
+    const segmentLabel = churnTimingSegmentOptions.find(o => o.value === stage)?.label || stage;
+
+    return {
+      rows,
+      summary: { churned: stageCount, avgSessions },
+      summaryLabel: `${stageCount} ${segmentLabel.toLowerCase()} churners · Avg ${avgSessions} sessions`,
+    };
+  }, [retentionData, churnTimingSegmentOptions]);
+
+  // ==========================================================================
+  // OUTSTANDING NOTES HELPERS (Post-MVP)
+  // ==========================================================================
+
+  // Notes status options
+  const notesStatusOptions = useMemo(() => [
+    { value: 'overdue', label: 'Overdue' },
+    { value: 'due-soon', label: 'Due within 48h' },
+  ], []);
+
+  // Notes table columns
+  const notesTableColumns: DataTableColumn[] = useMemo(() => [
+    { key: 'sessionDate', header: 'Session Date', align: 'left', sortable: true },
+    { key: 'sessionType', header: 'Type', align: 'left', sortable: true },
+    { key: 'daysOverdue', header: 'Days Overdue', align: 'right', sortable: true, format: (v) => `${v}d` },
+  ], []);
+
+  // Get notes data by status
+  const getNotesClientData = useCallback((status: string): { rows: ClientBreakdownRow[]; summary: Record<string, string | number>; summaryLabel: string } => {
+    if (status === 'overdue') {
+      const rows: ClientBreakdownRow[] = (complianceData?.overdueNotesList || []).map(note => ({
+        id: note.id,
+        name: note.clientName,
+        values: {
+          sessionDate: note.sessionDate,
+          sessionType: note.sessionType,
+          daysOverdue: note.daysOverdue,
+        },
+        status: note.daysOverdue >= 7 ? 'error' as const : 'warning' as const,
+      }));
+
+      return {
+        rows,
+        summary: { count: rows.length },
+        summaryLabel: `${rows.length} overdue notes`,
+      };
+    } else {
+      // Due soon - generate mock data based on dueWithin48h count
+      const dueCount = complianceData?.dueWithin48h || 0;
+      const clientNames = ['Alex Kim', 'Jordan Lee', 'Taylor Chen', 'Morgan Wu', 'Casey Park'];
+
+      const rows: ClientBreakdownRow[] = Array.from({ length: dueCount }, (_, i) => ({
+        id: `due-${i}`,
+        name: clientNames[i % clientNames.length],
+        values: {
+          sessionDate: ['Dec 10', 'Dec 10', 'Dec 11', 'Dec 11', 'Dec 11'][i % 5],
+          sessionType: ['Individual', 'Couples', 'Individual'][i % 3],
+          daysOverdue: 0,
+        },
+        status: 'warning' as const,
+      }));
+
+      return {
+        rows,
+        summary: { count: rows.length },
+        summaryLabel: `${rows.length} notes due within 48h`,
+      };
+    }
+  }, [complianceData]);
+
+  // ==========================================================================
+  // RETURN RATE HELPERS (Post-MVP)
+  // ==========================================================================
+
+  // Return rate milestone options
+  const returnRateMilestoneOptions = useMemo(() => [
+    { value: 'mo3', label: '3 Month' },
+    { value: 'mo6', label: '6 Month' },
+    { value: 'mo9', label: '9 Month' },
+    { value: 'mo12', label: '12 Month' },
+  ], []);
+
+  // Return rate table columns
+  const returnRateTableColumns: DataTableColumn[] = useMemo(() => [
+    { key: 'startDate', header: 'Started', align: 'left', sortable: true },
+    { key: 'totalSessions', header: 'Sessions', align: 'right', sortable: true, format: (v) => String(v) },
+    { key: 'stillActive', header: 'Status', align: 'right', sortable: true },
+  ], []);
+
+  // Get return rate data for a milestone
+  const getReturnRateClientData = useCallback((milestone: string): { rows: ClientBreakdownRow[]; summary: Record<string, string | number>; summaryLabel: string } => {
+    const milestoneRates: Record<string, number> = {
+      mo3: retentionData?.month3ReturnRate || 0,
+      mo6: retentionData?.month6ReturnRate || 0,
+      mo9: retentionData?.month9ReturnRate || 0,
+      mo12: retentionData?.oneYearReturnRate || 0,
+    };
+
+    const rate = milestoneRates[milestone] || 0;
+    const totalClients = clinicianClients.length;
+    const activeCount = Math.round((rate / 100) * totalClients);
+    const churnedCount = totalClients - activeCount;
+
+    // Show a mix of active and churned clients
+    const clientNames = [
+      'Emma Wilson', 'Liam Johnson', 'Olivia Brown', 'Noah Davis', 'Ava Miller',
+      'Sophia Anderson', 'Jackson Taylor', 'Isabella Thomas', 'Lucas Garcia', 'Mia Martinez'
+    ];
+
+    const rows: ClientBreakdownRow[] = [
+      ...Array.from({ length: Math.min(activeCount, 5) }, (_, i) => ({
+        id: `active-${milestone}-${i}`,
+        name: clientNames[i],
+        values: {
+          startDate: ['Jul 2023', 'Aug 2023', 'Sep 2023', 'Oct 2023', 'Nov 2023'][i],
+          totalSessions: Math.floor(Math.random() * 30) + 10,
+          stillActive: 'Active',
+        },
+        status: 'success' as const,
+      })),
+      ...Array.from({ length: Math.min(churnedCount, 3) }, (_, i) => ({
+        id: `churned-${milestone}-${i}`,
+        name: clientNames[5 + i],
+        values: {
+          startDate: ['Jul 2023', 'Aug 2023', 'Sep 2023'][i],
+          totalSessions: Math.floor(Math.random() * 15) + 3,
+          stillActive: 'Churned',
+        },
+        status: 'error' as const,
+      })),
+    ];
+
+    const practiceRates: Record<string, number> = {
+      mo3: retentionData?.practiceAvgMonth3Return || 0,
+      mo6: retentionData?.practiceAvgMonth6Return || 0,
+      mo9: retentionData?.practiceAvgMonth9Return || 0,
+      mo12: retentionData?.practiceAvgOneYearReturn || 0,
+    };
+
+    const practiceRate = practiceRates[milestone] || 0;
+    const diff = rate - practiceRate;
+    const milestoneLabel = returnRateMilestoneOptions.find(o => o.value === milestone)?.label || milestone;
+
+    return {
+      rows,
+      summary: { rate, practiceRate, diff },
+      summaryLabel: `${rate}% retention at ${milestoneLabel} (${diff >= 0 ? '+' : ''}${diff}% vs practice)`,
+    };
+  }, [retentionData, clinicianClients, returnRateMilestoneOptions]);
 
   // Calculate churn timing totals for donut chart
   const churnTimingTotals = useMemo(() => {
@@ -3317,13 +4025,45 @@ export const ClinicianDetailsTab: React.FC = () => {
                 )}
               </ChartCard>
 
-              {/* Client Roster */}
-              <ClientRosterCard
-                title="Client Roster"
-                subtitle={`${selectedClinician.name.split(' ')[0]}'s ${clinicianClients.length} current active clients`}
-                clients={clinicianClients}
-                onExpand={() => setExpandedCard('client-roster')}
-              />
+              {/* New and Churned Clients */}
+              <ChartCard
+                title="New and Churned Clients"
+                subtitle={`${selectedClinician.name.split(' ')[0]}'s client movement each month`}
+                headerControls={
+                  <div className="flex items-center gap-6 bg-stone-50 rounded-xl px-5 py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-4 h-4 rounded-md" style={{ background: 'linear-gradient(180deg, #34d399 0%, #10b981 100%)' }} />
+                      <span className="text-stone-700 text-sm font-semibold">New Clients</span>
+                    </div>
+                    <div className="w-px h-5 bg-stone-200" />
+                    <div className="flex items-center gap-3">
+                      <div className="w-4 h-4 rounded-md" style={{ background: 'linear-gradient(180deg, #fb7185 0%, #f43f5e 100%)' }} />
+                      <span className="text-stone-700 text-sm font-semibold">Churned</span>
+                    </div>
+                  </div>
+                }
+                insights={clientMovementInsights}
+                minHeight="420px"
+              >
+                <DivergingBarChart
+                  data={clientMovementData}
+                  positiveConfig={{
+                    label: 'New Clients',
+                    color: '#34d399',
+                    colorEnd: '#10b981',
+                  }}
+                  negativeConfig={{
+                    label: 'Churned',
+                    color: '#fb7185',
+                    colorEnd: '#f43f5e',
+                  }}
+                  height="100%"
+                  yDomain={[
+                    -(Math.max(...clientMovementData.map(d => d.negative), 1) + 2),
+                    Math.max(...clientMovementData.map(d => d.positive), 1) + 2
+                  ]}
+                />
+              </ChartCard>
 
               {/* Client Session Frequency */}
               <DonutChartCard
@@ -3474,7 +4214,7 @@ export const ClinicianDetailsTab: React.FC = () => {
           {/* ---------------------------------------------------------
               SECTION 5: Client Acquisition
               --------------------------------------------------------- */}
-          {isSpotlightMode && selectedClinician && acquisitionData && (
+          {isSpotlightMode && selectedClinician && acquisitionData && settings.showConsultationMetrics && (
           <SectionContainer accent="cyan" index={4}>
             <SectionHeader
               number={5}
@@ -3713,229 +4453,324 @@ export const ClinicianDetailsTab: React.FC = () => {
           EXPANDED CHART MODALS
           ============================================ */}
 
-      {/* Monthly Revenue Expanded */}
+      {/* Monthly Revenue Expanded - Split View */}
       {selectedClinician && financialData && (
-        <ExpandedChartModal
+        <ExpandedChartView
           isOpen={expandedCard === 'monthly-revenue'}
           onClose={() => setExpandedCard(null)}
           title="Monthly Gross Revenue"
           subtitle={`How much ${selectedClinician.name.split(' ')[0]} is collecting each month`}
-        >
-          <BarChart
-            data={revenueBarData}
-            mode="single"
-            goal={{ value: financialData.revenueGoal }}
-            getBarColor={(value) =>
-              value >= financialData.revenueGoal
-                ? {
-                    gradient: 'linear-gradient(180deg, #34d399 0%, #059669 100%)',
-                    shadow: '0 4px 12px -2px rgba(16, 185, 129, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
-                    textColor: 'text-emerald-600',
-                  }
-                : {
-                    gradient: 'linear-gradient(180deg, #60a5fa 0%, #2563eb 100%)',
-                    shadow: '0 4px 12px -2px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
-                    textColor: 'text-blue-600',
-                  }
-            }
-            formatValue={formatCurrencyShort}
-            height="400px"
-            size="lg"
-          />
-        </ExpandedChartModal>
+          periodOptions={periodOptions}
+          initialPeriod="Dec"
+          tableColumns={revenueTableColumns}
+          getClientData={getRevenueClientData}
+          renderChart={({ onBarClick, selectedPeriod }) => (
+            <BarChart
+              data={revenueBarData.map((d, idx) => ({
+                ...d,
+                // Add visual selection state
+                _selected: d.label === selectedPeriod,
+              }))}
+              mode="single"
+              goal={{ value: financialData.revenueGoal }}
+              getBarColor={(value, index) => {
+                const isSelected = revenueBarData[index]?.label === selectedPeriod;
+                const meetsGoal = value >= financialData.revenueGoal;
+                return {
+                  gradient: meetsGoal
+                    ? 'linear-gradient(180deg, #34d399 0%, #059669 100%)'
+                    : 'linear-gradient(180deg, #60a5fa 0%, #2563eb 100%)',
+                  shadow: isSelected
+                    ? (meetsGoal
+                        ? '0 8px 24px -4px rgba(16, 185, 129, 0.5), 0 0 0 3px rgba(16, 185, 129, 0.2)'
+                        : '0 8px 24px -4px rgba(37, 99, 235, 0.5), 0 0 0 3px rgba(37, 99, 235, 0.2)')
+                    : (meetsGoal
+                        ? '0 4px 12px -2px rgba(16, 185, 129, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)'
+                        : '0 4px 12px -2px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)'),
+                  textColor: meetsGoal ? 'text-emerald-600' : 'text-blue-600',
+                };
+              }}
+              formatValue={formatCurrencyShort}
+              height="100%"
+              size="lg"
+              onBarClick={onBarClick}
+            />
+          )}
+        />
       )}
 
-      {/* Monthly Sessions Expanded */}
+      {/* Monthly Sessions Expanded - Split View */}
       {selectedClinician && sessionData && (
-        <ExpandedChartModal
+        <ExpandedChartView
           isOpen={expandedCard === 'monthly-sessions'}
           onClose={() => setExpandedCard(null)}
           title="Monthly Sessions"
-          subtitle={showWeeklyAvg ? `${selectedClinician.name.split(' ')[0]}'s average sessions per week` : `How many sessions ${selectedClinician.name.split(' ')[0]} completes each month`}
-        >
-          <BarChart
-            data={showWeeklyAvg ? sessionWeeklyBarData : sessionBarData}
-            mode="single"
-            goal={{ value: showWeeklyAvg ? weeklySessionGoal : monthlySessionGoal }}
-            getBarColor={(value) => {
-              const goal = showWeeklyAvg ? weeklySessionGoal : monthlySessionGoal;
-              return value >= goal
-                ? {
-                    gradient: 'linear-gradient(180deg, #34d399 0%, #059669 100%)',
-                    shadow: '0 4px 12px -2px rgba(16, 185, 129, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
-                    textColor: 'text-emerald-600',
-                  }
-                : {
-                    gradient: 'linear-gradient(180deg, #60a5fa 0%, #2563eb 100%)',
-                    shadow: '0 4px 12px -2px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
-                    textColor: 'text-blue-600',
-                  };
-            }}
-            formatValue={(v) => v.toString()}
-            height="400px"
-            size="lg"
-          />
-        </ExpandedChartModal>
+          subtitle={`How many sessions ${selectedClinician.name.split(' ')[0]} completes each month`}
+          periodOptions={periodOptions}
+          initialPeriod="Dec"
+          tableColumns={sessionsTableColumns}
+          getClientData={getSessionsClientData}
+          renderChart={({ onBarClick, selectedPeriod }) => (
+            <BarChart
+              data={sessionBarData}
+              mode="single"
+              goal={{ value: monthlySessionGoal }}
+              onBarClick={onBarClick}
+              getBarColor={(value, index) => {
+                const isSelected = sessionBarData[index]?.label === selectedPeriod;
+                const meetsGoal = value >= monthlySessionGoal;
+                return {
+                  gradient: meetsGoal
+                    ? 'linear-gradient(180deg, #34d399 0%, #059669 100%)'
+                    : 'linear-gradient(180deg, #60a5fa 0%, #2563eb 100%)',
+                  shadow: isSelected
+                    ? (meetsGoal
+                        ? '0 8px 24px -4px rgba(16, 185, 129, 0.5), 0 0 0 3px rgba(16, 185, 129, 0.2)'
+                        : '0 8px 24px -4px rgba(37, 99, 235, 0.5), 0 0 0 3px rgba(37, 99, 235, 0.2)')
+                    : (meetsGoal
+                        ? '0 4px 12px -2px rgba(16, 185, 129, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)'
+                        : '0 4px 12px -2px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)'),
+                  textColor: meetsGoal ? 'text-emerald-600' : 'text-blue-600',
+                };
+              }}
+              formatValue={(v) => v.toString()}
+              height="100%"
+              size="lg"
+            />
+          )}
+        />
       )}
 
-      {/* Attendance Breakdown Expanded */}
+      {/* Attendance Breakdown Expanded - Split View */}
       {selectedClinician && sessionData && (
-        <ExpandedChartModal
+        <ExpandedChartView
           isOpen={expandedCard === 'attendance-breakdown'}
           onClose={() => setExpandedCard(null)}
           title="Attendance Breakdown"
           subtitle={`What happens to ${selectedClinician.name.split(' ')[0]}'s booked sessions`}
-        >
-          <DonutChartCard
-            title=""
-            segments={attendanceSegments}
-            centerLabel="Show Rate"
-            centerValue={`${showRate.toFixed(1)}%`}
-            centerValueColor={showRate >= 87.5 ? 'text-emerald-600' : 'text-rose-600'}
-            valueFormat="number"
-            size="lg"
-          />
-        </ExpandedChartModal>
+          periodOptions={attendanceSegmentOptions}
+          initialPeriod="attended"
+          tableColumns={attendanceTableColumns}
+          getClientData={getAttendanceClientData}
+          renderChart={({ onBarClick, selectedPeriod }) => (
+            <DonutChartCard
+              title=""
+              segments={attendanceSegments}
+              centerLabel="Show Rate"
+              centerValue={`${showRate.toFixed(1)}%`}
+              centerValueColor={showRate >= 87.5 ? 'text-emerald-600' : 'text-rose-600'}
+              valueFormat="number"
+              size="lg"
+              onSegmentClick={(segment) => {
+                // Map segment labels to period values
+                const labelToValue: Record<string, string> = {
+                  'Attended': 'attended',
+                  'Client Cancelled': 'client-cancelled',
+                  'Clinician Cancelled': 'clinician-cancelled',
+                  'Late Cancelled': 'late-cancel',
+                  'No Show': 'no-show',
+                };
+                const periodValue = labelToValue[segment.label] || segment.label.toLowerCase();
+                onBarClick(periodValue);
+              }}
+            />
+          )}
+        />
       )}
 
-      {/* Cancellation Breakdown Expanded */}
+      {/* Cancellation Breakdown Expanded - Split View */}
       {selectedClinician && sessionData && (
-        <ExpandedChartModal
+        <ExpandedChartView
           isOpen={expandedCard === 'cancellation-breakdown'}
           onClose={() => setExpandedCard(null)}
           title="Cancellation Breakdown"
           subtitle={`Who's cancelling ${selectedClinician.name.split(' ')[0]}'s sessions`}
-          headerControls={
+          periodOptions={periodOptions}
+          initialPeriod="Dec"
+          tableColumns={cancellationsTableColumns}
+          getClientData={getCancellationsClientData}
+          legend={
             <div className="flex items-center gap-6 bg-stone-50 rounded-xl px-5 py-3">
               <div className="flex items-center gap-3">
-                <div className="w-5 h-5 rounded-md" style={{ background: 'linear-gradient(180deg, #fca5a5 0%, #dc2626 100%)' }} />
-                <span className="text-stone-700 text-base font-semibold">Client</span>
+                <div className="w-4 h-4 rounded-md" style={{ background: 'linear-gradient(180deg, #fca5a5 0%, #dc2626 100%)' }} />
+                <span className="text-stone-700 text-sm font-semibold">Client</span>
               </div>
-              <div className="w-px h-6 bg-stone-200" />
+              <div className="w-px h-5 bg-stone-200" />
               <div className="flex items-center gap-3">
-                <div className="w-5 h-5 rounded-md" style={{ background: 'linear-gradient(180deg, #93c5fd 0%, #2563eb 100%)' }} />
-                <span className="text-stone-700 text-base font-semibold">Clinician</span>
+                <div className="w-4 h-4 rounded-md" style={{ background: 'linear-gradient(180deg, #93c5fd 0%, #2563eb 100%)' }} />
+                <span className="text-stone-700 text-sm font-semibold">Clinician</span>
               </div>
             </div>
           }
-          insights={cancellationBreakdownInsights}
-        >
-          <BarChart
-            data={cancellationBreakdownBarData}
-            mode="stacked"
-            segments={cancellationBreakdownSegments as SegmentConfig[]}
-            stackOrder={cancellationBreakdownStackOrder}
-            formatValue={(v) => Math.round(v).toString()}
-            height="100%"
-            size="lg"
-          />
-        </ExpandedChartModal>
+          renderChart={({ onBarClick, selectedPeriod }) => (
+            <BarChart
+              data={cancellationBreakdownBarData}
+              mode="stacked"
+              segments={cancellationBreakdownSegments as SegmentConfig[]}
+              stackOrder={cancellationBreakdownStackOrder}
+              formatValue={(v) => Math.round(v).toString()}
+              height="100%"
+              size="lg"
+              onBarClick={onBarClick}
+            />
+          )}
+        />
       )}
 
-      {/* No-Show & Late Cancellations Expanded */}
+      {/* No-Show & Late Cancellations Expanded - Split View */}
       {selectedClinician && sessionData && (
-        <ExpandedChartModal
+        <ExpandedChartView
           isOpen={expandedCard === 'noshow-late'}
           onClose={() => setExpandedCard(null)}
           title="Late Cancels & No-Shows"
           subtitle={`Lost sessions that can't be recovered`}
-          headerControls={
+          periodOptions={periodOptions}
+          initialPeriod="Dec"
+          tableColumns={noShowTableColumns}
+          getClientData={getNoShowClientData}
+          legend={
             <div className="flex items-center gap-6 bg-stone-50 rounded-xl px-5 py-3">
               <div className="flex items-center gap-3">
-                <div className="w-5 h-5 rounded-md" style={{ background: 'linear-gradient(180deg, #fcd34d 0%, #d97706 100%)' }} />
-                <span className="text-stone-700 text-base font-semibold">Late Cancel</span>
+                <div className="w-4 h-4 rounded-md" style={{ background: 'linear-gradient(180deg, #fcd34d 0%, #d97706 100%)' }} />
+                <span className="text-stone-700 text-sm font-semibold">Late Cancel</span>
               </div>
-              <div className="w-px h-6 bg-stone-200" />
+              <div className="w-px h-5 bg-stone-200" />
               <div className="flex items-center gap-3">
-                <div className="w-5 h-5 rounded-md" style={{ background: 'linear-gradient(180deg, #94a3b8 0%, #475569 100%)' }} />
-                <span className="text-stone-700 text-base font-semibold">No-Show</span>
+                <div className="w-4 h-4 rounded-md" style={{ background: 'linear-gradient(180deg, #94a3b8 0%, #475569 100%)' }} />
+                <span className="text-stone-700 text-sm font-semibold">No-Show</span>
               </div>
             </div>
           }
-          insights={noShowLateInsights}
-        >
-          <BarChart
-            data={noShowLateBarData}
-            mode="stacked"
-            segments={noShowLateSegments as SegmentConfig[]}
-            stackOrder={noShowLateStackOrder}
-            formatValue={(v) => Math.round(v).toString()}
-            height="100%"
-            size="lg"
-          />
-        </ExpandedChartModal>
+          renderChart={({ onBarClick, selectedPeriod }) => (
+            <BarChart
+              data={noShowLateBarData}
+              mode="stacked"
+              segments={noShowLateSegments as SegmentConfig[]}
+              stackOrder={noShowLateStackOrder}
+              formatValue={(v) => Math.round(v).toString()}
+              height="100%"
+              size="lg"
+              onBarClick={onBarClick}
+            />
+          )}
+        />
       )}
 
-      {/* Caseload Capacity Expanded */}
+      {/* Caseload Capacity Expanded - Split View */}
       {selectedClinician && caseloadData && (
-        <ExpandedChartModal
+        <ExpandedChartView
           isOpen={expandedCard === 'caseload-capacity'}
           onClose={() => setExpandedCard(null)}
           title="Active Clients & Caseload Capacity"
           subtitle={`How full ${selectedClinician.name.split(' ')[0]}'s caseload is each month`}
-        >
-          {showCapacityPercentage ? (
-            <BarChart
-              data={capacityPercentageBarData}
-              mode="single"
-              getBarColor={(value) => ({
-                gradient: value >= 90
-                  ? 'linear-gradient(180deg, #34d399 0%, #059669 100%)'
-                  : value >= 75
-                    ? 'linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%)'
-                    : 'linear-gradient(180deg, #fb7185 0%, #f43f5e 100%)',
-                shadow: value >= 90
-                  ? '0 4px 12px -2px rgba(16, 185, 129, 0.35)'
-                  : value >= 75
-                    ? '0 4px 12px -2px rgba(245, 158, 11, 0.35)'
-                    : '0 4px 12px -2px rgba(244, 63, 94, 0.35)',
-                textColor: value >= 90
-                  ? 'text-emerald-600'
-                  : value >= 75
-                    ? 'text-amber-600'
-                    : 'text-rose-600',
-              })}
-              formatValue={(v) => `${v}%`}
-              maxValue={100}
-              height="400px"
-              size="lg"
-            />
-          ) : (
-            <BarChart
-              data={activeClientsBarData}
-              mode="single"
-              goal={{ value: currentCapacity }}
-              getBarColor={() => ({
-                gradient: 'linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%)',
-                shadow: '0 4px 12px -2px rgba(245, 158, 11, 0.35)',
-                textColor: 'text-amber-600',
-              })}
-              formatValue={(v) => v.toString()}
-              height="400px"
-              size="lg"
-            />
+          periodOptions={periodOptions}
+          initialPeriod="Dec"
+          tableColumns={caseloadTableColumns}
+          getClientData={getCaseloadClientData}
+          legend={
+            <div className="flex items-center gap-4 bg-stone-50 rounded-xl px-4 py-2.5">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                <span className="text-stone-600 text-xs font-medium">Active</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-amber-500" />
+                <span className="text-stone-600 text-xs font-medium">At Risk</span>
+              </div>
+            </div>
+          }
+          renderChart={({ onBarClick, selectedPeriod }) => (
+            showCapacityPercentage ? (
+              <BarChart
+                data={capacityPercentageBarData}
+                mode="single"
+                getBarColor={(value, index) => {
+                  const isSelected = capacityPercentageBarData[index]?.label === selectedPeriod;
+                  return {
+                    gradient: value >= 90
+                      ? 'linear-gradient(180deg, #34d399 0%, #059669 100%)'
+                      : value >= 75
+                        ? 'linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%)'
+                        : 'linear-gradient(180deg, #fb7185 0%, #f43f5e 100%)',
+                    shadow: isSelected
+                      ? '0 8px 24px -4px rgba(0, 0, 0, 0.3), 0 0 0 3px rgba(251, 191, 36, 0.3)'
+                      : (value >= 90
+                        ? '0 4px 12px -2px rgba(16, 185, 129, 0.35)'
+                        : value >= 75
+                          ? '0 4px 12px -2px rgba(245, 158, 11, 0.35)'
+                          : '0 4px 12px -2px rgba(244, 63, 94, 0.35)'),
+                    textColor: value >= 90
+                      ? 'text-emerald-600'
+                      : value >= 75
+                        ? 'text-amber-600'
+                        : 'text-rose-600',
+                  };
+                }}
+                formatValue={(v) => `${v}%`}
+                maxValue={100}
+                height="100%"
+                size="lg"
+                onBarClick={onBarClick}
+              />
+            ) : (
+              <BarChart
+                data={activeClientsBarData}
+                mode="single"
+                goal={{ value: currentCapacity }}
+                getBarColor={(value, index) => {
+                  const isSelected = activeClientsBarData[index]?.label === selectedPeriod;
+                  return {
+                    gradient: 'linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%)',
+                    shadow: isSelected
+                      ? '0 8px 24px -4px rgba(245, 158, 11, 0.5), 0 0 0 3px rgba(245, 158, 11, 0.2)'
+                      : '0 4px 12px -2px rgba(245, 158, 11, 0.35)',
+                    textColor: 'text-amber-600',
+                  };
+                }}
+                formatValue={(v) => v.toString()}
+                height="100%"
+                size="lg"
+                onBarClick={onBarClick}
+              />
+            )
           )}
-        </ExpandedChartModal>
+        />
       )}
 
-      {/* Session Frequency Expanded */}
+      {/* Session Frequency Expanded - Split View */}
       {selectedClinician && caseloadData && (
-        <ExpandedChartModal
+        <ExpandedChartView
           isOpen={expandedCard === 'session-frequency'}
           onClose={() => setExpandedCard(null)}
           title="Client Session Frequency"
           subtitle={`How often ${selectedClinician.name.split(' ')[0]}'s clients come in`}
-        >
-          <DonutChartCard
-            title=""
-            segments={sessionFrequencySegments}
-            centerLabel="Active"
-            centerValue={totalSessionFrequencyClients.toString()}
-            centerValueColor={weeklyEngagementPercent >= 50 ? 'text-emerald-600' : 'text-amber-600'}
-            valueFormat="number"
-            size="lg"
-          />
-        </ExpandedChartModal>
+          periodOptions={frequencySegmentOptions}
+          initialPeriod="weekly"
+          tableColumns={frequencyTableColumns}
+          getClientData={getFrequencyClientData}
+          renderChart={({ onBarClick, selectedPeriod }) => (
+            <DonutChartCard
+              title=""
+              segments={sessionFrequencySegments}
+              centerLabel="Active"
+              centerValue={totalSessionFrequencyClients.toString()}
+              centerValueColor={weeklyEngagementPercent >= 50 ? 'text-emerald-600' : 'text-amber-600'}
+              valueFormat="number"
+              size="lg"
+              onSegmentClick={(segment) => {
+                // Map segment labels to period values
+                const labelToValue: Record<string, string> = {
+                  'Weekly': 'weekly',
+                  'Bi-weekly': 'biweekly',
+                  'Monthly': 'monthly',
+                  'Inconsistent': 'inconsistent',
+                };
+                const periodValue = labelToValue[segment.label] || segment.label.toLowerCase();
+                onBarClick(periodValue);
+              }}
+            />
+          )}
+        />
       )}
 
       {/* Client Roster Expanded */}
@@ -3954,112 +4789,162 @@ export const ClinicianDetailsTab: React.FC = () => {
         </ExpandedChartModal>
       )}
 
-      {/* Client Movement Expanded */}
+      {/* Churned Clients Expanded - Split View */}
       {selectedClinician && caseloadData && (
-        <ExpandedChartModal
+        <ExpandedChartView
           isOpen={expandedCard === 'client-movement'}
           onClose={() => setExpandedCard(null)}
           title="Churned Clients Per Month"
           subtitle={`How many clients ${selectedClinician.name.split(' ')[0]} is losing each month`}
-        >
-          <DivergingBarChart
-            data={churnedClientsData}
-            positiveConfig={{
-              label: '',
-              color: 'transparent',
-              colorEnd: 'transparent',
-            }}
-            negativeConfig={{
-              label: 'Churned',
-              color: '#fb7185',
-              colorEnd: '#f43f5e',
-            }}
-            height="400px"
-            yDomain={[-(Math.max(...churnedClientsData.map(d => d.negative)) + 3), 1]}
-            formatNegativeLabel={(value) => Math.abs(value).toString()}
-          />
-        </ExpandedChartModal>
+          periodOptions={periodOptions}
+          initialPeriod="Dec"
+          tableColumns={churnedTableColumns}
+          getClientData={getChurnedClientData}
+          renderChart={({ onBarClick, selectedPeriod }) => (
+            <DivergingBarChart
+              data={churnedClientsData}
+              positiveConfig={{
+                label: '',
+                color: 'transparent',
+                colorEnd: 'transparent',
+              }}
+              negativeConfig={{
+                label: 'Churned',
+                color: '#fb7185',
+                colorEnd: '#f43f5e',
+              }}
+              height="100%"
+              yDomain={[-(Math.max(...churnedClientsData.map(d => d.negative)) + 3), 1]}
+              formatNegativeLabel={(value) => Math.abs(value).toString()}
+            />
+          )}
+        />
       )}
 
-      {/* Churn Timing Expanded */}
-      {selectedClinician && caseloadData && (
-        <ExpandedChartModal
+      {/* Churn Timing Expanded - Split View */}
+      {selectedClinician && retentionData && (
+        <ExpandedChartView
           isOpen={expandedCard === 'churn-timing'}
           onClose={() => setExpandedCard(null)}
           title="Churn Timing"
           subtitle={`How far ${selectedClinician.name.split(' ')[0]}'s clients get before leaving`}
-        >
-          <DonutChartCard
-            title=""
-            segments={[
-              { label: 'Early (<5 sessions)', value: churnTimingTotals.early, color: '#ef4444' },
-              { label: 'Medium (5-15)', value: churnTimingTotals.medium, color: '#f59e0b' },
-              { label: 'Late (>15)', value: churnTimingTotals.late, color: '#10b981' },
-            ]}
-            centerLabel="Total Churned"
-            centerValue={churnTimingTotals.total.toString()}
-            valueFormat="number"
-            size="lg"
-          />
-        </ExpandedChartModal>
+          periodOptions={churnTimingSegmentOptions}
+          initialPeriod="early"
+          tableColumns={churnTimingTableColumns}
+          getClientData={getChurnTimingClientData}
+          renderChart={({ onBarClick, selectedPeriod }) => (
+            <DonutChartCard
+              title=""
+              segments={[
+                { label: 'Early (<5 sessions)', value: churnTimingTotals.early, color: '#ef4444' },
+                { label: 'Medium (5-15)', value: churnTimingTotals.medium, color: '#f59e0b' },
+                { label: 'Late (>15)', value: churnTimingTotals.late, color: '#10b981' },
+              ]}
+              centerLabel="Total Churned"
+              centerValue={churnTimingTotals.total.toString()}
+              valueFormat="number"
+              size="lg"
+              onSegmentClick={(segment) => {
+                // Map segment labels to period values
+                const labelToValue: Record<string, string> = {
+                  'Early (<5 sessions)': 'early',
+                  'Medium (5-15)': 'medium',
+                  'Late (>15)': 'late',
+                };
+                const periodValue = labelToValue[segment.label] || segment.label.toLowerCase();
+                onBarClick(periodValue);
+              }}
+            />
+          )}
+        />
       )}
 
-      {/* Return Rate Expanded */}
+      {/* Return Rate Expanded - Split View */}
       {selectedClinician && retentionData && (
-        <ExpandedChartModal
+        <ExpandedChartView
           isOpen={expandedCard === 'return-rate'}
           onClose={() => setExpandedCard(null)}
-          title="Return Rate"
+          title="Return Rate Milestones"
           subtitle={`% of clients still active at each milestone`}
-          legend={[
-            { label: selectedClinician.name.split(' ')[0], color: 'bg-blue-500', type: 'box' },
-            { label: 'Practice Avg', color: 'bg-stone-400', type: 'box' },
-            { label: 'Top Performer', color: 'bg-emerald-500', type: 'box' },
-          ]}
-        >
-          <LineChart
-            data={retentionCurveData}
-            xAxisKey="month"
-            lines={[
-              { dataKey: 'topPerformer', color: '#10b981', name: 'Top Performer' },
-              { dataKey: 'clinician', color: '#3b82f6', name: selectedClinician.name.split(' ')[0] },
-              { dataKey: 'practice', color: '#a8a29e', name: 'Practice Avg' },
-            ]}
-            yDomain={[0, 100]}
-            yTickFormatter={(v) => `${v}%`}
-            tooltipFormatter={(value, name) => [`${value}%`, name]}
-            height={400}
-          />
-        </ExpandedChartModal>
+          periodOptions={returnRateMilestoneOptions}
+          initialPeriod="mo6"
+          tableColumns={returnRateTableColumns}
+          getClientData={getReturnRateClientData}
+          legend={
+            <div className="flex items-center gap-4 bg-stone-50 rounded-xl px-4 py-2.5">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full" style={{ background: '#3b82f6' }} />
+                <span className="text-stone-600 text-xs font-medium">{selectedClinician.name.split(' ')[0]}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full" style={{ background: '#a8a29e' }} />
+                <span className="text-stone-600 text-xs font-medium">Practice Avg</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full" style={{ background: '#10b981' }} />
+                <span className="text-stone-600 text-xs font-medium">Top Performer</span>
+              </div>
+            </div>
+          }
+          renderChart={({ onBarClick, selectedPeriod }) => (
+            <LineChart
+              data={retentionCurveData}
+              xAxisKey="month"
+              lines={[
+                { dataKey: 'topPerformer', color: '#10b981', name: 'Top Performer' },
+                { dataKey: 'clinician', color: '#3b82f6', name: selectedClinician.name.split(' ')[0] },
+                { dataKey: 'practice', color: '#a8a29e', name: 'Practice Avg' },
+              ]}
+              yDomain={[0, 100]}
+              yTickFormatter={(v) => `${v}%`}
+              tooltipFormatter={(value, name) => [`${value}%`, name]}
+              height={400}
+            />
+          )}
+        />
       )}
 
-      {/* Outstanding Notes Expanded */}
+      {/* Outstanding Notes Expanded - Split View */}
       {selectedClinician && complianceData && (
-        <ExpandedChartModal
+        <ExpandedChartView
           isOpen={expandedCard === 'outstanding-notes'}
           onClose={() => setExpandedCard(null)}
           title="Outstanding Notes"
           subtitle={`How many notes ${selectedClinician.name.split(' ')[0]} needs to complete`}
-        >
-          <DonutChartCard
-            title=""
-            segments={[
-              { label: 'Overdue', value: complianceData.overdueNotes, color: '#ef4444' },
-              { label: 'Due within 48h', value: complianceData.dueWithin48h, color: '#f59e0b' },
-            ]}
-            centerLabel="Total"
-            centerValue={complianceData.outstandingNotes.toString()}
-            centerValueColor={
-              complianceData.overdueNotes === 0
-                ? 'text-emerald-600'
-                : complianceData.overdueNotes <= 3
-                  ? 'text-amber-600'
-                  : 'text-rose-600'
-            }
-            valueFormat="number"
-            size="lg"
-          />
-        </ExpandedChartModal>
+          periodOptions={notesStatusOptions}
+          initialPeriod="overdue"
+          tableColumns={notesTableColumns}
+          getClientData={getNotesClientData}
+          renderChart={({ onBarClick, selectedPeriod }) => (
+            <DonutChartCard
+              title=""
+              segments={[
+                { label: 'Overdue', value: complianceData.overdueNotes, color: '#ef4444' },
+                { label: 'Due within 48h', value: complianceData.dueWithin48h, color: '#f59e0b' },
+              ]}
+              centerLabel="Total"
+              centerValue={complianceData.outstandingNotes.toString()}
+              centerValueColor={
+                complianceData.overdueNotes === 0
+                  ? 'text-emerald-600'
+                  : complianceData.overdueNotes <= 3
+                    ? 'text-amber-600'
+                    : 'text-rose-600'
+              }
+              valueFormat="number"
+              size="lg"
+              onSegmentClick={(segment) => {
+                // Map segment labels to period values
+                const labelToValue: Record<string, string> = {
+                  'Overdue': 'overdue',
+                  'Due within 48h': 'due-soon',
+                };
+                const periodValue = labelToValue[segment.label] || segment.label.toLowerCase();
+                onBarClick(periodValue);
+              }}
+            />
+          )}
+        />
       )}
 
       {/* AI Insight Modal - Dark Editorial Design */}

@@ -127,6 +127,13 @@ export interface BarChartProps {
    */
   onHover?: (info: HoverInfo | null) => void;
 
+  /**
+   * Callback when a bar is clicked
+   * @param label - The label of the clicked bar (e.g., month)
+   * @param segment - Optional segment key (for stacked mode)
+   */
+  onBarClick?: (label: string, segment?: string) => void;
+
   /** Chart height (CSS value) */
   height?: string;
 
@@ -200,32 +207,32 @@ const SIZE_CONFIG = {
     stackedBarShadowScale: 1,
   },
   lg: {
-    // Value labels above bars - larger for expanded view
-    valueLabelClass: 'text-lg sm:text-xl font-bold mb-2',
+    // Value labels above bars - compact to fit many bars
+    valueLabelClass: 'text-sm font-bold mb-1',
     // Stacked bar total label
-    stackedTotalClass: 'text-lg sm:text-xl font-bold text-indigo-600',
+    stackedTotalClass: 'text-sm font-bold text-indigo-600',
     // Y-axis labels
-    yAxisClass: 'text-base sm:text-lg text-stone-600 font-semibold pr-6 py-2',
+    yAxisClass: 'text-sm text-stone-500 font-medium pr-3 py-1',
     // X-axis labels
-    xAxisClass: 'text-base sm:text-lg font-semibold',
-    xAxisCurrentClass: 'text-stone-900 bg-stone-900/5 px-4 py-1.5 rounded-full',
-    // Bar dimensions - wider for expanded view
-    singleBarMaxWidth: 'clamp(60px, 8vw, 120px)',
-    singleBarWidth: '70%',
-    stackedBarMaxWidth: 'clamp(50px, 7vw, 90px)',
-    stackedBarInnerWidth: '60px',
+    xAxisClass: 'text-xs font-medium',
+    xAxisCurrentClass: 'text-stone-900 bg-stone-100 px-2 py-0.5 rounded-md',
+    // Bar dimensions - narrower to fit 12 bars
+    singleBarMaxWidth: '56px',
+    singleBarWidth: '80%',
+    stackedBarMaxWidth: '48px',
+    stackedBarInnerWidth: '40px',
     // Container padding
-    chartPadding: 'px-4',
-    stackedChartPadding: 'px-6',
-    xAxisPadding: 'pl-16',
+    chartPadding: 'px-1',
+    stackedChartPadding: 'px-2',
+    xAxisPadding: 'pl-10',
     // Legend
-    legendDotSize: 'w-5 h-5',
-    legendTextClass: 'text-stone-600 text-lg font-medium',
+    legendDotSize: 'w-4 h-4',
+    legendTextClass: 'text-stone-600 text-sm font-medium',
     // Goal line
-    goalLineWidth: 'border-t-[3px]',
-    // Shadows - more prominent
-    singleBarShadowScale: 1.3,
-    stackedBarShadowScale: 1.2,
+    goalLineWidth: 'border-t-2',
+    // Shadows
+    singleBarShadowScale: 1,
+    stackedBarShadowScale: 1,
   },
 } as const;
 
@@ -285,6 +292,7 @@ export const BarChart: React.FC<BarChartProps> = ({
   yAxisLabels,
   formatValue = DEFAULT_FORMAT_VALUE,
   onHover,
+  onBarClick,
   height = '320px',
   showLegend = false,
   legendPosition = 'bottom',
@@ -373,17 +381,16 @@ export const BarChart: React.FC<BarChartProps> = ({
         return (
           <div
             key={item.label}
-            className="group relative flex flex-col items-center justify-end h-full"
+            className="group relative flex flex-col items-center justify-end h-full min-w-0"
             style={{ flex: '1', maxWidth: sizeConfig.singleBarMaxWidth }}
           >
             <div className="flex items-end w-full justify-center h-full">
               <div
-                className="relative flex flex-col items-center justify-end h-full"
-                style={{ width: sizeConfig.singleBarWidth }}
+                className="relative flex flex-col items-center justify-end h-full w-full"
               >
                 {/* Value label */}
                 <span
-                  className={`${sizeConfig.valueLabelClass} ${colorConfig.textColor}`}
+                  className={`${sizeConfig.valueLabelClass} ${colorConfig.textColor} whitespace-nowrap`}
                   style={{
                     opacity: isAnimated ? 1 : 0,
                     transform: isAnimated ? 'translateY(0)' : 'translateY(8px)',
@@ -394,12 +401,13 @@ export const BarChart: React.FC<BarChartProps> = ({
                 </span>
                 {/* Bar */}
                 <div
-                  className={`w-full rounded-t-xl cursor-pointer relative overflow-hidden ${
+                  className={`rounded-t-lg cursor-pointer relative overflow-hidden ${
                     isCurrentItem
-                      ? 'ring-2 ring-offset-2 ring-current/40'
+                      ? 'ring-2 ring-offset-1 ring-current/30'
                       : 'hover:brightness-110'
                   }`}
                   style={{
+                    width: sizeConfig.singleBarWidth,
                     height: `${heightPercent}%`,
                     background: colorConfig.gradient,
                     boxShadow: colorConfig.shadow,
@@ -407,6 +415,7 @@ export const BarChart: React.FC<BarChartProps> = ({
                     transformOrigin: 'bottom',
                     transition: 'transform 800ms cubic-bezier(0.22, 1, 0.36, 1)',
                   }}
+                  onClick={() => onBarClick?.(item.label)}
                 >
                   {/* Shine effect */}
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -490,6 +499,7 @@ export const BarChart: React.FC<BarChartProps> = ({
                       })
                     }
                     onMouseLeave={() => onHover?.(null)}
+                    onClick={() => onBarClick?.(item.label, segmentKey)}
                   />
                 );
               })}
@@ -505,17 +515,17 @@ export const BarChart: React.FC<BarChartProps> = ({
   // ---------------------------------------------------------------------------
 
   return (
-    <div className={`flex flex-col ${className}`} style={{ height }}>
-      <div className="flex flex-1 min-h-0">
+    <div className={`flex flex-col w-full ${className}`} style={{ height }}>
+      <div className="flex flex-1 min-h-0 w-full">
         {/* Y-axis labels */}
-        <div className={`flex flex-col justify-between ${sizeConfig.yAxisClass}`}>
+        <div className={`flex flex-col justify-between flex-shrink-0 ${sizeConfig.yAxisClass}`}>
           {yLabels.map((label, idx) => (
-            <span key={idx}>{label}</span>
+            <span key={idx} className="whitespace-nowrap">{label}</span>
           ))}
         </div>
 
         {/* Chart area */}
-        <div className="flex-1 relative">
+        <div className="flex-1 relative min-w-0">
           {/* Background grid lines */}
           <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
             {yLabels.map((_, i) => (
@@ -567,22 +577,22 @@ export const BarChart: React.FC<BarChartProps> = ({
       </div>
 
       {/* X-axis labels */}
-      <div className={`flex mt-4 ${sizeConfig.xAxisPadding} flex-shrink-0`}>
-        <div className={`flex-1 flex justify-around ${sizeConfig.chartPadding}`}>
+      <div className={`flex mt-3 ${sizeConfig.xAxisPadding} flex-shrink-0 w-full`}>
+        <div className={`flex-1 flex justify-around ${sizeConfig.chartPadding} min-w-0`}>
           {data.map((item, idx) => {
             const isCurrentItem = idx === data.length - 1;
             return (
               <div
                 key={item.label}
-                className="text-center"
-                style={{ flex: '1', maxWidth: sizeConfig.singleBarMaxWidth }}
+                className="text-center flex-1 min-w-0"
+                style={{ maxWidth: sizeConfig.singleBarMaxWidth }}
               >
                 <span
                   className={`${sizeConfig.xAxisClass} ${
                     isCurrentItem
                       ? sizeConfig.xAxisCurrentClass
-                      : 'text-stone-600'
-                  }`}
+                      : 'text-stone-500'
+                  } truncate block`}
                 >
                   {item.label}
                 </span>
