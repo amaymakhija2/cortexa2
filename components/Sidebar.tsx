@@ -87,6 +87,7 @@ const NAV_ITEMS = [
     imageSize: 44,
     subItems: [
       { id: 'clients', label: 'Roster' },
+      { id: 'capacity-client', label: 'Capacity' },
       { id: 'consultations', label: 'Consults' },
       { id: 'financial', label: 'Financial' },
       { id: 'sessions', label: 'Sessions' },
@@ -441,6 +442,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const handleSubItemClick = useCallback((itemId: string) => {
     const newParams = new URLSearchParams(searchParams);
     newParams.set('tab', itemId);
+    // Clear clinician selection when clicking "Details" to go back to selector
+    if (itemId === 'details') {
+      newParams.delete('clinician');
+    }
     setSearchParams(newParams, { replace: true });
     setMobileMenuOpen?.(false);
   }, [searchParams, setSearchParams, setMobileMenuOpen]);

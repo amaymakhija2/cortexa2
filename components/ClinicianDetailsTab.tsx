@@ -1128,7 +1128,7 @@ const SmartDateInput: React.FC<SmartDateInputProps> = ({
 
 export const ClinicianDetailsTab: React.FC = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { settings, updateSettings } = useSettings();
   const { clinicianGoalHistory } = settings;
 
@@ -1150,9 +1150,12 @@ export const ClinicianDetailsTab: React.FC = () => {
   useEffect(() => {
     if (clinicianIdFromUrl) {
       const found = MOCK_CLINICIANS.find(c => c.id === parseInt(clinicianIdFromUrl));
-      if (found && (!selectedClinician || selectedClinician.id !== found.id)) {
+      if (found) {
         setSelectedClinician(found);
       }
+    } else {
+      // Clear selection when clinician param is removed (e.g., clicking "Details" in sidebar)
+      setSelectedClinician(null);
     }
   }, [clinicianIdFromUrl]);
 
@@ -1165,9 +1168,6 @@ export const ClinicianDetailsTab: React.FC = () => {
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const preSelectionSearchRef = useRef<HTMLInputElement>(null);
   const dropdownSearchRef = useRef<HTMLInputElement>(null);
-
-  // Animation state for clinician change
-  const [isTransitioning, setIsTransitioning] = useState(false);
 
   // Expanded chart modal state
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
@@ -1210,30 +1210,27 @@ export const ClinicianDetailsTab: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Handle clinician selection with transition
+  // Handle clinician selection - clean and immediate
+  // The PageHeader component handles its own collapse/expand animations internally
   const handleClinicianSelect = (clinician: typeof MOCK_CLINICIANS[0]) => {
+    // If clicking the already-selected clinician, just close the dropdown
     if (selectedClinician && clinician.id === selectedClinician.id) {
       setIsClinicianDropdownOpen(false);
       return;
     }
 
-    // If first selection, just set it directly with a slight delay for animation
-    if (!selectedClinician) {
-      setIsClinicianDropdownOpen(false);
-      setTimeout(() => {
-        setSelectedClinician(clinician);
-      }, 150);
-      return;
-    }
+    // Update URL with clinician param
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set('clinician', String(clinician.id));
+    setSearchParams(newParams, { replace: true });
 
-    // If switching clinicians, use transition animation
-    setIsTransitioning(true);
+    // Close dropdown and clear search
     setIsClinicianDropdownOpen(false);
-    setDropdownSearch(''); // Clear search on selection
-    setTimeout(() => {
-      setSelectedClinician(clinician);
-      setTimeout(() => setIsTransitioning(false), 50);
-    }, 200);
+    setDropdownSearch('');
+
+    // Set the selected clinician immediately
+    // React will batch this update and the PageHeader will animate smoothly
+    setSelectedClinician(clinician);
   };
 
   // Filter clinicians based on search query
@@ -2422,211 +2419,355 @@ export const ClinicianDetailsTab: React.FC = () => {
       <PageHeader
         accent="blue"
         showGridPattern
-        size="spotlight"
-        title="Clinician Details"
+        size="hero"
+        sticky={isSpotlightMode && !!selectedClinician}
+        collapsible={isSpotlightMode && !!selectedClinician}
+        collapseThreshold={80}
         glowColor={selectedClinician?.color}
-        heroContent={isSpotlightMode && selectedClinician && healthConfig ? (
-          <div className={`transition-all duration-300 ${isTransitioning ? 'opacity-0 transform translate-y-1' : 'opacity-100 transform translate-y-0'}`}>
-            <div className="flex items-center gap-4">
-              {/* Back Button */}
-              <button
-                onClick={() => {
-                  setSelectedClinician(null);
-                  setPreSelectionSearch('');
-                }}
-                className="group flex items-center justify-center w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 transition-all duration-200"
-                title="Back to all clinicians"
-              >
-                <ArrowLeft size={18} className="text-white/70 group-hover:text-white transition-colors" />
-              </button>
+        title={isSpotlightMode && selectedClinician ? '' : 'Clinician Details'}
+        collapsedContent={isSpotlightMode && selectedClinician && healthConfig ? (
+          /* ═══════════════════════════════════════════════════════════════════════
+             COLLAPSED HEADER - Refined compact layout
 
-              {/* Avatar */}
+             LEFT:  Avatar → Name (dropdown) → Time Selector
+             RIGHT: Role → Title (LCSW) → Roster btn → Sessions btn
+             ═══════════════════════════════════════════════════════════════════════ */
+          <div className="flex items-center justify-between gap-4">
+
+            {/* ─────────────────────────────────────────────────────────────────────
+                LEFT SECTION: Avatar + Name + Time Selector
+                ───────────────────────────────────────────────────────────────────── */}
+            <div className="flex items-center gap-4 min-w-0">
+
+              {/* 1. Avatar */}
               <div
-                className="w-16 h-16 lg:w-18 lg:h-18 rounded-2xl flex items-center justify-center text-xl lg:text-2xl font-bold text-white flex-shrink-0"
-                style={{ background: selectedClinician.color }}
+                className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
+                style={{
+                  background: `linear-gradient(135deg, ${selectedClinician.color} 0%, ${selectedClinician.color}cc 100%)`,
+                  boxShadow: `0 4px 16px ${selectedClinician.color}40, inset 0 1px 0 rgba(255,255,255,0.15)`,
+                }}
               >
                 {selectedClinician.initials}
               </div>
 
-              <div>
-                {/* Clinician name with switcher */}
-                <div className="flex items-center gap-3">
-                  <div className="relative z-[100]" ref={clinicianDropdownRef}>
-                    <button
-                      onClick={() => setIsClinicianDropdownOpen(!isClinicianDropdownOpen)}
-                      className="group flex items-center gap-2 hover:opacity-80 transition-opacity"
-                    >
-                      <h1
-                        className="text-3xl sm:text-4xl lg:text-5xl text-white tracking-tight"
-                        style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
-                      >
-                        {selectedClinician.name}
-                      </h1>
-                      <ChevronDown
-                        size={24}
-                        className={`text-stone-400 transition-transform duration-200 ${isClinicianDropdownOpen ? 'rotate-180' : ''}`}
-                      />
-                    </button>
-
-                    {/* Clinician Dropdown with Search - Glassmorphic */}
-                    {isClinicianDropdownOpen && (
-                      <div
-                        className="absolute top-full left-0 mt-2 z-[100000] overflow-hidden"
-                        style={{
-                          minWidth: '300px',
-                          background: 'rgba(253, 252, 251, 0.88)',
-                          backdropFilter: 'blur(20px)',
-                          WebkitBackdropFilter: 'blur(20px)',
-                          border: '1px solid rgba(168, 154, 140, 0.25)',
-                          borderRadius: '16px',
-                          boxShadow: '0 4px 20px -4px rgba(120, 100, 80, 0.12), 0 8px 32px -8px rgba(0, 0, 0, 0.08)',
-                          animation: 'dropdownReveal 0.15s ease-out',
-                        }}
-                      >
-                        {/* Search Input */}
-                        <div className="p-3" style={{ borderBottom: '1px solid rgba(168, 154, 140, 0.2)' }}>
-                          <div
-                            className="flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all duration-200"
-                            style={{
-                              background: 'rgba(168, 154, 140, 0.08)',
-                              border: '1px solid rgba(168, 154, 140, 0.15)',
-                            }}
-                          >
-                            <Search size={16} className="text-stone-500" />
-                            <input
-                              ref={dropdownSearchRef}
-                              type="text"
-                              value={dropdownSearch}
-                              onChange={(e) => setDropdownSearch(e.target.value)}
-                              onKeyDown={handleDropdownKeyDown}
-                              placeholder="Search clinicians..."
-                              className="flex-1 bg-transparent outline-none text-sm"
-                              style={{ fontFamily: "'Suisse Intl', sans-serif", color: '#1c1917' }}
-                            />
-                            {dropdownSearch && (
-                              <button
-                                onClick={() => {
-                                  setDropdownSearch('');
-                                  setHighlightedIndex(-1);
-                                  dropdownSearchRef.current?.focus();
-                                }}
-                                className="p-1 hover:bg-stone-200/50 rounded-md transition-colors"
-                              >
-                                <X size={14} className="text-stone-500" />
-                              </button>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="p-2 max-h-[320px] overflow-y-auto" style={{ scrollbarWidth: 'none' }}>
-                          <div className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide" style={{ color: '#57534e' }}>
-                            {dropdownSearch
-                              ? `${filteredDropdownClinicians.length} Result${filteredDropdownClinicians.length !== 1 ? 's' : ''}`
-                              : 'Switch Clinician'
-                            }
-                          </div>
-
-                          {filteredDropdownClinicians.length === 0 ? (
-                            <div className="px-3 py-6 text-center">
-                              <div className="w-10 h-10 mx-auto mb-2 rounded-xl flex items-center justify-center" style={{ background: 'rgba(168, 154, 140, 0.1)' }}>
-                                <Users size={18} className="text-stone-400" />
-                              </div>
-                              <p className="text-sm" style={{ color: '#57534e' }}>No clinicians found</p>
-                            </div>
-                          ) : (
-                            filteredDropdownClinicians.map((clinician, index) => {
-                              const isSelectedClin = selectedClinician.id === clinician.id;
-                              const isHighlighted = index === highlightedIndex;
-                              const cHealth = HEALTH_CONFIG[clinician.healthStatus];
-                              return (
-                                <button
-                                  key={clinician.id}
-                                  onClick={() => handleClinicianSelect(clinician)}
-                                  onMouseEnter={() => setHighlightedIndex(index)}
-                                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg"
-                                  style={{
-                                    background: isSelectedClin
-                                      ? 'rgba(251, 191, 36, 0.15)'
-                                      : isHighlighted
-                                        ? 'rgba(251, 191, 36, 0.1)'
-                                        : 'transparent',
-                                  }}
-                                >
-                                  {/* Amber accent bar for selected */}
-                                  <span
-                                    className="w-[3px] h-8 rounded-full flex-shrink-0"
-                                    style={{
-                                      background: isSelectedClin ? '#f59e0b' : 'transparent',
-                                    }}
-                                  />
-                                  <div
-                                    className="w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
-                                    style={{ background: clinician.color }}
-                                  >
-                                    {clinician.initials}
-                                  </div>
-                                  <div className="flex-1 text-left min-w-0">
-                                    <div className="flex items-center gap-2">
-                                      <span
-                                        className={`text-sm truncate ${isSelectedClin ? 'font-semibold' : 'font-medium'}`}
-                                        style={{ color: '#1c1917' }}
-                                      >
-                                        {highlightMatch(clinician.name, dropdownSearch)}
-                                      </span>
-                                      <div
-                                        className="w-2 h-2 rounded-full flex-shrink-0"
-                                        style={{ background: cHealth.color }}
-                                      />
-                                    </div>
-                                    <span className="text-xs" style={{ color: '#57534e' }}>
-                                      {highlightMatch(clinician.role, dropdownSearch)}
-                                    </span>
-                                  </div>
-                                  {isSelectedClin && <Check size={16} style={{ color: '#f59e0b' }} className="flex-shrink-0" />}
-                                  {isHighlighted && !isSelectedClin && (
-                                    <ArrowRight size={14} style={{ color: '#d97706' }} className="flex-shrink-0" />
-                                  )}
-                                </button>
-                              );
-                            })
-                          )}
-                        </div>
-
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Health status indicator */}
-                  <div
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium"
-                    style={{
-                      background: `${healthConfig.color}18`,
-                      color: healthConfig.color,
-                    }}
+              {/* 2. Name with dropdown */}
+              <div className="relative z-[100]" ref={clinicianDropdownRef}>
+                <button
+                  onClick={() => setIsClinicianDropdownOpen(!isClinicianDropdownOpen)}
+                  className="group flex items-center gap-2 hover:opacity-90 transition-all duration-200"
+                >
+                  <h2
+                    className="text-xl sm:text-2xl text-white font-semibold tracking-tight"
+                    style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
                   >
-                    <span className="text-xs">{healthConfig.icon}</span>
-                    {healthConfig.label}
-                  </div>
+                    {selectedClinician.name}
+                  </h2>
+                  <ChevronDown
+                    size={16}
+                    className={`text-white/40 group-hover:text-white/70 transition-all duration-200 flex-shrink-0 ${isClinicianDropdownOpen ? 'rotate-180' : ''}`}
+                  />
+                </button>
+              </div>
+
+              {/* 3. Time Selector - uses header variant styling, same dropdown */}
+              <div className="hidden md:block">
+                <TimeSelector
+                  value={timeSelection}
+                  onChange={setTimeSelection}
+                  showAggregateOption={true}
+                  variant="header"
+                  className="[&_span]:!text-lg [&_span]:sm:!text-xl [&_button]:!gap-2"
+                />
+              </div>
+            </div>
+
+            {/* ─────────────────────────────────────────────────────────────────────
+                RIGHT SECTION: Role + Title + Action Buttons
+                ───────────────────────────────────────────────────────────────────── */}
+            <div className="flex items-center gap-3 flex-shrink-0">
+
+              {/* Role & Title badges */}
+              <div className="hidden lg:flex items-center gap-2">
+                {/* Role badge */}
+                <div
+                  className="px-3 py-1.5 rounded-lg"
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.06)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                  }}
+                >
+                  <span className="text-xs font-medium text-white/70">
+                    {selectedClinician.role}
+                  </span>
                 </div>
 
-                {/* Role subtitle */}
-                <p className="text-stone-400 text-base mt-1">
-                  {selectedClinician.role} · {selectedClinician.title}
-                </p>
+                {/* Title abbreviation badge */}
+                <div
+                  className="px-2.5 py-1.5 rounded-lg"
+                  style={{
+                    background: `${selectedClinician.color}20`,
+                    border: `1px solid ${selectedClinician.color}30`,
+                  }}
+                >
+                  <span
+                    className="text-xs font-semibold tracking-wide"
+                    style={{ color: selectedClinician.color }}
+                  >
+                    {selectedClinician.title
+                      .replace('Licensed Clinical Social Worker', 'LCSW')
+                      .replace('Licensed Clinical Psychologist', 'PsyD')
+                      .replace('Licensed Professional Counselor', 'LPC')
+                      .replace('Licensed Marriage & Family Therapist', 'LMFT')
+                      .replace('Associate Professional Counselor', 'APC')
+                      .replace('Licensed Mental Health Counselor', 'LMHC')
+                    }
+                  </span>
+                </div>
+              </div>
+
+              {/* Divider */}
+              <div className="hidden lg:block w-px h-7 bg-white/10" />
+
+              {/* Action buttons */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setExpandedCard('client-roster')}
+                  className="group flex items-center gap-2 px-3.5 py-2 rounded-xl transition-all duration-200 hover:bg-white/12 active:scale-[0.97]"
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.06)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                  }}
+                >
+                  <Users size={16} className="text-white/70 group-hover:text-white transition-colors" />
+                  <span className="hidden sm:inline text-sm font-medium text-white/70 group-hover:text-white transition-colors">
+                    Roster
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => navigate(`/clinician/${selectedClinician.id}/session-history`)}
+                  className="group flex items-center gap-2 px-3.5 py-2 rounded-xl transition-all duration-200 hover:bg-white/12 active:scale-[0.97]"
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.06)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                  }}
+                >
+                  <Calendar size={16} className="text-white/70 group-hover:text-white transition-colors" />
+                  <span className="hidden sm:inline text-sm font-medium text-white/70 group-hover:text-white transition-colors">
+                    Sessions
+                  </span>
+                </button>
               </div>
             </div>
           </div>
         ) : undefined}
-        actions={
-          <div className="flex items-center gap-3 flex-shrink-0">
-            <TimeSelector
-              value={timeSelection}
-              onChange={setTimeSelection}
-              showAggregateOption={true}
-              variant="header"
-            />
+        titleAction={isSpotlightMode && selectedClinician ? (
+          /* Name with dropdown - positioned exactly where title would be */
+          <div className="relative z-[100]" ref={clinicianDropdownRef}>
+            <button
+              onClick={() => setIsClinicianDropdownOpen(!isClinicianDropdownOpen)}
+              className="group flex items-center gap-3 hover:opacity-90 transition-opacity"
+            >
+              <h1
+                className="text-4xl sm:text-5xl lg:text-6xl text-white tracking-tight"
+                style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
+              >
+                {selectedClinician.name}
+              </h1>
+              <ChevronDown
+                size={22}
+                className={`text-white/40 group-hover:text-white/60 transition-all duration-200 ${isClinicianDropdownOpen ? 'rotate-180' : ''}`}
+              />
+            </button>
+
+            {/* Clinician Dropdown */}
+            {isClinicianDropdownOpen && (
+              <div
+                className="absolute top-full left-0 mt-3 z-[100000] overflow-hidden"
+                style={{
+                  minWidth: '340px',
+                  background: 'rgba(255, 255, 255, 0.97)',
+                  backdropFilter: 'blur(24px)',
+                  WebkitBackdropFilter: 'blur(24px)',
+                  border: '1px solid rgba(0, 0, 0, 0.06)',
+                  borderRadius: '20px',
+                  boxShadow: '0 20px 60px -15px rgba(0, 0, 0, 0.3)',
+                  animation: 'dropdownReveal 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                }}
+              >
+                {/* Back to all clinicians option */}
+                <button
+                  onClick={() => {
+                    // Clear URL param
+                    const newParams = new URLSearchParams(searchParams);
+                    newParams.delete('clinician');
+                    setSearchParams(newParams, { replace: true });
+                    setSelectedClinician(null);
+                    setPreSelectionSearch('');
+                    setIsClinicianDropdownOpen(false);
+                  }}
+                  className="w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-stone-50 transition-colors border-b border-stone-100"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-stone-100 flex items-center justify-center">
+                    <ArrowLeft size={18} className="text-stone-500" />
+                  </div>
+                  <div>
+                    <span className="text-sm font-semibold text-stone-700">All Clinicians</span>
+                    <span className="block text-xs text-stone-400">Back to selection</span>
+                  </div>
+                </button>
+
+                {/* Search */}
+                <div className="p-3">
+                  <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-stone-50 border border-stone-100">
+                    <Search size={15} className="text-stone-400" />
+                    <input
+                      ref={dropdownSearchRef}
+                      type="text"
+                      value={dropdownSearch}
+                      onChange={(e) => setDropdownSearch(e.target.value)}
+                      onKeyDown={handleDropdownKeyDown}
+                      placeholder="Search clinicians..."
+                      className="flex-1 bg-transparent outline-none text-sm text-stone-700 placeholder:text-stone-400"
+                    />
+                    {dropdownSearch && (
+                      <button
+                        onClick={() => {
+                          setDropdownSearch('');
+                          setHighlightedIndex(-1);
+                          dropdownSearchRef.current?.focus();
+                        }}
+                        className="p-1 hover:bg-stone-200 rounded-md transition-colors"
+                      >
+                        <X size={14} className="text-stone-400" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="px-2 pb-2 max-h-[280px] overflow-y-auto" style={{ scrollbarWidth: 'none' }}>
+                  <div className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-stone-400">
+                    {dropdownSearch
+                      ? `${filteredDropdownClinicians.length} Result${filteredDropdownClinicians.length !== 1 ? 's' : ''}`
+                      : 'Switch to'
+                    }
+                  </div>
+
+                  {filteredDropdownClinicians.length === 0 ? (
+                    <div className="px-3 py-6 text-center">
+                      <p className="text-sm text-stone-400">No clinicians found</p>
+                    </div>
+                  ) : (
+                    filteredDropdownClinicians.map((clinician, index) => {
+                      const isSelectedClin = selectedClinician.id === clinician.id;
+                      const isHighlighted = index === highlightedIndex;
+                      const cHealth = HEALTH_CONFIG[clinician.healthStatus];
+                      return (
+                        <button
+                          key={clinician.id}
+                          onClick={() => handleClinicianSelect(clinician)}
+                          onMouseEnter={() => setHighlightedIndex(index)}
+                          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-100 ${
+                            isSelectedClin ? 'bg-blue-50' : isHighlighted ? 'bg-stone-50' : ''
+                          }`}
+                        >
+                          <div
+                            className="w-9 h-9 rounded-lg flex items-center justify-center text-sm font-semibold text-white flex-shrink-0"
+                            style={{ background: clinician.color }}
+                          >
+                            {clinician.initials}
+                          </div>
+                          <div className="flex-1 text-left min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className={`text-sm truncate ${isSelectedClin ? 'font-semibold text-stone-900' : 'text-stone-700'}`}>
+                                {highlightMatch(clinician.name, dropdownSearch)}
+                              </span>
+                              <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: cHealth.color }} />
+                            </div>
+                            <span className="text-xs text-stone-500">{highlightMatch(clinician.role, dropdownSearch)}</span>
+                          </div>
+                          {isSelectedClin && <Check size={16} className="text-blue-500 flex-shrink-0" />}
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            )}
           </div>
+        ) : undefined}
+        timeSelector={
+          <TimeSelector
+            value={timeSelection}
+            onChange={setTimeSelection}
+            showAggregateOption={true}
+            variant="header"
+          />
         }
+        actions={isSpotlightMode && selectedClinician && healthConfig ? (
+          /* RIGHT SIDE: Metadata card + Action buttons - stacked vertically */
+          <div className="flex flex-col items-end gap-3">
+            {/* Metadata badge - elegant info display */}
+            <div
+              className="flex items-center gap-4 px-5 py-3 rounded-2xl"
+              style={{
+                background: 'rgba(255, 255, 255, 0.06)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+              }}
+            >
+              {/* Role & Title */}
+              <div className="text-right">
+                <p className="text-white/90 text-sm font-medium">{selectedClinician.role}</p>
+                <p className="text-white/50 text-xs">{selectedClinician.title}</p>
+              </div>
+
+              {/* Divider */}
+              <div className="w-px h-8 bg-white/10" />
+
+              {/* Health Status */}
+              <div className="flex items-center gap-2">
+                <div
+                  className="w-2.5 h-2.5 rounded-full"
+                  style={{
+                    background: healthConfig.color,
+                    boxShadow: `0 0 8px ${healthConfig.color}60`
+                  }}
+                />
+                <span className="text-sm font-medium" style={{ color: healthConfig.color }}>
+                  {healthConfig.label}
+                </span>
+              </div>
+            </div>
+
+            {/* Action buttons */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setExpandedCard('client-roster')}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.08)',
+                  border: '1px solid rgba(255, 255, 255, 0.12)',
+                  color: 'rgba(255, 255, 255, 0.9)',
+                }}
+              >
+                <Users size={16} />
+                <span>Client Roster</span>
+              </button>
+              <button
+                onClick={() => navigate(`/clinician/${selectedClinician.id}/session-history`)}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.08)',
+                  border: '1px solid rgba(255, 255, 255, 0.12)',
+                  color: 'rgba(255, 255, 255, 0.9)',
+                }}
+              >
+                <Calendar size={16} />
+                <span>Session History</span>
+              </button>
+            </div>
+          </div>
+        ) : undefined}
       />
 
       {/* =================================================================
@@ -3028,13 +3169,6 @@ export const ClinicianDetailsTab: React.FC = () => {
               accent="amber"
               showAccentLine={false}
               compact
-              actions={
-                <ActionButton
-                  label="View Full Session History"
-                  icon={<Calendar size={16} />}
-                  onClick={() => navigate(`/clinician/${selectedClinician.id}/session-history`)}
-                />
-              }
             />
             <Grid cols={2}>
               {/* Active Clients & Caseload Capacity */}

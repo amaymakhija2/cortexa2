@@ -39,8 +39,9 @@ export interface TimeSelectorProps {
    * Variant styles:
    * - 'default': Compact button style for general use
    * - 'header': Large, prominent display for page headers (positioned under title)
+   * - 'compact': Minimal inline style for collapsed headers
    */
-  variant?: 'default' | 'header';
+  variant?: 'default' | 'header' | 'compact';
   className?: string;
 }
 
@@ -131,7 +132,202 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
   };
 
   const isHeader = variant === 'header';
+  const isCompact = variant === 'compact';
   const headerLabel = getHeaderLabel();
+
+  // Get a short label for compact variant
+  const getCompactLabel = (): string => {
+    if (value === 'last-12-months') return '12mo';
+    if (value === 'last-6-months') return '6mo';
+    if (value === 'last-3-months') return '3mo';
+    if (typeof value === 'object' && 'month' in value) {
+      return `${SHORT_MONTHS[value.month]} '${String(value.year).slice(-2)}`;
+    }
+    return '';
+  };
+
+  // ==========================================================================
+  // COMPACT VARIANT - Minimal inline style for collapsed headers
+  // ==========================================================================
+  if (isCompact) {
+    return (
+      <>
+        <button
+          ref={triggerRef}
+          onClick={() => {
+            setIsOpen(!isOpen);
+            setShowMonthPicker(false);
+          }}
+          className={`
+            group inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg
+            transition-all duration-200
+            ${isOpen
+              ? 'bg-white/12'
+              : 'bg-white/6 hover:bg-white/10'
+            }
+            ${className}
+          `}
+          style={{
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+          }}
+        >
+          <span
+            className={`
+              text-xs font-semibold tracking-wide
+              transition-colors duration-200
+              ${isOpen ? 'text-white' : 'text-white/70 group-hover:text-white'}
+            `}
+          >
+            {getCompactLabel()}
+          </span>
+          <ChevronDown
+            size={12}
+            strokeWidth={2.5}
+            className={`
+              transition-all duration-200
+              ${isOpen
+                ? 'rotate-180 text-white/80'
+                : 'text-white/40 group-hover:text-white/60'
+              }
+            `}
+          />
+        </button>
+
+        {createPortal(
+          isOpen && (
+            <div
+              ref={dropdownRef}
+              className="fixed z-[100000] overflow-hidden"
+              style={{
+                top: position.top,
+                left: Math.max(12, position.left - 60),
+                width: showMonthPicker ? '280px' : '200px',
+                background: 'rgba(253, 252, 251, 0.95)',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                borderRadius: '14px',
+                border: '1px solid rgba(0, 0, 0, 0.08)',
+                boxShadow: '0 12px 40px -8px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255,255,255,0.5) inset',
+                animation: 'dropdownFade 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+              }}
+            >
+              {!showMonthPicker ? (
+                <div className="p-2">
+                  {/* Aggregate options */}
+                  {showAggregateOption && (
+                    <div className="space-y-0.5 mb-2">
+                      {[
+                        { key: 'last-12-months', label: '12 Months' },
+                        { key: 'last-6-months', label: '6 Months' },
+                        { key: 'last-3-months', label: '3 Months' },
+                      ].map(({ key, label }) => {
+                        const isActive = value === key;
+                        return (
+                          <button
+                            key={key}
+                            onClick={() => select(key as TimeSelectorValue)}
+                            className={`
+                              w-full flex items-center justify-between px-3 py-2 rounded-lg
+                              transition-all duration-150
+                              ${isActive
+                                ? 'bg-stone-100'
+                                : 'hover:bg-stone-50'
+                              }
+                            `}
+                          >
+                            <span className={`text-sm ${isActive ? 'font-semibold text-stone-900' : 'text-stone-600'}`}>
+                              {label}
+                            </span>
+                            {isActive && <Check size={14} className="text-amber-500" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {!aggregateOnly && (
+                    <>
+                      <div className="h-px bg-stone-200/60 my-1.5" />
+                      <button
+                        onClick={() => setShowMonthPicker(true)}
+                        className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-stone-50 transition-colors"
+                      >
+                        <span className="text-sm text-stone-600">Select month</span>
+                        <ChevronDown size={14} className="text-stone-400 -rotate-90" />
+                      </button>
+                    </>
+                  )}
+                </div>
+              ) : (
+                <div className="p-3">
+                  {/* Year navigation */}
+                  <div className="flex items-center justify-between mb-3">
+                    <button
+                      onClick={() => setPickerYear(y => Math.max(minYear, y - 1))}
+                      className="p-1 rounded hover:bg-stone-100 text-stone-500"
+                      disabled={pickerYear <= minYear}
+                    >
+                      <ChevronLeft size={16} />
+                    </button>
+                    <span className="text-sm font-semibold text-stone-800">{pickerYear}</span>
+                    <button
+                      onClick={() => setPickerYear(y => Math.min(maxYear, y + 1))}
+                      className="p-1 rounded hover:bg-stone-100 text-stone-500"
+                      disabled={pickerYear >= maxYear}
+                    >
+                      <ChevronRight size={16} />
+                    </button>
+                  </div>
+
+                  {/* Month grid */}
+                  <div className="grid grid-cols-4 gap-1">
+                    {SHORT_MONTHS.map((m, idx) => {
+                      const isActive = isSelected(idx, pickerYear);
+                      const isFuture = pickerYear === currentYear && idx > currentMonth;
+                      return (
+                        <button
+                          key={m}
+                          onClick={() => !isFuture && select({ month: idx, year: pickerYear })}
+                          disabled={isFuture}
+                          className={`
+                            py-1.5 rounded-md text-xs font-medium transition-all
+                            ${isFuture
+                              ? 'text-stone-300 cursor-not-allowed'
+                              : isActive
+                                ? 'bg-amber-100 text-amber-800'
+                                : 'text-stone-600 hover:bg-stone-100'
+                            }
+                          `}
+                        >
+                          {m}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Back button */}
+                  <button
+                    onClick={() => setShowMonthPicker(false)}
+                    className="mt-3 w-full py-1.5 text-xs text-stone-500 hover:text-stone-700 transition-colors"
+                  >
+                    ← Back
+                  </button>
+                </div>
+              )}
+
+              <style>{`
+                @keyframes dropdownFade {
+                  from { opacity: 0; transform: translateY(-4px); }
+                  to { opacity: 1; transform: translateY(0); }
+                }
+              `}</style>
+            </div>
+          ),
+          document.body
+        )}
+      </>
+    );
+  }
 
   // ==========================================================================
   // HEADER VARIANT - Prominent display under title
