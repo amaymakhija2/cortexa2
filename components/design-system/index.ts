@@ -152,3 +152,32 @@ export type {
   DataTableColumn,
   DataTableRow,
 } from './ExpandedChartView';
+
+// Clinician Drawer (Metric Explanation Drawer for Ranking Tab)
+export {
+  ClinicianDrawer,
+  DrawerHeader,
+  MetricTabs,
+  MetricExplanation,
+  ProblemClientList,
+  METRIC_GROUPS,
+  getMetricGroup,
+  getMetricDefinition,
+  getMetricByKey,
+  getPrimaryMetric,
+  getMetricIds,
+} from './ClinicianDrawer';
+export type {
+  ClinicianDrawerProps,
+  ClinicianData as DrawerClinicianData,
+  ClinicianMetrics as DrawerClinicianMetrics,
+  DrawerHeaderProps,
+  MetricTabsProps,
+  MetricExplanationProps,
+  ProblemClientListProps,
+  ProblemClient,
+  ClinicianBreakdown,
+  MetricDefinition,
+  MetricGroupConfig,
+  ColumnConfig,
+} from './ClinicianDrawer';

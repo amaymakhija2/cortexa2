@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Loader2, MapPin, Users, GraduationCap } from 'lucide-react';
-import { PageHeader, DataTableCard, SegmentedControl } from './design-system';
+import { PageHeader, DataTableCard, SegmentedControl, SectionContainer, SectionHeader, Grid } from './design-system';
 import type { SegmentedControlOption } from './design-system/controls/SegmentedControl';
 import { TimeSelector, TimeSelectorValue } from './design-system/controls/TimeSelector';
 import {
@@ -67,22 +67,218 @@ const DimensionSelector: React.FC<DimensionSelectorProps> = ({ selected, onChang
 };
 
 // =============================================================================
-// TABLE CONFIGURATION
+// TABLE CONFIGURATION - Organized by Section
 // =============================================================================
 
-// Columns for Last 12 Months (aggregate) view
-const AGGREGATE_COLUMNS: TableColumn[] = [
+// Overview: 8 key metrics that tell the complete story
+// Flow: Money → Activity → Efficiency → Growth/Retention → Compliance
+const OVERVIEW_AGGREGATE_COLUMNS: TableColumn[] = [
+  { key: 'grossRevenue', header: 'Revenue', align: 'right', tooltip: 'Total revenue collected before any deductions.' },
+  { key: 'revenueGoalPercent', header: 'Rev Goal %', align: 'right', tooltip: 'Percentage of revenue goal achieved.' },
+  { key: 'completedSessions', header: 'Sessions', align: 'right', tooltip: 'Total number of sessions completed.' },
+  { key: 'sessionGoalPercent', header: 'Sess Goal %', align: 'right', tooltip: 'Percentage of session goal achieved.' },
+  { key: 'showRate', header: 'Show Rate', align: 'right', tooltip: 'Percentage of booked sessions completed. Higher is better.' },
+  { key: 'newClients', header: 'New Clients', align: 'right', tooltip: 'Number of new clients acquired.' },
+  { key: 'churnRate', header: 'Churn', align: 'right', tooltip: 'Percentage of clients who churned. Lower is better.' },
+  { key: 'outstandingNotes', header: 'Outstanding Notes', align: 'right', tooltip: 'Notes overdue. Blocks billing if not completed.' },
+];
+
+const OVERVIEW_POINT_IN_TIME_COLUMNS: TableColumn[] = [
+  { key: 'grossRevenue', header: 'Revenue', align: 'right', tooltip: 'Total revenue collected before any deductions.' },
+  { key: 'revenueGoalPercent', header: 'Rev Goal %', align: 'right', tooltip: 'Percentage of revenue goal achieved.' },
+  { key: 'completedSessions', header: 'Sessions', align: 'right', tooltip: 'Total number of sessions completed.' },
+  { key: 'sessionGoalPercent', header: 'Sess Goal %', align: 'right', tooltip: 'Percentage of session goal achieved.' },
+  { key: 'showRate', header: 'Show Rate', align: 'right', tooltip: 'Percentage of booked sessions completed. Higher is better.' },
+  { key: 'newClients', header: 'New Clients', align: 'right', tooltip: 'Number of new clients acquired.' },
+  { key: 'churnRate', header: 'Churn', align: 'right', tooltip: 'Percentage of clients who churned. Lower is better.' },
+  { key: 'outstandingNotes', header: 'Outstanding Notes', align: 'right', tooltip: 'Notes overdue. Blocks billing if not completed.' },
+];
+
+// Section 1: Revenue - Aggregate view
+const REVENUE_AGGREGATE_COLUMNS: TableColumn[] = [
   {
-    key: 'revenue',
-    header: 'Revenue',
+    key: 'grossRevenue',
+    header: 'Gross Revenue',
     align: 'right',
     tooltip: 'Total revenue collected before any deductions.',
   },
   {
-    key: 'consultationsBooked',
-    header: 'Consults',
+    key: 'revenuePercent',
+    header: '% of Total',
     align: 'right',
-    tooltip: 'Total consultations booked during this time period.',
+    tooltip: 'This group\'s share of total practice revenue.',
+  },
+  {
+    key: 'avgRevenuePerSession',
+    header: 'Per Session',
+    align: 'right',
+    tooltip: 'Average revenue earned per completed session.',
+  },
+  {
+    key: 'avgMonthlyRevenue',
+    header: 'Monthly Avg',
+    align: 'right',
+    tooltip: 'Average revenue per month over the time period.',
+  },
+  {
+    key: 'avgWeeklyRevenue',
+    header: 'Weekly Avg',
+    align: 'right',
+    tooltip: 'Average revenue per week over the time period.',
+  },
+  {
+    key: 'revenueGoal',
+    header: 'Revenue Goal',
+    align: 'right',
+    tooltip: 'Proportional revenue goal based on session capacity.',
+  },
+  {
+    key: 'revenueGoalPercent',
+    header: 'Goal %',
+    align: 'right',
+    tooltip: 'Percentage of revenue goal achieved.',
+  },
+];
+
+// Section 1: Revenue - Point-in-time view
+const REVENUE_POINT_IN_TIME_COLUMNS: TableColumn[] = [
+  {
+    key: 'grossRevenue',
+    header: 'Gross Revenue',
+    align: 'right',
+    tooltip: 'Total revenue collected before any deductions.',
+  },
+  {
+    key: 'revenuePercent',
+    header: '% of Total',
+    align: 'right',
+    tooltip: 'This group\'s share of total practice revenue.',
+  },
+  {
+    key: 'avgRevenuePerSession',
+    header: 'Per Session',
+    align: 'right',
+    tooltip: 'Average revenue earned per completed session.',
+  },
+  {
+    key: 'avgWeeklyRevenue',
+    header: 'Weekly Avg',
+    align: 'right',
+    tooltip: 'Average revenue per week this month.',
+  },
+  {
+    key: 'revenueGoal',
+    header: 'Revenue Goal',
+    align: 'right',
+    tooltip: 'Proportional revenue goal based on session capacity.',
+  },
+  {
+    key: 'revenueGoalPercent',
+    header: 'Goal %',
+    align: 'right',
+    tooltip: 'Percentage of revenue goal achieved.',
+  },
+];
+
+// Section 2: Sessions - Aggregate view
+const SESSIONS_AGGREGATE_COLUMNS: TableColumn[] = [
+  {
+    key: 'completedSessions',
+    header: 'Completed Sessions',
+    align: 'right',
+    tooltip: 'Total number of sessions completed during this time period.',
+  },
+  {
+    key: 'sessionsPercent',
+    header: '% of Total',
+    align: 'right',
+    tooltip: 'This group\'s share of total practice sessions.',
+  },
+  {
+    key: 'showRate',
+    header: 'Show Rate',
+    align: 'right',
+    tooltip: 'Percentage of booked sessions that were completed. Higher is better.',
+  },
+  {
+    key: 'avgMonthlySessions',
+    header: 'Monthly Avg',
+    align: 'right',
+    tooltip: 'Average number of sessions completed per month.',
+  },
+  {
+    key: 'avgWeeklySessions',
+    header: 'Weekly Avg',
+    align: 'right',
+    tooltip: 'Average number of sessions completed per week.',
+  },
+  {
+    key: 'sessionGoal',
+    header: 'Session Goal',
+    align: 'right',
+    tooltip: 'Total session goal for the time period.',
+  },
+  {
+    key: 'sessionGoalPercent',
+    header: 'Goal %',
+    align: 'right',
+    tooltip: 'Percentage of session goal achieved.',
+  },
+];
+
+// Section 2: Sessions - Point-in-time view
+const SESSIONS_POINT_IN_TIME_COLUMNS: TableColumn[] = [
+  {
+    key: 'completedSessions',
+    header: 'Completed Sessions',
+    align: 'right',
+    tooltip: 'Total number of sessions completed during this month.',
+  },
+  {
+    key: 'sessionsPercent',
+    header: '% of Total',
+    align: 'right',
+    tooltip: 'This group\'s share of total practice sessions.',
+  },
+  {
+    key: 'showRate',
+    header: 'Show Rate',
+    align: 'right',
+    tooltip: 'Percentage of booked sessions that were completed. Higher is better.',
+  },
+  {
+    key: 'avgWeeklySessions',
+    header: 'Weekly Avg',
+    align: 'right',
+    tooltip: 'Average number of sessions completed per week this month.',
+  },
+  {
+    key: 'sessionGoal',
+    header: 'Session Goal',
+    align: 'right',
+    tooltip: 'Monthly session goal for this group.',
+  },
+  {
+    key: 'sessionGoalPercent',
+    header: 'Goal %',
+    align: 'right',
+    tooltip: 'Percentage of session goal achieved.',
+  },
+  {
+    key: 'caseloadCapacity',
+    header: 'Capacity %',
+    align: 'right',
+    tooltip: 'How full is the caseload? Active clients ÷ client goal. Lower means more room for new clients.',
+  },
+];
+
+// Section 3: Clients - Aggregate view
+const CLIENTS_AGGREGATE_COLUMNS: TableColumn[] = [
+  {
+    key: 'clientsSeen',
+    header: 'Clients Seen',
+    align: 'right',
+    tooltip: 'Number of unique clients who had at least one session during this time period.',
   },
   {
     key: 'newClients',
@@ -91,68 +287,26 @@ const AGGREGATE_COLUMNS: TableColumn[] = [
     tooltip: 'Number of consultations that converted to new clients.',
   },
   {
-    key: 'conversionRate',
-    header: 'Conv %',
+    key: 'activeClients',
+    header: 'Active Clients',
     align: 'right',
-    tooltip: 'Percentage of consultations that converted to clients. Higher is better.',
-  },
-  {
-    key: 'completedSessions',
-    header: 'Sessions',
-    align: 'right',
-    tooltip: 'Total number of sessions completed during this time period.',
-  },
-  {
-    key: 'avgWeeklySessions',
-    header: 'Wkly Avg',
-    align: 'right',
-    tooltip: 'Average number of sessions completed per week during this time period.',
-  },
-  {
-    key: 'sessionGoalPercent',
-    header: 'Goal %',
-    align: 'right',
-    tooltip: 'Percentage of session goal achieved. Completed sessions ÷ session goal.',
-  },
-  {
-    key: 'clientsSeen',
-    header: 'Clients',
-    align: 'right',
-    tooltip: 'Number of unique clients who had at least one session during this time period.',
+    tooltip: 'Number of clients currently active (had a session in last 30 days).',
   },
   {
     key: 'churnRate',
-    header: 'Churn',
+    header: 'Churn Rate',
     align: 'right',
     tooltip: 'Percentage of clients who churned (stopped coming). Lower is better.',
   },
-  {
-    key: 'cancelRate',
-    header: 'Cancel',
-    align: 'right',
-    tooltip: 'Percentage of booked sessions that were canceled. Lower is better.',
-  },
-  {
-    key: 'outstandingNotes',
-    header: 'Notes',
-    align: 'right',
-    tooltip: 'Number of sessions with overdue notes. Lower is better.',
-  },
 ];
 
-// Columns for Live/Historical (point-in-time) view
-const POINT_IN_TIME_COLUMNS: TableColumn[] = [
+// Section 3: Clients - Point-in-time view
+const CLIENTS_POINT_IN_TIME_COLUMNS: TableColumn[] = [
   {
-    key: 'revenue',
-    header: 'Revenue',
+    key: 'clientsSeen',
+    header: 'Clients Seen',
     align: 'right',
-    tooltip: 'Total revenue collected before any deductions.',
-  },
-  {
-    key: 'consultationsBooked',
-    header: 'Consults',
-    align: 'right',
-    tooltip: 'Consultations booked this month.',
+    tooltip: 'Number of unique clients seen this month.',
   },
   {
     key: 'newClients',
@@ -161,44 +315,69 @@ const POINT_IN_TIME_COLUMNS: TableColumn[] = [
     tooltip: 'Number of consultations that converted to new clients this month.',
   },
   {
-    key: 'conversionRate',
-    header: 'Conv %',
-    align: 'right',
-    tooltip: 'Percentage of consultations that converted to clients. Higher is better.',
-  },
-  {
-    key: 'completedSessions',
-    header: 'Sessions',
-    align: 'right',
-    tooltip: 'Total number of sessions completed during this month.',
-  },
-  {
     key: 'activeClients',
-    header: 'Active',
+    header: 'Active Clients',
     align: 'right',
     tooltip: 'Number of clients currently active (had a session in last 30 days).',
   },
   {
-    key: 'caseloadCapacity',
-    header: 'Capacity',
-    align: 'right',
-    tooltip: 'How full is the caseload? Active clients ÷ client goal. Lower means more room for new clients.',
-  },
-  {
     key: 'churnRate',
-    header: 'Churn',
+    header: 'Churn Rate',
     align: 'right',
     tooltip: 'Percentage of clients who churned (stopped coming). Lower is better.',
   },
+];
+
+// Section 4: Clinician Comparison
+const CLINICIAN_AGGREGATE_COLUMNS: TableColumn[] = [
   {
-    key: 'cancelRate',
-    header: 'Cancel',
+    key: 'clinicianCount',
+    header: 'Clinicians',
     align: 'right',
-    tooltip: 'Percentage of booked sessions that were canceled. Lower is better.',
+    tooltip: 'Number of clinicians in this group.',
+  },
+  {
+    key: 'avgSessionsPerClinicianMonth',
+    header: 'Avg Sessions/Clinician/Mo',
+    align: 'right',
+    tooltip: 'Average sessions per clinician per month.',
+  },
+  {
+    key: 'notesComplianceRate',
+    header: 'Notes Compliance',
+    align: 'right',
+    tooltip: 'Percentage of notes completed on time. Higher is better.',
   },
   {
     key: 'outstandingNotes',
-    header: 'Notes',
+    header: 'Outstanding Notes',
+    align: 'right',
+    tooltip: 'Number of sessions with overdue notes. Lower is better.',
+  },
+];
+
+const CLINICIAN_POINT_IN_TIME_COLUMNS: TableColumn[] = [
+  {
+    key: 'clinicianCount',
+    header: 'Clinicians',
+    align: 'right',
+    tooltip: 'Number of clinicians in this group.',
+  },
+  {
+    key: 'avgSessionsPerClinician',
+    header: 'Avg Sessions/Clinician',
+    align: 'right',
+    tooltip: 'Average sessions per clinician this month.',
+  },
+  {
+    key: 'notesComplianceRate',
+    header: 'Notes Compliance',
+    align: 'right',
+    tooltip: 'Percentage of notes completed on time. Higher is better.',
+  },
+  {
+    key: 'outstandingNotes',
+    header: 'Outstanding Notes',
     align: 'right',
     tooltip: 'Number of sessions with overdue notes. Lower is better.',
   },
@@ -214,51 +393,154 @@ const ROW_COLORS = [
   '#6366f1', // Indigo
 ];
 
+// Helper to format currency
+function formatCurrency(value: number): string {
+  if (value >= 1000000) {
+    return `$${(value / 1000000).toFixed(1)}M`;
+  }
+  if (value >= 1000) {
+    return `$${(value / 1000).toFixed(0)}K`;
+  }
+  return `$${value.toFixed(0)}`;
+}
+
 // Transform aggregate metrics (Last 12 Months) into table rows
 function buildAggregateRows(groups: AggregateMetrics[]): TableRow[] {
-  return groups.map((group, index) => ({
-    id: group.id,
-    label: group.label,
-    indicator: {
-      color: ROW_COLORS[index % ROW_COLORS.length],
-    },
-    values: {
-      revenue: `$${(group.revenue / 1000).toFixed(0)}K`,
-      consultationsBooked: group.consultationsBooked.toString(),
-      newClients: group.newClients.toString(),
-      conversionRate: `${group.conversionRate}%`,
-      completedSessions: group.completedSessions.toLocaleString(),
-      avgWeeklySessions: group.avgWeeklySessions.toLocaleString(),
-      sessionGoalPercent: `${group.sessionGoalPercent}%`,
-      clientsSeen: group.clientsSeen.toLocaleString(),
-      churnRate: `${group.churnRate}%`,
-      cancelRate: `${group.cancelRate}%`,
-      outstandingNotes: group.outstandingNotes.toString(),
-    },
-  }));
+  // Calculate totals for percentages
+  const totalRevenue = groups.reduce((sum, g) => sum + g.revenue, 0);
+  const totalSessions = groups.reduce((sum, g) => sum + g.completedSessions, 0);
+
+  return groups.map((group, index) => {
+    // Calculate derived revenue metrics
+    const revenuePercent = totalRevenue > 0 ? (group.revenue / totalRevenue) * 100 : 0;
+    const avgRevenuePerSession = group.completedSessions > 0 ? group.revenue / group.completedSessions : 0;
+    const avgMonthlyRevenue = group.revenue / 12; // Last 12 months
+    const avgWeeklyRevenue = group.revenue / 52; // ~52 weeks in a year
+
+    // Calculate derived session metrics
+    const sessionsPercent = totalSessions > 0 ? (group.completedSessions / totalSessions) * 100 : 0;
+    const avgMonthlySessions = group.completedSessions / 12;
+
+    // Calculate clinician metrics
+    const avgSessionsPerClinicianMonth = group.clinicianCount > 0
+      ? (group.completedSessions / 12) / group.clinicianCount
+      : 0;
+    // Notes compliance = sessions with on-time notes / total sessions (estimate based on outstanding)
+    // Assuming ~40 sessions/month avg, 12 months = ~480 sessions per clinician baseline
+    const estimatedTotalSessions = group.completedSessions;
+    const notesComplianceRate = estimatedTotalSessions > 0
+      ? Math.max(0, 100 - (group.outstandingNotes / estimatedTotalSessions) * 100)
+      : 100;
+
+    return {
+      id: group.id,
+      label: group.label,
+      indicator: {
+        color: ROW_COLORS[index % ROW_COLORS.length],
+      },
+      values: {
+        revenue: formatCurrency(group.revenue),
+        // Revenue section fields
+        grossRevenue: formatCurrency(group.revenue),
+        revenuePercent: `${revenuePercent.toFixed(1)}%`,
+        avgRevenuePerSession: formatCurrency(avgRevenuePerSession),
+        avgMonthlyRevenue: formatCurrency(avgMonthlyRevenue),
+        avgWeeklyRevenue: formatCurrency(avgWeeklyRevenue),
+        revenueGoal: formatCurrency(group.revenueGoal),
+        revenueGoalPercent: `${group.revenueGoalPercent}%`,
+        // Session section fields
+        completedSessions: group.completedSessions.toLocaleString(),
+        sessionsPercent: `${sessionsPercent.toFixed(1)}%`,
+        showRate: `${group.showRate}%`,
+        avgMonthlySessions: Math.round(avgMonthlySessions).toLocaleString(),
+        avgWeeklySessions: group.avgWeeklySessions.toLocaleString(),
+        sessionGoal: group.sessionGoal.toLocaleString(),
+        sessionGoalPercent: `${group.sessionGoalPercent}%`,
+        // Client section fields
+        clientsSeen: group.clientsSeen.toLocaleString(),
+        newClients: group.newClients.toString(),
+        activeClients: group.activeClients.toLocaleString(),
+        churnRate: `${group.churnRate}%`,
+        // Clinician section fields
+        clinicianCount: group.clinicianCount.toString(),
+        avgSessionsPerClinicianMonth: Math.round(avgSessionsPerClinicianMonth).toLocaleString(),
+        notesComplianceRate: `${Math.round(notesComplianceRate)}%`,
+        outstandingNotes: group.outstandingNotes.toString(),
+        // Other fields
+        consultationsBooked: group.consultationsBooked.toString(),
+        conversionRate: `${group.conversionRate}%`,
+        cancelRate: `${group.cancelRate}%`,
+      },
+    };
+  });
 }
 
 // Transform point-in-time metrics (Live/Historical) into table rows
 function buildPointInTimeRows(groups: PointInTimeMetrics[]): TableRow[] {
-  return groups.map((group, index) => ({
-    id: group.id,
-    label: group.label,
-    indicator: {
-      color: ROW_COLORS[index % ROW_COLORS.length],
-    },
-    values: {
-      revenue: `$${(group.revenue / 1000).toFixed(0)}K`,
-      consultationsBooked: group.consultationsBooked.toString(),
-      newClients: group.newClients.toString(),
-      conversionRate: `${group.conversionRate}%`,
-      completedSessions: group.completedSessions.toLocaleString(),
-      activeClients: group.activeClients.toLocaleString(),
-      caseloadCapacity: `${group.caseloadCapacity}%`,
-      churnRate: `${group.churnRate}%`,
-      cancelRate: `${group.cancelRate}%`,
-      outstandingNotes: group.outstandingNotes.toString(),
-    },
-  }));
+  // Calculate totals for percentages
+  const totalRevenue = groups.reduce((sum, g) => sum + g.revenue, 0);
+  const totalSessions = groups.reduce((sum, g) => sum + g.completedSessions, 0);
+
+  return groups.map((group, index) => {
+    // Calculate derived revenue metrics
+    const revenuePercent = totalRevenue > 0 ? (group.revenue / totalRevenue) * 100 : 0;
+    const avgRevenuePerSession = group.completedSessions > 0 ? group.revenue / group.completedSessions : 0;
+    const avgWeeklyRevenue = group.revenue / 4; // ~4 weeks in a month
+
+    // Calculate derived session metrics
+    const sessionsPercent = totalSessions > 0 ? (group.completedSessions / totalSessions) * 100 : 0;
+    const avgWeeklySessions = group.completedSessions / 4; // ~4 weeks in a month
+
+    // Calculate clinician metrics
+    const avgSessionsPerClinician = group.clinicianCount > 0
+      ? group.completedSessions / group.clinicianCount
+      : 0;
+    // Notes compliance estimate
+    const estimatedTotalSessions = group.completedSessions;
+    const notesComplianceRate = estimatedTotalSessions > 0
+      ? Math.max(0, 100 - (group.outstandingNotes / estimatedTotalSessions) * 100)
+      : 100;
+
+    return {
+      id: group.id,
+      label: group.label,
+      indicator: {
+        color: ROW_COLORS[index % ROW_COLORS.length],
+      },
+      values: {
+        revenue: formatCurrency(group.revenue),
+        // Revenue section fields
+        grossRevenue: formatCurrency(group.revenue),
+        revenuePercent: `${revenuePercent.toFixed(1)}%`,
+        avgRevenuePerSession: formatCurrency(avgRevenuePerSession),
+        avgWeeklyRevenue: formatCurrency(avgWeeklyRevenue),
+        revenueGoal: formatCurrency(group.revenueGoal),
+        revenueGoalPercent: `${group.revenueGoalPercent}%`,
+        // Session section fields
+        completedSessions: group.completedSessions.toLocaleString(),
+        sessionsPercent: `${sessionsPercent.toFixed(1)}%`,
+        showRate: `${group.showRate}%`,
+        avgWeeklySessions: Math.round(avgWeeklySessions * 10) / 10,
+        sessionGoal: group.sessionGoal.toLocaleString(),
+        sessionGoalPercent: `${group.sessionGoalPercent}%`,
+        // Client section fields
+        clientsSeen: group.clientsSeen.toLocaleString(),
+        newClients: group.newClients.toString(),
+        activeClients: group.activeClients.toLocaleString(),
+        churnRate: `${group.churnRate}%`,
+        // Clinician section fields
+        clinicianCount: group.clinicianCount.toString(),
+        avgSessionsPerClinician: Math.round(avgSessionsPerClinician).toLocaleString(),
+        notesComplianceRate: `${Math.round(notesComplianceRate)}%`,
+        outstandingNotes: group.outstandingNotes.toString(),
+        // Other fields
+        consultationsBooked: group.consultationsBooked.toString(),
+        conversionRate: `${group.conversionRate}%`,
+        caseloadCapacity: `${group.caseloadCapacity}%`,
+        cancelRate: `${group.cancelRate}%`,
+      },
+    };
+  });
 }
 
 // =============================================================================
@@ -275,9 +557,10 @@ export const CompareTab: React.FC = () => {
   const { data: dataRange } = useDataDateRange();
 
   // Derive viewMode and month/year for the hook
-  const viewMode: CompareViewMode = timeSelection === 'last-12-months' ? 'last-12-months' : 'historical';
-  const selectedMonth = timeSelection === 'last-12-months' ? now.getMonth() : timeSelection.month;
-  const selectedYear = timeSelection === 'last-12-months' ? now.getFullYear() : timeSelection.year;
+  const isAggregateView = typeof timeSelection === 'string';
+  const viewMode: CompareViewMode = isAggregateView ? 'last-12-months' : 'historical';
+  const selectedMonth = isAggregateView ? now.getMonth() : timeSelection.month;
+  const selectedYear = isAggregateView ? now.getFullYear() : timeSelection.year;
 
   // Get metrics based on view mode
   const compareData = useCompareMetrics(dimension, viewMode, selectedMonth, selectedYear);
@@ -300,8 +583,12 @@ export const CompareTab: React.FC = () => {
     return buildPointInTimeRows(compareData.groups as PointInTimeMetrics[]);
   }, [compareData]);
 
-  // Get the appropriate columns based on view mode
-  const tableColumns = viewMode === 'last-12-months' ? AGGREGATE_COLUMNS : POINT_IN_TIME_COLUMNS;
+  // Get the appropriate columns based on view mode for each section
+  const overviewColumns = isAggregateView ? OVERVIEW_AGGREGATE_COLUMNS : OVERVIEW_POINT_IN_TIME_COLUMNS;
+  const revenueColumns = isAggregateView ? REVENUE_AGGREGATE_COLUMNS : REVENUE_POINT_IN_TIME_COLUMNS;
+  const sessionsColumns = isAggregateView ? SESSIONS_AGGREGATE_COLUMNS : SESSIONS_POINT_IN_TIME_COLUMNS;
+  const clientsColumns = isAggregateView ? CLIENTS_AGGREGATE_COLUMNS : CLIENTS_POINT_IN_TIME_COLUMNS;
+  const clinicianColumns = isAggregateView ? CLINICIAN_AGGREGATE_COLUMNS : CLINICIAN_POINT_IN_TIME_COLUMNS;
 
   if (availableDimensions.length === 0) {
     return (
@@ -367,11 +654,90 @@ export const CompareTab: React.FC = () => {
               </div>
             </div>
           ) : (
-            <div className="min-w-0 overflow-x-auto">
-              <DataTableCard
-                columns={tableColumns}
-                rows={tableRows}
-              />
+            <div className="flex flex-col gap-6">
+              {/* Overview: Quick Compare */}
+              <SectionContainer accent="indigo" index={0} isFirst>
+                <SectionHeader
+                  question="Quick Compare"
+                  description="Key metrics at a glance across all dimensions"
+                  accent="indigo"
+                  showAccentLine={false}
+                  compact
+                />
+                <DataTableCard
+                  title="Overview"
+                  columns={overviewColumns}
+                  rows={tableRows}
+                />
+              </SectionContainer>
+
+              {/* Section 1: Revenue */}
+              <SectionContainer accent="emerald" index={1}>
+                <SectionHeader
+                  number={1}
+                  question="How does revenue compare?"
+                  description="Total revenue collected before any deductions"
+                  accent="emerald"
+                  showAccentLine={false}
+                  compact
+                />
+                <DataTableCard
+                  title="Revenue Comparison"
+                  columns={revenueColumns}
+                  rows={tableRows}
+                />
+              </SectionContainer>
+
+              {/* Section 2: Sessions */}
+              <SectionContainer accent="cyan" index={2}>
+                <SectionHeader
+                  number={2}
+                  question="How do sessions compare?"
+                  description="Session volume, weekly averages, and goal progress"
+                  accent="cyan"
+                  showAccentLine={false}
+                  compact
+                />
+                <DataTableCard
+                  title="Session Comparison"
+                  columns={sessionsColumns}
+                  rows={tableRows}
+                />
+              </SectionContainer>
+
+              {/* Section 3: Clients */}
+              <SectionContainer accent="amber" index={3}>
+                <SectionHeader
+                  number={3}
+                  question="How does client acquisition compare?"
+                  description="Consultations, new clients, and conversion rates"
+                  accent="amber"
+                  showAccentLine={false}
+                  compact
+                />
+                <DataTableCard
+                  title="Client Comparison"
+                  columns={clientsColumns}
+                  rows={tableRows}
+                />
+              </SectionContainer>
+
+              {/* Section 4: Clinician */}
+              <SectionContainer accent="stone" index={4} isLast>
+                <SectionHeader
+                  number={4}
+                  question="How do clinicians compare?"
+                  description="Clinician productivity and notes compliance"
+                  accent="stone"
+                  showAccentLine={false}
+                  compact
+                />
+                <DataTableCard
+                  title="Clinician Comparison"
+                  columns={clinicianColumns}
+                  rows={tableRows}
+                />
+              </SectionContainer>
             </div>
           )}
         </div>

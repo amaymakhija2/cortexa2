@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Users, Loader2, Info } from 'lucide-react';
 import {
   useClinicianMetricsForPeriod,
@@ -10,7 +10,7 @@ import {
 import { TimeSelector, TimeSelectorValue } from './design-system/controls/TimeSelector';
 import { useSettings, getDisplayName } from '../context/SettingsContext';
 import { ClinicianDetailsTab } from './ClinicianDetailsTab';
-import { PageHeader } from './design-system';
+import { PageHeader, ClinicianDrawer, getMetricByKey } from './design-system';
 import { CLINICIAN_SYNTHETIC_METRICS, getSyntheticMetricsByName } from '../data/clinicians';
 
 // =============================================================================
@@ -622,11 +622,17 @@ type ClinicianTabType = 'ranking' | 'details';
 
 export const ClinicianOverview: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
 
   // Get metric from URL search params (allows deep linking from other pages)
   const metricFromUrl = searchParams.get('metric') as MetricGroupId | null;
   const [selectedGroupId, setSelectedGroupId] = useState<MetricGroupId>(metricFromUrl || 'revenue');
   const [sessionGoalView, setSessionGoalView] = useState<SessionGoalView>('weekly');
+
+  // Drawer state
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerClinicianId, setDrawerClinicianId] = useState<number | null>(null);
+  const [drawerMetricId, setDrawerMetricId] = useState<string | undefined>();
 
   const now = new Date();
   // Default to last 12 months for ranking view
@@ -820,17 +826,17 @@ export const ClinicianOverview: React.FC = () => {
     const isAggregatePeriod = isAggregateView;
 
     if (isAggregatePeriod) {
-      // For aggregate periods, use Avg Session Retention as primary, hide Rebook Rate
+      // For aggregate periods, use Rebook Rate as primary with session milestones
       return {
         ...selectedGroup,
         description: 'Who\'s keeping clients engaged over time?',
         primary: {
-          key: 'avgSessionRetention',
-          label: 'Avg Session Retention',
-          shortLabel: 'Avg Retention',
+          key: 'rebookRate',
+          label: 'Rebook Rate',
+          shortLabel: 'Rebook',
           format: (v) => `${v.toFixed(0)}%`,
           higherIsBetter: true,
-          tooltip: 'Average of session 2, 5, and 12 return rates over the period.',
+          tooltip: 'Percentage of active clients who have their next appointment scheduled.',
         },
         supporting: [
           {
@@ -1027,6 +1033,58 @@ export const ClinicianOverview: React.FC = () => {
     return { sortedClinicians: sorted, avgRankIndex: avgIndex };
   }, [metric.key, metric.higherIsBetter, teamAvg]);
 
+  // =============================================================================
+  // DRAWER HANDLERS
+  // =============================================================================
+
+  // Get the clinician for the drawer
+  const drawerClinician = useMemo(() => {
+    if (drawerClinicianId === null) return null;
+    return CLINICIANS_DATA.find(c => c.id === drawerClinicianId) || null;
+  }, [CLINICIANS_DATA, drawerClinicianId]);
+
+  // Open drawer for a clinician row click (primary metric)
+  const handleRowClick = useCallback((clinicianId: number | null) => {
+    setDrawerClinicianId(clinicianId);
+    setDrawerMetricId(undefined); // Use primary metric
+    setDrawerOpen(true);
+  }, []);
+
+  // Open drawer for a specific metric cell click
+  const handleCellClick = useCallback((clinicianId: number | null, metricKey: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent row click
+    const metricDef = getMetricByKey(selectedGroupId, metricKey);
+    setDrawerClinicianId(clinicianId);
+    setDrawerMetricId(metricDef?.id);
+    setDrawerOpen(true);
+  }, [selectedGroupId]);
+
+  // Close drawer
+  const handleDrawerClose = useCallback(() => {
+    setDrawerOpen(false);
+  }, []);
+
+  // Navigate to clinician details
+  const handleViewDetails = useCallback((clinicianId: number) => {
+    const clinician = CLINICIANS_DATA.find(c => c.id === clinicianId);
+    if (clinician) {
+      setDrawerOpen(false);
+      // Navigate to details tab with this clinician selected
+      setSearchParams(prev => {
+        const newParams = new URLSearchParams(prev);
+        newParams.set('tab', 'details');
+        newParams.set('clinician', clinician.name);
+        return newParams;
+      }, { replace: true });
+    }
+  }, [CLINICIANS_DATA, setSearchParams]);
+
+  // Handle clinician click from team breakdown
+  const handleClinicianClickFromDrawer = useCallback((clinicianId: number) => {
+    setDrawerClinicianId(clinicianId);
+    // Keep the drawer open, just switch to the clinician
+  }, []);
+
   // If details tab is selected, render the details component
   if (activeTab === 'details') {
     return (
@@ -1206,10 +1264,11 @@ export const ClinicianOverview: React.FC = () => {
               // Team Average Row Component
               const TeamAverageRow = () => (
                 <div
-                  className="bg-stone-100 rounded-xl lg:rounded-2xl overflow-hidden"
+                  className="bg-stone-100 rounded-xl lg:rounded-2xl overflow-hidden cursor-pointer hover:bg-stone-150 transition-colors"
                   style={{
                     border: '2px dashed #d6d3d1',
                   }}
+                  onClick={() => handleRowClick(null)}
                 >
                   <div className="px-4 sm:px-6 py-4 lg:py-5">
                     {/* Mobile layout */}
@@ -1317,6 +1376,7 @@ export const ClinicianOverview: React.FC = () => {
                   <div
                     className="group bg-white rounded-xl lg:rounded-2xl overflow-hidden transition-all duration-300 hover:scale-[1.01] cursor-pointer"
                     style={{ boxShadow: theme.shadow }}
+                    onClick={() => handleRowClick(clinician.id)}
                   >
                     {/* Accent bar - only for top/bottom performers */}
                     {(isFirst || isLast) && (
@@ -1466,6 +1526,18 @@ export const ClinicianOverview: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Clinician Drawer */}
+      <ClinicianDrawer
+        isOpen={drawerOpen}
+        onClose={handleDrawerClose}
+        clinician={drawerClinician}
+        allClinicians={CLINICIANS_DATA}
+        groupId={selectedGroupId}
+        initialMetricId={drawerMetricId}
+        onViewDetails={handleViewDetails}
+        onClinicianClick={handleClinicianClickFromDrawer}
+      />
     </div>
   );
 };

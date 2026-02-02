@@ -10,6 +10,9 @@ import {
 import { MOCK_CONSULTATIONS } from '../data/consultations';
 import { useClinicianMetricsForPeriod, useClinicianMetricsForMonth, ClinicianMetricsCalculated } from './useClinicianMetrics';
 
+// Practice-level monthly revenue goal (from default settings)
+const PRACTICE_MONTHLY_REVENUE_GOAL = 150000;
+
 // =============================================================================
 // CONSULTATION METRICS HELPERS
 // =============================================================================
@@ -83,10 +86,15 @@ export interface AggregateMetrics {
   clinicianCount: number;
   clinicianIds: string[];
   revenue: number;
+  revenueGoal: number;
+  revenueGoalPercent: number;
   completedSessions: number;
   avgWeeklySessions: number;
+  sessionGoal: number;
   sessionGoalPercent: number;
+  showRate: number;
   clientsSeen: number;
+  activeClients: number;
   churnRate: number;
   cancelRate: number;
   outstandingNotes: number;
@@ -103,7 +111,13 @@ export interface PointInTimeMetrics {
   clinicianCount: number;
   clinicianIds: string[];
   revenue: number;
+  revenueGoal: number;
+  revenueGoalPercent: number;
   completedSessions: number;
+  sessionGoal: number;
+  sessionGoalPercent: number;
+  showRate: number;
+  clientsSeen: number;
   activeClients: number;
   caseloadCapacity: number;
   churnRate: number;
@@ -194,16 +208,23 @@ function aggregateMetricsForPeriod(
     // Average weekly sessions (52 weeks in a year)
     const avgWeeklySessions = totalSessions / 52;
 
-    // Session goal % = completed sessions / (sum of monthly goals * 12)
+    // Session goal = sum of monthly goals * 12 for annual
     const totalMonthlySessionGoal = groupClinicians.reduce((sum, c) => sum + c.sessionGoal, 0);
     const totalAnnualSessionGoal = totalMonthlySessionGoal * 12;
     const sessionGoalPercent = totalAnnualSessionGoal > 0
       ? (totalSessions / totalAnnualSessionGoal) * 100
       : 0;
 
-    // Get synthetic metrics for churn and cancel rates
+    // Revenue goal = proportional share based on session goals (assumes revenue scales with sessions)
+    const totalPracticeSessionGoal = clinicians.filter(c => c.isActive).reduce((sum, c) => sum + c.sessionGoal, 0) * 12;
+    const groupSessionShare = totalPracticeSessionGoal > 0 ? totalAnnualSessionGoal / totalPracticeSessionGoal : 0;
+    const annualRevenueGoal = PRACTICE_MONTHLY_REVENUE_GOAL * 12 * groupSessionShare;
+    const revenueGoalPercent = annualRevenueGoal > 0 ? (totalRevenue / annualRevenueGoal) * 100 : 0;
+
+    // Get synthetic metrics for churn, cancel, and show rates
     let totalCancelRate = 0;
     let totalChurnRate = 0;
+    let totalShowRate = 0;
     let totalOutstandingNotes = 0;
     let countWithMetrics = 0;
 
@@ -212,6 +233,7 @@ function aggregateMetricsForPeriod(
       if (syntheticMetrics) {
         totalCancelRate += syntheticMetrics.clientCancelRate + syntheticMetrics.clinicianCancelRate;
         totalChurnRate += syntheticMetrics.churnRate;
+        totalShowRate += syntheticMetrics.showRate;
         totalOutstandingNotes += syntheticMetrics.outstandingNotes;
         countWithMetrics++;
       }
@@ -219,6 +241,7 @@ function aggregateMetricsForPeriod(
 
     const avgCancelRate = countWithMetrics > 0 ? totalCancelRate / countWithMetrics : 0;
     const avgChurnRate = countWithMetrics > 0 ? totalChurnRate / countWithMetrics : 0;
+    const avgShowRate = countWithMetrics > 0 ? totalShowRate / countWithMetrics : 0;
 
     // Aggregate consultation metrics for all clinicians in the group
     let totalConsultationsBooked = 0;
@@ -245,10 +268,15 @@ function aggregateMetricsForPeriod(
       clinicianCount: groupClinicians.length,
       clinicianIds,
       revenue: totalRevenue,
+      revenueGoal: Math.round(annualRevenueGoal),
+      revenueGoalPercent: Math.round(revenueGoalPercent),
       completedSessions: totalSessions,
       avgWeeklySessions: Math.round(avgWeeklySessions * 10) / 10,
+      sessionGoal: totalAnnualSessionGoal,
       sessionGoalPercent: Math.round(sessionGoalPercent),
+      showRate: Math.round(avgShowRate * 10) / 10,
       clientsSeen: totalClientsSeen,
+      activeClients: totalClientsSeen, // For aggregate view, use same as clients seen
       churnRate: Math.round(avgChurnRate * 10) / 10,
       cancelRate: Math.round(avgCancelRate),
       outstandingNotes: totalOutstandingNotes,
@@ -289,6 +317,18 @@ function aggregateMetricsForMonth(
     const totalSessions = groupCalcMetrics.reduce((sum, m) => sum + m.completedSessions, 0);
     const totalActiveClients = groupCalcMetrics.reduce((sum, m) => sum + m.activeClients, 0);
 
+    // Session goal for the month
+    const totalMonthlySessionGoal = groupClinicians.reduce((sum, c) => sum + c.sessionGoal, 0);
+    const sessionGoalPercent = totalMonthlySessionGoal > 0
+      ? (totalSessions / totalMonthlySessionGoal) * 100
+      : 0;
+
+    // Revenue goal = proportional share based on session goals
+    const totalPracticeSessionGoal = clinicians.filter(c => c.isActive).reduce((sum, c) => sum + c.sessionGoal, 0);
+    const groupSessionShare = totalPracticeSessionGoal > 0 ? totalMonthlySessionGoal / totalPracticeSessionGoal : 0;
+    const monthlyRevenueGoal = PRACTICE_MONTHLY_REVENUE_GOAL * groupSessionShare;
+    const revenueGoalPercent = monthlyRevenueGoal > 0 ? (totalRevenue / monthlyRevenueGoal) * 100 : 0;
+
     // Caseload capacity: active clients / client goal
     const totalClientGoal = groupClinicians.reduce((sum, c) => sum + c.clientGoal, 0);
     const caseloadCapacity = totalClientGoal > 0
@@ -298,6 +338,7 @@ function aggregateMetricsForMonth(
     // Get synthetic metrics
     let totalCancelRate = 0;
     let totalChurnRate = 0;
+    let totalShowRate = 0;
     let totalOutstandingNotes = 0;
     let countWithMetrics = 0;
 
@@ -306,6 +347,7 @@ function aggregateMetricsForMonth(
       if (syntheticMetrics) {
         totalCancelRate += syntheticMetrics.clientCancelRate + syntheticMetrics.clinicianCancelRate;
         totalChurnRate += syntheticMetrics.churnRate;
+        totalShowRate += syntheticMetrics.showRate;
         totalOutstandingNotes += syntheticMetrics.outstandingNotes;
         countWithMetrics++;
       }
@@ -313,6 +355,7 @@ function aggregateMetricsForMonth(
 
     const avgCancelRate = countWithMetrics > 0 ? totalCancelRate / countWithMetrics : 0;
     const avgChurnRate = countWithMetrics > 0 ? totalChurnRate / countWithMetrics : 0;
+    const avgShowRate = countWithMetrics > 0 ? totalShowRate / countWithMetrics : 0;
 
     // Aggregate consultation metrics for all clinicians in the group for this month
     let totalConsultationsBooked = 0;
@@ -339,7 +382,13 @@ function aggregateMetricsForMonth(
       clinicianCount: groupClinicians.length,
       clinicianIds,
       revenue: totalRevenue,
+      revenueGoal: Math.round(monthlyRevenueGoal),
+      revenueGoalPercent: Math.round(revenueGoalPercent),
       completedSessions: totalSessions,
+      sessionGoal: totalMonthlySessionGoal,
+      sessionGoalPercent: Math.round(sessionGoalPercent),
+      showRate: Math.round(avgShowRate * 10) / 10,
+      clientsSeen: totalActiveClients, // For point-in-time, clients seen = active clients
       activeClients: totalActiveClients,
       caseloadCapacity: Math.round(caseloadCapacity),
       churnRate: Math.round(avgChurnRate * 10) / 10,
