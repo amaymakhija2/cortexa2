@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useRef } from 'react';
-import { Users, ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Users, CalendarCheck } from 'lucide-react';
 import { useSettings } from '../../context/SettingsContext';
 import {
   PageHeader,
@@ -8,11 +9,9 @@ import {
   Section,
   ChartCard,
   DonutChartCard,
-  DataTableCard,
   SplitBarCard,
   ToggleButton,
   GoalIndicator,
-  ActionButton,
   BarChart,
   ExpandedChartModal,
   AnimatedGrid,
@@ -21,6 +20,7 @@ import {
   ClinicianFilter,
   OthersTooltip,
   useClinicianFilter,
+  MetricCard,
 } from '../design-system';
 import type { HoverInfo, SegmentConfig, ClinicianFilterOption } from '../design-system';
 import { TimeSelector } from '../design-system/controls/TimeSelector';
@@ -64,6 +64,7 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
   // =========================================================================
 
   const { settings } = useSettings();
+  const navigate = useNavigate();
   const sessionsGoal = settings.practiceGoals.monthlySessions;
 
   const [showClinicianBreakdown, setShowClinicianBreakdown] = useState(false);
@@ -286,42 +287,6 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
   }, [clinicianFilter]);
 
   // =========================================================================
-  // TABLE DATA BUILDERS
-  // =========================================================================
-
-  const buildTableColumns = () => {
-    const monthColumns = sessionsData.map((item) => ({
-      key: item.month.toLowerCase(),
-      header: item.month,
-      align: 'right' as const,
-    }));
-    return [...monthColumns, { key: 'total', header: 'Total', align: 'right' as const, isTotals: true }];
-  };
-
-  const buildTableRows = () => {
-    const buildRowValues = (field: keyof typeof sessionsData[0]) => {
-      const values: Record<string, string> = {};
-      let total = 0;
-      sessionsData.forEach((item) => {
-        const val = item[field] as number;
-        values[item.month.toLowerCase()] = val.toLocaleString();
-        total += val;
-      });
-      values.total = total.toLocaleString();
-      return values;
-    };
-
-    return [
-      { id: 'booked', label: 'Booked', indicator: { color: '#06b6d4' }, values: buildRowValues('booked') },
-      { id: 'completed', label: 'Completed', indicator: { color: '#10b981' }, values: buildRowValues('completed'), valueColor: 'text-emerald-600', isHighlighted: true, highlightColor: 'emerald' as const },
-      { id: 'cancelled', label: 'Client Cancelled', indicator: { color: '#ef4444' }, values: buildRowValues('cancelled'), valueColor: 'text-rose-600' },
-      { id: 'clinicianCancelled', label: 'Clinician Cancelled', indicator: { color: '#3b82f6' }, values: buildRowValues('clinicianCancelled'), valueColor: 'text-blue-600' },
-      { id: 'lateCancelled', label: 'Late Cancelled', indicator: { color: '#f59e0b' }, values: buildRowValues('lateCancelled'), valueColor: 'text-amber-600' },
-      { id: 'noShow', label: 'No Show', indicator: { color: '#6b7280' }, values: buildRowValues('noShow'), valueColor: 'text-stone-600' },
-    ];
-  };
-
-  // =========================================================================
   // RENDER
   // =========================================================================
 
@@ -332,6 +297,9 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
         accent="amber"
         showGridPattern
         title="Sessions Performance"
+        sticky={true}
+        collapsible={true}
+        collapseThreshold={80}
         timeSelector={
           <TimeSelector
             value={timeSelection}
@@ -340,6 +308,86 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
             aggregateOnly={true}
             variant="header"
           />
+        }
+        actions={
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => navigate('/sessions-breakdown')}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+              style={{
+                background: 'rgba(255, 255, 255, 0.08)',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                color: 'rgba(255, 255, 255, 0.9)',
+              }}
+            >
+              <Users size={16} />
+              <span>Clinician Breakdown</span>
+            </button>
+            <button
+              onClick={() => navigate('/attendance-breakdown')}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+              style={{
+                background: 'rgba(255, 255, 255, 0.08)',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                color: 'rgba(255, 255, 255, 0.9)',
+              }}
+            >
+              <CalendarCheck size={16} />
+              <span>Attendance Breakdown</span>
+            </button>
+          </div>
+        }
+        collapsedContent={
+          <div className="flex items-center justify-between gap-4">
+            {/* LEFT: Title + Time Selector */}
+            <div className="flex items-center gap-4 min-w-0">
+              <h1
+                className="text-xl sm:text-2xl text-white font-semibold tracking-tight whitespace-nowrap"
+                style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
+              >
+                Sessions Performance
+              </h1>
+
+              <TimeSelector
+                value={timeSelection}
+                onChange={onTimeSelectionChange}
+                showAggregateOption={true}
+                aggregateOnly={true}
+                variant="header"
+                className="[&_span]:!text-lg [&_span]:sm:!text-xl [&_button]:!gap-2"
+              />
+            </div>
+
+            {/* RIGHT: Action buttons */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => navigate('/sessions-breakdown')}
+                className="group flex items-center gap-2 px-3.5 py-2 rounded-xl transition-all duration-200 hover:bg-white/12 active:scale-[0.97]"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.06)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                }}
+              >
+                <Users size={16} className="text-white/70 group-hover:text-white transition-colors" />
+                <span className="text-sm font-medium text-white/70 group-hover:text-white transition-colors">
+                  Clinician Breakdown
+                </span>
+              </button>
+              <button
+                onClick={() => navigate('/attendance-breakdown')}
+                className="group flex items-center gap-2 px-3.5 py-2 rounded-xl transition-all duration-200 hover:bg-white/12 active:scale-[0.97]"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.06)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                }}
+              >
+                <CalendarCheck size={16} className="text-white/70 group-hover:text-white transition-colors" />
+                <span className="text-sm font-medium text-white/70 group-hover:text-white transition-colors">
+                  Attendance Breakdown
+                </span>
+              </button>
+            </div>
+          </div>
         }
       />
 
@@ -524,19 +572,6 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
           </Section>
         </AnimatedSection>
 
-        {/* Monthly Breakdown Table */}
-        <AnimatedSection delay={480}>
-          <Section spacing="none">
-            <DataTableCard
-              title="Monthly Breakdown"
-              subtitle="Detailed session metrics by month"
-              columns={buildTableColumns()}
-              rows={buildTableRows()}
-              expandable
-              onExpand={() => setExpandedCard('monthly-breakdown')}
-            />
-          </Section>
-        </AnimatedSection>
       </PageContent>
 
       {/* =====================================================================
@@ -666,20 +701,6 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
         />
       </ExpandedChartModal>
 
-      {/* Monthly Breakdown Expanded */}
-      <ExpandedChartModal
-        isOpen={expandedCard === 'monthly-breakdown'}
-        onClose={() => setExpandedCard(null)}
-        title="Monthly Breakdown"
-        subtitle="Detailed session metrics by month"
-      >
-        <DataTableCard
-          title=""
-          columns={buildTableColumns()}
-          rows={buildTableRows()}
-          size="lg"
-        />
-      </ExpandedChartModal>
     </div>
   );
 };

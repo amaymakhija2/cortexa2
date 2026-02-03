@@ -17,6 +17,9 @@ import { SettingsPage } from './components/SettingsPage';
 import { PracticeConfigurationPage } from './components/PracticeConfigurationPage';
 import { SessionHistoryPage } from './components/SessionHistoryPage';
 import { ClinicianBreakdownPage } from './components/ClinicianBreakdownPage';
+import { RevenueBreakdownPage } from './components/RevenueBreakdownPage';
+import { SessionsBreakdownPage } from './components/SessionsBreakdownPage';
+import { AttendanceBreakdownPage } from './components/AttendanceBreakdownPage';
 import { Consultations } from './components/Consultations';
 import { Reference as Components } from './components/design-system';
 import { DevLoaderTest } from './components/DevLoaderTest';
@@ -211,6 +214,9 @@ const ProtectedApp: React.FC = () => {
                 <Route path="/clinician-details" element={<ClinicianDetails />} />
                 <Route path="/clinician/:clinicianId/session-history" element={<SessionHistoryPage />} />
                 <Route path="/clinician-breakdown" element={<ClinicianBreakdownPage />} />
+                <Route path="/revenue-breakdown" element={<RevenueBreakdownPage />} />
+                <Route path="/sessions-breakdown" element={<SessionsBreakdownPage />} />
+                <Route path="/attendance-breakdown" element={<AttendanceBreakdownPage />} />
                 <Route path="/consultations" element={<Consultations />} />
                 <Route path="/configure" element={<PracticeConfigurationPage />} />
                 <Route path="/components" element={<Components />} />

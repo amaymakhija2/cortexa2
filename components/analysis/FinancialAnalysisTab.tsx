@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Users, ArrowRight } from 'lucide-react';
 import { useSettings } from '../../context/SettingsContext';
 import {
@@ -65,6 +66,7 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
   // LOCAL STATE & SETTINGS
   // =========================================================================
   const { settings } = useSettings();
+  const navigate = useNavigate();
   const revenueGoal = settings.practiceGoals.monthlyRevenue;
   const revenueGoalDisplay = `$${Math.round(revenueGoal / 1000)}k`; // e.g., "$150k"
   const [showClinicianBreakdown, setShowClinicianBreakdown] = useState(false);
@@ -419,6 +421,9 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
         accent="amber"
         showGridPattern
         title="Financial Performance"
+        sticky={true}
+        collapsible={true}
+        collapseThreshold={80}
         timeSelector={
           <TimeSelector
             value={timeSelection}
@@ -427,6 +432,57 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
             aggregateOnly={true}
             variant="header"
           />
+        }
+        actions={
+          <button
+            onClick={() => navigate('/revenue-breakdown')}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+            style={{
+              background: 'rgba(255, 255, 255, 0.08)',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              color: 'rgba(255, 255, 255, 0.9)',
+            }}
+          >
+            <Users size={16} />
+            <span>Clinician Breakdown</span>
+          </button>
+        }
+        collapsedContent={
+          <div className="flex items-center justify-between gap-4">
+            {/* LEFT: Title + Time Selector */}
+            <div className="flex items-center gap-4 min-w-0">
+              <h1
+                className="text-xl sm:text-2xl text-white font-semibold tracking-tight whitespace-nowrap"
+                style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
+              >
+                Financial Performance
+              </h1>
+
+              <TimeSelector
+                value={timeSelection}
+                onChange={onTimeSelectionChange}
+                showAggregateOption={true}
+                aggregateOnly={true}
+                variant="header"
+                className="[&_span]:!text-lg [&_span]:sm:!text-xl [&_button]:!gap-2"
+              />
+            </div>
+
+            {/* RIGHT: Action button */}
+            <button
+              onClick={() => navigate('/revenue-breakdown')}
+              className="group flex items-center gap-2 px-3.5 py-2 rounded-xl transition-all duration-200 hover:bg-white/12 active:scale-[0.97]"
+              style={{
+                background: 'rgba(255, 255, 255, 0.06)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+              }}
+            >
+              <Users size={16} className="text-white/70 group-hover:text-white transition-colors" />
+              <span className="text-sm font-medium text-white/70 group-hover:text-white transition-colors">
+                Clinician Breakdown
+              </span>
+            </button>
+          </div>
         }
       />
 
