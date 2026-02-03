@@ -6,7 +6,6 @@ import {
   PageContent,
   Grid,
   Section,
-  StatCard,
   ChartCard,
   SimpleChartCard,
   DonutChartCard,
@@ -17,7 +16,6 @@ import {
   BarChart,
   LineChart,
   ExpandedChartModal,
-  AnimatedGrid,
   AnimatedSection,
   ExecutiveSummary,
   ClinicianFilter,
@@ -443,32 +441,6 @@ export const FinancialAnalysisTab: React.FC<FinancialAnalysisTabProps> = ({
             />
           </Section>
         )}
-
-        {/* Hero Stats Row */}
-        <Section spacing="md">
-          <AnimatedGrid cols={settings.showNetRevenueData ? 3 : 2} gap="md" staggerDelay={60}>
-            <StatCard
-              title="Gross Revenue"
-              value={formatCurrencyParts(totalGrossRevenue).value}
-              valueSuffix={formatCurrencyParts(totalGrossRevenue).suffix}
-              subtitle={periodLabel}
-            />
-            {settings.showNetRevenueData && (
-              <StatCard
-                title="Net Revenue"
-                value={formatCurrencyParts(totalNetRevenue).value}
-                valueSuffix={formatCurrencyParts(totalNetRevenue).suffix}
-                subtitle={periodLabel}
-              />
-            )}
-            <StatCard
-              title="Revenue Per Completed Session"
-              value={`$${Math.round(avgRevenuePerSession)}`}
-              valueLabel="average"
-              subtitle={periodLabel}
-            />
-          </AnimatedGrid>
-        </Section>
 
         {/* Charts Row */}
         <AnimatedSection delay={280}>

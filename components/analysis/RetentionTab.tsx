@@ -9,7 +9,7 @@ import {
   SectionContainer,
   ChartCard,
   DonutChartCard,
-  StatCard,
+  MetricCard,
   ToggleButton,
   BarChart,
   LineChart,
@@ -298,31 +298,41 @@ export const RetentionTab: React.FC<RetentionTabProps> = ({
             {selectedCohortData.summary && (
               <Section spacing="lg">
                 <Grid cols={4} gap="lg">
-                  <StatCard
-                    title="Clients Acquired"
+                  <MetricCard
+                    label="Clients Acquired"
                     value={selectedCohortData.summary.clientsAcquired.toLocaleString()}
-                    subtitle={
+                    subtext={
                       selectedCohort === 'all-time' ? 'since you opened' :
                       selectedCohort === 'this-year' ? 'in 2025' :
                       selectedCohort === 'last-year' ? 'in 2024' : ''
                     }
+                    status="Healthy"
+                    hideStatusBar
+                    hideFooter
                   />
-                  <StatCard
-                    title="Clients Churned"
+                  <MetricCard
+                    label="Clients Churned"
                     value={selectedCohortData.summary.clientsChurned.toLocaleString()}
-                    subtitle={`${((selectedCohortData.summary.clientsChurned / selectedCohortData.summary.clientsAcquired) * 100).toFixed(0)}% of cohort`}
-                    variant="negative"
+                    subtext={`${((selectedCohortData.summary.clientsChurned / selectedCohortData.summary.clientsAcquired) * 100).toFixed(0)}% of cohort`}
+                    status="Critical"
+                    hideStatusBar
+                    hideFooter
                   />
-                  <StatCard
-                    title="Active Clients"
+                  <MetricCard
+                    label="Active Clients"
                     value={selectedCohortData.summary.activeClients.toLocaleString()}
-                    subtitle={`${((selectedCohortData.summary.activeClients / selectedCohortData.summary.clientsAcquired) * 100).toFixed(0)}% still active`}
-                    variant="positive"
+                    subtext={`${((selectedCohortData.summary.activeClients / selectedCohortData.summary.clientsAcquired) * 100).toFixed(0)}% still active`}
+                    status="Healthy"
+                    hideStatusBar
+                    hideFooter
                   />
-                  <StatCard
-                    title="Avg Sessions Completed"
+                  <MetricCard
+                    label="Avg Sessions Completed"
                     value={selectedCohortData.summary.avgSessionsPerClient.toFixed(1)}
-                    subtitle="sessions per client"
+                    subtext="sessions per client"
+                    status="Healthy"
+                    hideStatusBar
+                    hideFooter
                   />
                 </Grid>
               </Section>

@@ -17,7 +17,7 @@ const SUB_TABS: Record<string, { id: string; label: string; shortLabel: string }
     { id: 'clients', label: 'Client Roster', shortLabel: 'Clients' },
     { id: 'financial', label: 'Financial', shortLabel: 'Financial' },
     { id: 'sessions', label: 'Sessions', shortLabel: 'Sessions' },
-    { id: 'capacity-client', label: 'Clients & Capacity', shortLabel: 'Capacity' },
+    { id: 'capacity-client', label: 'Clients', shortLabel: 'Clients' },
     { id: 'retention', label: 'Retention', shortLabel: 'Retention' },
     { id: 'consultations', label: 'Consultations', shortLabel: 'Consults' },
     { id: 'insurance', label: 'Insurance', shortLabel: 'Insurance' },

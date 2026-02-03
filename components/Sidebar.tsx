@@ -87,7 +87,7 @@ const NAV_ITEMS = [
     imageSize: 44,
     subItems: [
       { id: 'clients', label: 'Roster' },
-      { id: 'capacity-client', label: 'Capacity' },
+      { id: 'capacity-client', label: 'Clients' },
       { id: 'consultations', label: 'Consults' },
       { id: 'financial', label: 'Financial' },
       { id: 'sessions', label: 'Sessions' },

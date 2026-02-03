@@ -42,6 +42,10 @@ export interface MetricCardProps {
     label: string;
     labelMobile?: string;
   };
+  /** Hide the colored status bar at the top */
+  hideStatusBar?: boolean;
+  /** Hide the footer section (status indicator and buttons) */
+  hideFooter?: boolean;
   /** Additional className */
   className?: string;
 }
@@ -192,6 +196,8 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   expandButtonLabel = 'Details',
   expandButtonLabelMobile = 'Details',
   navigateTo,
+  hideStatusBar = false,
+  hideFooter = false,
   className = '',
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -268,7 +274,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
           }}
         >
           {/* Status bar */}
-          <div className={`h-1.5 flex-shrink-0 ${statusColor}`} />
+          {!hideStatusBar && <div className={`h-1.5 flex-shrink-0 ${statusColor}`} />}
 
           {/* Content */}
           <div className="px-4 pt-4 pb-3 sm:px-5 sm:pt-5 sm:pb-4 xl:px-5 xl:pt-5 xl:pb-4 flex flex-col">
@@ -320,41 +326,43 @@ export const MetricCard: React.FC<MetricCardProps> = ({
             </div>
 
             {/* Subtext */}
-            <p className="text-sm sm:text-base lg:text-lg text-stone-500 leading-snug mb-2 xl:mb-3">
+            <p className={`text-sm sm:text-base lg:text-lg text-stone-500 leading-snug ${hideFooter ? '' : 'mb-2 xl:mb-3'}`}>
               {subtext}
             </p>
 
             {/* Footer - stacks vertically on small screens, horizontal on larger */}
-            <div className={`pt-2 xl:pt-3 border-t border-stone-100 ${hasButton ? 'flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between' : ''}`}>
-              <StatusIndicator status={status} />
-              {hasExpandable && (
-                <button
-                  onClick={() => setIsExpanded(!isExpanded)}
-                  onMouseDown={(e) => e.stopPropagation()}
-                  className={`flex items-center justify-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-lg sm:rounded-full text-sm font-medium transition-all duration-300 w-full sm:w-auto ${
-                    isExpanded
-                      ? 'bg-stone-900 text-white'
-                      : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
-                  }`}
-                >
-                  <span>{isExpanded ? 'Close' : expandButtonLabel}</span>
-                  <ChevronRight
-                    size={14}
-                    className={`transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`}
-                  />
-                </button>
-              )}
-              {hasNavigation && !hasExpandable && (
-                <button
-                  onClick={() => navigate(navigateTo!.path)}
-                  onMouseDown={(e) => e.stopPropagation()}
-                  className="flex items-center justify-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-lg sm:rounded-full text-sm font-medium transition-all duration-300 bg-stone-100 text-stone-600 hover:bg-stone-200 w-full sm:w-auto"
-                >
-                  <span>{navigateTo!.label}</span>
-                  <ChevronRight size={14} />
-                </button>
-              )}
-            </div>
+            {!hideFooter && (
+              <div className={`pt-2 xl:pt-3 border-t border-stone-100 ${hasButton ? 'flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between' : ''}`}>
+                <StatusIndicator status={status} />
+                {hasExpandable && (
+                  <button
+                    onClick={() => setIsExpanded(!isExpanded)}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    className={`flex items-center justify-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-lg sm:rounded-full text-sm font-medium transition-all duration-300 w-full sm:w-auto ${
+                      isExpanded
+                        ? 'bg-stone-900 text-white'
+                        : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                    }`}
+                  >
+                    <span>{isExpanded ? 'Close' : expandButtonLabel}</span>
+                    <ChevronRight
+                      size={14}
+                      className={`transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`}
+                    />
+                  </button>
+                )}
+                {hasNavigation && !hasExpandable && (
+                  <button
+                    onClick={() => navigate(navigateTo!.path)}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    className="flex items-center justify-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-lg sm:rounded-full text-sm font-medium transition-all duration-300 bg-stone-100 text-stone-600 hover:bg-stone-200 w-full sm:w-auto"
+                  >
+                    <span>{navigateTo!.label}</span>
+                    <ChevronRight size={14} />
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>

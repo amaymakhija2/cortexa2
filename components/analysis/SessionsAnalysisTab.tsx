@@ -6,7 +6,6 @@ import {
   PageContent,
   Grid,
   Section,
-  StatCard,
   ChartCard,
   DonutChartCard,
   DataTableCard,
@@ -356,37 +355,6 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
           </Section>
         )}
 
-        {/* Hero Stats Row */}
-        <Section spacing="md">
-          <AnimatedGrid cols={4} gap="md" staggerDelay={60}>
-            <StatCard
-              title="Sessions Completed"
-              value={totalCompleted.toLocaleString()}
-              valueLabel="total"
-              subtitle={periodLabel}
-            />
-            <StatCard
-              title="Sessions Booked"
-              value={totalBooked.toLocaleString()}
-              valueLabel="total"
-              subtitle={periodLabel}
-            />
-            <StatCard
-              title="Weekly Sessions"
-              value={avgWeeklyCompleted.toString()}
-              valueLabel="average"
-              subtitle={periodLabel}
-            />
-            <StatCard
-              title="Cancel Rate"
-              value={clientCancelRate.toFixed(1)}
-              valueSuffix="%"
-              valueLabel="average"
-              subtitle={periodLabel}
-            />
-          </AnimatedGrid>
-        </Section>
-
         {/* Main Charts Row */}
         <AnimatedSection delay={280}>
           <Section spacing="md">
@@ -525,11 +493,14 @@ export const SessionsAnalysisTab: React.FC<SessionsAnalysisTabProps> = ({
         <AnimatedSection delay={380}>
           <Section spacing="md">
             <AnimatedGrid cols={2} gap="md" staggerDelay={60}>
-              <StatCard
-                title="Sessions per Client per Month"
+              <MetricCard
+                label="Sessions per Client per Month"
                 value={avgSessionsPerClient.toFixed(1)}
                 valueLabel="average"
-                subtitle={periodLabel}
+                subtext={periodLabel}
+                status="Healthy"
+                hideStatusBar
+                hideFooter
               />
               <SplitBarCard
                 title="Session Modality"

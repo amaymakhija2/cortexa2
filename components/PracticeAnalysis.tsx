@@ -587,7 +587,7 @@ export const PracticeAnalysis: React.FC = () => {
     { id: 'clients', label: 'Client Roster', shortLabel: 'Clients' },
     { id: 'financial', label: 'Financial Analysis', shortLabel: 'Financial' },
     { id: 'sessions', label: 'Sessions Analysis', shortLabel: 'Sessions' },
-    { id: 'capacity-client', label: 'Client & Capacity Analysis', shortLabel: 'Client & Capacity' },
+    { id: 'capacity-client', label: 'Client Performance', shortLabel: 'Clients' },
     { id: 'retention', label: 'Retention Analysis', shortLabel: 'Retention' },
     { id: 'consultations', label: 'Consultations Analysis', shortLabel: 'Consultations' },
     { id: 'insurance', label: 'Insurance Analysis', shortLabel: 'Insurance' },

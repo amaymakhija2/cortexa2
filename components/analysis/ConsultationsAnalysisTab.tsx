@@ -6,7 +6,7 @@ import {
   PageContent,
   Grid,
   Section,
-  StatCard,
+  MetricCard,
   ChartCard,
   SimpleChartCard,
   DonutChartCard,
@@ -342,33 +342,45 @@ export const ConsultationsAnalysisTab: React.FC<ConsultationsAnalysisTabProps> =
           </Section>
         )}
 
-        {/* Hero Stats Row */}
+        {/* Key Metrics Row */}
         <Section spacing="md">
           <AnimatedGrid cols={4} gap="md" staggerDelay={60}>
-            <StatCard
-              title="Consultations"
+            <MetricCard
+              label="Consultations"
               value={totalConsultations.toLocaleString()}
               valueLabel="total"
-              subtitle={periodLabel}
+              subtext={periodLabel}
+              status="Healthy"
+              hideStatusBar
+              hideFooter
             />
-            <StatCard
-              title="New Clients"
+            <MetricCard
+              label="New Clients"
               value={totalNewClients.toLocaleString()}
               valueLabel="converted"
-              subtitle={periodLabel}
+              subtext={periodLabel}
+              status="Healthy"
+              hideStatusBar
+              hideFooter
             />
-            <StatCard
-              title="Conversion Rate"
+            <MetricCard
+              label="Conversion Rate"
               value={conversionRate.toFixed(1)}
               valueSuffix="%"
               valueLabel="average"
-              subtitle={periodLabel}
+              subtext={periodLabel}
+              status={conversionRate >= 60 ? 'Healthy' : conversionRate >= 40 ? 'Needs attention' : 'Critical'}
+              hideStatusBar
+              hideFooter
             />
-            <StatCard
-              title="Days to First Session"
+            <MetricCard
+              label="Days to First Session"
               value={avgDaysToFirstSession.toFixed(1)}
               valueLabel="average"
-              subtitle={periodLabel}
+              subtext={periodLabel}
+              status={avgDaysToFirstSession <= 7 ? 'Healthy' : avgDaysToFirstSession <= 14 ? 'Needs attention' : 'Critical'}
+              hideStatusBar
+              hideFooter
             />
           </AnimatedGrid>
         </Section>

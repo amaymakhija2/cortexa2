@@ -1,12 +1,12 @@
 import React, { useState, useMemo } from 'react';
-import { ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowRight, Users } from 'lucide-react';
 import { useSettings } from '../../context/SettingsContext';
 import {
   PageHeader,
   PageContent,
   Grid,
   Section,
-  StatCard,
   ChartCard,
   SimpleChartCard,
   StackedBarCard,
@@ -48,6 +48,7 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
   // =========================================================================
 
   const { settings } = useSettings();
+  const navigate = useNavigate();
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const [showCapacityPercentage, setShowCapacityPercentage] = useState(false);
 
@@ -101,14 +102,6 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
   const clientUtilization = useMemo(
     () => currentCapacity > 0 ? (currentActiveClients / currentCapacity) * 100 : 0,
     [currentActiveClients, currentCapacity]
-  );
-
-  // Session utilization average
-  const avgSessionUtilization = useMemo(
-    () => hoursUtilizationData.length > 0
-      ? hoursUtilizationData.reduce((sum, item) => sum + item.percentage, 0) / hoursUtilizationData.length
-      : 0,
-    [hoursUtilizationData]
   );
 
   // Average clients
@@ -215,14 +208,6 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
     }));
   }, [clientGrowthData]);
 
-  // Session utilization line chart data
-  const sessionUtilizationChartData = useMemo(() => {
-    return hoursUtilizationData.map(item => ({
-      month: item.month,
-      percentage: item.percentage,
-    }));
-  }, [hoursUtilizationData]);
-
   // Open slots line chart data
   const openSlotsChartData = useMemo(() => {
     return openSlotsData.map(item => ({
@@ -310,7 +295,10 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
       <PageHeader
         accent="amber"
         showGridPattern
-        title="Client & Capacity"
+        title="Client Performance"
+        sticky={true}
+        collapsible={true}
+        collapseThreshold={80}
         timeSelector={
           <TimeSelector
             value={timeSelection}
@@ -320,6 +308,57 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
             variant="header"
           />
         }
+        actions={
+          <button
+            onClick={() => navigate('/clinician-breakdown')}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+            style={{
+              background: 'rgba(255, 255, 255, 0.08)',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              color: 'rgba(255, 255, 255, 0.9)',
+            }}
+          >
+            <Users size={16} />
+            <span>Clinician Breakdown</span>
+          </button>
+        }
+        collapsedContent={
+          <div className="flex items-center justify-between gap-4">
+            {/* LEFT: Title + Time Selector */}
+            <div className="flex items-center gap-4 min-w-0">
+              <h1
+                className="text-xl sm:text-2xl text-white font-semibold tracking-tight whitespace-nowrap"
+                style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
+              >
+                Client Performance
+              </h1>
+
+              <TimeSelector
+                value={timeSelection}
+                onChange={onTimeSelectionChange}
+                showAggregateOption={true}
+                aggregateOnly={true}
+                variant="header"
+                className="[&_span]:!text-lg [&_span]:sm:!text-xl [&_button]:!gap-2"
+              />
+            </div>
+
+            {/* RIGHT: Action button */}
+            <button
+              onClick={() => navigate('/clinician-breakdown')}
+              className="group flex items-center gap-2 px-3.5 py-2 rounded-xl transition-all duration-200 hover:bg-white/12 active:scale-[0.97]"
+              style={{
+                background: 'rgba(255, 255, 255, 0.06)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+              }}
+            >
+              <Users size={16} className="text-white/70 group-hover:text-white transition-colors" />
+              <span className="text-sm font-medium text-white/70 group-hover:text-white transition-colors">
+                Clinician Breakdown
+              </span>
+            </button>
+          </div>
+        }
       />
 
       <PageContent>
@@ -328,43 +367,11 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
           <Section spacing="md">
             <ExecutiveSummary
               headline="Capacity Healthy, Room to Grow"
-              summary={`You currently have **${currentActiveClients} active clients** out of **${currentCapacity} capacity** (**${clientUtilization.toFixed(0)}% utilization**). Net growth this period is **${netGrowth >= 0 ? '+' : ''}${netGrowth} clients** (+${totalNew} new, -${totalChurned} churned). Session utilization averages **${avgSessionUtilization.toFixed(0)}%**—${avgSessionUtilization >= 85 ? 'excellent efficiency' : avgSessionUtilization >= 75 ? 'healthy levels with room for optimization' : 'consider strategies to improve slot fill rates'}.`}
+              summary={`You currently have **${currentActiveClients} active clients** out of **${currentCapacity} capacity** (**${clientUtilization.toFixed(0)}% utilization**). Net growth this period is **${netGrowth >= 0 ? '+' : ''}${netGrowth} clients** (+${totalNew} new, -${totalChurned} churned).`}
               accent="cyan"
             />
           </Section>
         )}
-
-        {/* Hero Stats Row */}
-        <Section spacing="md">
-          <AnimatedGrid cols={4} gap="md" staggerDelay={60}>
-            <StatCard
-              title="Active Clients"
-              value={currentActiveClients.toLocaleString()}
-              valueLabel="right now"
-              subtitle={periodLabel}
-            />
-            <StatCard
-              title="Net Growth"
-              value={netGrowth >= 0 ? `+${netGrowth}` : `${netGrowth}`}
-              valueLabel="total"
-              subtitle={periodLabel}
-            />
-            <StatCard
-              title="Caseload Capacity"
-              value={avgUtilization.toFixed(0)}
-              valueSuffix="%"
-              valueLabel="average"
-              subtitle={periodLabel}
-            />
-            <StatCard
-              title="Session Goal %"
-              value={avgSessionUtilization.toFixed(0)}
-              valueSuffix="%"
-              valueLabel="average"
-              subtitle={periodLabel}
-            />
-          </AnimatedGrid>
-        </Section>
 
         {/* Main Charts Row */}
         <AnimatedSection delay={280}>
@@ -372,7 +379,7 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
             <Grid cols={2} gap="lg">
             {/* Caseload Capacity - Toggle between Active Clients and Capacity % */}
             <ChartCard
-              title="Active Clients & Caseload Capacity"
+              title="Active Clients"
               subtitle="How full your practice is each month"
               headerControls={
                 <>
@@ -530,37 +537,10 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
           </Section>
         </AnimatedSection>
 
-        {/* Session Goal % & Open Slots Row */}
+        {/* Open Slots Row */}
         <AnimatedSection delay={480}>
           <Section spacing="none">
             <Grid cols={2} gap="lg">
-              {/* Session Goal % Trend */}
-              <SimpleChartCard
-                title="Session Goal %"
-                subtitle="Percentage of session goal achieved"
-                metrics={[
-                  {
-                    value: `${Math.round(avgSessionUtilization)}%`,
-                    label: 'Average',
-                    bgColor: '#eff6ff',
-                    textColor: '#2563eb',
-                    isPrimary: true,
-                  },
-                ]}
-                expandable
-                onExpand={() => setExpandedCard('session-utilization')}
-              >
-                <LineChart
-                  data={sessionUtilizationChartData}
-                  xAxisKey="month"
-                  lines={[{ dataKey: 'percentage', color: '#3b82f6', activeColor: '#2563eb' }]}
-                  yDomain={[70, 100]}
-                  yTickFormatter={(v) => `${v}%`}
-                  tooltipFormatter={(value: number) => [`${value.toFixed(1)}%`, 'Goal Progress']}
-                  showAreaFill
-                />
-              </SimpleChartCard>
-
               {/* Open Slots Trend */}
               <SimpleChartCard
                 title="Open Slots"
@@ -598,7 +578,7 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
       <ExpandedChartModal
         isOpen={expandedCard === 'client-utilization'}
         onClose={() => setExpandedCard(null)}
-        title="Active Clients & Caseload Capacity"
+        title="Active Clients"
         subtitle="How full your practice is each month"
         headerControls={
           <>
@@ -691,25 +671,6 @@ export const CapacityClientTab: React.FC<CapacityClientTabProps> = ({
             color: '#fb7185',
             colorEnd: '#f43f5e',
           }}
-          height="100%"
-        />
-      </ExpandedChartModal>
-
-      {/* Session Goal % Expanded */}
-      <ExpandedChartModal
-        isOpen={expandedCard === 'session-utilization'}
-        onClose={() => setExpandedCard(null)}
-        title="Session Goal %"
-        subtitle="Percentage of session goal achieved"
-      >
-        <LineChart
-          data={sessionUtilizationChartData}
-          xAxisKey="month"
-          lines={[{ dataKey: 'percentage', color: '#3b82f6', activeColor: '#2563eb' }]}
-          yDomain={[70, 100]}
-          yTickFormatter={(v) => `${v}%`}
-          tooltipFormatter={(value: number) => [`${value.toFixed(1)}%`, 'Goal Progress']}
-          showAreaFill
           height="100%"
         />
       </ExpandedChartModal>
