@@ -27,6 +27,7 @@ import {
   TimeSelector,
   PageHeader,
 } from './design-system';
+import { isYearOnly, isMonthYear, isAggregate } from './design-system';
 import type { ClientData, HoverInfo, SegmentConfig, TimeSelectorValue, ClientBreakdownRow, DataTableColumn } from './design-system';
 
 // =============================================================================
@@ -1422,10 +1423,14 @@ export const ClinicianDetailsTab: React.FC = () => {
   // Get the current period label for display in modals
   const getCurrentPeriodLabel = () => {
     const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-    if (timeSelection === 'last-12-months') return 'Last 12 Months';
-    if (timeSelection === 'last-6-months') return 'Last 6 Months';
-    if (timeSelection === 'last-3-months') return 'Last 3 Months';
-    return `${MONTHS[timeSelection.month]} ${timeSelection.year}`;
+    if (isAggregate(timeSelection)) {
+      if (timeSelection === 'last-12-months') return 'Last 12 Months';
+      if (timeSelection === 'last-6-months') return 'Last 6 Months';
+      return 'Last 3 Months';
+    }
+    if (isMonthYear(timeSelection)) return `${MONTHS[timeSelection.month]} ${timeSelection.year}`;
+    if (isYearOnly(timeSelection)) return `${timeSelection.year}`;
+    return '';
   };
 
   // ==========================================================================

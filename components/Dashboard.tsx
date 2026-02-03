@@ -84,7 +84,7 @@ import { motion } from 'framer-motion';
 import { MetricsRow } from './MetricsRow';
 import { SimpleAlertCard } from './SimpleAlertCard';
 import { PriorityTasksEmptyState } from './PriorityTasksEmptyState';
-import { TimeSelector, TimeSelectorValue } from './design-system/controls/TimeSelector';
+import { TimeSelector, TimeSelectorValue, isMonthYear, isYearOnly, isAggregate } from './design-system/controls/TimeSelector';
 import { CompareTab } from './CompareTab';
 import { PageHeader, SectionHeader } from './design-system';
 import { ReferralBadge, ReferralModal } from './referral';
@@ -340,9 +340,18 @@ export const Dashboard: React.FC = () => {
   // Get data date range from API
   const { data: dataRange, loading: rangeLoading } = useDataDateRange();
 
-  // Determine which month to fetch (Dashboard always shows specific month, no aggregate)
-  const activeMonth = timeSelection === 'last-12-months' ? now.getMonth() : timeSelection.month;
-  const activeYear = timeSelection === 'last-12-months' ? now.getFullYear() : timeSelection.year;
+  // Determine which month/year to fetch
+  // For year-only selection, use December of that year (or current month if current year)
+  const activeMonth = isMonthYear(timeSelection)
+    ? timeSelection.month
+    : isYearOnly(timeSelection)
+      ? (timeSelection.year === now.getFullYear() ? now.getMonth() : 11)
+      : now.getMonth();
+  const activeYear = isMonthYear(timeSelection)
+    ? timeSelection.year
+    : isYearOnly(timeSelection)
+      ? timeSelection.year
+      : now.getFullYear();
 
   // Fetch metrics from API
   const { data: apiMetrics, loading: metricsLoading, error: metricsError } = useMetrics(activeMonth, activeYear);
@@ -357,10 +366,18 @@ export const Dashboard: React.FC = () => {
 
   // Get the display title based on time selection
   const getTitle = () => {
-    if (timeSelection === 'last-12-months') {
-      return 'Last 12 Months';
+    if (isAggregate(timeSelection)) {
+      if (timeSelection === 'last-12-months') return 'Last 12 Months';
+      if (timeSelection === 'last-6-months') return 'Last 6 Months';
+      return 'Last 3 Months';
     }
-    return `${FULL_MONTHS[timeSelection.month]} ${timeSelection.year}`;
+    if (isYearOnly(timeSelection)) {
+      return `${timeSelection.year}`;
+    }
+    if (isMonthYear(timeSelection)) {
+      return `${FULL_MONTHS[timeSelection.month]} ${timeSelection.year}`;
+    }
+    return '';
   };
 
   // Check if cards overflow the container

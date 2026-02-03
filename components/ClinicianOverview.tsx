@@ -7,7 +7,7 @@ import {
   useDataDateRange,
   ClinicianMetricsCalculated,
 } from '../hooks';
-import { TimeSelector, TimeSelectorValue } from './design-system/controls/TimeSelector';
+import { TimeSelector, TimeSelectorValue, isMonthYear, isYearOnly, isAggregate } from './design-system/controls/TimeSelector';
 import { useSettings, getDisplayName } from '../context/SettingsContext';
 import { ClinicianDetailsTab } from './ClinicianDetailsTab';
 import { PageHeader, ClinicianDrawer, getMetricByKey } from './design-system';
@@ -680,9 +680,17 @@ export const ClinicianOverview: React.FC = () => {
   const { data: dataRange } = useDataDateRange();
 
   // Derive viewMode and month/year from timeSelection
-  const isAggregateView = timeSelection === 'last-12-months';
-  const activeMonth = isAggregateView ? now.getMonth() : timeSelection.month;
-  const activeYear = isAggregateView ? now.getFullYear() : timeSelection.year;
+  const isAggregateView = isAggregate(timeSelection) || isYearOnly(timeSelection);
+  const activeMonth = isMonthYear(timeSelection)
+    ? timeSelection.month
+    : isYearOnly(timeSelection)
+      ? (timeSelection.year === now.getFullYear() ? now.getMonth() : 11)
+      : now.getMonth();
+  const activeYear = isMonthYear(timeSelection)
+    ? timeSelection.year
+    : isYearOnly(timeSelection)
+      ? timeSelection.year
+      : now.getFullYear();
 
   // Fetch data from API - use both hooks, pick the right data based on timeSelection
   const periodData = useClinicianMetricsForPeriod('last-12-months');

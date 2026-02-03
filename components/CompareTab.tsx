@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Loader2, MapPin, Users, GraduationCap } from 'lucide-react';
 import { PageHeader, DataTableCard, SegmentedControl, SectionContainer, SectionHeader, Grid } from './design-system';
 import type { SegmentedControlOption } from './design-system/controls/SegmentedControl';
-import { TimeSelector, TimeSelectorValue } from './design-system/controls/TimeSelector';
+import { TimeSelector, TimeSelectorValue, isMonthYear, isYearOnly, isAggregate } from './design-system/controls/TimeSelector';
 import {
   useCompareMetrics,
   getDimensionOptions,
@@ -557,10 +557,18 @@ export const CompareTab: React.FC = () => {
   const { data: dataRange } = useDataDateRange();
 
   // Derive viewMode and month/year for the hook
-  const isAggregateView = typeof timeSelection === 'string';
+  const isAggregateView = isAggregate(timeSelection) || isYearOnly(timeSelection);
   const viewMode: CompareViewMode = isAggregateView ? 'last-12-months' : 'historical';
-  const selectedMonth = isAggregateView ? now.getMonth() : timeSelection.month;
-  const selectedYear = isAggregateView ? now.getFullYear() : timeSelection.year;
+  const selectedMonth = isMonthYear(timeSelection)
+    ? timeSelection.month
+    : isYearOnly(timeSelection)
+      ? (timeSelection.year === now.getFullYear() ? now.getMonth() : 11)
+      : now.getMonth();
+  const selectedYear = isMonthYear(timeSelection)
+    ? timeSelection.year
+    : isYearOnly(timeSelection)
+      ? timeSelection.year
+      : now.getFullYear();
 
   // Get metrics based on view mode
   const compareData = useCompareMetrics(dimension, viewMode, selectedMonth, selectedYear);

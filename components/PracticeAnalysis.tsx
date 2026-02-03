@@ -5,7 +5,7 @@ import { ResponsiveContainer, LineChart, Line, BarChart, Bar, PieChart, Pie, Cel
 import { Info, X, ArrowRight, Calendar, ChevronLeft, ChevronRight, Maximize2, Minimize2, Users } from 'lucide-react';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { ToggleButton, GoalIndicator, ActionButton } from './design-system';
-import { TimeSelector, TimeSelectorValue } from './design-system/controls/TimeSelector';
+import { TimeSelector, TimeSelectorValue, isYearOnly } from './design-system/controls/TimeSelector';
 import { FinancialAnalysisTab, SessionsAnalysisTab, CapacityClientTab, RetentionTab, InsuranceTab, AdminTab, ConsultationsAnalysisTab } from './analysis';
 import { ClientRoster } from './ClientRoster';
 import { useSettings } from '../context/SettingsContext';
@@ -565,6 +565,7 @@ export const PracticeAnalysis: React.FC = () => {
     if (timeSelection === 'last-12-months') return 'last-12-months' as TimePeriod;
     if (timeSelection === 'last-6-months') return 'last-6-months' as TimePeriod;
     if (timeSelection === 'last-3-months') return 'last-3-months' as TimePeriod;
+    if (isYearOnly(timeSelection)) return 'last-12-months' as TimePeriod; // Full year = 12 months
     return 'last-12-months' as TimePeriod; // Default for specific months
   })();
 
