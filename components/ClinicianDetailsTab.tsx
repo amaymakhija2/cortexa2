@@ -3732,38 +3732,65 @@ export const ClinicianDetailsTab: React.FC = () => {
           )}
 
           {/* ---------------------------------------------------------
-              HERO STATS ROW - Key metrics at a glance
+              THIS MONTH SNAPSHOT - Current month metrics at a glance
+              Always shows current month data, independent of time selector
               --------------------------------------------------------- */}
           {isSpotlightMode && selectedClinician && (
-            <AnimatedGrid cols={4} gap="md" staggerDelay={60}>
+            <>
+              {/* Section Label - This Month */}
+              <div className="flex items-center gap-5 mb-5 -mt-4">
+                <span
+                  className="text-base font-semibold uppercase tracking-wide text-stone-500"
+                >
+                  {new Date().toLocaleString('default', { month: 'long', year: 'numeric' })}
+                </span>
+                <div className="h-px flex-1 bg-stone-200" />
+              </div>
+              <AnimatedGrid cols={4} gap="md" staggerDelay={60}>
               <MetricCard
-                label="Revenue"
+                label={`${new Date().toLocaleString('default', { month: 'short' })} Revenue`}
                 value={formatCurrencyParts(selectedClinician.metrics.revenue).value}
                 valueSuffix={formatCurrencyParts(selectedClinician.metrics.revenue).suffix}
                 subtext={`${selectedClinician.metrics.revenueVsGoal >= 100 ? '+' : ''}${selectedClinician.metrics.revenueVsGoal - 100}% vs goal · ${financialData?.practiceRevenueShare || 0}% of practice`}
                 status={selectedClinician.metrics.revenueVsGoal >= 100 ? 'Healthy' : 'Needs attention'}
               />
               <MetricCard
-                label="Sessions"
+                label={`${new Date().toLocaleString('default', { month: 'short' })} Sessions`}
                 value={sessionData ? formatSessionsParts(totalCompleted / sessionData.monthlySessions.length).value : '-'}
                 valueSuffix={sessionData ? formatSessionsParts(totalCompleted / sessionData.monthlySessions.length).suffix : undefined}
                 subtext={sessionData ? `~${Math.round(totalCompleted / sessionData.monthlySessions.length / 4.33)}/week · ${totalCompleted} total` : '-'}
                 status={selectedClinician.metrics.sessionsVsGoal >= 100 ? 'Healthy' : 'Needs attention'}
               />
               <MetricCard
-                label={`Caseload (${caseloadData?.monthlyCaseload[caseloadData.monthlyCaseload.length - 1]?.month || 'Current'})`}
+                label="Current Caseload"
                 value={caseloadData ? formatCaseloadParts(currentActiveClients, currentCapacity).value : '-'}
                 valueSuffix={caseloadData ? formatCaseloadParts(currentActiveClients, currentCapacity).suffix : undefined}
                 subtext={caseloadData ? `${caseloadUtilization.toFixed(0)}% capacity · ${caseloadUtilization >= caseloadData.practiceAvgUtilization ? '+' : ''}${(caseloadUtilization - caseloadData.practiceAvgUtilization).toFixed(0)}% vs avg` : '-'}
                 status={caseloadData && caseloadUtilization >= caseloadData.practiceAvgUtilization ? 'Healthy' : 'Needs attention'}
               />
               <MetricCard
-                label="Notes Overdue"
+                label="Notes Overdue Now"
                 value={String(selectedClinician.metrics.notesOverdue)}
                 subtext={selectedClinician.metrics.notesOverdue <= 5 ? 'On track' : selectedClinician.metrics.notesOverdue <= 10 ? 'Needs attention' : 'Critical backlog'}
                 status={selectedClinician.metrics.notesOverdue <= 5 ? 'Healthy' : selectedClinician.metrics.notesOverdue <= 10 ? 'Needs attention' : 'Critical'}
               />
             </AnimatedGrid>
+            </>
+          )}
+
+          {/* ---------------------------------------------------------
+              TREND ANALYSIS SECTION DIVIDER
+              Signals that content below responds to the time selector
+              --------------------------------------------------------- */}
+          {isSpotlightMode && selectedClinician && (
+            <div className="flex items-center gap-5 mt-10 mb-5">
+              <span
+                className="text-base font-semibold uppercase tracking-wide text-stone-500"
+              >
+                {getCurrentPeriodLabel()}
+              </span>
+              <div className="h-px flex-1 bg-stone-200" />
+            </div>
           )}
 
           {/* ---------------------------------------------------------
