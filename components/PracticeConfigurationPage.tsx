@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -39,9 +39,18 @@ import {
   FileCheck,
   PartyPopper,
   GitBranch,
+  Video,
+  Globe,
+  ChevronDown,
+  Star,
+  GripVertical,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
-import { PageHeader, PageContent, Grid, AnimatedSection } from './design-system';
+import { PageHeader, PageContent, Grid, AnimatedSection, SegmentedControl, SectionContainer, SectionHeader } from './design-system';
+import type { SegmentedControlOption } from './design-system/controls/SegmentedControl';
 import { CLINICIANS as MASTER_CLINICIANS } from '../data/clinicians';
+import { OfficeMapping, type RawEHROffice, type LocationGroup } from './OfficeMapping';
 import {
   useSettings,
   PracticeGoals,
@@ -71,6 +80,41 @@ interface Location {
   address: string;
   isPrimary: boolean;
 }
+
+// Note: RawEHROffice and LocationGroup types are imported from ./OfficeMapping
+
+// Telehealth keywords for auto-classification
+const TELEHEALTH_KEYWORDS = ['video', 'telehealth', 'virtual', 'remote', 'zoom', 'doxy', 'google meet'];
+
+const classifyOffice = (name: string): 'in-person' | 'telehealth' => {
+  const lower = name.toLowerCase();
+  return TELEHEALTH_KEYWORDS.some(kw => lower.includes(kw)) ? 'telehealth' : 'in-person';
+};
+
+// Mock raw EHR offices — simulating what comes from SimplePractice
+const MOCK_EHR_OFFICES: RawEHROffice[] = [
+  { id: 'ehr-1', rawName: 'Video Office', classification: classifyOffice('Video Office') },
+  { id: 'ehr-2', rawName: 'Google Meet', classification: classifyOffice('Google Meet') },
+  { id: 'ehr-3', rawName: 'Physical Office Space Grand Central #1108', classification: classifyOffice('Physical Office Space Grand Central #1108') },
+  { id: 'ehr-4', rawName: 'Physical Office Space Grand Central #708', classification: classifyOffice('Physical Office Space Grand Central #708') },
+  { id: 'ehr-5', rawName: 'Physical Office Space Nomad', classification: classifyOffice('Physical Office Space Nomad') },
+];
+
+// Auto-create a "Virtual Office" group with all telehealth-classified EHR offices
+const AUTO_VIRTUAL_OFFICE_IDS = MOCK_EHR_OFFICES
+  .filter(o => o.classification === 'telehealth')
+  .map(o => o.id);
+
+const MOCK_LOCATION_GROUPS: LocationGroup[] = AUTO_VIRTUAL_OFFICE_IDS.length > 0
+  ? [{
+      id: 'loc-auto-virtual',
+      name: 'Virtual Office',
+      type: 'telehealth' as const,
+      address: '',
+      isPrimary: false,
+      ehrOfficeIds: AUTO_VIRTUAL_OFFICE_IDS,
+    }]
+  : [];
 
 // License types for mental health professionals
 type LicenseType =
@@ -128,15 +172,15 @@ interface EHRConnection {
 // Tab types matching URL params
 type ConfigTab = 'locations' | 'members' | 'team' | 'clinician-goals' | 'goals' | 'thresholds' | 'consultation-flow' | 'ehr';
 
-const CONFIG_TABS: { id: ConfigTab; label: string }[] = [
-  { id: 'locations', label: 'Locations' },
-  { id: 'members', label: 'Team Members' },
-  { id: 'team', label: 'Team Structure' },
-  { id: 'clinician-goals', label: 'Clinician Goals' },
-  { id: 'goals', label: 'Practice Goals' },
-  { id: 'thresholds', label: 'Thresholds' },
-  { id: 'consultation-flow', label: 'Consultation Flow' },
-  { id: 'ehr', label: 'EHR Connection' },
+const CONFIG_TABS: SegmentedControlOption<ConfigTab>[] = [
+  { id: 'locations', label: 'Locations', icon: <MapPin size={16} /> },
+  { id: 'members', label: 'Members', icon: <Users size={16} /> },
+  { id: 'team', label: 'Structure', icon: <GitBranch size={16} /> },
+  { id: 'clinician-goals', label: 'Clinician Goals', icon: <Target size={16} /> },
+  { id: 'goals', label: 'Practice Goals', icon: <TrendingUp size={16} /> },
+  { id: 'thresholds', label: 'Thresholds', icon: <Sliders size={16} /> },
+  { id: 'consultation-flow', label: 'Pipeline', icon: <ArrowRight size={16} /> },
+  { id: 'ehr', label: 'EHR', icon: <Link2 size={16} /> },
 ];
 
 // License type display names
@@ -364,227 +408,29 @@ const SliderInput: React.FC<{
 // TAB CONTENT COMPONENTS
 // =============================================================================
 
-// Locations Tab
+// =============================================================================
+// OFFICE MAPPING — LOCATIONS TAB (v3)
+// =============================================================================
+// Full-bleed two-column workspace. No cards wrapping cards.
+// Left: warm office inventory with inline assignment selects.
+// Right: editorial location cards that grow as offices are assigned.
+// Aesthetic: luxury editorial — Tiempos Headline + stone + amber.
+// =============================================================================
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LOCATIONS TAB — Uses the OfficeMapping component
+// ─────────────────────────────────────────────────────────────────────────────
 const LocationsTab: React.FC<{
-  locations: Location[];
-  onUpdate: (locations: Location[]) => void;
-}> = ({ locations, onUpdate }) => {
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [newLocation, setNewLocation] = useState({ name: '', address: '' });
-
-  const handleAdd = () => {
-    if (newLocation.name && newLocation.address) {
-      const newLoc: Location = {
-        id: Date.now().toString(),
-        name: newLocation.name,
-        address: newLocation.address,
-        isPrimary: locations.length === 0,
-      };
-      onUpdate([...locations, newLoc]);
-      setNewLocation({ name: '', address: '' });
-      setShowAddForm(false);
-    }
-  };
-
-  const handleSetPrimary = (id: string) => {
-    onUpdate(locations.map(loc => ({ ...loc, isPrimary: loc.id === id })));
-  };
-
-  const handleDelete = (id: string) => {
-    const remaining = locations.filter(loc => loc.id !== id);
-    if (remaining.length > 0 && locations.find(l => l.id === id)?.isPrimary) {
-      remaining[0].isPrimary = true;
-    }
-    onUpdate(remaining);
-  };
-
+  ehrOffices: RawEHROffice[];
+  locationGroups: LocationGroup[];
+  onUpdateGroups: (groups: LocationGroup[]) => void;
+}> = ({ ehrOffices, locationGroups, onUpdateGroups }) => {
   return (
-    <PageContent>
-      {/* Section Header */}
-      <AnimatedSection delay={0}>
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h2
-              className="text-3xl font-bold text-stone-800"
-              style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
-            >
-              Practice Locations
-            </h2>
-            <p className="text-stone-500 text-lg mt-1">Manage your physical office locations</p>
-          </div>
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => setShowAddForm(true)}
-            className="flex items-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-white text-lg"
-            style={{
-              background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-              boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)',
-            }}
-          >
-            <Plus size={20} />
-            Add Location
-          </motion.button>
-        </div>
-      </AnimatedSection>
-
-      {/* Location Cards */}
-      <Grid cols={2}>
-        <AnimatePresence mode="popLayout">
-          {locations.map((location, index) => (
-            <motion.div
-              key={location.id}
-              layout
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ delay: index * 0.05 }}
-            >
-              <ConfigCard accent={location.isPrimary ? 'linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%)' : undefined}>
-                <div className="p-6">
-                  <div className="flex items-start gap-5">
-                    {/* Icon */}
-                    <div
-                      className={`
-                        w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0
-                        ${location.isPrimary ? 'bg-amber-50' : 'bg-stone-50'}
-                      `}
-                    >
-                      <Building2
-                        size={28}
-                        className={location.isPrimary ? 'text-amber-600' : 'text-stone-400'}
-                      />
-                    </div>
-
-                    {/* Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3
-                          className="text-xl font-bold text-stone-800"
-                          style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
-                        >
-                          {location.name}
-                        </h3>
-                        {location.isPrimary && (
-                          <span className="px-3 py-1 rounded-lg bg-amber-100 text-amber-700 text-xs font-bold uppercase tracking-wide">
-                            Primary
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-stone-500 text-base">{location.address}</p>
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex items-center gap-2 mt-5 pt-5 border-t border-stone-100">
-                    {!location.isPrimary && (
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => handleSetPrimary(location.id)}
-                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-stone-50 text-stone-600 hover:bg-amber-50 hover:text-amber-700 transition-colors font-medium"
-                      >
-                        <Award size={16} />
-                        Set Primary
-                      </motion.button>
-                    )}
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => handleDelete(location.id)}
-                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-stone-50 text-stone-600 hover:bg-red-50 hover:text-red-600 transition-colors font-medium ml-auto"
-                    >
-                      <Trash2 size={16} />
-                      Remove
-                    </motion.button>
-                  </div>
-                </div>
-              </ConfigCard>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-
-        {/* Add Form */}
-        <AnimatePresence>
-          {showAddForm && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="col-span-2"
-            >
-              <ConfigCard accent="linear-gradient(90deg, #10b981 0%, #34d399 100%)">
-                <div className="p-6">
-                  <h3
-                    className="text-xl font-bold text-stone-800 mb-6"
-                    style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
-                  >
-                    Add New Location
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
-                    <InputField
-                      label="Location Name"
-                      value={newLocation.name}
-                      onChange={(v) => setNewLocation(prev => ({ ...prev, name: v }))}
-                      placeholder="e.g., Main Office"
-                    />
-                    <InputField
-                      label="Address"
-                      value={newLocation.address}
-                      onChange={(v) => setNewLocation(prev => ({ ...prev, address: v }))}
-                      placeholder="123 Main St, City, State ZIP"
-                    />
-                  </div>
-                  <div className="flex justify-end gap-3">
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => setShowAddForm(false)}
-                      className="px-5 py-3 rounded-xl font-semibold text-stone-600 bg-stone-100 hover:bg-stone-200 transition-colors"
-                    >
-                      Cancel
-                    </motion.button>
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={handleAdd}
-                      className="px-5 py-3 rounded-xl font-semibold text-white flex items-center gap-2"
-                      style={{
-                        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                        boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
-                      }}
-                    >
-                      <Check size={18} />
-                      Save Location
-                    </motion.button>
-                  </div>
-                </div>
-              </ConfigCard>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Empty State */}
-        {locations.length === 0 && !showAddForm && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="col-span-2 text-center py-20"
-          >
-            <div className="w-24 h-24 mx-auto mb-6 rounded-2xl bg-stone-100 flex items-center justify-center">
-              <MapPin size={40} className="text-stone-300" />
-            </div>
-            <h3
-              className="text-2xl font-bold text-stone-600 mb-2"
-              style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
-            >
-              No locations yet
-            </h3>
-            <p className="text-stone-400 text-lg mb-8">Add your first practice location to get started</p>
-          </motion.div>
-        )}
-      </Grid>
-    </PageContent>
+    <OfficeMapping
+      ehrOffices={ehrOffices}
+      locationGroups={locationGroups}
+      onUpdateGroups={onUpdateGroups}
+    />
   );
 };
 
@@ -607,7 +453,7 @@ const TeamMembersTab: React.FC<{
   };
 
   return (
-    <PageContent>
+    <div>
       <AnimatedSection delay={0}>
         <div className="mb-8">
           <h2
@@ -736,7 +582,7 @@ const TeamMembersTab: React.FC<{
           </AnimatedSection>
         ))}
       </div>
-    </PageContent>
+    </div>
   );
 };
 
@@ -762,7 +608,7 @@ const TeamStructureTab: React.FC<{
   const unassignedCount = needsSupervision.length - assignedCount;
 
   return (
-    <PageContent>
+    <div>
       <AnimatedSection delay={0}>
         <div className="mb-8">
           <h2
@@ -921,7 +767,7 @@ const TeamStructureTab: React.FC<{
           </div>
         </AnimatedSection>
       )}
-    </PageContent>
+    </div>
   );
 };
 
@@ -955,7 +801,7 @@ const ClinicianGoalsTab: React.FC<{
     : 0;
 
   return (
-    <PageContent>
+    <div>
       <AnimatedSection delay={0}>
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -1130,7 +976,7 @@ const ClinicianGoalsTab: React.FC<{
           </motion.div>
         )}
       </div>
-    </PageContent>
+    </div>
   );
 };
 
@@ -1153,7 +999,7 @@ const PracticeGoalsTab: React.FC<{
   };
 
   return (
-    <PageContent>
+    <div>
       <AnimatedSection delay={0}>
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -1328,7 +1174,7 @@ const PracticeGoalsTab: React.FC<{
           </ConfigCard>
         </AnimatedSection>
       </Grid>
-    </PageContent>
+    </div>
   );
 };
 
@@ -1351,7 +1197,7 @@ const ThresholdsTab: React.FC<{
   };
 
   return (
-    <PageContent>
+    <div>
       <AnimatedSection delay={0}>
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -1735,7 +1581,7 @@ const ThresholdsTab: React.FC<{
           </AnimatedSection>
         </Grid>
       </div>
-    </PageContent>
+    </div>
   );
 };
 
@@ -1885,7 +1731,7 @@ const ConsultationFlowTab: React.FC = () => {
   };
 
   return (
-    <PageContent>
+    <div>
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between flex-wrap gap-4">
@@ -2433,7 +2279,7 @@ const ConsultationFlowTab: React.FC = () => {
           </div>
         </div>
       </div>
-    </PageContent>
+    </div>
   );
 };
 
@@ -2474,7 +2320,7 @@ const EHRConnectionTab: React.FC<{
   };
 
   return (
-    <PageContent>
+    <div>
       <AnimatedSection delay={0}>
         <div className="mb-8">
           <h2
@@ -2624,7 +2470,7 @@ const EHRConnectionTab: React.FC<{
           </ConfigCard>
         </AnimatedSection>
       </Grid>
-    </PageContent>
+    </div>
   );
 };
 
@@ -2641,6 +2487,8 @@ export const PracticeConfigurationPage: React.FC = () => {
 
   // Local state for non-persisted data
   const [locations, setLocations] = useState<Location[]>(MOCK_LOCATIONS);
+  const [ehrOffices] = useState<RawEHROffice[]>(MOCK_EHR_OFFICES);
+  const [locationGroups, setLocationGroups] = useState<LocationGroup[]>(MOCK_LOCATION_GROUPS);
   const [ehr, setEHR] = useState<EHRConnection>(MOCK_EHR);
 
   // Merge clinician data from master list with saved overrides from context
@@ -2699,61 +2547,59 @@ export const PracticeConfigurationPage: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col h-[calc(100vh-80px)] overflow-y-auto bg-gradient-to-b from-stone-100 to-stone-50">
-      {/* Page Header with Tabs */}
+      {/* Page Header - clean, no tabs */}
       <PageHeader
         accent="violet"
         showGridPattern
-        label="Settings"
         title="Configure"
-        subtitle="Set up your practice structure, goals, and metrics"
-        tabs={CONFIG_TABS}
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
       />
 
-      {/* Tab Content */}
-      <AnimatePresence mode="wait">
-        {activeTab === 'locations' && (
-          <motion.div key="locations" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <LocationsTab locations={locations} onUpdate={setLocations} />
+      {/* Content Area */}
+      <div className="flex flex-col flex-1 min-h-0 min-w-0 px-6 sm:px-8 lg:pl-[100px] lg:pr-12 py-6 lg:py-8">
+        {/* Section Switcher */}
+        <div className="flex items-center gap-4 mb-6 overflow-x-auto scrollbar-hide">
+          <SegmentedControl<ConfigTab>
+            options={CONFIG_TABS}
+            value={activeTab}
+            onChange={(tabId) => handleTabChange(tabId)}
+            size="md"
+            ariaLabel="Configuration section"
+          />
+        </div>
+
+        {/* Tab Content — Locations breaks free, others get SectionContainer */}
+        <AnimatePresence mode="wait">
+          <motion.div key={activeTab} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }} className="flex-1 min-h-0">
+            {activeTab === 'locations' ? (
+              <LocationsTab ehrOffices={ehrOffices} locationGroups={locationGroups} onUpdateGroups={setLocationGroups} />
+            ) : (
+              <SectionContainer accent="stone" index={0} isFirst isLast>
+                {activeTab === 'members' && (
+                  <TeamMembersTab clinicians={clinicians} onUpdate={setClinicians} />
+                )}
+                {activeTab === 'team' && (
+                  <TeamStructureTab clinicians={clinicians} onUpdate={setClinicians} />
+                )}
+                {activeTab === 'clinician-goals' && (
+                  <ClinicianGoalsTab clinicians={clinicians} onUpdate={handleUpdateClinicianGoals} />
+                )}
+                {activeTab === 'goals' && (
+                  <PracticeGoalsTab goals={practiceGoals} onUpdate={handleUpdatePracticeGoals} />
+                )}
+                {activeTab === 'thresholds' && (
+                  <ThresholdsTab thresholds={thresholds} onUpdate={handleUpdateThresholds} />
+                )}
+                {activeTab === 'consultation-flow' && (
+                  <ConsultationFlowTab />
+                )}
+                {activeTab === 'ehr' && (
+                  <EHRConnectionTab ehr={ehr} onRefresh={handleEHRRefresh} />
+                )}
+              </SectionContainer>
+            )}
           </motion.div>
-        )}
-        {activeTab === 'members' && (
-          <motion.div key="members" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <TeamMembersTab clinicians={clinicians} onUpdate={setClinicians} />
-          </motion.div>
-        )}
-        {activeTab === 'team' && (
-          <motion.div key="team" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <TeamStructureTab clinicians={clinicians} onUpdate={setClinicians} />
-          </motion.div>
-        )}
-        {activeTab === 'clinician-goals' && (
-          <motion.div key="clinician-goals" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <ClinicianGoalsTab clinicians={clinicians} onUpdate={handleUpdateClinicianGoals} />
-          </motion.div>
-        )}
-        {activeTab === 'goals' && (
-          <motion.div key="goals" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <PracticeGoalsTab goals={practiceGoals} onUpdate={handleUpdatePracticeGoals} />
-          </motion.div>
-        )}
-        {activeTab === 'thresholds' && (
-          <motion.div key="thresholds" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <ThresholdsTab thresholds={thresholds} onUpdate={handleUpdateThresholds} />
-          </motion.div>
-        )}
-        {activeTab === 'consultation-flow' && (
-          <motion.div key="consultation-flow" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <ConsultationFlowTab />
-          </motion.div>
-        )}
-        {activeTab === 'ehr' && (
-          <motion.div key="ehr" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <EHRConnectionTab ehr={ehr} onRefresh={handleEHRRefresh} />
-          </motion.div>
-        )}
-      </AnimatePresence>
+        </AnimatePresence>
+      </div>
     </div>
   );
 };
