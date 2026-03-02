@@ -30,11 +30,9 @@ export type LicenseType =
 
 // Role types within the practice
 export type ClinicianRole =
-  | 'Clinical Director'
-  | 'Supervisor'
-  | 'Senior Therapist'
-  | 'Therapist'
-  | 'Associate';
+  | 'Clinician Only'
+  | 'Clinician and Supervisor'
+  | 'Supervisor Only';
 
 // Follow-up attempt count options
 export type FollowUpAttempts = 2 | 3 | 4;
@@ -87,14 +85,20 @@ export const LICENSE_TYPE_NAMES: Record<LicenseType, string> = {
 // License types that typically require supervision
 export const LICENSES_REQUIRING_SUPERVISION: LicenseType[] = ['LMSW', 'MHC-LP'];
 
-// Role options for dropdown
+// Role options
 export const ROLE_OPTIONS: ClinicianRole[] = [
-  'Clinical Director',
-  'Supervisor',
-  'Senior Therapist',
-  'Therapist',
-  'Associate',
+  'Clinician Only',
+  'Clinician and Supervisor',
+  'Supervisor Only',
 ];
+
+// Helper to check if a role can supervise others
+export const canSupervise = (role: ClinicianRole): boolean =>
+  role === 'Clinician and Supervisor' || role === 'Supervisor Only';
+
+// Helper to check if a role sees clients
+export const seesClients = (role: ClinicianRole): boolean =>
+  role === 'Clinician Only' || role === 'Clinician and Supervisor';
 
 // Telehealth keywords for auto-classification
 export const TELEHEALTH_KEYWORDS = ['video', 'telehealth', 'virtual', 'remote', 'zoom', 'doxy', 'google meet'];
@@ -152,11 +156,14 @@ export const inferLicenseType = (title: string): LicenseType => {
 
 // Helper to infer role from role string
 export const inferRole = (role: string): ClinicianRole => {
-  if (role.includes('Director')) return 'Clinical Director';
-  if (role.includes('Supervisor')) return 'Supervisor';
-  if (role.includes('Senior')) return 'Senior Therapist';
-  if (role.includes('Associate')) return 'Associate';
-  return 'Therapist';
+  const lower = role.toLowerCase();
+  if (lower.includes('supervisor') && (lower.includes('therapist') || lower.includes('clinician') || lower.includes('director'))) {
+    return 'Clinician and Supervisor';
+  }
+  if (lower.includes('supervisor') || lower.includes('director')) {
+    return 'Supervisor Only';
+  }
+  return 'Clinician Only';
 };
 
 // Map master clinicians to the local interface with additional fields

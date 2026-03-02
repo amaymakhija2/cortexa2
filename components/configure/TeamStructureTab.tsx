@@ -1,7 +1,7 @@
 import React from 'react';
 import { AlertTriangle, Check } from 'lucide-react';
 import { AnimatedSection } from '../design-system';
-import { Clinician } from './shared';
+import { Clinician, canSupervise as canRoleSupervise } from './shared';
 
 interface TeamStructureTabProps {
   clinicians: Clinician[];
@@ -9,10 +9,10 @@ interface TeamStructureTabProps {
 }
 
 export const TeamStructureTab: React.FC<TeamStructureTabProps> = ({ clinicians, onUpdate }) => {
-  // Clinicians who CAN supervise (don't need supervision themselves)
-  const canSupervise = clinicians.filter(c => c.isActive && !c.requiresSupervision);
+  // Clinicians who CAN supervise (role includes supervision)
+  const supervisors = clinicians.filter(c => c.isActive && canRoleSupervise(c.role));
 
-  // Clinicians who NEED a supervisor assigned
+  // Clinicians who NEED a supervisor assigned (based on license type requiring supervision)
   const needsSupervision = clinicians.filter(c => c.isActive && c.requiresSupervision);
 
   const handleUpdateSupervisor = (clinicianId: string, newSupervisorId: string | null) => {
@@ -80,7 +80,7 @@ export const TeamStructureTab: React.FC<TeamStructureTabProps> = ({ clinicians, 
 
           <div className="divide-y divide-stone-100">
             {needsSupervision.map((clinician, index) => {
-              const currentSupervisor = canSupervise.find(s => s.id === clinician.supervisorId);
+              const currentSupervisor = supervisors.find(s => s.id === clinician.supervisorId);
               const isUnassigned = !clinician.supervisorId;
 
               return (
@@ -131,7 +131,7 @@ export const TeamStructureTab: React.FC<TeamStructureTabProps> = ({ clinicians, 
                         }`}
                       >
                         <option value="">{isUnassigned ? 'Select supervisor...' : 'No supervisor'}</option>
-                        {canSupervise.map(s => (
+                        {supervisors.map(s => (
                           <option key={s.id} value={s.id}>{s.name} ({s.licenseType})</option>
                         ))}
                       </select>
@@ -147,7 +147,7 @@ export const TeamStructureTab: React.FC<TeamStructureTabProps> = ({ clinicians, 
             <div className="mt-8 p-5 rounded-xl bg-stone-100">
               <p className="text-xs font-bold text-stone-500 uppercase tracking-wide mb-3">Available Supervisors</p>
               <div className="flex flex-wrap gap-2">
-                {canSupervise.map(s => (
+                {supervisors.map(s => (
                   <div
                     key={s.id}
                     className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white"
