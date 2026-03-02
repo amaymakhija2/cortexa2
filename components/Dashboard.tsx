@@ -322,9 +322,9 @@ export const Dashboard: React.FC = () => {
   }, [dragScrollRef]);
   const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
   const now = new Date();
-  // Dashboard defaults to December 2025 (no aggregate option)
+  // Dashboard defaults to February 2025 (no aggregate option)
   const [timeSelection, setTimeSelection] = useState<TimeSelectorValue>({
-    month: 11,
+    month: 1,
     year: 2025,
   });
 

@@ -328,11 +328,11 @@ interface SettingsContextType {
 
 const SettingsContext = createContext<SettingsContextType | null>(null);
 
-const SETTINGS_KEY = 'cortexa_settings';
+const SETTINGS_KEY = 'cortexa_settings_v2';
 
 const DEFAULT_PRACTICE_GOALS: PracticeGoals = {
-  monthlyRevenue: 150000,
-  monthlySessions: 700,
+  monthlyRevenue: 80000,
+  monthlySessions: 370,
   targetRebookRate: 85,
   noteDeadlineHours: 72,
 };

@@ -27,7 +27,7 @@ export const PRACTICE_SETTINGS = {
     clientCancelled: 0.24,
     lateCancelled: 0.03,
     clinicianCancelled: 0.03,
-    rebookRate: 0.83,
+    rebookRate: 0.82,
   },
   outstandingNotesPercent: 0.22,
   churnWindowDays: 30,
@@ -66406,5 +66406,1553 @@ export const PAYMENT_DATA: PaymentRecord[] = [
     "cptCode": "90834",
     "clientId": "1781f29706bc4dde",
     "amount": 215
+  },
+  {
+    "clinicianId": "1",
+    "clinician": "Sarah Chen",
+    "datePaid": "2/1/25",
+    "appointmentDate": "2/1/25",
+    "cptCode": "90834",
+    "clientId": "e7b8e1e53e203a88",
+    "amount": 185
+  },
+  {
+    "clinicianId": "1",
+    "clinician": "Sarah Chen",
+    "datePaid": "2/2/25",
+    "appointmentDate": "2/1/25",
+    "cptCode": "90837",
+    "clientId": "f27f99a71f4582d8",
+    "amount": 250
+  },
+  {
+    "clinicianId": "2",
+    "clinician": "Maria Rodriguez",
+    "datePaid": "2/3/25",
+    "appointmentDate": "2/2/25",
+    "cptCode": "90847",
+    "clientId": "6bdf51edc1503124",
+    "amount": 175
+  },
+  {
+    "clinicianId": "3",
+    "clinician": "Priya Patel",
+    "datePaid": "2/4/25",
+    "appointmentDate": "2/3/25",
+    "cptCode": "90834",
+    "clientId": "fb00c6c784b89adb",
+    "amount": 185
+  },
+  {
+    "clinicianId": "4",
+    "clinician": "James Kim",
+    "datePaid": "2/5/25",
+    "appointmentDate": "2/4/25",
+    "cptCode": "90837",
+    "clientId": "e50ef8e532afe6d1",
+    "amount": 250
+  },
+  {
+    "clinicianId": "5",
+    "clinician": "Michael Johnson",
+    "datePaid": "2/6/25",
+    "appointmentDate": "2/5/25",
+    "cptCode": "90847",
+    "clientId": "2e2a8801693c2bf5",
+    "amount": 175
+  },
+  {
+    "clinicianId": "5",
+    "clinician": "Michael Johnson",
+    "datePaid": "2/7/25",
+    "appointmentDate": "2/6/25",
+    "cptCode": "90834",
+    "clientId": "3e31c201b402e5d9",
+    "amount": 185
+  },
+  {
+    "clinicianId": "5",
+    "clinician": "Michael Johnson",
+    "datePaid": "2/8/25",
+    "appointmentDate": "2/7/25",
+    "cptCode": "90837",
+    "clientId": "109ad77e77b0881d",
+    "amount": 250
+  },
+  {
+    "clinicianId": "5",
+    "clinician": "Michael Johnson",
+    "datePaid": "2/9/25",
+    "appointmentDate": "2/8/25",
+    "cptCode": "90847",
+    "clientId": "fbed87d57f9beac3",
+    "amount": 175
+  },
+  {
+    "clinicianId": "1",
+    "clinician": "Sarah Chen",
+    "datePaid": "2/10/25",
+    "appointmentDate": "2/9/25",
+    "cptCode": "90834",
+    "clientId": "4409ba0f77c40a45",
+    "amount": 185
+  },
+  {
+    "clinicianId": "2",
+    "clinician": "Maria Rodriguez",
+    "datePaid": "2/11/25",
+    "appointmentDate": "2/10/25",
+    "cptCode": "90837",
+    "clientId": "a8e0169488bb42ec",
+    "amount": 250
+  },
+  {
+    "clinicianId": "2",
+    "clinician": "Maria Rodriguez",
+    "datePaid": "2/12/25",
+    "appointmentDate": "2/11/25",
+    "cptCode": "90847",
+    "clientId": "98c38baee92943a5",
+    "amount": 175
+  },
+  {
+    "clinicianId": "4",
+    "clinician": "James Kim",
+    "datePaid": "2/13/25",
+    "appointmentDate": "2/12/25",
+    "cptCode": "90834",
+    "clientId": "36ea6832d6253ffa",
+    "amount": 185
+  },
+  {
+    "clinicianId": "4",
+    "clinician": "James Kim",
+    "datePaid": "2/14/25",
+    "appointmentDate": "2/13/25",
+    "cptCode": "90837",
+    "clientId": "89fc26fa7dc8a1bb",
+    "amount": 250
+  },
+  {
+    "clinicianId": "4",
+    "clinician": "James Kim",
+    "datePaid": "2/15/25",
+    "appointmentDate": "2/14/25",
+    "cptCode": "90847",
+    "clientId": "6c5f3604e2e4a76f",
+    "amount": 175
+  },
+  {
+    "clinicianId": "1",
+    "clinician": "Sarah Chen",
+    "datePaid": "2/16/25",
+    "appointmentDate": "2/15/25",
+    "cptCode": "90834",
+    "clientId": "e92adbd357446595",
+    "amount": 185
+  },
+  {
+    "clinicianId": "1",
+    "clinician": "Sarah Chen",
+    "datePaid": "2/17/25",
+    "appointmentDate": "2/16/25",
+    "cptCode": "90837",
+    "clientId": "5c3ea7404f434433",
+    "amount": 250
+  },
+  {
+    "clinicianId": "1",
+    "clinician": "Sarah Chen",
+    "datePaid": "2/18/25",
+    "appointmentDate": "2/17/25",
+    "cptCode": "90847",
+    "clientId": "35c9c56bf5236d5e",
+    "amount": 175
+  },
+  {
+    "clinicianId": "2",
+    "clinician": "Maria Rodriguez",
+    "datePaid": "2/19/25",
+    "appointmentDate": "2/18/25",
+    "cptCode": "90834",
+    "clientId": "841bbb979c991072",
+    "amount": 185
+  },
+  {
+    "clinicianId": "3",
+    "clinician": "Priya Patel",
+    "datePaid": "2/20/25",
+    "appointmentDate": "2/19/25",
+    "cptCode": "90837",
+    "clientId": "edf0c47827f22f8c",
+    "amount": 250
+  },
+  {
+    "clinicianId": "4",
+    "clinician": "James Kim",
+    "datePaid": "2/21/25",
+    "appointmentDate": "2/20/25",
+    "cptCode": "90847",
+    "clientId": "4189a5d79343f592",
+    "amount": 175
+  },
+  {
+    "clinicianId": "4",
+    "clinician": "James Kim",
+    "datePaid": "2/22/25",
+    "appointmentDate": "2/21/25",
+    "cptCode": "90834",
+    "clientId": "1b8f79b8dc3e9f5e",
+    "amount": 185
+  },
+  {
+    "clinicianId": "5",
+    "clinician": "Michael Johnson",
+    "datePaid": "2/23/25",
+    "appointmentDate": "2/22/25",
+    "cptCode": "90837",
+    "clientId": "03dc21bc7b4889fa",
+    "amount": 250
+  },
+  {
+    "clinicianId": "1",
+    "clinician": "Sarah Chen",
+    "datePaid": "2/24/25",
+    "appointmentDate": "2/23/25",
+    "cptCode": "90847",
+    "clientId": "1475b5f0bb6c554c",
+    "amount": 175
+  },
+  {
+    "clinicianId": "2",
+    "clinician": "Maria Rodriguez",
+    "datePaid": "2/25/25",
+    "appointmentDate": "2/24/25",
+    "cptCode": "90834",
+    "clientId": "f8a60dcce0d81ba6",
+    "amount": 185
+  },
+  {
+    "clinicianId": "3",
+    "clinician": "Priya Patel",
+    "datePaid": "2/26/25",
+    "appointmentDate": "2/25/25",
+    "cptCode": "90837",
+    "clientId": "50249ba62c6d4344",
+    "amount": 250
+  },
+  {
+    "clinicianId": "3",
+    "clinician": "Priya Patel",
+    "datePaid": "2/27/25",
+    "appointmentDate": "2/26/25",
+    "cptCode": "90847",
+    "clientId": "6122c6f4bd75cebe",
+    "amount": 175
+  },
+  {
+    "clinicianId": "4",
+    "clinician": "James Kim",
+    "datePaid": "2/28/25",
+    "appointmentDate": "2/27/25",
+    "cptCode": "90834",
+    "clientId": "4f1fa4d86a55d042",
+    "amount": 185
+  },
+  {
+    "clinicianId": "4",
+    "clinician": "James Kim",
+    "datePaid": "2/1/25",
+    "appointmentDate": "2/1/25",
+    "cptCode": "90837",
+    "clientId": "d469cca170bf25c0",
+    "amount": 250
+  },
+  {
+    "clinicianId": "4",
+    "clinician": "James Kim",
+    "datePaid": "2/2/25",
+    "appointmentDate": "2/1/25",
+    "cptCode": "90847",
+    "clientId": "062fa06595e7680d",
+    "amount": 175
+  },
+  {
+    "clinicianId": "5",
+    "clinician": "Michael Johnson",
+    "datePaid": "2/3/25",
+    "appointmentDate": "2/2/25",
+    "cptCode": "90834",
+    "clientId": "3e31c201b402e5d9",
+    "amount": 185
+  },
+  {
+    "clinicianId": "5",
+    "clinician": "Michael Johnson",
+    "datePaid": "2/4/25",
+    "appointmentDate": "2/3/25",
+    "cptCode": "90837",
+    "clientId": "fbed87d57f9beac3",
+    "amount": 250
+  },
+  {
+    "clinicianId": "5",
+    "clinician": "Michael Johnson",
+    "datePaid": "2/5/25",
+    "appointmentDate": "2/4/25",
+    "cptCode": "90847",
+    "clientId": "880f14b8af5d6be1",
+    "amount": 175
+  },
+  {
+    "clinicianId": "1",
+    "clinician": "Sarah Chen",
+    "datePaid": "2/6/25",
+    "appointmentDate": "2/5/25",
+    "cptCode": "90834",
+    "clientId": "fbf87f4644e8d6b1",
+    "amount": 185
+  },
+  {
+    "clinicianId": "1",
+    "clinician": "Sarah Chen",
+    "datePaid": "2/7/25",
+    "appointmentDate": "2/6/25",
+    "cptCode": "90837",
+    "clientId": "bcb796dca0c6b3e3",
+    "amount": 250
+  },
+  {
+    "clinicianId": "1",
+    "clinician": "Sarah Chen",
+    "datePaid": "2/8/25",
+    "appointmentDate": "2/7/25",
+    "cptCode": "90847",
+    "clientId": "ae1eae386555b4c1",
+    "amount": 175
+  },
+  {
+    "clinicianId": "2",
+    "clinician": "Maria Rodriguez",
+    "datePaid": "2/9/25",
+    "appointmentDate": "2/8/25",
+    "cptCode": "90834",
+    "clientId": "ea72520b3262b2c5",
+    "amount": 185
+  },
+  {
+    "clinicianId": "2",
+    "clinician": "Maria Rodriguez",
+    "datePaid": "2/10/25",
+    "appointmentDate": "2/9/25",
+    "cptCode": "90837",
+    "clientId": "7db591f1fa906dd9",
+    "amount": 250
+  },
+  {
+    "clinicianId": "2",
+    "clinician": "Maria Rodriguez",
+    "datePaid": "2/11/25",
+    "appointmentDate": "2/10/25",
+    "cptCode": "90847",
+    "clientId": "cefefa25ab2d37ee",
+    "amount": 175
+  },
+  {
+    "clinicianId": "2",
+    "clinician": "Maria Rodriguez",
+    "datePaid": "2/12/25",
+    "appointmentDate": "2/11/25",
+    "cptCode": "90834",
+    "clientId": "2639d665af0406fe",
+    "amount": 185
+  },
+  {
+    "clinicianId": "3",
+    "clinician": "Priya Patel",
+    "datePaid": "2/13/25",
+    "appointmentDate": "2/12/25",
+    "cptCode": "90837",
+    "clientId": "6ace543da0a4897f",
+    "amount": 250
+  },
+  {
+    "clinicianId": "3",
+    "clinician": "Priya Patel",
+    "datePaid": "2/14/25",
+    "appointmentDate": "2/13/25",
+    "cptCode": "90847",
+    "clientId": "2a1c267935a7112f",
+    "amount": 175
+  },
+  {
+    "clinicianId": "3",
+    "clinician": "Priya Patel",
+    "datePaid": "2/15/25",
+    "appointmentDate": "2/14/25",
+    "cptCode": "90834",
+    "clientId": "b3324747960f3537",
+    "amount": 185
+  },
+  {
+    "clinicianId": "3",
+    "clinician": "Priya Patel",
+    "datePaid": "2/16/25",
+    "appointmentDate": "2/15/25",
+    "cptCode": "90837",
+    "clientId": "4511640c422f3bcf",
+    "amount": 250
+  },
+  {
+    "clinicianId": "4",
+    "clinician": "James Kim",
+    "datePaid": "2/17/25",
+    "appointmentDate": "2/16/25",
+    "cptCode": "90847",
+    "clientId": "4497eeaaed9114f7",
+    "amount": 175
+  },
+  {
+    "clinicianId": "5",
+    "clinician": "Michael Johnson",
+    "datePaid": "2/18/25",
+    "appointmentDate": "2/17/25",
+    "cptCode": "90834",
+    "clientId": "c2dbdfc82a6fb9bd",
+    "amount": 185
+  },
+  {
+    "clinicianId": "5",
+    "clinician": "Michael Johnson",
+    "datePaid": "2/19/25",
+    "appointmentDate": "2/18/25",
+    "cptCode": "90837",
+    "clientId": "109ad77e77b0881d",
+    "amount": 250
+  },
+  {
+    "clinicianId": "5",
+    "clinician": "Michael Johnson",
+    "datePaid": "2/20/25",
+    "appointmentDate": "2/19/25",
+    "cptCode": "90847",
+    "clientId": "1781f29706bc4dde",
+    "amount": 175
+  },
+  {
+    "clinicianId": "5",
+    "clinician": "Michael Johnson",
+    "datePaid": "2/21/25",
+    "appointmentDate": "2/20/25",
+    "cptCode": "90834",
+    "clientId": "10c84527991fadfa",
+    "amount": 185
+  },
+  {
+    "clinicianId": "5",
+    "clinician": "Michael Johnson",
+    "datePaid": "2/22/25",
+    "appointmentDate": "2/21/25",
+    "cptCode": "90837",
+    "clientId": "0a8719241050daef",
+    "amount": 250
+  },
+  {
+    "clinicianId": "1",
+    "clinician": "Sarah Chen",
+    "datePaid": "2/23/25",
+    "appointmentDate": "2/22/25",
+    "cptCode": "90847",
+    "clientId": "c6647b4499d45c3a",
+    "amount": 175
+  },
+  {
+    "clinicianId": "1",
+    "clinician": "Sarah Chen",
+    "datePaid": "2/24/25",
+    "appointmentDate": "2/23/25",
+    "cptCode": "90834",
+    "clientId": "fbd27bfa7d78e4db",
+    "amount": 185
+  },
+  {
+    "clinicianId": "1",
+    "clinician": "Sarah Chen",
+    "datePaid": "2/25/25",
+    "appointmentDate": "2/24/25",
+    "cptCode": "90837",
+    "clientId": "566024ba03b5f67a",
+    "amount": 250
+  },
+  {
+    "clinicianId": "1",
+    "clinician": "Sarah Chen",
+    "datePaid": "2/26/25",
+    "appointmentDate": "2/25/25",
+    "cptCode": "90847",
+    "clientId": "8f1fd3bbc213a557",
+    "amount": 175
+  },
+  {
+    "clinicianId": "1",
+    "clinician": "Sarah Chen",
+    "datePaid": "2/27/25",
+    "appointmentDate": "2/26/25",
+    "cptCode": "90834",
+    "clientId": "c6e914b41be3622d",
+    "amount": 185
+  },
+  {
+    "clinicianId": "3",
+    "clinician": "Priya Patel",
+    "datePaid": "2/28/25",
+    "appointmentDate": "2/27/25",
+    "cptCode": "90837",
+    "clientId": "2d05b07ccaf8254b",
+    "amount": 250
+  },
+  {
+    "clinicianId": "3",
+    "clinician": "Priya Patel",
+    "datePaid": "2/1/25",
+    "appointmentDate": "2/1/25",
+    "cptCode": "90847",
+    "clientId": "18c1e46cbb7039b8",
+    "amount": 175
+  },
+  {
+    "clinicianId": "4",
+    "clinician": "James Kim",
+    "datePaid": "2/2/25",
+    "appointmentDate": "2/1/25",
+    "cptCode": "90834",
+    "clientId": "87e564f0b43a1e4c",
+    "amount": 185
+  },
+  {
+    "clinicianId": "2",
+    "clinician": "Maria Rodriguez",
+    "datePaid": "2/3/25",
+    "appointmentDate": "2/2/25",
+    "cptCode": "90837",
+    "clientId": "8551be9b46152857",
+    "amount": 250
+  },
+  {
+    "clinicianId": "3",
+    "clinician": "Priya Patel",
+    "datePaid": "2/4/25",
+    "appointmentDate": "2/3/25",
+    "cptCode": "90847",
+    "clientId": "2c10c5c0cb99cf97",
+    "amount": 175
+  },
+  {
+    "clinicianId": "3",
+    "clinician": "Priya Patel",
+    "datePaid": "2/5/25",
+    "appointmentDate": "2/4/25",
+    "cptCode": "90834",
+    "clientId": "e7ff8efc45f1714a",
+    "amount": 185
+  },
+  {
+    "clinicianId": "3",
+    "clinician": "Priya Patel",
+    "datePaid": "2/6/25",
+    "appointmentDate": "2/5/25",
+    "cptCode": "90837",
+    "clientId": "a28b8c2750137840",
+    "amount": 250
+  },
+  {
+    "clinicianId": "4",
+    "clinician": "James Kim",
+    "datePaid": "2/7/25",
+    "appointmentDate": "2/6/25",
+    "cptCode": "90847",
+    "clientId": "56a16a3e263171d5",
+    "amount": 175
+  },
+  {
+    "clinicianId": "4",
+    "clinician": "James Kim",
+    "datePaid": "2/8/25",
+    "appointmentDate": "2/7/25",
+    "cptCode": "90834",
+    "clientId": "4189a5d79343f592",
+    "amount": 185
+  },
+  {
+    "clinicianId": "4",
+    "clinician": "James Kim",
+    "datePaid": "2/9/25",
+    "appointmentDate": "2/8/25",
+    "cptCode": "90837",
+    "clientId": "b4526bb810c3bbf9",
+    "amount": 250
+  },
+  {
+    "clinicianId": "5",
+    "clinician": "Michael Johnson",
+    "datePaid": "2/10/25",
+    "appointmentDate": "2/9/25",
+    "cptCode": "90847",
+    "clientId": "e0f958e5ee780412",
+    "amount": 175
+  },
+  {
+    "clinicianId": "5",
+    "clinician": "Michael Johnson",
+    "datePaid": "2/11/25",
+    "appointmentDate": "2/10/25",
+    "cptCode": "90834",
+    "clientId": "fbed87d57f9beac3",
+    "amount": 185
+  },
+  {
+    "clinicianId": "5",
+    "clinician": "Michael Johnson",
+    "datePaid": "2/12/25",
+    "appointmentDate": "2/11/25",
+    "cptCode": "90837",
+    "clientId": "03dc21bc7b4889fa",
+    "amount": 250
+  },
+  {
+    "clinicianId": "1",
+    "clinician": "Sarah Chen",
+    "datePaid": "2/13/25",
+    "appointmentDate": "2/12/25",
+    "cptCode": "90847",
+    "clientId": "ca800fb6901943df",
+    "amount": 175
+  },
+  {
+    "clinicianId": "1",
+    "clinician": "Sarah Chen",
+    "datePaid": "2/14/25",
+    "appointmentDate": "2/13/25",
+    "cptCode": "90834",
+    "clientId": "00ce3844554bf751",
+    "amount": 185
+  },
+  {
+    "clinicianId": "1",
+    "clinician": "Sarah Chen",
+    "datePaid": "2/15/25",
+    "appointmentDate": "2/14/25",
+    "cptCode": "90837",
+    "clientId": "9cac3380606b3f42",
+    "amount": 250
+  },
+  {
+    "clinicianId": "1",
+    "clinician": "Sarah Chen",
+    "datePaid": "2/16/25",
+    "appointmentDate": "2/15/25",
+    "cptCode": "90847",
+    "clientId": "1475b5f0bb6c554c",
+    "amount": 175
+  },
+  {
+    "clinicianId": "2",
+    "clinician": "Maria Rodriguez",
+    "datePaid": "2/17/25",
+    "appointmentDate": "2/16/25",
+    "cptCode": "90834",
+    "clientId": "e4dd5adba3719e25",
+    "amount": 185
+  },
+  {
+    "clinicianId": "2",
+    "clinician": "Maria Rodriguez",
+    "datePaid": "2/18/25",
+    "appointmentDate": "2/17/25",
+    "cptCode": "90837",
+    "clientId": "9d542057ec98b7d1",
+    "amount": 250
+  },
+  {
+    "clinicianId": "2",
+    "clinician": "Maria Rodriguez",
+    "datePaid": "2/19/25",
+    "appointmentDate": "2/18/25",
+    "cptCode": "90847",
+    "clientId": "053884eada5a2c08",
+    "amount": 175
+  },
+  {
+    "clinicianId": "3",
+    "clinician": "Priya Patel",
+    "datePaid": "2/20/25",
+    "appointmentDate": "2/19/25",
+    "cptCode": "90834",
+    "clientId": "91a681da0b291204",
+    "amount": 185
+  },
+  {
+    "clinicianId": "3",
+    "clinician": "Priya Patel",
+    "datePaid": "2/21/25",
+    "appointmentDate": "2/20/25",
+    "cptCode": "90837",
+    "clientId": "6ace543da0a4897f",
+    "amount": 250
+  },
+  {
+    "clinicianId": "3",
+    "clinician": "Priya Patel",
+    "datePaid": "2/22/25",
+    "appointmentDate": "2/21/25",
+    "cptCode": "90847",
+    "clientId": "6122c6f4bd75cebe",
+    "amount": 175
+  },
+  {
+    "clinicianId": "3",
+    "clinician": "Priya Patel",
+    "datePaid": "2/23/25",
+    "appointmentDate": "2/22/25",
+    "cptCode": "90834",
+    "clientId": "e2037fcabc2b704d",
+    "amount": 185
+  },
+  {
+    "clinicianId": "4",
+    "clinician": "James Kim",
+    "datePaid": "2/24/25",
+    "appointmentDate": "2/23/25",
+    "cptCode": "90837",
+    "clientId": "40adfa45bd7adeac",
+    "amount": 250
+  },
+  {
+    "clinicianId": "5",
+    "clinician": "Michael Johnson",
+    "datePaid": "2/25/25",
+    "appointmentDate": "2/24/25",
+    "cptCode": "90847",
+    "clientId": "1781f29706bc4dde",
+    "amount": 175
+  },
+  {
+    "clinicianId": "5",
+    "clinician": "Michael Johnson",
+    "datePaid": "2/26/25",
+    "appointmentDate": "2/25/25",
+    "cptCode": "90834",
+    "clientId": "10c84527991fadfa",
+    "amount": 185
+  },
+  {
+    "clinicianId": "1",
+    "clinician": "Sarah Chen",
+    "datePaid": "2/27/25",
+    "appointmentDate": "2/26/25",
+    "cptCode": "90837",
+    "clientId": "e92adbd357446595",
+    "amount": 250
+  },
+  {
+    "clinicianId": "1",
+    "clinician": "Sarah Chen",
+    "datePaid": "2/28/25",
+    "appointmentDate": "2/27/25",
+    "cptCode": "90847",
+    "clientId": "bcb796dca0c6b3e3",
+    "amount": 175
+  },
+  {
+    "clinicianId": "2",
+    "clinician": "Maria Rodriguez",
+    "datePaid": "2/1/25",
+    "appointmentDate": "2/1/25",
+    "cptCode": "90834",
+    "clientId": "6bf2d962ca37209e",
+    "amount": 185
+  },
+  {
+    "clinicianId": "2",
+    "clinician": "Maria Rodriguez",
+    "datePaid": "2/2/25",
+    "appointmentDate": "2/1/25",
+    "cptCode": "90837",
+    "clientId": "6bdf51edc1503124",
+    "amount": 250
+  },
+  {
+    "clinicianId": "2",
+    "clinician": "Maria Rodriguez",
+    "datePaid": "2/3/25",
+    "appointmentDate": "2/2/25",
+    "cptCode": "90847",
+    "clientId": "841bbb979c991072",
+    "amount": 175
+  },
+  {
+    "clinicianId": "3",
+    "clinician": "Priya Patel",
+    "datePaid": "2/4/25",
+    "appointmentDate": "2/3/25",
+    "cptCode": "90834",
+    "clientId": "4511640c422f3bcf",
+    "amount": 185
+  },
+  {
+    "clinicianId": "4",
+    "clinician": "James Kim",
+    "datePaid": "2/5/25",
+    "appointmentDate": "2/4/25",
+    "cptCode": "90837",
+    "clientId": "4f1fa4d86a55d042",
+    "amount": 250
+  },
+  {
+    "clinicianId": "4",
+    "clinician": "James Kim",
+    "datePaid": "2/6/25",
+    "appointmentDate": "2/5/25",
+    "cptCode": "90847",
+    "clientId": "d469cca170bf25c0",
+    "amount": 175
+  },
+  {
+    "clinicianId": "4",
+    "clinician": "James Kim",
+    "datePaid": "2/7/25",
+    "appointmentDate": "2/6/25",
+    "cptCode": "90834",
+    "clientId": "6c5f3604e2e4a76f",
+    "amount": 185
+  },
+  {
+    "clinicianId": "1",
+    "clinician": "Sarah Chen",
+    "datePaid": "2/8/25",
+    "appointmentDate": "2/7/25",
+    "cptCode": "90837",
+    "clientId": "c6647b4499d45c3a",
+    "amount": 250
+  },
+  {
+    "clinicianId": "1",
+    "clinician": "Sarah Chen",
+    "datePaid": "2/9/25",
+    "appointmentDate": "2/8/25",
+    "cptCode": "90847",
+    "clientId": "1df046b25859fe6e",
+    "amount": 175
+  },
+  {
+    "clinicianId": "1",
+    "clinician": "Sarah Chen",
+    "datePaid": "2/10/25",
+    "appointmentDate": "2/9/25",
+    "cptCode": "90834",
+    "clientId": "5c3ea7404f434433",
+    "amount": 185
+  },
+  {
+    "clinicianId": "1",
+    "clinician": "Sarah Chen",
+    "datePaid": "2/11/25",
+    "appointmentDate": "2/10/25",
+    "cptCode": "90837",
+    "clientId": "e7b8e1e53e203a88",
+    "amount": 250
+  },
+  {
+    "clinicianId": "1",
+    "clinician": "Sarah Chen",
+    "datePaid": "2/12/25",
+    "appointmentDate": "2/11/25",
+    "cptCode": "90847",
+    "clientId": "f6fcb03e73e703bb",
+    "amount": 175
+  },
+  {
+    "clinicianId": "2",
+    "clinician": "Maria Rodriguez",
+    "datePaid": "2/13/25",
+    "appointmentDate": "2/12/25",
+    "cptCode": "90834",
+    "clientId": "ea72520b3262b2c5",
+    "amount": 185
+  },
+  {
+    "clinicianId": "2",
+    "clinician": "Maria Rodriguez",
+    "datePaid": "2/14/25",
+    "appointmentDate": "2/13/25",
+    "cptCode": "90837",
+    "clientId": "cefefa25ab2d37ee",
+    "amount": 250
+  },
+  {
+    "clinicianId": "2",
+    "clinician": "Maria Rodriguez",
+    "datePaid": "2/15/25",
+    "appointmentDate": "2/14/25",
+    "cptCode": "90847",
+    "clientId": "a704d9015d44b2f5",
+    "amount": 175
+  },
+  {
+    "clinicianId": "3",
+    "clinician": "Priya Patel",
+    "datePaid": "2/16/25",
+    "appointmentDate": "2/15/25",
+    "cptCode": "90834",
+    "clientId": "b3324747960f3537",
+    "amount": 185
+  },
+  {
+    "clinicianId": "4",
+    "clinician": "James Kim",
+    "datePaid": "2/17/25",
+    "appointmentDate": "2/16/25",
+    "cptCode": "90837",
+    "clientId": "00e1808afce15b65",
+    "amount": 250
+  },
+  {
+    "clinicianId": "4",
+    "clinician": "James Kim",
+    "datePaid": "2/18/25",
+    "appointmentDate": "2/17/25",
+    "cptCode": "90847",
+    "clientId": "062fa06595e7680d",
+    "amount": 175
+  },
+  {
+    "clinicianId": "5",
+    "clinician": "Michael Johnson",
+    "datePaid": "2/19/25",
+    "appointmentDate": "2/18/25",
+    "cptCode": "90834",
+    "clientId": "3e31c201b402e5d9",
+    "amount": 185
+  },
+  {
+    "clinicianId": "5",
+    "clinician": "Michael Johnson",
+    "datePaid": "2/20/25",
+    "appointmentDate": "2/19/25",
+    "cptCode": "90837",
+    "clientId": "109ad77e77b0881d",
+    "amount": 250
+  },
+  {
+    "clinicianId": "1",
+    "clinician": "Sarah Chen",
+    "datePaid": "2/21/25",
+    "appointmentDate": "2/20/25",
+    "cptCode": "90847",
+    "clientId": "fbd27bfa7d78e4db",
+    "amount": 175
+  },
+  {
+    "clinicianId": "1",
+    "clinician": "Sarah Chen",
+    "datePaid": "2/22/25",
+    "appointmentDate": "2/21/25",
+    "cptCode": "90834",
+    "clientId": "ae1eae386555b4c1",
+    "amount": 185
+  },
+  {
+    "clinicianId": "1",
+    "clinician": "Sarah Chen",
+    "datePaid": "2/23/25",
+    "appointmentDate": "2/22/25",
+    "cptCode": "90837",
+    "clientId": "c6e914b41be3622d",
+    "amount": 250
+  },
+  {
+    "clinicianId": "1",
+    "clinician": "Sarah Chen",
+    "datePaid": "2/24/25",
+    "appointmentDate": "2/23/25",
+    "cptCode": "90847",
+    "clientId": "2a50dfe2ff6ec775",
+    "amount": 175
+  },
+  {
+    "clinicianId": "2",
+    "clinician": "Maria Rodriguez",
+    "datePaid": "2/25/25",
+    "appointmentDate": "2/24/25",
+    "cptCode": "90834",
+    "clientId": "a8e0169488bb42ec",
+    "amount": 185
+  },
+  {
+    "clinicianId": "2",
+    "clinician": "Maria Rodriguez",
+    "datePaid": "2/26/25",
+    "appointmentDate": "2/25/25",
+    "cptCode": "90837",
+    "clientId": "73c5e14bfcb9e2b3",
+    "amount": 250
+  },
+  {
+    "clinicianId": "2",
+    "clinician": "Maria Rodriguez",
+    "datePaid": "2/27/25",
+    "appointmentDate": "2/26/25",
+    "cptCode": "90847",
+    "clientId": "7316a7ef2d22e8ab",
+    "amount": 175
+  },
+  {
+    "clinicianId": "2",
+    "clinician": "Maria Rodriguez",
+    "datePaid": "2/28/25",
+    "appointmentDate": "2/27/25",
+    "cptCode": "90834",
+    "clientId": "29c18c3268e4b2f2",
+    "amount": 185
+  },
+  {
+    "clinicianId": "3",
+    "clinician": "Priya Patel",
+    "datePaid": "2/1/25",
+    "appointmentDate": "2/1/25",
+    "cptCode": "90837",
+    "clientId": "0f2d6b6bb9fa4dfb",
+    "amount": 250
+  },
+  {
+    "clinicianId": "4",
+    "clinician": "James Kim",
+    "datePaid": "2/2/25",
+    "appointmentDate": "2/1/25",
+    "cptCode": "90847",
+    "clientId": "3f8053154c80933a",
+    "amount": 175
+  },
+  {
+    "clinicianId": "4",
+    "clinician": "James Kim",
+    "datePaid": "2/3/25",
+    "appointmentDate": "2/2/25",
+    "cptCode": "90834",
+    "clientId": "e50ef8e532afe6d1",
+    "amount": 185
+  },
+  {
+    "clinicianId": "5",
+    "clinician": "Michael Johnson",
+    "datePaid": "2/4/25",
+    "appointmentDate": "2/3/25",
+    "cptCode": "90837",
+    "clientId": "2e2a8801693c2bf5",
+    "amount": 250
+  },
+  {
+    "clinicianId": "1",
+    "clinician": "Sarah Chen",
+    "datePaid": "2/5/25",
+    "appointmentDate": "2/4/25",
+    "cptCode": "90847",
+    "clientId": "b7503338e22231d0",
+    "amount": 175
+  },
+  {
+    "clinicianId": "1",
+    "clinician": "Sarah Chen",
+    "datePaid": "2/6/25",
+    "appointmentDate": "2/5/25",
+    "cptCode": "90834",
+    "clientId": "bcb796dca0c6b3e3",
+    "amount": 185
+  },
+  {
+    "clinicianId": "1",
+    "clinician": "Sarah Chen",
+    "datePaid": "2/7/25",
+    "appointmentDate": "2/6/25",
+    "cptCode": "90837",
+    "clientId": "4409ba0f77c40a45",
+    "amount": 250
+  },
+  {
+    "clinicianId": "2",
+    "clinician": "Maria Rodriguez",
+    "datePaid": "2/8/25",
+    "appointmentDate": "2/7/25",
+    "cptCode": "90847",
+    "clientId": "f8a60dcce0d81ba6",
+    "amount": 175
+  },
+  {
+    "clinicianId": "2",
+    "clinician": "Maria Rodriguez",
+    "datePaid": "2/9/25",
+    "appointmentDate": "2/8/25",
+    "cptCode": "90834",
+    "clientId": "55e07743d7fd641e",
+    "amount": 185
+  },
+  {
+    "clinicianId": "2",
+    "clinician": "Maria Rodriguez",
+    "datePaid": "2/10/25",
+    "appointmentDate": "2/9/25",
+    "cptCode": "90837",
+    "clientId": "ccde927e442e7515",
+    "amount": 250
+  },
+  {
+    "clinicianId": "2",
+    "clinician": "Maria Rodriguez",
+    "datePaid": "2/11/25",
+    "appointmentDate": "2/10/25",
+    "cptCode": "90847",
+    "clientId": "31fe6b712f993922",
+    "amount": 175
+  },
+  {
+    "clinicianId": "4",
+    "clinician": "James Kim",
+    "datePaid": "2/12/25",
+    "appointmentDate": "2/11/25",
+    "cptCode": "90834",
+    "clientId": "9fb6da3cf51ea6d6",
+    "amount": 185
+  },
+  {
+    "clinicianId": "4",
+    "clinician": "James Kim",
+    "datePaid": "2/13/25",
+    "appointmentDate": "2/12/25",
+    "cptCode": "90837",
+    "clientId": "1b8f79b8dc3e9f5e",
+    "amount": 250
+  },
+  {
+    "clinicianId": "4",
+    "clinician": "James Kim",
+    "datePaid": "2/14/25",
+    "appointmentDate": "2/13/25",
+    "cptCode": "90847",
+    "clientId": "9a8586bd1b9ad7fc",
+    "amount": 175
+  },
+  {
+    "clinicianId": "1",
+    "clinician": "Sarah Chen",
+    "datePaid": "2/15/25",
+    "appointmentDate": "2/14/25",
+    "cptCode": "90834",
+    "clientId": "07443f7c30325f12",
+    "amount": 185
+  },
+  {
+    "clinicianId": "1",
+    "clinician": "Sarah Chen",
+    "datePaid": "2/16/25",
+    "appointmentDate": "2/15/25",
+    "cptCode": "90837",
+    "clientId": "1475b5f0bb6c554c",
+    "amount": 250
+  },
+  {
+    "clinicianId": "2",
+    "clinician": "Maria Rodriguez",
+    "datePaid": "2/17/25",
+    "appointmentDate": "2/16/25",
+    "cptCode": "90847",
+    "clientId": "526cd31b2484b3e5",
+    "amount": 175
+  },
+  {
+    "clinicianId": "3",
+    "clinician": "Priya Patel",
+    "datePaid": "2/18/25",
+    "appointmentDate": "2/17/25",
+    "cptCode": "90834",
+    "clientId": "ea5d339d67615bcf",
+    "amount": 185
+  },
+  {
+    "clinicianId": "3",
+    "clinician": "Priya Patel",
+    "datePaid": "2/19/25",
+    "appointmentDate": "2/18/25",
+    "cptCode": "90837",
+    "clientId": "50249ba62c6d4344",
+    "amount": 250
+  },
+  {
+    "clinicianId": "4",
+    "clinician": "James Kim",
+    "datePaid": "2/20/25",
+    "appointmentDate": "2/19/25",
+    "cptCode": "90847",
+    "clientId": "b4526bb810c3bbf9",
+    "amount": 175
+  },
+  {
+    "clinicianId": "4",
+    "clinician": "James Kim",
+    "datePaid": "2/21/25",
+    "appointmentDate": "2/20/25",
+    "cptCode": "90834",
+    "clientId": "d469cca170bf25c0",
+    "amount": 185
+  },
+  {
+    "clinicianId": "5",
+    "clinician": "Michael Johnson",
+    "datePaid": "2/22/25",
+    "appointmentDate": "2/21/25",
+    "cptCode": "90837",
+    "clientId": "1781f29706bc4dde",
+    "amount": 250
+  },
+  {
+    "clinicianId": "1",
+    "clinician": "Sarah Chen",
+    "datePaid": "2/23/25",
+    "appointmentDate": "2/22/25",
+    "cptCode": "90847",
+    "clientId": "fbd27bfa7d78e4db",
+    "amount": 175
+  },
+  {
+    "clinicianId": "1",
+    "clinician": "Sarah Chen",
+    "datePaid": "2/24/25",
+    "appointmentDate": "2/23/25",
+    "cptCode": "90834",
+    "clientId": "61c3a2962f9b6de3",
+    "amount": 185
+  },
+  {
+    "clinicianId": "1",
+    "clinician": "Sarah Chen",
+    "datePaid": "2/25/25",
+    "appointmentDate": "2/24/25",
+    "cptCode": "90837",
+    "clientId": "566024ba03b5f67a",
+    "amount": 250
+  },
+  {
+    "clinicianId": "2",
+    "clinician": "Maria Rodriguez",
+    "datePaid": "2/26/25",
+    "appointmentDate": "2/25/25",
+    "cptCode": "90847",
+    "clientId": "ea72520b3262b2c5",
+    "amount": 175
+  },
+  {
+    "clinicianId": "2",
+    "clinician": "Maria Rodriguez",
+    "datePaid": "2/27/25",
+    "appointmentDate": "2/26/25",
+    "cptCode": "90834",
+    "clientId": "a8e0169488bb42ec",
+    "amount": 185
+  },
+  {
+    "clinicianId": "2",
+    "clinician": "Maria Rodriguez",
+    "datePaid": "2/28/25",
+    "appointmentDate": "2/27/25",
+    "cptCode": "90837",
+    "clientId": "2a5009f51e2e7a7a",
+    "amount": 250
+  },
+  {
+    "clinicianId": "4",
+    "clinician": "James Kim",
+    "datePaid": "2/1/25",
+    "appointmentDate": "2/1/25",
+    "cptCode": "90847",
+    "clientId": "36ea6832d6253ffa",
+    "amount": 175
+  },
+  {
+    "clinicianId": "4",
+    "clinician": "James Kim",
+    "datePaid": "2/2/25",
+    "appointmentDate": "2/1/25",
+    "cptCode": "90834",
+    "clientId": "89fc26fa7dc8a1bb",
+    "amount": 185
+  },
+  {
+    "clinicianId": "5",
+    "clinician": "Michael Johnson",
+    "datePaid": "2/3/25",
+    "appointmentDate": "2/2/25",
+    "cptCode": "90837",
+    "clientId": "fbed87d57f9beac3",
+    "amount": 250
+  },
+  {
+    "clinicianId": "5",
+    "clinician": "Michael Johnson",
+    "datePaid": "2/4/25",
+    "appointmentDate": "2/3/25",
+    "cptCode": "90847",
+    "clientId": "1d846ba580b70900",
+    "amount": 175
+  },
+  {
+    "clinicianId": "5",
+    "clinician": "Michael Johnson",
+    "datePaid": "2/5/25",
+    "appointmentDate": "2/4/25",
+    "cptCode": "90834",
+    "clientId": "10c84527991fadfa",
+    "amount": 185
+  },
+  {
+    "clinicianId": "1",
+    "clinician": "Sarah Chen",
+    "datePaid": "2/6/25",
+    "appointmentDate": "2/5/25",
+    "cptCode": "90837",
+    "clientId": "5c3ea7404f434433",
+    "amount": 250
+  },
+  {
+    "clinicianId": "1",
+    "clinician": "Sarah Chen",
+    "datePaid": "2/7/25",
+    "appointmentDate": "2/6/25",
+    "cptCode": "90847",
+    "clientId": "ae1eae386555b4c1",
+    "amount": 175
+  },
+  {
+    "clinicianId": "2",
+    "clinician": "Maria Rodriguez",
+    "datePaid": "2/8/25",
+    "appointmentDate": "2/7/25",
+    "cptCode": "90834",
+    "clientId": "cefefa25ab2d37ee",
+    "amount": 185
+  },
+  {
+    "clinicianId": "3",
+    "clinician": "Priya Patel",
+    "datePaid": "2/9/25",
+    "appointmentDate": "2/8/25",
+    "cptCode": "90837",
+    "clientId": "6ace543da0a4897f",
+    "amount": 250
+  },
+  {
+    "clinicianId": "4",
+    "clinician": "James Kim",
+    "datePaid": "2/10/25",
+    "appointmentDate": "2/9/25",
+    "cptCode": "90847",
+    "clientId": "4497eeaaed9114f7",
+    "amount": 175
+  },
+  {
+    "clinicianId": "4",
+    "clinician": "James Kim",
+    "datePaid": "2/11/25",
+    "appointmentDate": "2/10/25",
+    "cptCode": "90834",
+    "clientId": "062fa06595e7680d",
+    "amount": 185
+  },
+  {
+    "clinicianId": "5",
+    "clinician": "Michael Johnson",
+    "datePaid": "2/12/25",
+    "appointmentDate": "2/11/25",
+    "cptCode": "90837",
+    "clientId": "1b119347a19f980d",
+    "amount": 250
+  },
+  {
+    "clinicianId": "5",
+    "clinician": "Michael Johnson",
+    "datePaid": "2/13/25",
+    "appointmentDate": "2/12/25",
+    "cptCode": "90847",
+    "clientId": "0a8719241050daef",
+    "amount": 175
+  },
+  {
+    "clinicianId": "1",
+    "clinician": "Sarah Chen",
+    "datePaid": "2/14/25",
+    "appointmentDate": "2/13/25",
+    "cptCode": "90834",
+    "clientId": "c6647b4499d45c3a",
+    "amount": 185
+  },
+  {
+    "clinicianId": "1",
+    "clinician": "Sarah Chen",
+    "datePaid": "2/15/25",
+    "appointmentDate": "2/14/25",
+    "cptCode": "90837",
+    "clientId": "e92adbd357446595",
+    "amount": 250
+  },
+  {
+    "clinicianId": "1",
+    "clinician": "Sarah Chen",
+    "datePaid": "2/16/25",
+    "appointmentDate": "2/15/25",
+    "cptCode": "90847",
+    "clientId": "885444cca0826a93",
+    "amount": 175
+  },
+  {
+    "clinicianId": "1",
+    "clinician": "Sarah Chen",
+    "datePaid": "2/17/25",
+    "appointmentDate": "2/16/25",
+    "cptCode": "90834",
+    "clientId": "f6fcb03e73e703bb",
+    "amount": 185
+  },
+  {
+    "clinicianId": "2",
+    "clinician": "Maria Rodriguez",
+    "datePaid": "2/18/25",
+    "appointmentDate": "2/17/25",
+    "cptCode": "90837",
+    "clientId": "73c5e14bfcb9e2b3",
+    "amount": 250
+  },
+  {
+    "clinicianId": "2",
+    "clinician": "Maria Rodriguez",
+    "datePaid": "2/19/25",
+    "appointmentDate": "2/18/25",
+    "cptCode": "90847",
+    "clientId": "7db591f1fa906dd9",
+    "amount": 175
+  },
+  {
+    "clinicianId": "2",
+    "clinician": "Maria Rodriguez",
+    "datePaid": "2/20/25",
+    "appointmentDate": "2/19/25",
+    "cptCode": "90834",
+    "clientId": "6bdf51edc1503124",
+    "amount": 185
+  },
+  {
+    "clinicianId": "2",
+    "clinician": "Maria Rodriguez",
+    "datePaid": "2/21/25",
+    "appointmentDate": "2/20/25",
+    "cptCode": "90837",
+    "clientId": "841bbb979c991072",
+    "amount": 250
+  },
+  {
+    "clinicianId": "3",
+    "clinician": "Priya Patel",
+    "datePaid": "2/22/25",
+    "appointmentDate": "2/21/25",
+    "cptCode": "90847",
+    "clientId": "4511640c422f3bcf",
+    "amount": 175
+  },
+  {
+    "clinicianId": "4",
+    "clinician": "James Kim",
+    "datePaid": "2/23/25",
+    "appointmentDate": "2/22/25",
+    "cptCode": "90834",
+    "clientId": "4f1fa4d86a55d042",
+    "amount": 185
+  },
+  {
+    "clinicianId": "5",
+    "clinician": "Michael Johnson",
+    "datePaid": "2/24/25",
+    "appointmentDate": "2/23/25",
+    "cptCode": "90837",
+    "clientId": "c2dbdfc82a6fb9bd",
+    "amount": 250
+  },
+  {
+    "clinicianId": "5",
+    "clinician": "Michael Johnson",
+    "datePaid": "2/25/25",
+    "appointmentDate": "2/24/25",
+    "cptCode": "90847",
+    "clientId": "109ad77e77b0881d",
+    "amount": 175
+  },
+  {
+    "clinicianId": "5",
+    "clinician": "Michael Johnson",
+    "datePaid": "2/26/25",
+    "appointmentDate": "2/25/25",
+    "cptCode": "90834",
+    "clientId": "880f14b8af5d6be1",
+    "amount": 185
+  },
+  {
+    "clinicianId": "2",
+    "clinician": "Maria Rodriguez",
+    "datePaid": "2/27/25",
+    "appointmentDate": "2/26/25",
+    "cptCode": "90837",
+    "clientId": "ea72520b3262b2c5",
+    "amount": 250
+  },
+  {
+    "clinicianId": "2",
+    "clinician": "Maria Rodriguez",
+    "datePaid": "2/28/25",
+    "appointmentDate": "2/27/25",
+    "cptCode": "90847",
+    "clientId": "d5eab94be8226d33",
+    "amount": 175
+  },
+  {
+    "clinicianId": "2",
+    "clinician": "Maria Rodriguez",
+    "datePaid": "2/1/25",
+    "appointmentDate": "2/1/25",
+    "cptCode": "90834",
+    "clientId": "526cd31b2484b3e5",
+    "amount": 185
+  },
+  {
+    "clinicianId": "2",
+    "clinician": "Maria Rodriguez",
+    "datePaid": "2/2/25",
+    "appointmentDate": "2/1/25",
+    "cptCode": "90837",
+    "clientId": "8551be9b46152857",
+    "amount": 250
+  },
+  {
+    "clinicianId": "3",
+    "clinician": "Priya Patel",
+    "datePaid": "2/3/25",
+    "appointmentDate": "2/2/25",
+    "cptCode": "90847",
+    "clientId": "2c10c5c0cb99cf97",
+    "amount": 175
+  },
+  {
+    "clinicianId": "3",
+    "clinician": "Priya Patel",
+    "datePaid": "2/4/25",
+    "appointmentDate": "2/3/25",
+    "cptCode": "90834",
+    "clientId": "a28b8c2750137840",
+    "amount": 185
   }
 ];

@@ -14,55 +14,11 @@ interface TeamMembersTabProps {
   onUpdate: (clinicians: Clinician[]) => void;
 }
 
-// =============================================================================
-// ROLE PICKER COMPONENT
-// =============================================================================
-// Full-width segmented control. Each row independently tracks its own selection
-// via simple conditional styling — no shared layout animations across rows.
-// Selected = dark pill with white text. Unselected = receded text on light bg.
-// =============================================================================
-
-interface RolePickerProps {
-  value: ClinicianRole;
-  onChange: (role: ClinicianRole) => void;
-}
-
-const ROLE_OPTIONS: { role: ClinicianRole; label: string }[] = [
-  { role: 'Clinician Only', label: 'Clinician' },
-  { role: 'Clinician and Supervisor', label: 'Both' },
-  { role: 'Supervisor Only', label: 'Supervisor' },
+const ROLE_OPTIONS: ClinicianRole[] = [
+  'Clinician Only',
+  'Clinician and Supervisor',
+  'Supervisor Only',
 ];
-
-const RolePicker: React.FC<RolePickerProps> = ({ value, onChange }) => {
-  return (
-    <div className="flex items-center rounded-lg p-1 w-full bg-stone-100">
-      {ROLE_OPTIONS.map((opt) => {
-        const isSelected = value === opt.role;
-        return (
-          <button
-            key={opt.role}
-            onClick={() => onChange(opt.role)}
-            className={`
-              relative flex-1 py-2 rounded-md text-sm font-medium
-              transition-all duration-200
-              focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-1
-              ${isSelected
-                ? 'bg-stone-800 text-white font-semibold shadow-sm'
-                : 'text-stone-400 hover:text-stone-600'}
-            `}
-            title={opt.role}
-          >
-            {opt.label}
-          </button>
-        );
-      })}
-    </div>
-  );
-};
-
-// =============================================================================
-// TEAM MEMBERS TAB
-// =============================================================================
 
 export const TeamMembersTab: React.FC<TeamMembersTabProps> = ({ clinicians, onUpdate }) => {
   const handleUpdateClinician = (id: string, updates: Partial<Clinician>) => {
@@ -101,7 +57,8 @@ export const TeamMembersTab: React.FC<TeamMembersTabProps> = ({ clinicians, onUp
         <div className="grid grid-cols-12 gap-4 px-5 py-3 text-xs font-bold text-stone-400 uppercase tracking-wide border-b border-stone-200">
           <div className="col-span-3">Clinician</div>
           <div className="col-span-2">License</div>
-          <div className="col-span-5">Role</div>
+          <div className="col-span-3">Role</div>
+          <div className="col-span-2 text-center">Needs Supervision</div>
           <div className="col-span-2 text-center">Status</div>
         </div>
       </AnimatedSection>
@@ -150,12 +107,44 @@ export const TeamMembersTab: React.FC<TeamMembersTabProps> = ({ clinicians, onUp
                 </select>
               </div>
 
-              {/* Role - Using RolePicker */}
-              <div className="col-span-5">
-                <RolePicker
+              {/* Role */}
+              <div className="col-span-3">
+                <select
                   value={clinician.role}
-                  onChange={(role) => handleRoleChange(clinician.id, role)}
-                />
+                  onChange={(e) => handleRoleChange(clinician.id, e.target.value as ClinicianRole)}
+                  className="w-full px-3 py-2.5 rounded-lg bg-stone-100 text-stone-700 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-300 cursor-pointer hover:bg-stone-200 transition-colors"
+                >
+                  {ROLE_OPTIONS.map(role => (
+                    <option key={role} value={role}>{role}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Needs Supervision Toggle */}
+              <div className="col-span-2 flex justify-center">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    if (clinician.requiresSupervision) {
+                      handleUpdateClinician(clinician.id, { requiresSupervision: false, supervisorId: null });
+                    } else {
+                      handleUpdateClinician(clinician.id, { requiresSupervision: true });
+                    }
+                  }}
+                  className={`
+                    w-14 h-8 rounded-full transition-all relative
+                    ${clinician.requiresSupervision
+                      ? 'bg-violet-500'
+                      : 'bg-stone-200'}
+                  `}
+                >
+                  <motion.div
+                    className="absolute top-1 w-6 h-6 rounded-full bg-white shadow-sm"
+                    animate={{ left: clinician.requiresSupervision ? 'calc(100% - 28px)' : '4px' }}
+                    transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                  />
+                </motion.button>
               </div>
 
               {/* Active Status Toggle */}

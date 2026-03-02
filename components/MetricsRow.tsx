@@ -178,17 +178,17 @@ const METRIC_TOOLTIPS: Record<string, { title: string; description: string }> = 
 // =============================================================================
 
 const WEEKLY_REVENUE = [
-  { label: 'Oct 28 – Nov 3', value: 38200, displayValue: '$38.2k' },
-  { label: 'Nov 4 – Nov 10', value: 41500, displayValue: '$41.5k' },
-  { label: 'Nov 11 – Nov 17', value: 36800, displayValue: '$36.8k' },
-  { label: 'Nov 18 – Nov 24', value: 36900, displayValue: '$36.9k' },
+  { label: 'Feb 3 – Feb 9', value: 19800, displayValue: '$19.8k' },
+  { label: 'Feb 10 – Feb 16', value: 21200, displayValue: '$21.2k' },
+  { label: 'Feb 17 – Feb 23', value: 20500, displayValue: '$20.5k' },
+  { label: 'Feb 24 – Feb 28', value: 18600, displayValue: '$18.6k' },
 ];
 
 const BOOKING_FORECAST = [
-  { label: 'Week of Nov 25', value: 42, displayValue: '42' },
-  { label: 'Week of Dec 2', value: 38, displayValue: '38' },
-  { label: 'Week of Dec 9', value: 29, displayValue: '29' },
-  { label: 'Week of Dec 16', value: 18, displayValue: '18' },
+  { label: 'Week of Mar 3', value: 48, displayValue: '48' },
+  { label: 'Week of Mar 10', value: 44, displayValue: '44' },
+  { label: 'Week of Mar 17', value: 36, displayValue: '36' },
+  { label: 'Week of Mar 24', value: 22, displayValue: '22' },
 ];
 
 // =============================================================================
