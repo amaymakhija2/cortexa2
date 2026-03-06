@@ -126,36 +126,48 @@ export const OfficeMapping: React.FC<OfficeMappingProps> = ({
 
   return (
     <div>
-      {/* Progress indicator - the hero element */}
+      {/* Header */}
       <AnimatedSection delay={0}>
-        <div className="mb-6">
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h2
+              className="text-2xl font-bold text-stone-800"
+              style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
+            >
+              Office Mapping
+            </h2>
+            <p className="text-stone-400 text-sm mt-0.5">
+              Map EHR offices to your practice locations
+            </p>
+          </div>
+          {/* Inline status indicator */}
           {allMapped ? (
             <motion.div
-              initial={{ opacity: 0, y: -4 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-4 px-5 py-4 rounded-2xl bg-emerald-50 border border-emerald-200"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-emerald-50 border border-emerald-200"
             >
-              <div className="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center">
-                <Check size={20} className="text-white" strokeWidth={2.5} />
+              <div className="w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center">
+                <Check size={14} className="text-white" strokeWidth={3} />
               </div>
               <div>
-                <p className="text-base font-semibold text-emerald-800">All offices mapped</p>
-                <p className="text-sm text-emerald-600 mt-0.5">
+                <p className="text-sm font-semibold text-emerald-800">All mapped</p>
+                <p className="text-xs text-emerald-600">
                   {ehrOffices.length} office{ehrOffices.length !== 1 ? 's' : ''} across {locationGroups.length} location{locationGroups.length !== 1 ? 's' : ''}
                 </p>
               </div>
             </motion.div>
           ) : (
-            <div className="flex items-center gap-4 px-5 py-4 rounded-2xl bg-amber-50 border border-amber-200">
-              <div className="w-10 h-10 rounded-full bg-amber-500 flex items-center justify-center">
-                <span className="text-base font-bold text-white">{unassignedOffices.length}</span>
+            <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-amber-50 border border-amber-200">
+              <div className="w-7 h-7 rounded-full bg-amber-500 flex items-center justify-center">
+                <span className="text-xs font-bold text-white">{unassignedOffices.length}</span>
               </div>
               <div>
-                <p className="text-base font-semibold text-amber-800">
-                  {unassignedOffices.length} office{unassignedOffices.length !== 1 ? 's' : ''} need{unassignedOffices.length === 1 ? 's' : ''} assignment
+                <p className="text-sm font-semibold text-amber-800">
+                  {unassignedOffices.length} unassigned
                 </p>
-                <p className="text-sm text-amber-700 mt-0.5">
-                  Click an office on the left, then select a location on the right
+                <p className="text-xs text-amber-700">
+                  Click an office, then select a location
                 </p>
               </div>
             </div>

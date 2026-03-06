@@ -52,6 +52,14 @@ export interface Clinician {
   sessionGoal: number;
   clientGoal: number;
   takeRate: number;
+  ehrClinicianIds: string[];  // SP clinician record IDs mapped to this person
+}
+
+// Raw clinician record synced from EHR (e.g. SimplePractice)
+export interface RawEHRClinician {
+  id: string;
+  rawName: string;
+  rawRole: string;
 }
 
 export interface EHRConnection {
@@ -112,6 +120,18 @@ export const classifyOffice = (name: string): 'in-person' | 'telehealth' => {
 // MOCK DATA
 // =============================================================================
 
+// Mock raw EHR clinicians — simulating what comes from SimplePractice
+// 7 SP records for 5 actual people (Sarah has a supervision account, Michael has an intern account)
+export const MOCK_EHR_CLINICIANS: RawEHRClinician[] = [
+  { id: 'sp-clin-1', rawName: 'Sarah Chen', rawRole: 'Clinical Director' },
+  { id: 'sp-clin-1b', rawName: 'Sarah Chen - Supervision', rawRole: 'Supervisor' },
+  { id: 'sp-clin-2', rawName: 'Maria Rodriguez', rawRole: 'Senior Therapist' },
+  { id: 'sp-clin-3', rawName: 'Priya Patel', rawRole: 'Therapist' },
+  { id: 'sp-clin-4', rawName: 'James Kim', rawRole: 'Associate Therapist' },
+  { id: 'sp-clin-5', rawName: 'Michael Johnson', rawRole: 'Associate Therapist' },
+  { id: 'sp-clin-5b', rawName: 'M. Johnson - Intern', rawRole: 'Intern' },
+];
+
 // Mock raw EHR offices — simulating what comes from SimplePractice
 export const MOCK_EHR_OFFICES: RawEHROffice[] = [
   { id: 'ehr-1', rawName: 'Video Office', classification: classifyOffice('Video Office') },
@@ -166,12 +186,22 @@ export const inferRole = (role: string): ClinicianRole => {
   return 'Clinician Only';
 };
 
+// Default 1:1 EHR mapping — keyed by master clinician ID → SP record IDs
+// The duplicate accounts (sp-clin-1b, sp-clin-5b) start unassigned to demonstrate the mapping UI
+const DEFAULT_EHR_CLINICIAN_MAP: Record<string, string[]> = {
+  '1': ['sp-clin-1'],       // Sarah Chen — 'sp-clin-1b' (supervision) is unassigned
+  '2': ['sp-clin-2'],       // Maria Rodriguez
+  '3': ['sp-clin-3'],       // Priya Patel
+  '4': ['sp-clin-4'],       // James Kim
+  '5': ['sp-clin-5'],       // Michael Johnson — 'sp-clin-5b' (intern) is unassigned
+};
+
 // Map master clinicians to the local interface with additional fields
 export const MOCK_CLINICIANS: Clinician[] = MASTER_CLINICIANS.map(c => {
   const licenseType = inferLicenseType(c.title);
   const role = inferRole(c.role);
-  // Only require supervision if license type requires it OR role is Associate
-  const needsSupervision = LICENSES_REQUIRING_SUPERVISION.includes(licenseType) || role === 'Associate';
+  // Only require supervision if license type requires it
+  const needsSupervision = LICENSES_REQUIRING_SUPERVISION.includes(licenseType);
   return {
     id: c.id,
     name: c.name,
@@ -188,6 +218,7 @@ export const MOCK_CLINICIANS: Clinician[] = MASTER_CLINICIANS.map(c => {
     sessionGoal: c.sessionGoal,
     clientGoal: c.clientGoal,
     takeRate: c.takeRate,
+    ehrClinicianIds: DEFAULT_EHR_CLINICIAN_MAP[c.id] || [],
   };
 });
 

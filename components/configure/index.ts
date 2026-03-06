@@ -2,7 +2,6 @@
 export * from './shared';
 export { LocationsTab } from './LocationsTab';
 export { TeamMembersTab } from './TeamMembersTab';
-export { TeamStructureTab } from './TeamStructureTab';
 export { ClinicianGoalsTab } from './ClinicianGoalsTab';
 export { PracticeGoalsTab } from './PracticeGoalsTab';
 export { ThresholdsTab } from './ThresholdsTab';

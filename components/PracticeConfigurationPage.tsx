@@ -9,7 +9,6 @@ import {
   TrendingUp,
   ArrowRight,
   Link2,
-  GitBranch,
 } from 'lucide-react';
 import { PageHeader, SegmentedControl, SectionContainer } from './design-system';
 import type { SegmentedControlOption } from './design-system/controls/SegmentedControl';
@@ -26,17 +25,19 @@ import {
   Clinician,
   Location,
   EHRConnection,
+  RawEHRClinician,
   MOCK_LOCATIONS,
   MOCK_EHR_OFFICES,
   MOCK_LOCATION_GROUPS,
   MOCK_CLINICIANS,
   MOCK_EHR,
+  MOCK_EHR_CLINICIANS,
 } from './configure/shared';
+import { ClinicianMapping } from './ClinicianMapping';
 
 // Import tab components
 import { LocationsTab } from './configure/LocationsTab';
 import { TeamMembersTab } from './configure/TeamMembersTab';
-import { TeamStructureTab } from './configure/TeamStructureTab';
 import { ClinicianGoalsTab } from './configure/ClinicianGoalsTab';
 import { PracticeGoalsTab } from './configure/PracticeGoalsTab';
 import { ThresholdsTab } from './configure/ThresholdsTab';
@@ -53,12 +54,11 @@ import { EHRConnectionTab } from './configure/EHRConnectionTab';
 // =============================================================================
 
 // Tab types matching URL params
-type ConfigTab = 'locations' | 'members' | 'team' | 'clinician-goals' | 'goals' | 'thresholds' | 'consultation-flow' | 'ehr';
+type ConfigTab = 'locations' | 'members' | 'clinician-goals' | 'goals' | 'thresholds' | 'consultation-flow' | 'ehr';
 
 const CONFIG_TABS: SegmentedControlOption<ConfigTab>[] = [
   { id: 'locations', label: 'Locations', icon: <MapPin size={16} /> },
   { id: 'members', label: 'Members', icon: <Users size={16} /> },
-  { id: 'team', label: 'Structure', icon: <GitBranch size={16} /> },
   { id: 'clinician-goals', label: 'Clinician Goals', icon: <Target size={16} /> },
   { id: 'goals', label: 'Practice Goals', icon: <TrendingUp size={16} /> },
   { id: 'thresholds', label: 'Thresholds', icon: <Sliders size={16} /> },
@@ -80,8 +80,10 @@ export const PracticeConfigurationPage: React.FC = () => {
   // Local state for non-persisted data
   const [locations, setLocations] = useState<Location[]>(MOCK_LOCATIONS);
   const [ehrOffices] = useState<RawEHROffice[]>(MOCK_EHR_OFFICES);
+  const [ehrClinicians] = useState<RawEHRClinician[]>(MOCK_EHR_CLINICIANS);
   const [locationGroups, setLocationGroups] = useState<LocationGroup[]>(MOCK_LOCATION_GROUPS);
   const [ehr, setEHR] = useState<EHRConnection>(MOCK_EHR);
+  const [showClinicianMapping, setShowClinicianMapping] = useState(false);
 
   // Merge clinician data from master list with saved overrides from context
   const cliniciansWithOverrides: Clinician[] = MOCK_CLINICIANS.map(c => ({
@@ -162,18 +164,25 @@ export const PracticeConfigurationPage: React.FC = () => {
         {/* Tab Content — Locations breaks free, others get SectionContainer */}
         <AnimatePresence mode="wait">
           <motion.div key={activeTab} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }} className="flex-1 min-h-0">
-            {activeTab === 'locations' ? (
-              <LocationsTab ehrOffices={ehrOffices} locationGroups={locationGroups} onUpdateGroups={setLocationGroups} />
+            {activeTab === 'members' && showClinicianMapping ? (
+              <SectionContainer accent="stone" index={0} isFirst isLast>
+                <ClinicianMapping
+                  ehrClinicians={ehrClinicians}
+                  clinicians={clinicians}
+                  onUpdateClinicians={setClinicians}
+                  onBack={() => setShowClinicianMapping(false)}
+                />
+              </SectionContainer>
             ) : (
               <SectionContainer accent="stone" index={0} isFirst isLast>
-                {activeTab === 'members' && (
-                  <TeamMembersTab clinicians={clinicians} onUpdate={setClinicians} />
+                {activeTab === 'locations' && (
+                  <LocationsTab ehrOffices={ehrOffices} locationGroups={locationGroups} onUpdateGroups={setLocationGroups} />
                 )}
-                {activeTab === 'team' && (
-                  <TeamStructureTab clinicians={clinicians} onUpdate={setClinicians} />
+                {activeTab === 'members' && (
+                  <TeamMembersTab clinicians={clinicians} onUpdate={setClinicians} onOpenMapping={() => setShowClinicianMapping(true)} />
                 )}
                 {activeTab === 'clinician-goals' && (
-                  <ClinicianGoalsTab clinicians={clinicians} onUpdate={handleUpdateClinicianGoals} />
+                  <ClinicianGoalsTab clinicians={clinicians.filter(c => c.isActive)} onUpdate={handleUpdateClinicianGoals} />
                 )}
                 {activeTab === 'goals' && (
                   <PracticeGoalsTab goals={practiceGoals} onUpdate={handleUpdatePracticeGoals} />
