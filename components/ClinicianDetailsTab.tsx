@@ -3167,28 +3167,17 @@ export const ClinicianDetailsTab: React.FC = () => {
           /* ═══════════════════════════════════════════════════════════════════════
              COLLAPSED HEADER - Refined compact layout
 
-             LEFT:  Avatar → Name (dropdown) → Time Selector
+             LEFT:  Name (dropdown) → Time Selector
              RIGHT: Role → Title (LCSW) → Roster btn → Sessions btn
              ═══════════════════════════════════════════════════════════════════════ */
           <div className="flex items-center justify-between gap-4">
 
             {/* ─────────────────────────────────────────────────────────────────────
-                LEFT SECTION: Avatar + Name + Time Selector
+                LEFT SECTION: Name + Time Selector
                 ───────────────────────────────────────────────────────────────────── */}
             <div className="flex items-center gap-4 min-w-0">
 
-              {/* 1. Avatar */}
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
-                style={{
-                  background: `linear-gradient(135deg, ${selectedClinician.color} 0%, ${selectedClinician.color}cc 100%)`,
-                  boxShadow: `0 4px 16px ${selectedClinician.color}40, inset 0 1px 0 rgba(255,255,255,0.15)`,
-                }}
-              >
-                {selectedClinician.initials}
-              </div>
-
-              {/* 2. Name with dropdown */}
+              {/* Name with dropdown */}
               <div className="relative z-[100]">
                 <button
                   onClick={handleClinicianDropdownToggle}

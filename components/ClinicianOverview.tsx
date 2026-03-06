@@ -1219,28 +1219,34 @@ export const ClinicianOverview: React.FC = () => {
         <div className="px-6 sm:px-8 lg:pl-[100px] lg:pr-12 py-6 lg:py-8">
 
           {/* Column headers */}
-          <div className="hidden lg:grid gap-4 py-4 px-4 sm:px-6 text-sm font-bold text-stone-800 uppercase tracking-wide border-b-2 border-stone-300 mb-3"
+          <div className="hidden lg:grid items-end pb-3 mb-0"
             style={{
-              // Calculate columns: Rank + Clinician + (Primary if not hidden) + Supporting
+              fontFamily: "'Suisse Intl', sans-serif",
+              fontSize: 11,
+              fontWeight: 600,
+              color: '#78716c',
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+              borderBottom: '2px solid #292524',
+              marginLeft: 20,
               gridTemplateColumns: (() => {
                 const supportingCount = displayGroup.supporting.length;
                 const showPrimary = !metric.hidden;
                 const dataColumns = supportingCount + (showPrimary ? 1 : 0);
-                // Rank (60px) + Clinician (1fr) + data columns (1fr each)
-                return `60px 1fr ${Array(dataColumns).fill('1fr').join(' ')}`;
+                return `44px minmax(140px, 240px) ${Array(dataColumns).fill('1fr').join(' ')}`;
               })()
             }}
           >
-            <div className="text-center">Rank</div>
+            <div className="text-center" style={{ color: '#a8a29e' }}>#</div>
             <div>Clinician</div>
             {!metric.hidden && (
-              <div className="text-right flex items-center justify-end">
+              <div className="flex items-center justify-center gap-1.5" style={{ color: '#57534e' }}>
                 {metric.label}
                 {metric.tooltip && <InfoTooltip text={metric.tooltip} />}
               </div>
             )}
             {displayGroup.supporting.map((s) => (
-              <div key={s.key} className={`text-right flex items-center justify-end ${s.isPrimary ? 'text-stone-900' : 'text-stone-600'}`}>
+              <div key={s.key} className="flex items-center justify-center gap-1.5" style={{ color: s.isPrimary ? '#57534e' : '#78716c' }}>
                 {s.label}
                 {s.tooltip && <InfoTooltip text={s.tooltip} />}
               </div>
@@ -1258,7 +1264,7 @@ export const ClinicianOverview: React.FC = () => {
               <span>Failed to load clinician data. Please try again.</span>
             </div>
           ) : (
-          <div className="space-y-2">
+          <div>
             {sortedClinicians.map((clinician, idx) => {
               const isFirst = idx === 0;
               const isLast = idx === sortedClinicians.length - 1;
@@ -1272,76 +1278,69 @@ export const ClinicianOverview: React.FC = () => {
               // Team Average Row Component
               const TeamAverageRow = () => (
                 <div
-                  className="bg-stone-100 rounded-xl lg:rounded-2xl overflow-hidden cursor-pointer hover:bg-stone-150 transition-colors"
-                  style={{
-                    border: '2px dashed #d6d3d1',
-                  }}
+                  className="cursor-pointer transition-colors duration-150 hover:bg-stone-100/50"
+                  style={{ borderBottom: '1px dashed #D6D3D1' }}
                   onClick={() => handleRowClick(null)}
                 >
-                  <div className="px-4 sm:px-6 py-4 lg:py-5">
-                    {/* Mobile layout */}
-                    <div className="lg:hidden grid grid-cols-12 gap-3 items-center">
-                      <div className="col-span-2 flex justify-center">
-                        <div className="w-10 h-10 rounded-full bg-stone-300 flex items-center justify-center">
-                          <Users className="w-5 h-5 text-stone-600" />
-                        </div>
-                      </div>
-                      <div className="col-span-6">
-                        <h3 className="text-base text-stone-700 font-bold" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
+                  {/* Mobile layout */}
+                  <div className="lg:hidden py-4 px-4 sm:px-5">
+                    <div className="flex items-center gap-3">
+                      <div className="w-1 self-stretch rounded-full flex-shrink-0" style={{ backgroundColor: '#D6D3D1', minHeight: 40 }} />
+                      <Users size={16} style={{ color: '#a8a29e', flexShrink: 0 }} />
+                      <div className="flex-1 min-w-0">
+                        <h3 style={{ fontFamily: "'Tiempos Headline', Georgia, serif", fontSize: 16, color: '#78716c', lineHeight: 1.2, fontStyle: 'italic' }}>
                           Team Average
                         </h3>
-                        <p className="text-stone-600 text-xs">{CLINICIANS_DATA.length} clinicians</p>
+                        <p style={{ fontFamily: "'Suisse Intl', sans-serif", fontSize: 10, color: '#a8a29e', letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 500, marginTop: 1 }}>
+                          {CLINICIANS_DATA.length} clinicians
+                        </p>
                       </div>
-                      <div className="col-span-4 text-right">
-                        <span className="text-xl font-black text-stone-600">
-                          {metric.format(Math.round(teamAvg))}
-                        </span>
-                      </div>
+                      <span style={{ fontFamily: "'Suisse Intl', sans-serif", fontSize: 18, fontWeight: 600, color: '#78716c', lineHeight: 1 }}>
+                        {metric.format(Math.round(teamAvg))}
+                      </span>
                     </div>
+                  </div>
 
-                    {/* Desktop layout */}
-                    <div className="hidden lg:grid gap-4 items-center"
+                  {/* Desktop layout */}
+                  <div className="hidden lg:flex items-center py-4 gap-4">
+                    <div className="w-1 self-stretch rounded-full flex-shrink-0" style={{ backgroundColor: '#D6D3D1', minHeight: 40 }} />
+                    <div className="flex-1 grid items-center"
                       style={{
                         gridTemplateColumns: (() => {
                           const supportingCount = displayGroup.supporting.length;
                           const showPrimary = !metric.hidden;
                           const dataColumns = supportingCount + (showPrimary ? 1 : 0);
-                          return `60px 1fr ${Array(dataColumns).fill('1fr').join(' ')}`;
+                          return `44px minmax(140px, 240px) ${Array(dataColumns).fill('1fr').join(' ')}`;
                         })()
                       }}
                     >
-                      {/* Icon instead of rank */}
+                      {/* Icon */}
                       <div className="flex justify-center">
-                        <div className="w-10 h-10 rounded-full bg-stone-300 flex items-center justify-center">
-                          <Users className="w-5 h-5 text-stone-600" />
-                        </div>
+                        <Users size={16} style={{ color: '#a8a29e' }} />
                       </div>
-
                       {/* Label */}
-                      <div>
-                        <h3 className="text-base text-stone-700 font-bold" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
+                      <div className="min-w-0">
+                        <h3 style={{ fontFamily: "'Tiempos Headline', Georgia, serif", fontSize: 17, color: '#78716c', lineHeight: 1.2, fontStyle: 'italic' }}>
                           Team Average
                         </h3>
-                        <p className="text-stone-600 text-xs">{CLINICIANS_DATA.length} clinicians</p>
+                        <p style={{ fontFamily: "'Suisse Intl', sans-serif", fontSize: 11, color: '#a8a29e', letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 500, marginTop: 1 }}>
+                          {CLINICIANS_DATA.length} clinicians
+                        </p>
                       </div>
-
                       {/* Primary Value */}
                       {!metric.hidden && (
-                        <div className="text-right">
-                          <span className="text-xl font-black text-stone-600">
+                        <div className="text-center">
+                          <span style={{ fontFamily: "'Suisse Intl', sans-serif", fontSize: 18, fontWeight: 600, color: '#78716c', lineHeight: 1 }}>
                             {metric.format(Math.round(teamAvg))}
                           </span>
                         </div>
                       )}
-
-                      {/* Supporting metrics - each in own column */}
+                      {/* Supporting metrics */}
                       {displayGroup.supporting.map((s) => {
                         const avg = CLINICIANS_DATA.reduce((sum, c) => sum + c.metrics[s.key], 0) / CLINICIANS_DATA.length;
                         return (
-                          <div key={s.key} className="text-right">
-                            <span
-                              className={`font-semibold ${s.isPrimary ? 'text-xl font-black text-stone-600' : 'text-lg text-stone-600'}`}
-                            >
+                          <div key={s.key} className="text-center">
+                            <span style={{ fontFamily: "'Suisse Intl', sans-serif", fontSize: 16, fontWeight: 600, color: '#78716c', lineHeight: 1 }}>
                               {s.format(avg)}
                             </span>
                           </div>
@@ -1382,133 +1381,91 @@ export const ClinicianOverview: React.FC = () => {
                   {showAverageBefore && <TeamAverageRow />}
 
                   <div
-                    className="group bg-white rounded-xl lg:rounded-2xl overflow-hidden transition-all duration-300 hover:scale-[1.01] cursor-pointer"
-                    style={{ boxShadow: theme.shadow }}
+                    className="group cursor-pointer transition-colors duration-150 hover:bg-stone-50/80"
+                    style={{ borderBottom: '1px solid #e7e5e4' }}
                     onClick={() => handleRowClick(clinician.id)}
                   >
-                    {/* Accent bar - only for top/bottom performers */}
-                    {(isFirst || isLast) && (
-                      <div className="h-1" style={{ background: theme.accent }} />
-                    )}
-
-                    <div className="px-4 sm:px-6 py-4 lg:py-5">
-                      {/* Mobile layout */}
-                      <div className="lg:hidden">
-                        <div className="grid grid-cols-12 gap-3 items-center">
-                          <div className="col-span-2">
-                            <span className="text-3xl font-black" style={{ color: theme.text }}>
-                              {rank}
-                            </span>
-                          </div>
-                          <div className="col-span-6 flex items-center gap-3">
-                            <div
-                              className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
-                              style={{
-                                background: isFirst
-                                  ? 'linear-gradient(135deg, #059669 0%, #10b981 100%)'
-                                  : isLast
-                                    ? 'linear-gradient(135deg, #dc2626 0%, #ef4444 100%)'
-                                    : 'linear-gradient(135deg, #57534e 0%, #78716c 100%)'
-                              }}
-                            >
-                              {clinician.avatar}
-                            </div>
-                            <div className="min-w-0">
-                              <h3 className="text-base text-stone-900 font-bold truncate" style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}>
-                                {clinician.shortName}
-                              </h3>
-                              <p className="text-stone-600 text-xs truncate">{clinician.role}</p>
-                            </div>
-                          </div>
-                          <div className="col-span-4 text-right">
-                            <span className="text-xl font-black" style={{ color: theme.text }}>
-                              {metric.format(value)}
-                            </span>
-                          </div>
+                    {/* Mobile layout */}
+                    <div className="lg:hidden py-4 px-4 sm:px-5">
+                      <div className="flex items-center gap-3">
+                        <div className="w-1 self-stretch rounded-full flex-shrink-0" style={{ backgroundColor: clinician.color || '#78716c', minHeight: 40 }} />
+                        <span style={{ fontFamily: "'Suisse Intl', sans-serif", fontSize: 18, fontWeight: 700, color: theme.text, lineHeight: 1, minWidth: 24, textAlign: 'center', flexShrink: 0 }}>
+                          {rank}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="truncate" style={{ fontFamily: "'Tiempos Headline', Georgia, serif", fontSize: 17, color: '#1c1917', lineHeight: 1.25 }}>
+                            {clinician.shortName}
+                          </h3>
+                          <p className="truncate" style={{ fontFamily: "'Suisse Intl', sans-serif", fontSize: 10, color: '#a8a29e', letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 500, marginTop: 1 }}>
+                            {clinician.role}
+                          </p>
                         </div>
-                        {/* Mobile: Supporting metrics */}
-                        {displayGroup.supporting.length > 0 && (
-                          <div className="mt-2 flex gap-4 text-xs text-stone-500">
-                            {displayGroup.supporting.map((s) => (
-                              <span key={s.key} className={s.isPrimary ? 'font-bold text-stone-700' : ''}>
-                                {s.label}: {s.format(clinician.metrics[s.key])}
-                              </span>
-                            ))}
-                          </div>
-                        )}
+                        <span style={{ fontFamily: "'Suisse Intl', sans-serif", fontSize: 18, fontWeight: 700, color: '#1c1917', lineHeight: 1, flexShrink: 0 }}>
+                          {metric.format(value)}
+                        </span>
                       </div>
+                      {displayGroup.supporting.length > 0 && (
+                        <div className="mt-2 pl-[36px] flex gap-4" style={{ fontFamily: "'Suisse Intl', sans-serif" }}>
+                          {displayGroup.supporting.map((s) => (
+                            <span key={s.key} style={{ fontSize: 11, color: s.isPrimary ? '#57534e' : '#a8a29e', fontWeight: s.isPrimary ? 600 : 400 }}>
+                              {s.label}: {s.format(clinician.metrics[s.key])}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
 
-                      {/* Desktop layout */}
-                      <div className="hidden lg:grid gap-4 items-center"
+                    {/* Desktop layout */}
+                    <div className="hidden lg:flex items-center py-[18px] gap-4">
+                      {/* Color bar */}
+                      <div
+                        className="w-1 self-stretch rounded-full flex-shrink-0"
+                        style={{ backgroundColor: clinician.color || '#78716c', minHeight: 44 }}
+                      />
+                      <div className="flex-1 grid items-center"
                         style={{
                           gridTemplateColumns: (() => {
                             const supportingCount = displayGroup.supporting.length;
                             const showPrimary = !metric.hidden;
                             const dataColumns = supportingCount + (showPrimary ? 1 : 0);
-                            return `60px 1fr ${Array(dataColumns).fill('1fr').join(' ')}`;
+                            return `44px minmax(140px, 240px) ${Array(dataColumns).fill('1fr').join(' ')}`;
                           })()
                         }}
                       >
-                        {/* RANK */}
-                        <div className="flex justify-center">
-                          <span
-                            className="text-3xl font-black"
-                            style={{ color: theme.text }}
-                          >
-                            {rank}
+                      {/* RANK */}
+                      <div className="flex justify-center">
+                        <span style={{ fontFamily: "'Suisse Intl', sans-serif", fontSize: 20, fontWeight: 700, color: theme.text, lineHeight: 1 }}>
+                          {rank}
+                        </span>
+                      </div>
+
+                      {/* CLINICIAN */}
+                      <div className="min-w-0" style={{ paddingLeft: 4 }}>
+                        <h3 className="truncate" style={{ fontFamily: "'Tiempos Headline', Georgia, serif", fontSize: 18, color: '#1c1917', lineHeight: 1.25 }}>
+                          {clinician.shortName}
+                        </h3>
+                        <p className="truncate" style={{ fontFamily: "'Suisse Intl', sans-serif", fontSize: 11, color: '#a8a29e', letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 500, marginTop: 2 }}>
+                          {clinician.role}
+                        </p>
+                      </div>
+
+                      {/* PRIMARY VALUE */}
+                      {!metric.hidden && (
+                        <div className="text-center">
+                          <span style={{ fontFamily: "'Suisse Intl', sans-serif", fontSize: 20, fontWeight: 700, color: '#1c1917', lineHeight: 1 }}>
+                            {metric.format(value)}
                           </span>
                         </div>
+                      )}
 
-                        {/* CLINICIAN */}
-                        <div className="flex items-center gap-3">
-                          <div
-                            className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
-                            style={{
-                              background: isFirst
-                                ? 'linear-gradient(135deg, #059669 0%, #10b981 100%)'
-                                : isLast
-                                  ? 'linear-gradient(135deg, #dc2626 0%, #ef4444 100%)'
-                                  : 'linear-gradient(135deg, #57534e 0%, #78716c 100%)'
-                            }}
-                          >
-                            {clinician.avatar}
-                          </div>
-                          <div className="min-w-0">
-                            <h3
-                              className="text-base text-stone-900 font-bold truncate"
-                              style={{ fontFamily: "'Tiempos Headline', Georgia, serif" }}
-                            >
-                              {clinician.shortName}
-                            </h3>
-                            <p className="text-stone-600 text-xs truncate">
-                              {clinician.role}
-                            </p>
-                          </div>
+                      {/* SUPPORTING METRICS */}
+                      {displayGroup.supporting.map((s) => (
+                        <div key={s.key} className="text-center">
+                          <span style={{ fontFamily: "'Suisse Intl', sans-serif", fontSize: 18, fontWeight: s.isPrimary ? 600 : 500, color: s.isPrimary ? '#44403c' : '#78716c', lineHeight: 1 }}>
+                            {s.format(clinician.metrics[s.key])}
+                          </span>
                         </div>
-
-                        {/* PRIMARY VALUE */}
-                        {!metric.hidden && (
-                          <div className="text-right">
-                            <span
-                              className="text-xl font-black"
-                              style={{ color: theme.text }}
-                            >
-                              {metric.format(value)}
-                            </span>
-                          </div>
-                        )}
-
-                        {/* SUPPORTING METRICS - each in own column */}
-                        {displayGroup.supporting.map((s) => (
-                          <div key={s.key} className="text-right">
-                            <span
-                              className={`text-lg font-semibold ${s.isPrimary ? '' : 'text-stone-600'}`}
-                              style={s.isPrimary ? { color: theme.text } : undefined}
-                            >
-                              {s.format(clinician.metrics[s.key])}
-                            </span>
-                          </div>
-                        ))}
+                      ))}
                       </div>
                     </div>
                   </div>
@@ -1522,13 +1479,13 @@ export const ClinicianOverview: React.FC = () => {
           )}
 
           {/* Legend */}
-          <div className="mt-6 pt-6 border-t border-stone-200 flex flex-wrap items-center gap-6 text-sm text-stone-500">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-emerald-500" />
+          <div className="mt-6 pt-4 flex flex-wrap items-center gap-5" style={{ borderTop: '1px solid #e7e5e4', fontFamily: "'Suisse Intl', sans-serif", fontSize: 11, color: '#a8a29e' }}>
+            <div className="flex items-center gap-1.5">
+              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#059669' }} />
               <span>Top performer</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-rose-500" />
+            <div className="flex items-center gap-1.5">
+              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#dc2626' }} />
               <span>Needs attention</span>
             </div>
           </div>

@@ -173,6 +173,8 @@ export const PracticeConfigurationPage: React.FC = () => {
                   onBack={() => setShowClinicianMapping(false)}
                 />
               </SectionContainer>
+            ) : activeTab === 'clinician-goals' ? (
+              <ClinicianGoalsTab clinicians={clinicians} onUpdate={handleUpdateClinicianGoals} />
             ) : (
               <SectionContainer accent="stone" index={0} isFirst isLast>
                 {activeTab === 'locations' && (
@@ -180,9 +182,6 @@ export const PracticeConfigurationPage: React.FC = () => {
                 )}
                 {activeTab === 'members' && (
                   <TeamMembersTab clinicians={clinicians} onUpdate={setClinicians} onOpenMapping={() => setShowClinicianMapping(true)} />
-                )}
-                {activeTab === 'clinician-goals' && (
-                  <ClinicianGoalsTab clinicians={clinicians.filter(c => c.isActive)} onUpdate={handleUpdateClinicianGoals} />
                 )}
                 {activeTab === 'goals' && (
                   <PracticeGoalsTab goals={practiceGoals} onUpdate={handleUpdatePracticeGoals} />
