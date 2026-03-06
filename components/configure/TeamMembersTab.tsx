@@ -9,6 +9,7 @@ import {
   LICENSE_TYPE_NAMES,
   LICENSES_REQUIRING_SUPERVISION,
   canSupervise,
+  StatusPill,
 } from './shared';
 
 const serifFont = "'Tiempos Headline', Georgia, serif";
@@ -266,68 +267,14 @@ export const TeamMembersTab: React.FC<TeamMembersTabProps> = ({ clinicians, onUp
             </p>
           </div>
           <div className="flex items-center gap-3">
-            {/* Inline supervision status with progress ring */}
-            {needsSupervision.length > 0 && (() => {
-              const assignedCount = needsSupervision.length - unassignedCount;
-              const total = needsSupervision.length;
-              const progress = total > 0 ? assignedCount / total : 0;
-              const isComplete = unassignedCount === 0;
-              const radius = 8.5;
-              const circumference = 2 * Math.PI * radius;
-              const strokeDashoffset = circumference * (1 - progress);
-
-              return (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border transition-colors ${
-                    isComplete
-                      ? 'bg-emerald-50/80 border-emerald-200'
-                      : 'bg-amber-50/80 border-amber-200'
-                  }`}
-                >
-                  {/* Progress ring */}
-                  <div className="relative w-6 h-6 flex items-center justify-center flex-shrink-0">
-                    <svg width="22" height="22" viewBox="0 0 22 22" className="absolute -rotate-90">
-                      <circle
-                        cx="11" cy="11" r={radius}
-                        fill="none"
-                        stroke={isComplete ? '#d1fae5' : '#fde68a'}
-                        strokeWidth="2"
-                      />
-                      <motion.circle
-                        cx="11" cy="11" r={radius}
-                        fill="none"
-                        stroke={isComplete ? '#10b981' : '#f59e0b'}
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeDasharray={circumference}
-                        initial={{ strokeDashoffset: circumference }}
-                        animate={{ strokeDashoffset }}
-                        transition={{ duration: 0.6, ease: 'easeOut' }}
-                      />
-                    </svg>
-                    {isComplete ? (
-                      <Check size={10} className="text-emerald-600 relative z-10" strokeWidth={3} />
-                    ) : (
-                      <span className={`text-[9px] font-bold relative z-10 text-amber-700`}>
-                        {assignedCount}
-                      </span>
-                    )}
-                  </div>
-                  <span className={`text-sm font-semibold ${
-                    isComplete ? 'text-emerald-800' : 'text-amber-800'
-                  }`}>
-                    {isComplete ? 'All assigned' : `${unassignedCount} need${unassignedCount === 1 ? 's' : ''} supervisor`}
-                  </span>
-                  <span className={`text-xs font-medium ${
-                    isComplete ? 'text-emerald-600/70' : 'text-amber-600/60'
-                  }`}>
-                    {assignedCount}/{total}
-                  </span>
-                </motion.div>
-              );
-            })()}
+            {needsSupervision.length > 0 && (
+              <StatusPill
+                assigned={needsSupervision.length - unassignedCount}
+                total={needsSupervision.length}
+                completeLabel="All assigned"
+                incompleteLabel={`${unassignedCount} need${unassignedCount === 1 ? 's' : ''} supervisor`}
+              />
+            )}
             {onOpenMapping && (
               <motion.button
                 whileHover={{ scale: 1.02 }}
