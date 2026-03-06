@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertTriangle, Check, ChevronDown, Link2, Shield, X } from 'lucide-react';
+import { Check, ChevronDown, Link2, Shield, X } from 'lucide-react';
 import { AnimatedSection } from '../design-system';
 import {
   Clinician,
@@ -265,46 +265,83 @@ export const TeamMembersTab: React.FC<TeamMembersTabProps> = ({ clinicians, onUp
               Configure credentials, roles, and supervision for each clinician
             </p>
           </div>
-          {onOpenMapping && (
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={onOpenMapping}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-stone-600 bg-stone-100 hover:bg-stone-200 transition-colors"
-            >
-              <Link2 size={16} />
-              Manage EHR Mapping
-            </motion.button>
-          )}
+          <div className="flex items-center gap-3">
+            {/* Inline supervision status with progress ring */}
+            {needsSupervision.length > 0 && (() => {
+              const assignedCount = needsSupervision.length - unassignedCount;
+              const total = needsSupervision.length;
+              const progress = total > 0 ? assignedCount / total : 0;
+              const isComplete = unassignedCount === 0;
+              const radius = 8.5;
+              const circumference = 2 * Math.PI * radius;
+              const strokeDashoffset = circumference * (1 - progress);
+
+              return (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border transition-colors ${
+                    isComplete
+                      ? 'bg-emerald-50/80 border-emerald-200'
+                      : 'bg-amber-50/80 border-amber-200'
+                  }`}
+                >
+                  {/* Progress ring */}
+                  <div className="relative w-6 h-6 flex items-center justify-center flex-shrink-0">
+                    <svg width="22" height="22" viewBox="0 0 22 22" className="absolute -rotate-90">
+                      <circle
+                        cx="11" cy="11" r={radius}
+                        fill="none"
+                        stroke={isComplete ? '#d1fae5' : '#fde68a'}
+                        strokeWidth="2"
+                      />
+                      <motion.circle
+                        cx="11" cy="11" r={radius}
+                        fill="none"
+                        stroke={isComplete ? '#10b981' : '#f59e0b'}
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeDasharray={circumference}
+                        initial={{ strokeDashoffset: circumference }}
+                        animate={{ strokeDashoffset }}
+                        transition={{ duration: 0.6, ease: 'easeOut' }}
+                      />
+                    </svg>
+                    {isComplete ? (
+                      <Check size={10} className="text-emerald-600 relative z-10" strokeWidth={3} />
+                    ) : (
+                      <span className={`text-[9px] font-bold relative z-10 text-amber-700`}>
+                        {assignedCount}
+                      </span>
+                    )}
+                  </div>
+                  <span className={`text-sm font-semibold ${
+                    isComplete ? 'text-emerald-800' : 'text-amber-800'
+                  }`}>
+                    {isComplete ? 'All assigned' : `${unassignedCount} need${unassignedCount === 1 ? 's' : ''} supervisor`}
+                  </span>
+                  <span className={`text-xs font-medium ${
+                    isComplete ? 'text-emerald-600/70' : 'text-amber-600/60'
+                  }`}>
+                    {assignedCount}/{total}
+                  </span>
+                </motion.div>
+              );
+            })()}
+            {onOpenMapping && (
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={onOpenMapping}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-stone-600 bg-stone-100 hover:bg-stone-200 transition-colors"
+              >
+                <Link2 size={16} />
+                Manage EHR Mapping
+              </motion.button>
+            )}
+          </div>
         </div>
       </AnimatedSection>
-
-      {/* Supervision banner */}
-      {needsSupervision.length > 0 && (
-        <AnimatedSection delay={0.03}>
-          <div
-            className={`mb-5 flex items-center gap-3 px-4 py-3 rounded-xl border transition-colors ${
-              unassignedCount > 0
-                ? 'bg-amber-50/80 border-amber-200/60'
-                : 'bg-emerald-50/80 border-emerald-200/60'
-            }`}
-          >
-            {unassignedCount > 0 ? (
-              <AlertTriangle size={16} className="text-amber-500 flex-shrink-0" />
-            ) : (
-              <Check size={16} className="text-emerald-500 flex-shrink-0" />
-            )}
-            <span className={`text-sm font-medium ${unassignedCount > 0 ? 'text-amber-700' : 'text-emerald-700'}`}>
-              {unassignedCount > 0
-                ? `${unassignedCount} clinician${unassignedCount > 1 ? 's' : ''} still need${unassignedCount === 1 ? 's' : ''} a supervisor`
-                : 'All supervisors assigned'}
-            </span>
-            <span className="ml-auto text-xs text-stone-400 font-medium tabular-nums">
-              {needsSupervision.length - unassignedCount}/{needsSupervision.length}
-            </span>
-          </div>
-        </AnimatedSection>
-      )}
 
       {/* Table */}
       <div>
