@@ -134,14 +134,16 @@ const MonthBar: React.FC<MonthBarProps> = ({
   onDragEnd,
 }) => {
   const barRef = useRef<HTMLDivElement>(null);
+  const dragValueRef = useRef(data.value); // Track current value during drag
   const [isHovered, setIsHovered] = useState(false);
   const [localValue, setLocalValue] = useState(data.value);
   const isDragging = activeDragIndex === index;
 
-  // Sync local value with prop
+  // Sync local value with prop when not dragging
   useEffect(() => {
     if (!isDragging) {
       setLocalValue(data.value);
+      dragValueRef.current = data.value;
     }
   }, [data.value, isDragging]);
 
@@ -160,7 +162,7 @@ const MonthBar: React.FC<MonthBarProps> = ({
     onDragStart(index);
 
     const startY = e.clientY;
-    const startValue = localValue;
+    const startValue = dragValueRef.current;
 
     const handlePointerMove = (moveEvent: PointerEvent) => {
       const deltaY = startY - moveEvent.clientY; // Up = positive delta
@@ -169,11 +171,12 @@ const MonthBar: React.FC<MonthBarProps> = ({
         Math.max(minValue, Math.min(maxValue, startValue + valueDelta))
       );
       setLocalValue(newValue);
+      dragValueRef.current = newValue; // Keep ref in sync
     };
 
     const handlePointerUp = () => {
       target.releasePointerCapture(e.pointerId);
-      onChange(localValue);
+      onChange(dragValueRef.current); // Use ref for current value
       onDragEnd();
       window.removeEventListener('pointermove', handlePointerMove);
       window.removeEventListener('pointerup', handlePointerUp);
@@ -181,14 +184,7 @@ const MonthBar: React.FC<MonthBarProps> = ({
 
     window.addEventListener('pointermove', handlePointerMove);
     window.addEventListener('pointerup', handlePointerUp);
-  }, [index, localValue, chartHeight, range, minValue, maxValue, onChange, onDragStart, onDragEnd]);
-
-  // Commit value when drag ends
-  useEffect(() => {
-    if (activeDragIndex !== index && localValue !== data.value) {
-      // Not dragging this bar anymore, ensure value is committed
-    }
-  }, [activeDragIndex, index, localValue, data.value]);
+  }, [index, chartHeight, range, minValue, maxValue, onChange, onDragStart, onDragEnd]);
 
   // Bar appearance based on state
   const getBarStyle = () => {
