@@ -2,3 +2,4 @@
 // A complete rebuild with editorial precision and analog warmth
 
 export * from './shared';
+export * from './EditableRosterTable';
