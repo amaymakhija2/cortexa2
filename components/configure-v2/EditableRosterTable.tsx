@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, ChevronDown, AlertCircle } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import {
   FONT,
   INK,
@@ -33,9 +33,6 @@ import {
 export interface EditableRosterTableProps {
   clinicians: Clinician[];
   onUpdate: (clinicians: Clinician[]) => void;
-  onExpandRow?: (clinicianId: string | null) => void;
-  expandedRowId?: string | null;
-  renderExpandedContent?: (clinician: Clinician) => React.ReactNode;
   onOpenGoalEditor?: (clinicianId: string, metric: 'sessions' | 'clients') => void;
 }
 
@@ -51,16 +48,14 @@ interface ColumnDef {
 }
 
 const COLUMNS: ColumnDef[] = [
-  { key: 'accent', label: '', width: '4px', align: 'left' },
   { key: 'rank', label: '#', width: '44px', align: 'center' },
   { key: 'clinician', label: 'Clinician', width: '1fr', align: 'left' },
-  { key: 'license', label: 'License', width: '100px', align: 'center' },
-  { key: 'role', label: 'Role', width: '170px', align: 'center' },
+  { key: 'license', label: 'License', width: '110px', align: 'center' },
+  { key: 'role', label: 'Role', width: '180px', align: 'center' },
   { key: 'supervision', label: 'Supervision', width: '160px', align: 'center' },
   { key: 'sessions', label: 'Sessions', width: '100px', align: 'center' },
   { key: 'clients', label: 'Clients', width: '80px', align: 'center' },
   { key: 'status', label: 'Status', width: '90px', align: 'center' },
-  { key: 'expand', label: '', width: '44px', align: 'center' },
 ];
 
 const gridTemplate = COLUMNS.map(c => c.width).join(' ');
@@ -80,6 +75,7 @@ const HeaderRow: React.FC = () => (
     {COLUMNS.map((col) => (
       <div
         key={col.key}
+        className={col.key === 'clinician' ? 'pl-3' : ''}
         style={{
           fontFamily: FONT.sans,
           fontSize: 10,
@@ -88,7 +84,6 @@ const HeaderRow: React.FC = () => (
           letterSpacing: '0.1em',
           textTransform: 'uppercase',
           textAlign: col.align,
-          paddingLeft: col.key === 'clinician' ? 12 : 0,
         }}
       >
         {col.label}
@@ -107,9 +102,6 @@ interface ClinicianRowProps {
   index: number;
   supervisors: Clinician[];
   onUpdate: (updates: Partial<Clinician>) => void;
-  isExpanded: boolean;
-  onToggleExpand: () => void;
-  renderExpandedContent?: (clinician: Clinician) => React.ReactNode;
   onOpenGoalEditor?: (metric: 'sessions' | 'clients') => void;
 }
 
@@ -119,9 +111,6 @@ const ClinicianRow: React.FC<ClinicianRowProps> = ({
   index,
   supervisors,
   onUpdate,
-  isExpanded,
-  onToggleExpand,
-  renderExpandedContent,
   onOpenGoalEditor,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
@@ -180,9 +169,6 @@ const ClinicianRow: React.FC<ClinicianRowProps> = ({
         ease: EASE.out,
       },
     }),
-    hover: {
-      backgroundColor: INK.cream,
-    },
   };
 
   return (
@@ -193,15 +179,15 @@ const ClinicianRow: React.FC<ClinicianRowProps> = ({
           gridTemplateColumns: gridTemplate,
           borderBottom: `1px solid ${INK.rule}`,
           minHeight: 64,
-          cursor: 'pointer',
+          backgroundColor: isHovered ? INK.cream : 'transparent',
+          transition: 'background-color 0.15s ease',
         }}
         custom={index}
         initial="hidden"
         animate="visible"
-        whileHover="hover"
         variants={rowVariants}
-        onHoverStart={() => setIsHovered(true)}
-        onHoverEnd={() => setIsHovered(false)}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
       >
         {/* Save confirmation glow */}
         <AnimatePresence>
@@ -218,19 +204,6 @@ const ClinicianRow: React.FC<ClinicianRowProps> = ({
             />
           )}
         </AnimatePresence>
-
-        {/* Accent bar - bookmark ribbon */}
-        <div className="self-stretch flex items-center">
-          <motion.div
-            className="w-1 h-8 rounded-full"
-            style={{ backgroundColor: clinician.color }}
-            animate={{
-              height: isHovered ? 40 : 32,
-              opacity: clinician.isActive ? 1 : 0.4,
-            }}
-            transition={{ duration: 0.2 }}
-          />
-        </div>
 
         {/* Rank */}
         <div
@@ -272,7 +245,7 @@ const ClinicianRow: React.FC<ClinicianRowProps> = ({
         </div>
 
         {/* License */}
-        <div className="flex justify-center" onClick={(e) => e.stopPropagation()}>
+        <div className="flex justify-center" >
           <InlineSelect
             value={clinician.licenseType}
             options={licenseOptions}
@@ -290,7 +263,7 @@ const ClinicianRow: React.FC<ClinicianRowProps> = ({
         </div>
 
         {/* Role */}
-        <div className="flex justify-center" onClick={(e) => e.stopPropagation()}>
+        <div className="flex justify-center" >
           <InlineSelect
             value={clinician.role}
             options={roleOptions}
@@ -303,7 +276,7 @@ const ClinicianRow: React.FC<ClinicianRowProps> = ({
         </div>
 
         {/* Supervision */}
-        <div className="flex justify-center items-center gap-1" onClick={(e) => e.stopPropagation()}>
+        <div className="flex justify-center items-center gap-1" >
           {hasNoSupervisor && (
             <motion.div
               animate={{ scale: [1, 1.2, 1] }}
@@ -328,10 +301,7 @@ const ClinicianRow: React.FC<ClinicianRowProps> = ({
         {/* Sessions Goal - Clickable to open editor */}
         <div
           className="flex justify-center"
-          onClick={(e) => {
-            e.stopPropagation();
-            onOpenGoalEditor?.('sessions');
-          }}
+          onClick={() => onOpenGoalEditor?.('sessions')}
         >
           <motion.button
             className="flex items-center gap-1 px-3 py-1.5 rounded-lg transition-colors"
@@ -355,10 +325,7 @@ const ClinicianRow: React.FC<ClinicianRowProps> = ({
         {/* Clients Goal - Clickable to open editor */}
         <div
           className="flex justify-center"
-          onClick={(e) => {
-            e.stopPropagation();
-            onOpenGoalEditor?.('clients');
-          }}
+          onClick={() => onOpenGoalEditor?.('clients')}
         >
           <motion.button
             className="flex items-center justify-center px-3 py-1.5 rounded-lg transition-colors"
@@ -379,7 +346,7 @@ const ClinicianRow: React.FC<ClinicianRowProps> = ({
         </div>
 
         {/* Status */}
-        <div className="flex justify-center" onClick={(e) => e.stopPropagation()}>
+        <div className="flex justify-center">
           <TogglePill
             active={clinician.isActive}
             onChange={(active) => {
@@ -388,52 +355,7 @@ const ClinicianRow: React.FC<ClinicianRowProps> = ({
             }}
           />
         </div>
-
-        {/* Expand */}
-        <div className="flex justify-center">
-          <motion.button
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleExpand();
-            }}
-            className="p-2 rounded-lg transition-colors"
-            style={{
-              color: isExpanded ? INK.gold : INK.ghost,
-              backgroundColor: isExpanded ? INK.goldGlow : 'transparent',
-            }}
-            whileHover={{ backgroundColor: INK.cream }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <motion.div
-              animate={{ rotate: isExpanded ? 90 : 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              <ChevronRight size={16} />
-            </motion.div>
-          </motion.button>
-        </div>
       </motion.div>
-
-      {/* Expanded Content */}
-      <AnimatePresence>
-        {isExpanded && renderExpandedContent && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25, ease: EASE.out }}
-            className="overflow-hidden"
-            style={{
-              backgroundColor: INK.cream,
-              borderBottom: `1px solid ${INK.rule}`,
-            }}
-          >
-            <div className="py-5 px-8 ml-12">
-              {renderExpandedContent(clinician)}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </>
   );
 };
@@ -445,9 +367,6 @@ const ClinicianRow: React.FC<ClinicianRowProps> = ({
 export const EditableRosterTable: React.FC<EditableRosterTableProps> = ({
   clinicians,
   onUpdate,
-  onExpandRow,
-  expandedRowId,
-  renderExpandedContent,
   onOpenGoalEditor,
 }) => {
   // Sort: active clinicians first, then inactive at bottom
@@ -472,11 +391,6 @@ export const EditableRosterTable: React.FC<EditableRosterTableProps> = ({
     [clinicians, onUpdate]
   );
 
-  // Handle row expansion
-  const handleToggleExpand = (clinicianId: string) => {
-    onExpandRow?.(expandedRowId === clinicianId ? null : clinicianId);
-  };
-
   // Count active vs inactive
   const activeCount = sortedClinicians.filter((c) => c.isActive).length;
 
@@ -495,9 +409,6 @@ export const EditableRosterTable: React.FC<EditableRosterTableProps> = ({
             index={index}
             supervisors={supervisors}
             onUpdate={(updates) => updateClinician(clinician.id, updates)}
-            isExpanded={expandedRowId === clinician.id}
-            onToggleExpand={() => handleToggleExpand(clinician.id)}
-            renderExpandedContent={renderExpandedContent}
             onOpenGoalEditor={onOpenGoalEditor ? (metric) => onOpenGoalEditor(clinician.id, metric) : undefined}
           />
         ))}

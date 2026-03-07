@@ -1,9 +1,9 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Link2, Users, Target } from 'lucide-react';
+import { Link2 } from 'lucide-react';
 import { EditableRosterTable } from './EditableRosterTable';
 import { GoalEditorModal, type GoalMetric } from './GoalEditorModal';
-import { SectionHeader, LedgerCard, PrimaryButton, FONT, INK, EASE } from './shared';
+import { LedgerCard, PrimaryButton, FONT, INK, EASE } from './shared';
 import type { Clinician } from './shared';
 import { LICENSES_REQUIRING_SUPERVISION } from './shared';
 import { useSettings } from '../../context/SettingsContext';
@@ -133,113 +133,59 @@ interface PracticeSummaryBarProps {
   totalSessions: number;
   totalClients: number;
   clinicianCount: number;
+  supervisionStatus?: { assigned: number; total: number };
+  onOpenMapping?: () => void;
 }
 
 const PracticeSummaryBar: React.FC<PracticeSummaryBarProps> = ({
   totalSessions,
   totalClients,
   clinicianCount,
+  supervisionStatus,
+  onOpenMapping,
 }) => (
   <motion.div
     initial={{ opacity: 0, y: -8 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.4, ease: EASE.out }}
-    className="flex items-center justify-between p-5 rounded-xl mb-6"
-    style={{
-      backgroundColor: INK.cream,
-      border: `1px solid ${INK.rule}`,
-    }}
+    className="flex items-center justify-between mb-6"
   >
-    <div className="flex items-center gap-8">
-      {/* Sessions total */}
-      <div className="flex items-center gap-3">
-        <div
-          className="w-9 h-9 rounded-lg flex items-center justify-center"
-          style={{ backgroundColor: INK.goldGlow }}
-        >
-          <Target size={18} color={INK.gold} />
-        </div>
-        <div>
-          <div
-            style={{
-              fontFamily: FONT.serif,
-              fontSize: 22,
-              fontWeight: 400,
-              color: INK.black,
-              lineHeight: 1,
-            }}
-          >
-            {totalSessions}
-            <span
-              style={{
-                fontFamily: FONT.sans,
-                fontSize: 12,
-                color: INK.ghost,
-                marginLeft: 2,
-              }}
-            >
-              /wk
-            </span>
-          </div>
-          <div
-            style={{
-              fontFamily: FONT.sans,
-              fontSize: 11,
-              color: INK.muted,
-              marginTop: 2,
-            }}
-          >
-            Team sessions
-          </div>
-        </div>
-      </div>
-
-      {/* Divider */}
-      <div className="w-px h-10" style={{ backgroundColor: INK.rule }} />
-
-      {/* Clients total */}
-      <div className="flex items-center gap-3">
-        <div
-          className="w-9 h-9 rounded-lg flex items-center justify-center"
-          style={{ backgroundColor: INK.emeraldLight }}
-        >
-          <Users size={18} color={INK.emerald} />
-        </div>
-        <div>
-          <div
-            style={{
-              fontFamily: FONT.serif,
-              fontSize: 22,
-              fontWeight: 400,
-              color: INK.black,
-              lineHeight: 1,
-            }}
-          >
-            {totalClients}
-          </div>
-          <div
-            style={{
-              fontFamily: FONT.sans,
-              fontSize: 11,
-              color: INK.muted,
-              marginTop: 2,
-            }}
-          >
-            Active clients
-          </div>
-        </div>
-      </div>
-    </div>
-
-    {/* Clinician count */}
+    {/* Left: Stats as text */}
     <div
+      className="flex items-center gap-2"
       style={{
         fontFamily: FONT.sans,
-        fontSize: 13,
-        color: INK.faded,
+        fontSize: 14,
+        color: INK.muted,
       }}
     >
-      Based on <span style={{ fontWeight: 600, color: INK.muted }}>{clinicianCount}</span> clinicians
+      <span style={{ fontWeight: 600, color: INK.body }}>{totalSessions}</span>
+      <span>sessions/wk</span>
+      <span style={{ color: INK.rule, margin: '0 4px' }}>•</span>
+      <span style={{ fontWeight: 600, color: INK.body }}>{totalClients}</span>
+      <span>active clients</span>
+      <span style={{ color: INK.rule, margin: '0 4px' }}>•</span>
+      <span style={{ fontWeight: 600, color: INK.body }}>{clinicianCount}</span>
+      <span>clinicians</span>
+    </div>
+
+    {/* Right: Supervision status + EHR mapping */}
+    <div className="flex items-center gap-3">
+      {supervisionStatus && supervisionStatus.total > 0 && (
+        <SupervisionStatus
+          assigned={supervisionStatus.assigned}
+          total={supervisionStatus.total}
+        />
+      )}
+      {onOpenMapping && (
+        <PrimaryButton
+          onClick={onOpenMapping}
+          icon={<Link2 size={16} />}
+          variant="stone"
+        >
+          Manage EHR Mapping
+        </PrimaryButton>
+      )}
     </div>
   </motion.div>
 );
@@ -254,7 +200,6 @@ export const CliniciansTab: React.FC<CliniciansTabProps> = ({
   onOpenMapping,
 }) => {
   const { settings, updateSettings } = useSettings();
-  const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
   const [goalEditorState, setGoalEditorState] = useState<{
     clinicianId: string;
     metric: GoalMetric;
@@ -281,11 +226,6 @@ export const CliniciansTab: React.FC<CliniciansTabProps> = ({
       count: activeClinicians.length,
     };
   }, [clinicians]);
-
-  // Handle row expansion
-  const handleExpandRow = (clinicianId: string | null) => {
-    setExpandedRowId(clinicianId);
-  };
 
   // Handle opening goal editor
   const handleOpenGoalEditor = useCallback((clinicianId: string, metric: GoalMetric) => {
@@ -330,46 +270,21 @@ export const CliniciansTab: React.FC<CliniciansTabProps> = ({
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
     >
-      {/* Header */}
-      <SectionHeader
-        title="Clinicians"
-        subtitle="Credentials, roles, supervision, and goals for your clinical team"
-        actions={
-          <div className="flex items-center gap-4">
-            {supervisionStatus.total > 0 && (
-              <SupervisionStatus
-                assigned={supervisionStatus.assigned}
-                total={supervisionStatus.total}
-              />
-            )}
-            {onOpenMapping && (
-              <PrimaryButton
-                onClick={onOpenMapping}
-                icon={<Link2 size={16} />}
-                variant="stone"
-              >
-                Manage EHR Mapping
-              </PrimaryButton>
-            )}
-          </div>
-        }
-      />
-
-      {/* Practice Summary Bar */}
+      {/* Summary Bar - replaces redundant header */}
       <PracticeSummaryBar
         totalSessions={teamTotals.sessions}
         totalClients={teamTotals.clients}
         clinicianCount={teamTotals.count}
+        supervisionStatus={supervisionStatus}
+        onOpenMapping={onOpenMapping}
       />
 
       {/* Roster Card */}
-      <LedgerCard accent="gold">
+      <LedgerCard>
         <div className="p-8">
           <EditableRosterTable
             clinicians={clinicians}
             onUpdate={onUpdate}
-            onExpandRow={handleExpandRow}
-            expandedRowId={expandedRowId}
             onOpenGoalEditor={handleOpenGoalEditor}
           />
         </div>

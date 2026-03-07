@@ -92,22 +92,13 @@ export const ConfigurePage: React.FC = () => {
         background: `linear-gradient(180deg, ${INK.cream} 0%, ${INK.paper} 100%)`,
       }}
     >
-      {/* Page Header */}
+      {/* Page Header with integrated navigation */}
       <PageHeader
         accent="violet"
         showGridPattern
         title="Configure"
-      />
-
-      {/* Content Area */}
-      <div className="flex flex-col flex-1 min-h-0 min-w-0 px-6 sm:px-8 lg:pl-[100px] lg:pr-12 py-6 lg:py-8">
-        {/* Tab Switcher */}
-        <motion.div
-          className="flex items-center gap-4 mb-8"
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, ease: EASE.out }}
-        >
+        size="hero"
+        timeSelector={
           <SegmentedControl<ConfigTab>
             options={CONFIG_TABS}
             value={activeTab}
@@ -115,8 +106,11 @@ export const ConfigurePage: React.FC = () => {
             size="md"
             ariaLabel="Configuration section"
           />
-        </motion.div>
+        }
+      />
 
+      {/* Content Area */}
+      <div className="flex flex-col flex-1 min-h-0 min-w-0 px-6 sm:px-8 lg:pl-[100px] lg:pr-12 py-6 lg:py-8">
         {/* Tab Content */}
         <AnimatePresence mode="wait">
           <motion.div
