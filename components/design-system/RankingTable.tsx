@@ -137,6 +137,7 @@ export interface RankingColumn {
   format: (value: number) => string;
   tooltip?: string;
   isPrimary?: boolean;
+  matchPrimaryValueStyle?: boolean;
   hidden?: boolean;
 }
 
@@ -164,6 +165,7 @@ interface RankingTableProps {
   primaryColumn: RankingColumn;
   supportingColumns: RankingColumn[];
   onRowClick?: (id: string | number | null) => void;
+  rowActions?: (row: RankingRow) => React.ReactNode;
   teamAverageLabel?: string;
   teamAverageInsertIndex?: number;
   theme?: RankingTheme;
@@ -211,7 +213,7 @@ const TeamAverageRow: React.FC<{
     {/* Mobile */}
     <div className="lg:hidden py-4 px-4 sm:px-5">
       <div className="flex items-center gap-3">
-        <div className="w-1 self-stretch rounded-full flex-shrink-0" style={{ backgroundColor: COLOR.dashed, minHeight: 40 }} />
+        <div className="w-0.5 self-stretch rounded-full flex-shrink-0" style={{ backgroundColor: COLOR.dashed, minHeight: 32 }} />
         <Users size={16} style={{ color: COLOR.faded, flexShrink: 0 }} />
         <div className="flex-1 min-w-0">
           <h3 style={S.avgNameMobile}>{label}</h3>
@@ -225,7 +227,7 @@ const TeamAverageRow: React.FC<{
 
     {/* Desktop */}
     <div className="hidden lg:flex items-center py-4 gap-4">
-      <div className="w-1 self-stretch rounded-full flex-shrink-0" style={{ backgroundColor: COLOR.dashed, minHeight: 40 }} />
+      <div className="w-0.5 self-stretch rounded-full flex-shrink-0" style={{ backgroundColor: COLOR.dashed, minHeight: 32 }} />
       <div className="flex-1 grid items-center" style={{ gridTemplateColumns: gridColumns }}>
         <div className="flex justify-center">
           <Users size={16} style={{ color: COLOR.faded }} />
@@ -266,7 +268,8 @@ const ClinicianRow: React.FC<{
   primaryColumn: RankingColumn;
   supportingColumns: RankingColumn[];
   onClick?: () => void;
-}> = React.memo(({ row, rank, rankColor, gridColumns, primaryColumn, supportingColumns, onClick }) => {
+  actions?: React.ReactNode;
+}> = React.memo(({ row, rank, rankColor, gridColumns, primaryColumn, supportingColumns, onClick, actions }) => {
   const primaryValue = row.values[primaryColumn.key] ?? 0;
 
   return (
@@ -278,7 +281,7 @@ const ClinicianRow: React.FC<{
       {/* Mobile */}
       <div className="lg:hidden py-4 px-4 sm:px-5">
         <div className="flex items-center gap-3">
-          <div className="w-1 self-stretch rounded-full flex-shrink-0" style={{ backgroundColor: row.accentColor || COLOR.stone, minHeight: 40 }} />
+          <div className="w-0.5 self-stretch rounded-full flex-shrink-0" style={{ backgroundColor: row.accentColor || COLOR.stone, minHeight: 32 }} />
           <span style={{ ...S.rankMobile, color: rankColor }}>
             {rank}
           </span>
@@ -299,13 +302,18 @@ const ClinicianRow: React.FC<{
             ))}
           </div>
         )}
+        {actions && (
+          <div className="mt-3 pl-[36px] flex gap-2">
+            {actions}
+          </div>
+        )}
       </div>
 
       {/* Desktop */}
       <div className="hidden lg:flex items-center py-[18px] gap-4">
         <div
-          className="w-1 self-stretch rounded-full flex-shrink-0"
-          style={{ backgroundColor: row.accentColor || COLOR.stone, minHeight: 44 }}
+          className="w-0.5 self-stretch rounded-full flex-shrink-0"
+          style={{ backgroundColor: row.accentColor || COLOR.stone, minHeight: 36 }}
         />
         <div className="flex-1 grid items-center" style={{ gridTemplateColumns: gridColumns }}>
           <div className="flex justify-center">
@@ -324,17 +332,27 @@ const ClinicianRow: React.FC<{
           )}
           {supportingColumns.map((col) => (
             <div key={col.key} className="text-center">
+              {/*
+                Some tables need a supporting column to visually match the primary metric.
+                Keep this opt-in to avoid global style shifts across existing RankingTable usage.
+              */}
               <span style={{
-                fontFamily: FONT.sans,
-                fontSize: 18,
-                fontWeight: col.isPrimary ? 600 : 500,
-                color: col.isPrimary ? COLOR.body : COLOR.stone,
-                lineHeight: 1,
+                ...(col.matchPrimaryValueStyle
+                  ? S.primaryValue
+                  : {
+                      fontFamily: FONT.sans,
+                      fontSize: 18,
+                      fontWeight: col.isPrimary ? 600 : 500,
+                      color: col.isPrimary ? COLOR.body : COLOR.stone,
+                      lineHeight: 1,
+                    }),
               }}>
                 {col.format(row.values[col.key] ?? 0)}
               </span>
             </div>
           ))}
+          {/* Actions rendered as grid items for even distribution */}
+          {actions}
         </div>
       </div>
     </div>
@@ -351,6 +369,7 @@ export const RankingTable: React.FC<RankingTableProps> = ({
   primaryColumn,
   supportingColumns,
   onRowClick,
+  rowActions,
   teamAverageLabel = 'Team Average',
   teamAverageInsertIndex,
   theme = DEFAULT_THEME,
@@ -358,10 +377,13 @@ export const RankingTable: React.FC<RankingTableProps> = ({
   tooltipComponent: Tooltip = DefaultTooltip,
 }) => {
   // Compute grid columns once
+  // When actions exist, add 2 more columns for the buttons (evenly distributed with data)
   const gridColumns = useMemo(() => {
     const dataColumns = supportingColumns.length + (primaryColumn.hidden ? 0 : 1);
-    return `44px minmax(140px, 240px) ${Array(dataColumns).fill('1fr').join(' ')}`;
-  }, [supportingColumns.length, primaryColumn.hidden]);
+    const actionColumns = rowActions ? 2 : 0;
+    const totalFlexColumns = dataColumns + actionColumns;
+    return `44px minmax(140px, 240px) ${Array(totalFlexColumns).fill('1fr').join(' ')}`;
+  }, [supportingColumns.length, primaryColumn.hidden, rowActions]);
 
   // Pre-compute team averages
   const teamAverages = useMemo(() => {
@@ -409,6 +431,8 @@ export const RankingTable: React.FC<RankingTableProps> = ({
             {col.tooltip && <Tooltip text={col.tooltip} />}
           </div>
         ))}
+        {/* Empty placeholders for action columns in header */}
+        {rowActions && <><div /><div /></>}
       </div>
 
       {/* Rows */}
@@ -436,6 +460,7 @@ export const RankingTable: React.FC<RankingTableProps> = ({
               primaryColumn={primaryColumn}
               supportingColumns={supportingColumns}
               onClick={onRowClick ? () => onRowClick(row.id) : undefined}
+              actions={rowActions ? rowActions(row) : undefined}
             />
           </React.Fragment>
         ))}

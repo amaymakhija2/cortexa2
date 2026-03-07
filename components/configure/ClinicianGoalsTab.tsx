@@ -4,23 +4,26 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   X,
-  Clock,
-  CalendarRange,
-  Calendar,
-  History,
+  Check,
+  Plus,
+  Trash2,
+  ChevronRight,
   Crosshair,
   Users,
+  BarChart3,
 } from 'lucide-react';
 import { Clinician } from './shared';
 import {
   useSettings,
-  ClinicianGoalHistory,
   GoalType,
+  SingleGoalPeriod,
+  ClinicianGoalHistory,
   generateGoalPeriodId,
   getGoalTypePeriods,
   getCurrentGoalTypePeriod,
 } from '../../context/SettingsContext';
 import { GoalHistoryModal } from './GoalHistory';
+import { RankingTable, RankingRow, RankingColumn } from '../design-system/RankingTable';
 
 // =============================================================================
 // DESIGN TOKENS — Ink & Ledger
@@ -64,469 +67,1063 @@ const toISO = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
 const fmtMonth = (s: string) =>
+  new Date(s + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+
+const fmtMonthLong = (s: string) =>
   new Date(s + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
 const firstOf = (d: Date) => new Date(d.getFullYear(), d.getMonth(), 1);
 
+const nextMonth = (d: Date) => new Date(d.getFullYear(), d.getMonth() + 1, 1);
+
 const prevMonth = (d: Date) => new Date(d.getFullYear(), d.getMonth() - 1, 1);
 
+const lastDayOf = (d: Date) => new Date(d.getFullYear(), d.getMonth() + 1, 0);
+
 // =============================================================================
-// SET GOAL PANEL — Full right slide-over, 2-step flow
+// GOAL MANAGER MODAL — Elegant period-based goal management
 // =============================================================================
 
-const SetGoalPanel: React.FC<{
+interface GoalManagerModalProps {
   clinician: Clinician;
-  getCurrentGoal: (id: string, type: GoalType) => number;
-  onSave: (clinicianId: string, metric: MetricKey, value: number, date: string) => void;
+  goalHistory: ClinicianGoalHistory;
+  onUpdateHistory: (history: ClinicianGoalHistory) => void;
+  onSyncClinician: (clinicianId: string, sessionGoal: number, clientGoal: number) => void;
   onClose: () => void;
-}> = ({ clinician, getCurrentGoal, onSave, onClose }) => {
-  const [selectedMetric, setSelectedMetric] = useState<MetricKey | null>(null);
-  const [value, setValue] = useState('');
-  const [dateMode, setDateMode] = useState<'this' | 'last' | 'custom'>('this');
-  const [customMonth, setCustomMonth] = useState('');
-  const inputRef = useRef<HTMLInputElement>(null);
+}
 
-  const today = new Date();
-  const metric = selectedMetric ? METRICS[selectedMetric] : null;
-  const currentValue = selectedMetric
-    ? getCurrentGoal(clinician.id, METRICS[selectedMetric].goalType)
-    : 0;
+const GoalManagerModal: React.FC<GoalManagerModalProps> = ({
+  clinician,
+  goalHistory,
+  onUpdateHistory,
+  onSyncClinician,
+  onClose,
+}) => {
+  // Stage: 'select-metric' -> 'manage'
+  const [stage, setStage] = useState<'select-metric' | 'manage'>('select-metric');
+  const [activeMetric, setActiveMetric] = useState<MetricKey | null>(null);
+  const [editingPeriodId, setEditingPeriodId] = useState<string | null>(null);
+  const [addingNew, setAddingNew] = useState(false);
 
+  // New period form state
+  const [newValue, setNewValue] = useState('');
+  const [newStartDate, setNewStartDate] = useState('');
+  const [newEndDate, setNewEndDate] = useState<string>(''); // empty = Present
+
+  const metric = activeMetric ? METRICS[activeMetric] : null;
+  const goalType = metric?.goalType;
+
+  // Get periods for current metric, sorted by startDate descending (newest first)
+  const periods = useMemo(() => {
+    if (!goalType) return [];
+    const p = getGoalTypePeriods(clinician.id, goalType, goalHistory);
+    return [...p].sort((a, b) => b.startDate.localeCompare(a.startDate));
+  }, [clinician.id, goalType, goalHistory]);
+
+  const currentPeriod = periods.find(p => p.endDate === null);
+  const pastPeriods = periods.filter(p => p.endDate !== null);
+
+  // Handle metric selection
+  const handleSelectMetric = (key: MetricKey) => {
+    setActiveMetric(key);
+    setStage('manage');
+    setEditingPeriodId(null);
+    setAddingNew(false);
+  };
+
+  // Go back to metric selection
+  const handleBackToSelect = () => {
+    setStage('select-metric');
+    setActiveMetric(null);
+    setEditingPeriodId(null);
+    setAddingNew(false);
+  };
+
+  // Close on escape
   useEffect(() => {
-    if (selectedMetric) {
-      setValue(String(currentValue));
-      setTimeout(() => {
-        inputRef.current?.focus();
-        inputRef.current?.select();
-      }, 200);
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (editingPeriodId || addingNew) {
+          setEditingPeriodId(null);
+          setAddingNew(false);
+        } else if (stage === 'manage') {
+          handleBackToSelect();
+        } else {
+          onClose();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [onClose, editingPeriodId, addingNew, stage]);
+
+  // Initialize new period form
+  const handleStartAddNew = () => {
+    setAddingNew(true);
+    setNewValue('');
+    setNewStartDate(toISO(firstOf(new Date()))); // Default to this month
+    setNewEndDate(''); // Empty = Present
+  };
+
+  // Save new period
+  const handleSaveNew = () => {
+    if (!goalType || !activeMetric) return;
+    const value = parseInt(newValue, 10);
+    if (isNaN(value) || value <= 0 || !newStartDate) return;
+
+    const h = { ...goalHistory };
+    if (!h[clinician.id]) h[clinician.id] = {};
+    const existing = [...(h[clinician.id][goalType] || [])];
+
+    const isNewCurrent = !newEndDate; // Empty endDate = this becomes the current period
+
+    if (isNewCurrent) {
+      // Close current period if it exists (this new one becomes current)
+      const currentIdx = existing.findIndex(p => p.endDate === null);
+      if (currentIdx >= 0) {
+        const endDate = new Date(newStartDate + 'T00:00:00');
+        endDate.setDate(endDate.getDate() - 1);
+        existing[currentIdx] = { ...existing[currentIdx], endDate: toISO(endDate) };
+      }
     }
-  }, [selectedMetric, currentValue]);
 
-  const effectiveDate =
-    dateMode === 'this' ? toISO(firstOf(today))
-    : dateMode === 'last' ? toISO(prevMonth(today))
-    : customMonth ? `${customMonth}-01`
-    : toISO(firstOf(today));
+    // Add new period
+    existing.push({
+      id: generateGoalPeriodId(),
+      startDate: newStartDate,
+      endDate: newEndDate || null, // null = Present
+      value,
+    });
 
-  const parsed = parseInt(value, 10);
-  const isValid = !isNaN(parsed) && parsed > 0 && parsed !== currentValue;
-  const delta = parsed - currentValue;
+    h[clinician.id] = { ...h[clinician.id], [goalType]: existing };
+    onUpdateHistory(h);
 
-  const dateOptions: { key: typeof dateMode; label: string; sub: string; icon: React.ReactNode }[] = [
-    { key: 'this', label: 'This month', sub: fmtMonth(toISO(firstOf(today))), icon: <CalendarRange size={15} /> },
-    { key: 'last', label: 'Last month', sub: fmtMonth(toISO(prevMonth(today))), icon: <Clock size={15} /> },
-    { key: 'custom', label: 'Pick a month', sub: customMonth ? fmtMonth(`${customMonth}-01`) : 'Backdate further', icon: <Calendar size={15} /> },
-  ];
+    // Sync to clinician model only if this is the new current period
+    if (isNewCurrent) {
+      const otherMetric = activeMetric === 'sessions' ? 'clients' : 'sessions';
+      const otherGoalType = METRICS[otherMetric].goalType;
+      const otherCurrent = getGoalTypePeriods(clinician.id, otherGoalType, h).find(p => p.endDate === null);
+      const otherValue = otherCurrent?.value ?? (otherMetric === 'sessions' ? clinician.sessionGoal : clinician.clientGoal);
+
+      if (activeMetric === 'sessions') {
+        onSyncClinician(clinician.id, value, otherValue);
+      } else {
+        onSyncClinician(clinician.id, otherValue, value);
+      }
+    }
+
+    setAddingNew(false);
+    setNewValue('');
+    setNewStartDate('');
+    setNewEndDate('');
+  };
+
+  // Update existing period
+  const handleUpdatePeriod = (periodId: string, updates: Partial<SingleGoalPeriod>) => {
+    if (!goalType || !activeMetric) return;
+    const h = { ...goalHistory };
+    if (!h[clinician.id]?.[goalType]) return;
+
+    const existing = [...h[clinician.id][goalType]!];
+    const idx = existing.findIndex(p => p.id === periodId);
+    if (idx < 0) return;
+
+    existing[idx] = { ...existing[idx], ...updates };
+    h[clinician.id] = { ...h[clinician.id], [goalType]: existing };
+    onUpdateHistory(h);
+
+    // If updating current period, sync to clinician model
+    if (existing[idx].endDate === null && updates.value !== undefined) {
+      const otherMetric = activeMetric === 'sessions' ? 'clients' : 'sessions';
+      const otherGoalType = METRICS[otherMetric].goalType;
+      const otherCurrent = getGoalTypePeriods(clinician.id, otherGoalType, h).find(p => p.endDate === null);
+      const otherValue = otherCurrent?.value ?? (otherMetric === 'sessions' ? clinician.sessionGoal : clinician.clientGoal);
+
+      if (activeMetric === 'sessions') {
+        onSyncClinician(clinician.id, updates.value, otherValue);
+      } else {
+        onSyncClinician(clinician.id, otherValue, updates.value);
+      }
+    }
+
+    setEditingPeriodId(null);
+  };
+
+  // Delete period (only allowed if not the only one)
+  const handleDeletePeriod = (periodId: string) => {
+    if (!goalType || !activeMetric) return;
+    if (periods.length <= 1) return;
+
+    const h = { ...goalHistory };
+    if (!h[clinician.id]?.[goalType]) return;
+
+    const existing = h[clinician.id][goalType]!.filter(p => p.id !== periodId);
+
+    // If we deleted the current period, make the most recent past period current
+    const hasCurrentPeriod = existing.some(p => p.endDate === null);
+    if (!hasCurrentPeriod && existing.length > 0) {
+      const sorted = [...existing].sort((a, b) => b.startDate.localeCompare(a.startDate));
+      sorted[0] = { ...sorted[0], endDate: null };
+      h[clinician.id] = { ...h[clinician.id], [goalType]: sorted };
+    } else {
+      h[clinician.id] = { ...h[clinician.id], [goalType]: existing };
+    }
+
+    onUpdateHistory(h);
+
+    // Sync to clinician model
+    const newCurrent = (h[clinician.id][goalType] || []).find(p => p.endDate === null);
+    if (newCurrent) {
+      const otherMetric = activeMetric === 'sessions' ? 'clients' : 'sessions';
+      const otherGoalType = METRICS[otherMetric].goalType;
+      const otherCurrent = getGoalTypePeriods(clinician.id, otherGoalType, h).find(p => p.endDate === null);
+      const otherValue = otherCurrent?.value ?? (otherMetric === 'sessions' ? clinician.sessionGoal : clinician.clientGoal);
+
+      if (activeMetric === 'sessions') {
+        onSyncClinician(clinician.id, newCurrent.value, otherValue);
+      } else {
+        onSyncClinician(clinician.id, otherValue, newCurrent.value);
+      }
+    }
+  };
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex justify-end"
+      className="fixed inset-0 z-[10020] flex items-center justify-center p-4 sm:p-6 lg:pl-[100px]"
       onClick={onClose}
     >
       {/* Backdrop */}
-      <div
+      <motion.div
         className="absolute inset-0"
-        style={{ backgroundColor: 'rgba(15, 15, 15, 0.25)', backdropFilter: 'blur(3px)' }}
+        style={{ backgroundColor: 'rgba(17, 14, 12, 0.5)', backdropFilter: 'blur(8px)' }}
       />
 
-      {/* Panel */}
+      {/* Modal */}
       <motion.div
-        initial={{ x: '100%' }}
-        animate={{ x: 0 }}
-        exit={{ x: '100%' }}
-        transition={{ type: 'spring', damping: 32, stiffness: 300 }}
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Manage goals for ${clinician.name}`}
+        initial={{ opacity: 0, y: 20, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 16, scale: 0.97 }}
+        transition={{ type: 'spring', damping: 28, stiffness: 300 }}
         onClick={e => e.stopPropagation()}
-        className="relative w-full max-w-md h-full overflow-y-auto"
+        className="relative w-full max-w-[680px] rounded-[28px] overflow-hidden"
         style={{
-          backgroundColor: '#FFFFFF',
-          boxShadow: '-24px 0 80px rgba(0,0,0,0.12)',
+          background: PAPER,
+          boxShadow: '0 40px 100px -20px rgba(15,14,12,0.4)',
         }}
       >
-        {/* Close */}
-        <button
-          onClick={onClose}
-          className="absolute top-7 right-7 p-2 rounded-lg transition-colors"
-          style={{ color: FADED }}
-          onMouseEnter={e => (e.currentTarget.style.color = INK)}
-          onMouseLeave={e => (e.currentTarget.style.color = FADED)}
+        {/* Header */}
+        <div
+          className="px-8 pt-7 pb-6"
+          style={{
+            background: 'linear-gradient(180deg, #FFFFFF 0%, #FAF9F6 100%)',
+            borderBottom: `1px solid ${RULE}`,
+          }}
         >
-          <X size={18} />
-        </button>
-
-        <div className="px-10 pt-14 pb-10">
-          {/* Panel title */}
-          <div className="mb-10">
-            <p style={{ fontFamily: SANS, fontSize: 11, color: FADED, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600 }}>
-              {clinician.name}
-            </p>
-            <h2 style={{ fontFamily: SERIF, fontSize: 30, color: INK, lineHeight: 1.15, marginTop: 6 }}>
-              Set New Goal
-            </h2>
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-center gap-4">
+              {stage === 'manage' && (
+                <button
+                  onClick={handleBackToSelect}
+                  className="w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:bg-stone-100 mr-1"
+                  style={{ border: `1px solid ${RULE}`, color: BODY }}
+                >
+                  <ChevronRight size={18} className="rotate-180" />
+                </button>
+              )}
+              <div
+                className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0"
+                style={{
+                  background: `linear-gradient(145deg, ${clinician.color} 0%, ${clinician.color}dd 100%)`,
+                  boxShadow: `0 10px 24px ${clinician.color}40`,
+                }}
+              >
+                <span style={{ fontFamily: SANS, fontSize: 16, fontWeight: 700, color: '#FFF' }}>
+                  {clinician.initials}
+                </span>
+              </div>
+              <div>
+                <h2 style={{ fontFamily: SERIF, fontSize: 30, lineHeight: 1.1, color: INK }}>
+                  {clinician.name}
+                </h2>
+                <p style={{ fontFamily: SANS, fontSize: 14, color: FADED, marginTop: 3 }}>
+                  {stage === 'select-metric' ? 'Choose a metric to manage' : `${metric?.fullLabel}`}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:bg-stone-100"
+              style={{ border: `1px solid ${RULE}`, color: BODY }}
+            >
+              <X size={18} />
+            </button>
           </div>
+        </div>
 
-          {/* STEP 1: Choose metric */}
-          <div className="mb-10">
-            <p style={{ fontFamily: SANS, fontSize: 11, color: FADED, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, marginBottom: 12 }}>
-              Which goal?
-            </p>
-            <div className="space-y-2">
-              {(['sessions', 'clients'] as MetricKey[]).map(key => {
+        {/* Stage 1: Metric Selection */}
+        {stage === 'select-metric' && (
+          <div className="px-8 py-8">
+            <div className="grid grid-cols-2 gap-5">
+              {(['sessions', 'clients'] as MetricKey[]).map((key) => {
                 const m = METRICS[key];
-                const active = selectedMetric === key;
-                const cur = getCurrentGoal(clinician.id, m.goalType);
+                const currentVal = getGoalTypePeriods(clinician.id, m.goalType, goalHistory)
+                  .find(p => p.endDate === null)?.value ?? 0;
                 return (
-                  <button
+                  <motion.button
                     key={key}
-                    onClick={() => setSelectedMetric(key)}
-                    className="w-full flex items-center justify-between px-5 py-4 rounded-xl transition-all text-left"
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => handleSelectMetric(key)}
+                    className="text-left rounded-2xl p-6 transition-all"
                     style={{
-                      backgroundColor: active ? INK : '#FAFAF9',
-                      border: active ? 'none' : `1px solid ${RULE}`,
+                      background: `linear-gradient(160deg, ${m.bg} 0%, #FFFFFF 100%)`,
+                      border: `2px solid ${m.accent}40`,
+                      boxShadow: `0 12px 32px ${m.accent}15`,
                     }}
                   >
-                    <div className="flex items-center gap-3">
-                      <div
-                        className="w-2.5 h-2.5 rounded-full"
-                        style={{ backgroundColor: active ? m.accent : RULE }}
-                      />
-                      <div>
-                        <span style={{
-                          fontFamily: SANS,
-                          fontSize: 14,
-                          fontWeight: 600,
-                          color: active ? '#FFFFFF' : INK,
-                          display: 'block',
-                        }}>
-                          {m.fullLabel}
-                        </span>
-                        <span style={{
-                          fontFamily: SANS,
-                          fontSize: 11,
-                          color: active ? FADED : BODY,
-                        }}>
-                          Currently {cur}{m.unit}
-                        </span>
-                      </div>
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center mb-4"
+                      style={{ backgroundColor: `${m.accent}20` }}
+                    >
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: m.accent }} />
                     </div>
-                    {active && (
-                      <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        className="w-5 h-5 rounded-full flex items-center justify-center"
-                        style={{ backgroundColor: m.accent }}
-                      >
-                        <div className="w-2 h-2 rounded-full bg-white" />
-                      </motion.div>
-                    )}
-                  </button>
+                    <p style={{
+                      fontFamily: SANS,
+                      fontSize: 12,
+                      fontWeight: 700,
+                      letterSpacing: '0.08em',
+                      textTransform: 'uppercase',
+                      color: m.accent,
+                      marginBottom: 8,
+                    }}>
+                      {m.fullLabel}
+                    </p>
+                    <div className="flex items-baseline gap-2">
+                      <span style={{ fontFamily: SERIF, fontSize: 42, color: INK, lineHeight: 1 }}>
+                        {currentVal}
+                      </span>
+                      {m.unit && (
+                        <span style={{ fontFamily: SANS, fontSize: 16, color: BODY, fontWeight: 500 }}>
+                          {m.unit}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 mt-4">
+                      <span style={{ fontFamily: SANS, fontSize: 13, color: BODY }}>
+                        Manage goal
+                      </span>
+                      <ChevronRight size={16} style={{ color: m.accent }} />
+                    </div>
+                  </motion.button>
                 );
               })}
             </div>
           </div>
+        )}
 
-          {/* STEP 2: Set value + date (only if metric selected) */}
-          <AnimatePresence>
-            {selectedMetric && metric && (
-              <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 16 }}
-                transition={{ duration: 0.3 }}
-              >
-                {/* Value input */}
-                <div className="mb-10">
-                  <p style={{ fontFamily: SANS, fontSize: 11, color: FADED, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, marginBottom: 12 }}>
-                    New Target
-                  </p>
+        {/* Stage 2: Period Management */}
+        {stage === 'manage' && metric && (
+          <div className="px-8 py-6" style={{ maxHeight: '65vh', overflowY: 'auto' }}>
+            {/* Current Period - Hero Card */}
+            {currentPeriod && !addingNew && (
+              <CurrentPeriodCard
+                period={currentPeriod}
+                metric={metric}
+                isEditing={editingPeriodId === currentPeriod.id}
+                onStartEdit={() => setEditingPeriodId(currentPeriod.id)}
+                onCancelEdit={() => setEditingPeriodId(null)}
+                onSave={(value, startDate) => handleUpdatePeriod(currentPeriod.id, { value, startDate })}
+                canDelete={periods.length > 1}
+                onDelete={() => handleDeletePeriod(currentPeriod.id)}
+              />
+            )}
+
+            {/* Add New Period Form */}
+            <AnimatePresence>
+              {addingNew && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.98 }}
+                  transition={{ duration: 0.2 }}
+                  className="mb-6"
+                >
                   <div
-                    className="flex items-baseline gap-3 pb-3"
-                    style={{ borderBottom: `2.5px solid ${metric.accent}` }}
+                    className="rounded-2xl overflow-hidden"
+                    style={{
+                      background: '#FFFFFF',
+                      border: `1px solid ${RULE}`,
+                      boxShadow: '0 4px 24px rgba(0,0,0,0.08)',
+                    }}
                   >
-                    <input
-                      ref={inputRef}
-                      type="text"
-                      inputMode="numeric"
-                      value={value}
-                      onChange={e => setValue(e.target.value.replace(/[^0-9]/g, ''))}
-                      className="bg-transparent focus:outline-none"
-                      style={{
-                        fontFamily: SERIF,
-                        fontSize: 52,
-                        color: INK,
-                        width: '4ch',
-                        lineHeight: 1,
-                      }}
-                    />
-                    {metric.unit && (
-                      <span style={{ fontFamily: SANS, fontSize: 16, color: FADED }}>
-                        {metric.unit}
-                      </span>
-                    )}
-                  </div>
-                  {isValid && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -4 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="flex items-center gap-1.5 mt-3"
-                    >
-                      {delta > 0
-                        ? <ArrowUpRight size={14} style={{ color: CLIENTS.accent }} />
-                        : <ArrowDownRight size={14} style={{ color: SESSIONS.accent }} />
-                      }
-                      <span style={{
-                        fontFamily: SANS,
-                        fontSize: 13,
-                        fontWeight: 600,
-                        color: delta > 0 ? CLIENTS.accent : SESSIONS.accent,
-                      }}>
-                        {delta > 0 ? '+' : ''}{delta} from {currentValue}
-                      </span>
-                    </motion.div>
-                  )}
-                </div>
+                    {/* Accent bar */}
+                    <div className="h-1" style={{ background: metric.accent }} />
 
-                {/* Effective date */}
-                <div className="mb-12">
-                  <p style={{ fontFamily: SANS, fontSize: 11, color: FADED, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, marginBottom: 12 }}>
-                    Effective From
-                  </p>
-                  <div className="space-y-2">
-                    {dateOptions.map(opt => {
-                      const active = dateMode === opt.key;
-                      return (
-                        <button
-                          key={opt.key}
-                          onClick={() => setDateMode(opt.key)}
-                          className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all text-left"
-                          style={{
-                            backgroundColor: active ? INK : 'transparent',
-                            border: active ? 'none' : `1px solid ${RULE}`,
-                          }}
-                        >
-                          <span style={{ color: active ? '#FAFAF7' : FADED }}>{opt.icon}</span>
-                          <div className="flex-1">
+                    <div className="p-6">
+                      {/* Target Value - Hero Input */}
+                      <div className="text-center mb-8">
+                        <p style={{
+                          fontFamily: SANS,
+                          fontSize: 11,
+                          fontWeight: 600,
+                          color: FADED,
+                          letterSpacing: '0.1em',
+                          textTransform: 'uppercase',
+                          marginBottom: 12,
+                        }}>
+                          {metric.fullLabel}
+                        </p>
+                        <div className="flex items-baseline justify-center gap-3">
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            value={newValue}
+                            onChange={e => setNewValue(e.target.value.replace(/[^0-9]/g, ''))}
+                            placeholder="0"
+                            autoFocus
+                            className="bg-transparent text-center focus:outline-none"
+                            style={{
+                              fontFamily: SERIF,
+                              fontSize: 72,
+                              color: INK,
+                              width: `${Math.max(2, newValue.length || 1) + 0.5}ch`,
+                              lineHeight: 1,
+                              caretColor: metric.accent,
+                            }}
+                          />
+                          {metric.unit && (
                             <span style={{
-                              fontFamily: SANS, fontSize: 14, fontWeight: 600,
-                              color: active ? '#FAFAF7' : INK, display: 'block',
+                              fontFamily: SANS,
+                              fontSize: 20,
+                              color: FADED,
+                              fontWeight: 500,
+                              marginBottom: 8,
                             }}>
-                              {opt.label}
+                              {metric.unit}
                             </span>
-                            <span style={{
-                              fontFamily: SANS, fontSize: 11,
-                              color: active ? FADED : BODY,
-                            }}>
-                              {opt.sub}
-                            </span>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <AnimatePresence>
-                    {dateMode === 'custom' && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        className="overflow-hidden"
-                      >
-                        <input
-                          type="month"
-                          value={customMonth}
-                          max={`${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`}
-                          onChange={e => setCustomMonth(e.target.value)}
-                          className="mt-3 w-full px-4 py-3 rounded-xl focus:outline-none"
+                          )}
+                        </div>
+                        <div
+                          className="mx-auto mt-2"
                           style={{
-                            fontFamily: SANS, fontSize: 14, color: INK,
-                            border: `1px solid ${RULE}`, backgroundColor: '#FAFAF9',
+                            width: 80,
+                            height: 2,
+                            background: `linear-gradient(90deg, transparent, ${metric.accent}, transparent)`,
+                            borderRadius: 1,
                           }}
                         />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
+                      </div>
 
-                {/* Summary + save */}
-                {isValid && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="p-5 rounded-xl mb-8"
-                    style={{ backgroundColor: `${metric.accent}08`, border: `1px solid ${metric.accent}15` }}
-                  >
-                    <p style={{ fontFamily: SANS, fontSize: 11, color: FADED, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
-                      Summary
-                    </p>
-                    <p style={{ fontFamily: SANS, fontSize: 14, color: INK, lineHeight: 1.6 }}>
-                      <strong>{clinician.name}</strong>'s {metric.label.toLowerCase()} goal changes from{' '}
-                      <strong>{currentValue}</strong> to <strong>{parsed}</strong>{metric.unit},{' '}
-                      effective <strong>{fmtMonth(effectiveDate)}</strong>.
-                    </p>
-                  </motion.div>
-                )}
+                      {/* Date Range */}
+                      <div
+                        className="rounded-xl p-4 mb-6"
+                        style={{ backgroundColor: '#FAFAF9', border: `1px solid ${RULE}` }}
+                      >
+                        <p style={{
+                          fontFamily: SANS,
+                          fontSize: 10,
+                          fontWeight: 700,
+                          color: FADED,
+                          letterSpacing: '0.1em',
+                          textTransform: 'uppercase',
+                          marginBottom: 12,
+                        }}>
+                          Effective Period
+                        </p>
+                        <div className="flex items-center gap-3">
+                          <div className="flex-1">
+                            <input
+                              type="month"
+                              value={newStartDate.slice(0, 7)}
+                              onChange={e => setNewStartDate(e.target.value ? `${e.target.value}-01` : '')}
+                              className="w-full bg-white rounded-lg px-3 py-2.5 focus:outline-none"
+                              style={{
+                                fontFamily: SANS,
+                                fontSize: 14,
+                                color: INK,
+                                border: `1px solid ${RULE}`,
+                              }}
+                            />
+                          </div>
+                          <span style={{ fontFamily: SANS, fontSize: 13, color: FADED }}>to</span>
+                          <div className="flex-1">
+                            {newEndDate ? (
+                              <input
+                                type="month"
+                                value={newEndDate.slice(0, 7)}
+                                onChange={e => setNewEndDate(e.target.value ? `${e.target.value}-01` : '')}
+                                className="w-full bg-white rounded-lg px-3 py-2.5 focus:outline-none"
+                                style={{
+                                  fontFamily: SANS,
+                                  fontSize: 14,
+                                  color: INK,
+                                  border: `1px solid ${RULE}`,
+                                }}
+                              />
+                            ) : (
+                              <button
+                                onClick={() => setNewEndDate(toISO(new Date()))}
+                                className="w-full rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-white"
+                                style={{
+                                  fontFamily: SANS,
+                                  fontSize: 14,
+                                  fontWeight: 600,
+                                  color: metric.accent,
+                                  border: `1px dashed ${metric.accent}60`,
+                                  backgroundColor: `${metric.accent}08`,
+                                }}
+                              >
+                                Present
+                              </button>
+                            )}
+                          </div>
+                          {newEndDate && (
+                            <button
+                              onClick={() => setNewEndDate('')}
+                              className="px-2 py-1 rounded text-xs font-medium transition-colors hover:bg-stone-100"
+                              style={{ color: FADED }}
+                            >
+                              Clear
+                            </button>
+                          )}
+                        </div>
+                      </div>
 
-                <div className="flex gap-3">
-                  <button
-                    onClick={onClose}
-                    className="flex-1 py-4 rounded-xl transition-colors"
-                    style={{
-                      fontFamily: SANS, fontSize: 14, fontWeight: 600, color: BODY,
-                      border: `1px solid ${RULE}`,
-                    }}
-                  >
-                    Cancel
-                  </button>
-                  <motion.button
-                    whileHover={isValid ? { scale: 1.01 } : {}}
-                    whileTap={isValid ? { scale: 0.98 } : {}}
-                    onClick={() => isValid && selectedMetric && onSave(clinician.id, selectedMetric, parsed, effectiveDate)}
-                    disabled={!isValid}
-                    className="flex-[2] py-4 rounded-xl transition-all"
-                    style={{
-                      fontFamily: SANS, fontSize: 14, fontWeight: 700,
-                      color: isValid ? '#FFFFFF' : '#C8C4BC',
-                      backgroundColor: isValid ? INK : '#F0EEEB',
-                      letterSpacing: '0.02em',
-                    }}
-                  >
-                    Save Goal
-                  </motion.button>
-                </div>
-              </motion.div>
+                      {/* Actions */}
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => setAddingNew(false)}
+                          className="flex-1 px-4 py-3 rounded-xl transition-colors hover:bg-stone-50"
+                          style={{
+                            fontFamily: SANS,
+                            fontSize: 13,
+                            fontWeight: 600,
+                            color: BODY,
+                            border: `1px solid ${RULE}`,
+                            backgroundColor: '#FFF',
+                          }}
+                        >
+                          Cancel
+                        </button>
+                        <motion.button
+                          whileHover={newValue && parseInt(newValue, 10) > 0 && newStartDate ? { scale: 1.02 } : {}}
+                          whileTap={newValue && parseInt(newValue, 10) > 0 && newStartDate ? { scale: 0.98 } : {}}
+                          onClick={handleSaveNew}
+                          disabled={!newValue || parseInt(newValue, 10) <= 0 || !newStartDate}
+                          className="flex-1 px-4 py-3 rounded-xl transition-all flex items-center justify-center gap-2"
+                          style={{
+                            fontFamily: SANS,
+                            fontSize: 13,
+                            fontWeight: 700,
+                            color: newValue && parseInt(newValue, 10) > 0 && newStartDate ? '#FFF' : '#B8B4AE',
+                            background: newValue && parseInt(newValue, 10) > 0 && newStartDate
+                              ? metric.accent
+                              : '#EDEBE8',
+                            boxShadow: newValue && parseInt(newValue, 10) > 0 && newStartDate
+                              ? `0 4px 12px ${metric.accent}50`
+                              : 'none',
+                          }}
+                        >
+                          <Check size={16} strokeWidth={2.5} />
+                          Save Goal
+                        </motion.button>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+          {/* Add New Button */}
+          {!addingNew && (
+            <motion.button
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
+              onClick={handleStartAddNew}
+              className="w-full rounded-xl px-4 py-3.5 flex items-center justify-center gap-2 transition-all mb-4"
+              style={{
+                fontFamily: SANS,
+                fontSize: 13,
+                fontWeight: 600,
+                color: metric.accent,
+                background: `${metric.bg}`,
+                border: `1.5px dashed ${metric.accent}60`,
+              }}
+            >
+              <Plus size={16} />
+              Set New Goal
+            </motion.button>
+          )}
+
+          {/* Past Periods Timeline */}
+          {pastPeriods.length > 0 && (
+            <div className="mt-2">
+              <p style={{
+                fontFamily: SANS,
+                fontSize: 11,
+                fontWeight: 700,
+                color: FADED,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                marginBottom: 12,
+              }}>
+                History
+              </p>
+              <div className="space-y-2">
+                {pastPeriods.map((period, idx) => (
+                  <PastPeriodRow
+                    key={period.id}
+                    period={period}
+                    metric={metric}
+                    isEditing={editingPeriodId === period.id}
+                    onStartEdit={() => setEditingPeriodId(period.id)}
+                    onCancelEdit={() => setEditingPeriodId(null)}
+                    onSave={(value, startDate, endDate) =>
+                      handleUpdatePeriod(period.id, { value, startDate, endDate })
+                    }
+                    canDelete={periods.length > 1}
+                    onDelete={() => handleDeletePeriod(period.id)}
+                    isLast={idx === pastPeriods.length - 1}
+                  />
+                ))}
+              </div>
+            </div>
             )}
-          </AnimatePresence>
-        </div>
+          </div>
+        )}
       </motion.div>
     </motion.div>
   );
 };
 
 // =============================================================================
-// CLINICIAN ROW — single ledger row with clear visual hierarchy
+// CURRENT PERIOD CARD — Hero display for active goal
 // =============================================================================
 
-const ClinicianRow: React.FC<{
-  clinician: Clinician;
-  sessionGoal: number;
-  clientGoal: number;
-  onSetGoal: () => void;
-  onViewHistory: () => void;
-  index: number;
-}> = ({ clinician, sessionGoal, clientGoal, onSetGoal, onViewHistory, index }) => {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-      className="group"
-      style={{ borderBottom: `1px solid ${RULE}` }}
-    >
-      <div className="flex items-center py-6 gap-6">
-        {/* Color bar */}
-        <div
-          className="w-1 self-stretch rounded-full flex-shrink-0"
-          style={{ backgroundColor: clinician.color, minHeight: 48 }}
-        />
+const CurrentPeriodCard: React.FC<{
+  period: SingleGoalPeriod;
+  metric: typeof SESSIONS;
+  isEditing: boolean;
+  onStartEdit: () => void;
+  onCancelEdit: () => void;
+  onSave: (value: number, startDate: string) => void;
+  canDelete: boolean;
+  onDelete: () => void;
+}> = ({ period, metric, isEditing, onStartEdit, onCancelEdit, onSave, canDelete, onDelete }) => {
+  const [editValue, setEditValue] = useState(String(period.value));
+  const [editStartDate, setEditStartDate] = useState(period.startDate);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-        {/* Name block */}
-        <div className="flex-1 min-w-0">
-          <h3 style={{
-            fontFamily: SERIF,
-            fontSize: 22,
-            color: INK,
-            lineHeight: 1.2,
-            letterSpacing: '-0.01em',
-          }}>
-            {clinician.name}
-          </h3>
-          <p style={{
-            fontFamily: SANS,
-            fontSize: 11,
-            color: FADED,
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-            fontWeight: 500,
-            marginTop: 2,
-          }}>
-            {clinician.role}
-          </p>
-        </div>
+  useEffect(() => {
+    if (isEditing) {
+      setEditValue(String(period.value));
+      setEditStartDate(period.startDate);
+      setTimeout(() => {
+        inputRef.current?.focus();
+        inputRef.current?.select();
+      }, 50);
+    }
+  }, [isEditing, period.value, period.startDate]);
 
-        {/* Goal numbers */}
-        <div className="flex items-center gap-8">
-          {/* Sessions */}
-          <div className="text-right min-w-[80px]">
+  const handleSave = () => {
+    const value = parseInt(editValue, 10);
+    if (isNaN(value) || value <= 0) return;
+    onSave(value, editStartDate);
+  };
+
+  if (isEditing) {
+    return (
+      <div
+        className="rounded-2xl overflow-hidden mb-6"
+        style={{
+          background: '#FFFFFF',
+          border: `1px solid ${RULE}`,
+          boxShadow: '0 4px 24px rgba(0,0,0,0.08)',
+        }}
+      >
+        <div className="h-1" style={{ background: metric.accent }} />
+        <div className="p-6">
+          {/* Target Value - Hero Input */}
+          <div className="text-center mb-8">
             <p style={{
-              fontFamily: SANS, fontSize: 10, fontWeight: 600,
-              color: SESSIONS.accent, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 1,
+              fontFamily: SANS,
+              fontSize: 11,
+              fontWeight: 600,
+              color: FADED,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              marginBottom: 12,
             }}>
-              Sessions
+              {metric.fullLabel}
             </p>
-            <div className="flex items-baseline justify-end gap-1">
-              <span style={{ fontFamily: SERIF, fontSize: 32, color: INK, lineHeight: 1 }}>
-                {sessionGoal}
-              </span>
-              <span style={{ fontFamily: SANS, fontSize: 12, color: FADED }}>/wk</span>
+            <div className="flex items-baseline justify-center gap-3">
+              <input
+                ref={inputRef}
+                type="text"
+                inputMode="numeric"
+                value={editValue}
+                onChange={e => setEditValue(e.target.value.replace(/[^0-9]/g, ''))}
+                className="bg-transparent text-center focus:outline-none"
+                style={{
+                  fontFamily: SERIF,
+                  fontSize: 72,
+                  color: INK,
+                  width: `${Math.max(2, editValue.length || 1) + 0.5}ch`,
+                  lineHeight: 1,
+                  caretColor: metric.accent,
+                }}
+              />
+              {metric.unit && (
+                <span style={{
+                  fontFamily: SANS,
+                  fontSize: 20,
+                  color: FADED,
+                  fontWeight: 500,
+                  marginBottom: 8,
+                }}>
+                  {metric.unit}
+                </span>
+              )}
             </div>
+            <div
+              className="mx-auto mt-2"
+              style={{
+                width: 80,
+                height: 2,
+                background: `linear-gradient(90deg, transparent, ${metric.accent}, transparent)`,
+                borderRadius: 1,
+              }}
+            />
           </div>
 
-          {/* Clients */}
-          <div className="text-right min-w-[80px]">
+          {/* Start Date */}
+          <div
+            className="rounded-xl p-4 mb-6"
+            style={{ backgroundColor: '#FAFAF9', border: `1px solid ${RULE}` }}
+          >
             <p style={{
-              fontFamily: SANS, fontSize: 10, fontWeight: 600,
-              color: CLIENTS.accent, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 1,
+              fontFamily: SANS,
+              fontSize: 10,
+              fontWeight: 700,
+              color: FADED,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              marginBottom: 12,
             }}>
-              Clients
+              Effective Since
             </p>
-            <span style={{ fontFamily: SERIF, fontSize: 32, color: INK, lineHeight: 1 }}>
-              {clientGoal}
+            <input
+              type="month"
+              value={editStartDate.slice(0, 7)}
+              onChange={e => setEditStartDate(e.target.value ? `${e.target.value}-01` : editStartDate)}
+              className="w-full bg-white rounded-lg px-3 py-2.5 focus:outline-none"
+              style={{
+                fontFamily: SANS,
+                fontSize: 14,
+                color: INK,
+                border: `1px solid ${RULE}`,
+              }}
+            />
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center gap-3">
+            {canDelete && (
+              <button
+                onClick={onDelete}
+                className="p-3 rounded-xl transition-colors hover:bg-red-50"
+                style={{ color: '#DC2626', border: `1px solid #FEE2E2` }}
+              >
+                <Trash2 size={18} />
+              </button>
+            )}
+            <div className="flex-1" />
+            <button
+              onClick={onCancelEdit}
+              className="px-5 py-3 rounded-xl transition-colors hover:bg-stone-50"
+              style={{
+                fontFamily: SANS,
+                fontSize: 13,
+                fontWeight: 600,
+                color: BODY,
+                border: `1px solid ${RULE}`,
+                backgroundColor: '#FFF',
+              }}
+            >
+              Cancel
+            </button>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleSave}
+              className="px-5 py-3 rounded-xl transition-all flex items-center gap-2"
+              style={{
+                fontFamily: SANS,
+                fontSize: 13,
+                fontWeight: 700,
+                color: '#FFF',
+                background: metric.accent,
+                boxShadow: `0 4px 12px ${metric.accent}50`,
+              }}
+            >
+              <Check size={16} strokeWidth={2.5} />
+              Save
+            </motion.button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Non-editing view
+  return (
+    <motion.button
+      whileHover={{ y: -2, boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}
+      whileTap={{ scale: 0.99 }}
+      onClick={onStartEdit}
+      className="w-full text-left rounded-2xl overflow-hidden mb-6 transition-all"
+      style={{
+        background: '#FFFFFF',
+        border: `1px solid ${RULE}`,
+        boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+      }}
+    >
+      <div className="h-1" style={{ background: metric.accent }} />
+      <div className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <p style={{
+            fontFamily: SANS,
+            fontSize: 10,
+            fontWeight: 700,
+            color: FADED,
+            letterSpacing: '0.1em',
+            textTransform: 'uppercase',
+          }}>
+            Current Goal
+          </p>
+          <div
+            className="px-2.5 py-1 rounded-full"
+            style={{ backgroundColor: `${metric.accent}15` }}
+          >
+            <span style={{
+              fontFamily: SANS,
+              fontSize: 11,
+              fontWeight: 600,
+              color: metric.accent,
+            }}>
+              Since {fmtMonth(period.startDate)}
             </span>
           </div>
         </div>
-
-        {/* Action buttons — appear on hover, always accessible */}
-        <div className="flex items-center gap-2 ml-4">
-          <motion.button
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.96 }}
-            onClick={onSetGoal}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all"
-            style={{
-              fontFamily: SANS,
-              fontSize: 12,
-              fontWeight: 700,
-              color: '#FFFFFF',
-              backgroundColor: INK,
-              letterSpacing: '0.02em',
-            }}
-          >
-            <Crosshair size={13} />
-            Set Goal
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.96 }}
-            onClick={onViewHistory}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all"
-            style={{
-              fontFamily: SANS,
-              fontSize: 12,
-              fontWeight: 600,
-              color: BODY,
-              backgroundColor: '#F5F3F0',
-              letterSpacing: '0.02em',
-            }}
-          >
-            <History size={13} />
-            History
-          </motion.button>
+        <div className="flex items-baseline gap-3">
+          <span style={{ fontFamily: SERIF, fontSize: 56, color: INK, lineHeight: 1 }}>
+            {period.value}
+          </span>
+          {metric.unit && (
+            <span style={{ fontFamily: SANS, fontSize: 18, color: FADED, fontWeight: 500 }}>
+              {metric.unit}
+            </span>
+          )}
         </div>
+        <p style={{
+          fontFamily: SANS,
+          fontSize: 12,
+          color: FADED,
+          marginTop: 12,
+        }}>
+          Click to edit
+        </p>
       </div>
-    </motion.div>
+    </motion.button>
   );
+};
+
+// =============================================================================
+// PAST PERIOD ROW — Compact history entry
+// =============================================================================
+
+const PastPeriodRow: React.FC<{
+  period: SingleGoalPeriod;
+  metric: typeof SESSIONS;
+  isEditing: boolean;
+  onStartEdit: () => void;
+  onCancelEdit: () => void;
+  onSave: (value: number, startDate: string, endDate: string | null) => void;
+  canDelete: boolean;
+  onDelete: () => void;
+  isLast: boolean;
+}> = ({ period, metric, isEditing, onStartEdit, onCancelEdit, onSave, canDelete, onDelete, isLast }) => {
+  const [editValue, setEditValue] = useState(String(period.value));
+  const [editStartDate, setEditStartDate] = useState(period.startDate);
+  const [editEndDate, setEditEndDate] = useState(period.endDate || '');
+
+  useEffect(() => {
+    if (isEditing) {
+      setEditValue(String(period.value));
+      setEditStartDate(period.startDate);
+      setEditEndDate(period.endDate || '');
+    }
+  }, [isEditing, period]);
+
+  const handleSave = () => {
+    const value = parseInt(editValue, 10);
+    if (isNaN(value) || value <= 0) return;
+    onSave(value, editStartDate, editEndDate || null);
+  };
+
+  if (isEditing) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, height: 0 }}
+        animate={{ opacity: 1, height: 'auto' }}
+        exit={{ opacity: 0, height: 0 }}
+        className="rounded-xl p-4 overflow-hidden"
+        style={{
+          backgroundColor: '#FFFFFF',
+          border: `1.5px solid ${metric.accent}`,
+        }}
+      >
+        <div className="grid grid-cols-3 gap-3 mb-3">
+          <div>
+            <label style={{ fontFamily: SANS, fontSize: 10, color: FADED, display: 'block', marginBottom: 4 }}>
+              Target
+            </label>
+            <input
+              type="text"
+              inputMode="numeric"
+              value={editValue}
+              onChange={e => setEditValue(e.target.value.replace(/[^0-9]/g, ''))}
+              autoFocus
+              className="w-full bg-stone-50 rounded-lg px-3 py-2 focus:outline-none focus:ring-2"
+              style={{ fontFamily: SERIF, fontSize: 18, color: INK, border: `1px solid ${RULE}` }}
+            />
+          </div>
+          <div>
+            <label style={{ fontFamily: SANS, fontSize: 10, color: FADED, display: 'block', marginBottom: 4 }}>
+              From
+            </label>
+            <input
+              type="month"
+              value={editStartDate.slice(0, 7)}
+              onChange={e => setEditStartDate(e.target.value ? `${e.target.value}-01` : editStartDate)}
+              className="w-full bg-stone-50 rounded-lg px-3 py-2 focus:outline-none focus:ring-2"
+              style={{ fontFamily: SANS, fontSize: 12, color: INK, border: `1px solid ${RULE}` }}
+            />
+          </div>
+          <div>
+            <label style={{ fontFamily: SANS, fontSize: 10, color: FADED, display: 'block', marginBottom: 4 }}>
+              To
+            </label>
+            <input
+              type="month"
+              value={editEndDate.slice(0, 7)}
+              onChange={e => setEditEndDate(e.target.value ? `${e.target.value}-01` : '')}
+              className="w-full bg-stone-50 rounded-lg px-3 py-2 focus:outline-none focus:ring-2"
+              style={{ fontFamily: SANS, fontSize: 12, color: INK, border: `1px solid ${RULE}` }}
+            />
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          {canDelete && (
+            <button
+              onClick={onDelete}
+              className="p-2 rounded-lg transition-colors hover:bg-red-50"
+              style={{ color: '#DC2626' }}
+            >
+              <Trash2 size={14} />
+            </button>
+          )}
+          <div className="flex-1" />
+          <button
+            onClick={onCancelEdit}
+            className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+            style={{ color: BODY, backgroundColor: '#F5F5F4' }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1"
+            style={{ color: '#FFF', backgroundColor: metric.accent }}
+          >
+            <Check size={12} />
+            Save
+          </button>
+        </div>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.button
+      whileHover={{ backgroundColor: '#FAFAF9' }}
+      onClick={onStartEdit}
+      className="w-full text-left rounded-xl px-4 py-3 flex items-center gap-4 transition-all"
+      style={{
+        backgroundColor: '#FFFFFF',
+        border: `1px solid ${RULE}`,
+      }}
+    >
+      {/* Timeline dot */}
+      <div className="flex flex-col items-center self-stretch py-1">
+        <div
+          className="w-2 h-2 rounded-full flex-shrink-0"
+          style={{ backgroundColor: FADED }}
+        />
+        {!isLast && (
+          <div className="flex-1 w-px mt-1" style={{ backgroundColor: RULE }} />
+        )}
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-baseline gap-2">
+          <span style={{ fontFamily: SERIF, fontSize: 22, color: INK }}>
+            {period.value}
+          </span>
+          {metric.unit && (
+            <span style={{ fontFamily: SANS, fontSize: 12, color: FADED }}>{metric.unit}</span>
+          )}
+        </div>
+        <p style={{ fontFamily: SANS, fontSize: 12, color: FADED, marginTop: 2 }}>
+          {fmtMonth(period.startDate)} — {period.endDate ? fmtMonth(period.endDate) : 'Present'}
+        </p>
+      </div>
+
+      <ChevronRight size={16} style={{ color: FADED }} />
+    </motion.button>
+  );
+};
+
+// =============================================================================
+// RANKING TABLE COLUMNS
+// =============================================================================
+
+const sessionsColumn: RankingColumn = {
+  key: 'sessions',
+  label: 'Sessions/wk',
+  format: (v: number) => `${v}/wk`,
+  isPrimary: true,
+};
+
+const clientsColumn: RankingColumn = {
+  key: 'clients',
+  label: 'Active Clients',
+  format: (v: number) => String(v),
+  isPrimary: true,
+  matchPrimaryValueStyle: true,
+};
+
+const GOALS_THEME = {
+  first: { text: '#44403c' },
+  last: { text: '#44403c' },
+  default: { text: '#44403c' },
 };
 
 // =============================================================================
@@ -540,8 +1137,8 @@ export const ClinicianGoalsTab: React.FC<{
   const { settings, updateSettings } = useSettings();
   const goalHistory = settings.clinicianGoalHistory || {};
 
-  const [goalPanel, setGoalPanel] = useState<string | null>(null); // clinician ID
-  const [historyModal, setHistoryModal] = useState<string | null>(null); // clinician ID
+  const [goalPanel, setGoalPanel] = useState<string | null>(null);
+  const [historyModal, setHistoryModal] = useState<string | null>(null);
 
   const active = useMemo(() => clinicians.filter(c => c.isActive), [clinicians]);
 
@@ -566,7 +1163,7 @@ export const ClinicianGoalsTab: React.FC<{
     { sessions: 0, clients: 0 }
   ), [active, getCurrentGoal]);
 
-  // Initialize goal history from defaults when opening history or setting goals
+  // Initialize goal history from defaults when opening modal
   const ensureHistory = useCallback((clinicianId: string) => {
     const c = clinicians.find(cl => cl.id === clinicianId);
     if (!c) return;
@@ -587,94 +1184,183 @@ export const ClinicianGoalsTab: React.FC<{
     if (changed) updateSettings({ clinicianGoalHistory: h });
   }, [goalHistory, clinicians, updateSettings]);
 
-  const handleSaveGoal = useCallback(
-    (clinicianId: string, metric: MetricKey, value: number, effectiveDate: string) => {
-      const goalType = METRICS[metric].goalType;
-      const h = { ...goalHistory };
-      if (!h[clinicianId]) h[clinicianId] = {};
-      const existing = [...(h[clinicianId][goalType] || [])];
-
-      // Close current open period
-      const currentIdx = existing.findIndex(p => p.endDate === null);
-      if (currentIdx >= 0) {
-        const endDate = new Date(effectiveDate + 'T00:00:00');
-        endDate.setDate(endDate.getDate() - 1);
-        existing[currentIdx] = { ...existing[currentIdx], endDate: toISO(endDate) };
-      }
-
-      existing.push({ id: generateGoalPeriodId(), startDate: effectiveDate, endDate: null, value });
-      h[clinicianId] = { ...h[clinicianId], [goalType]: existing };
-      updateSettings({ clinicianGoalHistory: h });
-
-      // Sync flat model
-      const prop = metric === 'sessions' ? 'sessionGoal' : 'clientGoal';
-      onUpdate(clinicians.map(c => c.id === clinicianId ? { ...c, [prop]: value } : c));
-      setGoalPanel(null);
+  // Sync clinician flat model when goals change
+  const handleSyncClinician = useCallback(
+    (clinicianId: string, sessionGoal: number, clientGoal: number) => {
+      onUpdate(clinicians.map(c =>
+        c.id === clinicianId ? { ...c, sessionGoal, clientGoal } : c
+      ));
     },
-    [goalHistory, clinicians, onUpdate, updateSettings]
+    [clinicians, onUpdate]
   );
 
   const panelClinician = goalPanel ? clinicians.find(c => c.id === goalPanel) : null;
   const historyClinician = historyModal ? clinicians.find(c => c.id === historyModal) : null;
 
+  // Build RankingTable rows sorted by sessions goal descending
+  const rankingRows: RankingRow[] = useMemo(() =>
+    [...active]
+      .sort((a, b) => getCurrentGoal(b.id, 'sessionGoal') - getCurrentGoal(a.id, 'sessionGoal'))
+      .map(c => ({
+        id: c.id,
+        name: c.name,
+        subtitle: c.role,
+        accentColor: c.color,
+        values: {
+          sessions: getCurrentGoal(c.id, 'sessionGoal'),
+          clients: getCurrentGoal(c.id, 'clientGoal'),
+        },
+      })),
+    [active, getCurrentGoal]
+  );
+
+  const handleRowClick = useCallback((id: string | number | null) => {
+    if (id === null) return;
+    const clinicianId = String(id);
+    ensureHistory(clinicianId);
+    setGoalPanel(clinicianId);
+  }, [ensureHistory]);
+
   return (
     <div style={{ backgroundColor: PAPER, minHeight: '100%' }}>
-      {/* Spacer for top alignment */}
-      <div className="mb-2" />
-
-      {/* Totals strip */}
+      {/* Practice goal summary */}
       {active.length > 0 && (
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.15 }}
-          className="flex items-baseline gap-8 pt-6 pb-8 mb-2"
-          style={{ borderBottom: `1.5px solid ${INK}` }}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          className="pt-8 pb-12"
         >
-          <div className="flex items-baseline gap-2.5">
-            <span style={{ fontFamily: SERIF, fontSize: 36, color: INK, lineHeight: 1 }}>
-              {totals.sessions}
-            </span>
-            <span style={{ fontFamily: SANS, fontSize: 13, color: SESSIONS.accent, fontWeight: 600 }}>
-              sessions/wk
-            </span>
+          <h2 style={{
+            fontFamily: SERIF, fontSize: 26, fontWeight: 400,
+            color: INK, lineHeight: 1.2, marginBottom: 6,
+          }}>
+            Practice Targets
+          </h2>
+          <p style={{
+            fontFamily: SANS, fontSize: 14, fontWeight: 500,
+            color: FADED, marginBottom: 24,
+          }}>
+            Combined goals across {active.length} active clinician{active.length !== 1 ? 's' : ''}
+          </p>
+          <div className="flex gap-5">
+            <div
+              className="flex-1 px-6 py-6 rounded-xl"
+              style={{ backgroundColor: SESSIONS.bg, border: `1px solid ${SESSIONS.accent}18` }}
+            >
+              <div className="flex items-center gap-2.5 mb-4">
+                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: SESSIONS.accent }} />
+                <p style={{
+                  fontFamily: SANS, fontSize: 14, fontWeight: 600,
+                  color: BODY, lineHeight: 1.2,
+                }}>
+                  Sessions per week
+                </p>
+              </div>
+              <span style={{ fontFamily: SERIF, fontSize: 42, color: INK, lineHeight: 1 }}>
+                {totals.sessions}
+              </span>
+            </div>
+            <div
+              className="flex-1 px-6 py-6 rounded-xl"
+              style={{ backgroundColor: CLIENTS.bg, border: `1px solid ${CLIENTS.accent}18` }}
+            >
+              <div className="flex items-center gap-2.5 mb-4">
+                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: CLIENTS.accent }} />
+                <p style={{
+                  fontFamily: SANS, fontSize: 14, fontWeight: 600,
+                  color: BODY, lineHeight: 1.2,
+                }}>
+                  Active clients
+                </p>
+              </div>
+              <span style={{ fontFamily: SERIF, fontSize: 42, color: INK, lineHeight: 1 }}>
+                {totals.clients}
+              </span>
+            </div>
           </div>
-          <div style={{ width: 1, height: 28, backgroundColor: RULE, alignSelf: 'center' }} />
-          <div className="flex items-baseline gap-2.5">
-            <span style={{ fontFamily: SERIF, fontSize: 36, color: INK, lineHeight: 1 }}>
-              {totals.clients}
-            </span>
-            <span style={{ fontFamily: SANS, fontSize: 13, color: CLIENTS.accent, fontWeight: 600 }}>
-              clients
-            </span>
-          </div>
-          <span style={{ fontFamily: SANS, fontSize: 12, color: FADED, marginLeft: 'auto' }}>
-            {active.length} active clinician{active.length !== 1 ? 's' : ''}
-          </span>
         </motion.div>
       )}
 
-      {/* Clinician ledger */}
+      {/* Clinician goals table */}
       <div>
-        {active.map((c, i) => (
-          <ClinicianRow
-            key={c.id}
-            clinician={c}
-            sessionGoal={getCurrentGoal(c.id, 'sessionGoal')}
-            clientGoal={getCurrentGoal(c.id, 'clientGoal')}
-            onSetGoal={() => {
-              ensureHistory(c.id);
-              setGoalPanel(c.id);
-            }}
-            onViewHistory={() => {
-              ensureHistory(c.id);
-              setHistoryModal(c.id);
-            }}
-            index={i}
+        {active.length > 0 ? (
+          <RankingTable
+            rows={rankingRows}
+            primaryColumn={sessionsColumn}
+            supportingColumns={[clientsColumn]}
+            onRowClick={handleRowClick}
+            rowActions={(row) => (
+              <>
+                <motion.button
+                  whileHover={{
+                    scale: 1.02,
+                    y: -1,
+                    filter: 'brightness(1.09) saturate(1.08)',
+                    boxShadow: '0 14px 26px rgba(23,20,18,0.3), inset 0 1px 0 rgba(255,255,255,0.28), inset 0 -1px 0 rgba(0,0,0,0.4)',
+                    borderColor: 'rgba(255,255,255,0.24)',
+                  }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ type: 'spring', stiffness: 360, damping: 24 }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const id = String(row.id);
+                    ensureHistory(id);
+                    setGoalPanel(id);
+                  }}
+                  className="inline-flex justify-self-center items-center gap-1.5 px-3 py-2 rounded-lg whitespace-nowrap transition-all"
+                  style={{
+                    fontFamily: SANS,
+                    fontSize: 11,
+                    fontWeight: 800,
+                    color: '#FBFAF8',
+                    background: 'linear-gradient(160deg, #2B2621 0%, #171412 55%, #100E0D 100%)',
+                    border: '1px solid rgba(255,255,255,0.14)',
+                    boxShadow: '0 10px 22px rgba(23,20,18,0.24), inset 0 1px 0 rgba(255,255,255,0.22), inset 0 -1px 0 rgba(0,0,0,0.35)',
+                    letterSpacing: '0.06em',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  <Crosshair size={12} />
+                  Manage
+                </motion.button>
+                <motion.button
+                  whileHover={{
+                    scale: 1.02,
+                    y: -1,
+                    filter: 'brightness(1.03)',
+                    boxShadow: '0 12px 22px rgba(120,113,108,0.18), inset 0 1px 0 rgba(255,255,255,0.96)',
+                    borderColor: 'rgba(186,176,163,0.95)',
+                  }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ type: 'spring', stiffness: 360, damping: 24 }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const id = String(row.id);
+                    ensureHistory(id);
+                    setHistoryModal(id);
+                  }}
+                  className="inline-flex justify-self-center items-center gap-1.5 px-3 py-2 rounded-lg whitespace-nowrap transition-all"
+                  style={{
+                    fontFamily: SANS,
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: '#3F3A35',
+                    background: 'linear-gradient(170deg, #FFFFFF 0%, #F7F4EF 70%, #F1ECE4 100%)',
+                    border: '1px solid rgba(201,193,182,0.82)',
+                    boxShadow: '0 8px 16px rgba(120,113,108,0.12), inset 0 1px 0 rgba(255,255,255,0.92)',
+                    letterSpacing: '0.055em',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  <BarChart3 size={12} />
+                  History
+                </motion.button>
+              </>
+            )}
+            theme={GOALS_THEME}
           />
-        ))}
-
-        {active.length === 0 && (
+        ) : (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -696,19 +1382,20 @@ export const ClinicianGoalsTab: React.FC<{
         )}
       </div>
 
-      {/* Set Goal Panel */}
+      {/* Goal Manager Modal */}
       <AnimatePresence>
         {goalPanel && panelClinician && (
-          <SetGoalPanel
+          <GoalManagerModal
             clinician={panelClinician}
-            getCurrentGoal={getCurrentGoal}
-            onSave={handleSaveGoal}
+            goalHistory={goalHistory}
+            onUpdateHistory={(h) => updateSettings({ clinicianGoalHistory: h })}
+            onSyncClinician={handleSyncClinician}
             onClose={() => setGoalPanel(null)}
           />
         )}
       </AnimatePresence>
 
-      {/* History Modal */}
+      {/* History Visualization Modal */}
       <AnimatePresence>
         {historyModal && historyClinician && (
           <GoalHistoryModal
