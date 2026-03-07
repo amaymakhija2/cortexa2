@@ -36,6 +36,7 @@ export interface EditableRosterTableProps {
   onExpandRow?: (clinicianId: string | null) => void;
   expandedRowId?: string | null;
   renderExpandedContent?: (clinician: Clinician) => React.ReactNode;
+  onOpenGoalEditor?: (clinicianId: string, metric: 'sessions' | 'clients') => void;
 }
 
 // =============================================================================
@@ -109,6 +110,7 @@ interface ClinicianRowProps {
   isExpanded: boolean;
   onToggleExpand: () => void;
   renderExpandedContent?: (clinician: Clinician) => React.ReactNode;
+  onOpenGoalEditor?: (metric: 'sessions' | 'clients') => void;
 }
 
 const ClinicianRow: React.FC<ClinicianRowProps> = ({
@@ -120,6 +122,7 @@ const ClinicianRow: React.FC<ClinicianRowProps> = ({
   isExpanded,
   onToggleExpand,
   renderExpandedContent,
+  onOpenGoalEditor,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [recentlySaved, setRecentlySaved] = useState(false);
@@ -322,31 +325,57 @@ const ClinicianRow: React.FC<ClinicianRowProps> = ({
           />
         </div>
 
-        {/* Sessions Goal */}
-        <div className="flex justify-center" onClick={(e) => e.stopPropagation()}>
-          <InlineInput
-            value={clinician.sessionGoal}
-            onChange={(val) => onUpdate({ sessionGoal: parseInt(val) || 0 })}
-            onSave={handleSave}
-            type="number"
-            suffix="/wk"
-            width={70}
-            align="right"
-            numeric
-          />
+        {/* Sessions Goal - Clickable to open editor */}
+        <div
+          className="flex justify-center"
+          onClick={(e) => {
+            e.stopPropagation();
+            onOpenGoalEditor?.('sessions');
+          }}
+        >
+          <motion.button
+            className="flex items-center gap-1 px-3 py-1.5 rounded-lg transition-colors"
+            style={{
+              fontFamily: FONT.mono,
+              fontSize: 15,
+              fontWeight: 500,
+              color: INK.black,
+              backgroundColor: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+            whileHover={{ backgroundColor: INK.goldGlow }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <span>{clinician.sessionGoal}</span>
+            <span style={{ fontSize: 11, color: INK.ghost }}>/wk</span>
+          </motion.button>
         </div>
 
-        {/* Clients Goal */}
-        <div className="flex justify-center" onClick={(e) => e.stopPropagation()}>
-          <InlineInput
-            value={clinician.clientGoal}
-            onChange={(val) => onUpdate({ clientGoal: parseInt(val) || 0 })}
-            onSave={handleSave}
-            type="number"
-            width={55}
-            align="center"
-            numeric
-          />
+        {/* Clients Goal - Clickable to open editor */}
+        <div
+          className="flex justify-center"
+          onClick={(e) => {
+            e.stopPropagation();
+            onOpenGoalEditor?.('clients');
+          }}
+        >
+          <motion.button
+            className="flex items-center justify-center px-3 py-1.5 rounded-lg transition-colors"
+            style={{
+              fontFamily: FONT.mono,
+              fontSize: 15,
+              fontWeight: 500,
+              color: INK.black,
+              backgroundColor: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+            whileHover={{ backgroundColor: INK.goldGlow }}
+            whileTap={{ scale: 0.98 }}
+          >
+            {clinician.clientGoal}
+          </motion.button>
         </div>
 
         {/* Status */}
@@ -419,6 +448,7 @@ export const EditableRosterTable: React.FC<EditableRosterTableProps> = ({
   onExpandRow,
   expandedRowId,
   renderExpandedContent,
+  onOpenGoalEditor,
 }) => {
   // Sort: active clinicians first, then inactive at bottom
   const sortedClinicians = useMemo(() => {
@@ -468,6 +498,7 @@ export const EditableRosterTable: React.FC<EditableRosterTableProps> = ({
             isExpanded={expandedRowId === clinician.id}
             onToggleExpand={() => handleToggleExpand(clinician.id)}
             renderExpandedContent={renderExpandedContent}
+            onOpenGoalEditor={onOpenGoalEditor ? (metric) => onOpenGoalEditor(clinician.id, metric) : undefined}
           />
         ))}
       </div>

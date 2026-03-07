@@ -3,6 +3,7 @@
 
 export * from './shared';
 export * from './EditableRosterTable';
+export * from './GoalEditorModal';
 export * from './CliniciansTab';
 export * from './InviteUserSlideOver';
 export * from './UsersAccessTab';

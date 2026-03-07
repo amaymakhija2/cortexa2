@@ -1,11 +1,11 @@
-import React, { useState, useMemo } from 'react';
-import { motion } from 'framer-motion';
-import { Link2, History, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import React, { useState, useMemo, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Link2, Users, Target } from 'lucide-react';
 import { EditableRosterTable } from './EditableRosterTable';
+import { GoalEditorModal, type GoalMetric } from './GoalEditorModal';
 import { SectionHeader, LedgerCard, PrimaryButton, FONT, INK, EASE } from './shared';
 import type { Clinician } from './shared';
 import { LICENSES_REQUIRING_SUPERVISION } from './shared';
-import { GoalHistoryModal } from '../configure/GoalHistory';
 import { useSettings } from '../../context/SettingsContext';
 
 // =============================================================================
@@ -125,103 +125,124 @@ const SupervisionStatus: React.FC<SupervisionStatusProps> = ({ assigned, total }
 };
 
 // =============================================================================
-// EXPANDED ROW CONTENT - Goal History Preview
+// PRACTICE SUMMARY BAR
 // =============================================================================
+// Shows team totals computed from individual clinician goals.
 
-interface ExpandedContentProps {
-  clinician: Clinician;
-  onViewFullHistory: () => void;
+interface PracticeSummaryBarProps {
+  totalSessions: number;
+  totalClients: number;
+  clinicianCount: number;
 }
 
-const ExpandedContent: React.FC<ExpandedContentProps> = ({ clinician, onViewFullHistory }) => {
-  const { settings } = useSettings();
-  const history = settings.clinicianGoalHistory[clinician.id];
-
-  // Get recent goal changes
-  const getRecentChanges = () => {
-    const changes: { type: string; value: number; date: string; direction: 'up' | 'down' | 'same' }[] = [];
-
-    if (history?.sessionGoal && history.sessionGoal.length > 1) {
-      const current = history.sessionGoal.find(p => p.endDate === null);
-      const previous = history.sessionGoal.find(p => p.endDate !== null);
-      if (current && previous) {
-        changes.push({
-          type: 'Sessions',
-          value: current.value,
-          date: current.startDate,
-          direction: current.value > previous.value ? 'up' : current.value < previous.value ? 'down' : 'same',
-        });
-      }
-    }
-
-    if (history?.clientGoal && history.clientGoal.length > 1) {
-      const current = history.clientGoal.find(p => p.endDate === null);
-      const previous = history.clientGoal.find(p => p.endDate !== null);
-      if (current && previous) {
-        changes.push({
-          type: 'Clients',
-          value: current.value,
-          date: current.startDate,
-          direction: current.value > previous.value ? 'up' : current.value < previous.value ? 'down' : 'same',
-        });
-      }
-    }
-
-    return changes;
-  };
-
-  const recentChanges = getRecentChanges();
-  const hasHistory = recentChanges.length > 0;
-
-  const DirectionIcon = ({ direction }: { direction: 'up' | 'down' | 'same' }) => {
-    if (direction === 'up') return <TrendingUp size={12} color={INK.emerald} />;
-    if (direction === 'down') return <TrendingDown size={12} color={INK.amber} />;
-    return <Minus size={12} color={INK.faded} />;
-  };
-
-  return (
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-6">
-        {hasHistory ? (
-          recentChanges.map((change, i) => (
-            <div key={i} className="flex items-center gap-2">
-              <DirectionIcon direction={change.direction} />
-              <span style={{ fontFamily: FONT.sans, fontSize: 13, color: INK.muted }}>
-                {change.type}: <strong style={{ color: INK.body }}>{change.value}</strong>
-              </span>
-              <span style={{ fontFamily: FONT.sans, fontSize: 11, color: INK.ghost }}>
-                since {new Date(change.date).toLocaleDateString('en-US', { month: 'short', year: '2-digit' })}
-              </span>
-            </div>
-          ))
-        ) : (
-          <span style={{ fontFamily: FONT.sans, fontSize: 13, color: INK.faded }}>
-            No goal history yet. Changes will be tracked over time.
-          </span>
-        )}
+const PracticeSummaryBar: React.FC<PracticeSummaryBarProps> = ({
+  totalSessions,
+  totalClients,
+  clinicianCount,
+}) => (
+  <motion.div
+    initial={{ opacity: 0, y: -8 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.4, ease: EASE.out }}
+    className="flex items-center justify-between p-5 rounded-xl mb-6"
+    style={{
+      backgroundColor: INK.cream,
+      border: `1px solid ${INK.rule}`,
+    }}
+  >
+    <div className="flex items-center gap-8">
+      {/* Sessions total */}
+      <div className="flex items-center gap-3">
+        <div
+          className="w-9 h-9 rounded-lg flex items-center justify-center"
+          style={{ backgroundColor: INK.goldGlow }}
+        >
+          <Target size={18} color={INK.gold} />
+        </div>
+        <div>
+          <div
+            style={{
+              fontFamily: FONT.serif,
+              fontSize: 22,
+              fontWeight: 400,
+              color: INK.black,
+              lineHeight: 1,
+            }}
+          >
+            {totalSessions}
+            <span
+              style={{
+                fontFamily: FONT.sans,
+                fontSize: 12,
+                color: INK.ghost,
+                marginLeft: 2,
+              }}
+            >
+              /wk
+            </span>
+          </div>
+          <div
+            style={{
+              fontFamily: FONT.sans,
+              fontSize: 11,
+              color: INK.muted,
+              marginTop: 2,
+            }}
+          >
+            Team sessions
+          </div>
+        </div>
       </div>
 
-      <button
-        onClick={onViewFullHistory}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors"
-        style={{
-          fontFamily: FONT.sans,
-          fontSize: 12,
-          fontWeight: 600,
-          color: INK.gold,
-          backgroundColor: 'transparent',
-          border: 'none',
-          cursor: 'pointer',
-        }}
-        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = INK.goldGlow)}
-        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-      >
-        <History size={14} />
-        View Full History
-      </button>
+      {/* Divider */}
+      <div className="w-px h-10" style={{ backgroundColor: INK.rule }} />
+
+      {/* Clients total */}
+      <div className="flex items-center gap-3">
+        <div
+          className="w-9 h-9 rounded-lg flex items-center justify-center"
+          style={{ backgroundColor: INK.emeraldLight }}
+        >
+          <Users size={18} color={INK.emerald} />
+        </div>
+        <div>
+          <div
+            style={{
+              fontFamily: FONT.serif,
+              fontSize: 22,
+              fontWeight: 400,
+              color: INK.black,
+              lineHeight: 1,
+            }}
+          >
+            {totalClients}
+          </div>
+          <div
+            style={{
+              fontFamily: FONT.sans,
+              fontSize: 11,
+              color: INK.muted,
+              marginTop: 2,
+            }}
+          >
+            Active clients
+          </div>
+        </div>
+      </div>
     </div>
-  );
-};
+
+    {/* Clinician count */}
+    <div
+      style={{
+        fontFamily: FONT.sans,
+        fontSize: 13,
+        color: INK.faded,
+      }}
+    >
+      Based on <span style={{ fontWeight: 600, color: INK.muted }}>{clinicianCount}</span> clinicians
+    </div>
+  </motion.div>
+);
 
 // =============================================================================
 // MAIN COMPONENT
@@ -232,9 +253,12 @@ export const CliniciansTab: React.FC<CliniciansTabProps> = ({
   onUpdate,
   onOpenMapping,
 }) => {
-  const { settings } = useSettings();
+  const { settings, updateSettings } = useSettings();
   const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
-  const [goalHistoryClinicianId, setGoalHistoryClinicianId] = useState<string | null>(null);
+  const [goalEditorState, setGoalEditorState] = useState<{
+    clinicianId: string;
+    metric: GoalMetric;
+  } | null>(null);
 
   // Compute supervision status
   const supervisionStatus = useMemo(() => {
@@ -248,21 +272,57 @@ export const CliniciansTab: React.FC<CliniciansTabProps> = ({
     };
   }, [clinicians]);
 
+  // Compute team totals
+  const teamTotals = useMemo(() => {
+    const activeClinicians = clinicians.filter((c) => c.isActive);
+    return {
+      sessions: activeClinicians.reduce((sum, c) => sum + c.sessionGoal, 0),
+      clients: activeClinicians.reduce((sum, c) => sum + c.clientGoal, 0),
+      count: activeClinicians.length,
+    };
+  }, [clinicians]);
+
   // Handle row expansion
   const handleExpandRow = (clinicianId: string | null) => {
     setExpandedRowId(clinicianId);
   };
 
-  // Render expanded content with goal history preview
-  const renderExpandedContent = (clinician: Clinician) => (
-    <ExpandedContent
-      clinician={clinician}
-      onViewFullHistory={() => setGoalHistoryClinicianId(clinician.id)}
-    />
-  );
+  // Handle opening goal editor
+  const handleOpenGoalEditor = useCallback((clinicianId: string, metric: GoalMetric) => {
+    setGoalEditorState({ clinicianId, metric });
+  }, []);
 
-  // Find clinician for goal history modal
-  const goalHistoryClinician = clinicians.find((c) => c.id === goalHistoryClinicianId);
+  // Handle saving goals from editor
+  const handleSaveGoals = useCallback((monthlyGoals: Array<{ month: string; value: number }>) => {
+    if (!goalEditorState) return;
+
+    const { clinicianId, metric } = goalEditorState;
+    const clinician = clinicians.find((c) => c.id === clinicianId);
+    if (!clinician) return;
+
+    // Get the current month's goal (or the latest set value)
+    const now = new Date();
+    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const currentGoal = monthlyGoals.find((g) => g.month === currentMonth);
+
+    if (currentGoal) {
+      // Update the clinician's current goal
+      const updatedClinicians = clinicians.map((c) =>
+        c.id === clinicianId
+          ? { ...c, [metric === 'sessions' ? 'sessionGoal' : 'clientGoal']: currentGoal.value }
+          : c
+      );
+      onUpdate(updatedClinicians);
+    }
+
+    // Also save to goal history in settings
+    // TODO: Implement full goal history persistence when backend is ready
+  }, [goalEditorState, clinicians, onUpdate]);
+
+  // Find clinician for goal editor
+  const goalEditorClinician = goalEditorState
+    ? clinicians.find((c) => c.id === goalEditorState.clinicianId)
+    : null;
 
   return (
     <motion.div
@@ -295,6 +355,13 @@ export const CliniciansTab: React.FC<CliniciansTabProps> = ({
         }
       />
 
+      {/* Practice Summary Bar */}
+      <PracticeSummaryBar
+        totalSessions={teamTotals.sessions}
+        totalClients={teamTotals.clients}
+        clinicianCount={teamTotals.count}
+      />
+
       {/* Roster Card */}
       <LedgerCard accent="gold">
         <div className="p-8">
@@ -303,26 +370,33 @@ export const CliniciansTab: React.FC<CliniciansTabProps> = ({
             onUpdate={onUpdate}
             onExpandRow={handleExpandRow}
             expandedRowId={expandedRowId}
-            renderExpandedContent={renderExpandedContent}
+            onOpenGoalEditor={handleOpenGoalEditor}
           />
         </div>
       </LedgerCard>
 
-      {/* Goal History Modal */}
-      {goalHistoryClinician && (
-        <GoalHistoryModal
-          onClose={() => setGoalHistoryClinicianId(null)}
-          clinician={{
-            id: goalHistoryClinician.id,
-            name: goalHistoryClinician.name,
-            initials: goalHistoryClinician.initials,
-            color: goalHistoryClinician.color,
-            role: goalHistoryClinician.role,
-            startDate: goalHistoryClinician.startDate,
-          }}
-          goalHistory={settings.clinicianGoalHistory}
-        />
-      )}
+      {/* Goal Editor Modal */}
+      <AnimatePresence>
+        {goalEditorClinician && goalEditorState && (
+          <GoalEditorModal
+            clinician={goalEditorClinician}
+            metric={goalEditorState.metric}
+            currentValue={
+              goalEditorState.metric === 'sessions'
+                ? goalEditorClinician.sessionGoal
+                : goalEditorClinician.clientGoal
+            }
+            actualAverage={
+              // TODO: Pass actual average from analytics when available
+              goalEditorState.metric === 'sessions'
+                ? Math.round(goalEditorClinician.sessionGoal * 0.95)
+                : undefined
+            }
+            onSave={handleSaveGoals}
+            onClose={() => setGoalEditorState(null)}
+          />
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };
