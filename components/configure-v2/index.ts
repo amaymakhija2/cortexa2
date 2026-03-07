@@ -3,3 +3,4 @@
 
 export * from './shared';
 export * from './EditableRosterTable';
+export * from './CliniciansTab';
