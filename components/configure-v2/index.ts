@@ -9,3 +9,4 @@ export * from './UsersAccessTab';
 export * from './PracticeTab';
 export * from './ServiceMapping';
 export * from './ConnectionsTab';
+export * from './ConfigurePage';
