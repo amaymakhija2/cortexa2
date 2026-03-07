@@ -14,7 +14,7 @@ import { PracticeAnalysis } from './components/PracticeAnalysis';
 import { ClinicianOverview } from './components/ClinicianOverview';
 import { ClinicianDetails } from './components/ClinicianDetails';
 import { SettingsPage } from './components/SettingsPage';
-import { PracticeConfigurationPage } from './components/PracticeConfigurationPage';
+import { ConfigurePage } from './components/configure-v2';
 import { SessionHistoryPage } from './components/SessionHistoryPage';
 import { ClinicianBreakdownPage } from './components/ClinicianBreakdownPage';
 import { RevenueBreakdownPage } from './components/RevenueBreakdownPage';
@@ -218,7 +218,7 @@ const ProtectedApp: React.FC = () => {
                 <Route path="/sessions-breakdown" element={<SessionsBreakdownPage />} />
                 <Route path="/attendance-breakdown" element={<AttendanceBreakdownPage />} />
                 <Route path="/consultations" element={<Consultations />} />
-                <Route path="/configure" element={<PracticeConfigurationPage />} />
+                <Route path="/configure" element={<ConfigurePage />} />
                 <Route path="/components" element={<Components />} />
                 <Route path="/settings" element={<SettingsPage />} />
                 {/* Dev loader route handled above, outside layout */}

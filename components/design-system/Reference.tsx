@@ -3115,7 +3115,7 @@ export const Reference: React.FC = () => {
                   <div className="rounded-2xl p-6 bg-white shadow-sm border border-stone-100">
                     <h4 className="font-bold text-stone-900 mb-2">Dropdown / Select</h4>
                     <p className="text-sm text-stone-500 mb-3">Generic dropdown selector with search, multi-select support, and consistent styling.</p>
-                    <code className="text-xs bg-rose-50 px-2 py-1 rounded text-rose-700">PracticeConfigurationPage.tsx</code>
+                    <code className="text-xs bg-rose-50 px-2 py-1 rounded text-rose-700">configure-v2/shared.tsx</code>
                   </div>
                   <div className="rounded-2xl p-6 bg-white shadow-sm border border-stone-100">
                     <h4 className="font-bold text-stone-900 mb-2">Toast / Notification</h4>
