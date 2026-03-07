@@ -6,3 +6,4 @@ export * from './EditableRosterTable';
 export * from './CliniciansTab';
 export * from './InviteUserSlideOver';
 export * from './UsersAccessTab';
+export * from './PracticeTab';
