@@ -1,0 +1,455 @@
+# Configure Page Revamp - Complete Spec
+
+## Navigation
+
+4 tabs in a `SegmentedControl`: **Clinicians** | **Users & Access** | **Practice** | **Connections**
+
+Accent: `violet` (keeps current). Tab icons: `Users` | `Shield` | `Target` | `Link2`
+
+---
+
+## Tab 1: Clinicians
+
+**Mental model:** "My clinical team - who they are, what they're working toward"
+
+This merges the current Members + Clinician Goals tabs. The key insight for our audience: they think about *people*, not *settings categories*. "I want to set up Sarah" shouldn't mean visiting two tabs.
+
+### Layout
+
+**Header area:**
+
+- Title: "Clinicians"
+- Subtitle: "Credentials, roles, supervision, and goals for your team"
+- Right side: `StatusPill` showing supervision assignment status (e.g., "1 needs supervisor - 4/5") + "Manage EHR Mapping" button
+
+**Main content: The Roster Table**
+
+A single table where each row is a clinician. Columns:
+
+| Clinician | License | Role | Supervision | Sessions Goal | Clients Goal | Status |
+| --- | --- | --- | --- | --- | --- | --- |
+- **Clinician** - avatar + name + "Since Mar 2023" subtext
+- **License** - dropdown (LCSW, LMSW, LMHC, etc.) - changing to LMSW/MHC-LP auto-flags supervision requirement
+- **Role** - dropdown (Clinician Only / Clinician and Supervisor / Supervisor Only)
+- **Supervision** - the existing `SupervisionChip` component (shows "Independent", "Assign supervisor", or the assigned supervisor with dropdown)
+- **Sessions Goal** - displays current goal with `/wk` suffix. Click to open the **Goal Editor Modal** (visual timeline editor - see below)
+- **Clients Goal** - same pattern, no suffix. Click to open Goal Editor Modal
+- **Status** - Active/Inactive toggle pill
+
+### Practice Summary Bar
+
+Above the table, show a summary bar with the **sum of all clinician goals**:
+
+```
+┌────────────────────────────────────────────────────────────────┐
+│  Team Total: 160 sessions/wk  •  225 active clients            │
+│  Based on 5 clinicians                                         │
+└────────────────────────────────────────────────────────────────┘
+```
+
+This is read-only. If a user tries to edit practice-level goals elsewhere, redirect them here with an explanation.
+
+### Goal Editor Modal (Visual Timeline)
+
+Clicking any clinician's Sessions or Clients goal opens a **large modal with a visual timeline editor**:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  Sessions Goal — Sarah Chen                                             ✕   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   32 ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈╭─────╭─────              │
+│                                                   │     │                  │
+│   28 ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈╭─────╭─────╭─────╯     │                  │
+│                                 │     │     │           │                  │
+│   24 ┈┈┈┈┈┈┈┈┈┈┈┈┈╭─────╭─────╭─────╯     │     │           │                  │
+│                   │     │     │           │     │           │                  │
+│   20 ╭─────╭─────╯     │     │           │     │           │                  │
+│      │     │           │     │           │     │           │                  │
+│   ───┴─────┴───────────┴─────┴───────────┴─────┴───────────┴─────            │
+│      Jul   Aug        Sep   Oct        Nov   Dec   Jan   Feb   Mar   Apr    │
+│                                               │                              │
+│                                             Today                            │
+│                                                                             │
+│      Drag any month to adjust  •  Future months follow the last value set   │
+│                                                                             │
+│   ┌─────────────────────────────────────────────────────────────────────┐   │
+│   │  💡 Sarah averages 31/wk — consider raising to 32.                  │   │
+│   └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                    [Cancel]       [Save]    │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Key behaviors:**
+
+- Each month is a column. Drag up/down to change that month's goal.
+- Past months (muted) are still editable for retrospective fixes.
+- Future months inherit from the last explicitly-set value (shown as dashed line).
+- Smart suggestion banner shows actual average vs current goal.
+- No date pickers or forms — pure visual manipulation.
+
+**Ramp-ups:** Just drag each future month to progressively higher values. Four drags = ramp-up schedule created.
+
+### Clinician Mapping Section
+
+Below the main roster table, a collapsible section for EHR mapping:
+
+```
+▸ EHR Clinician Mapping                                    All mapped ✓
+```
+
+Expand to see which EHR clinician records map to which Cortexa clinicians. Important for practices where one person has multiple EHR accounts (e.g., "Sarah Chen" and "Sarah Chen - Supervision" both map to the same clinician).
+
+### The Flow
+
+```
+Owner opens Clinicians tab
+  -> Sees full team at a glance with team totals in summary bar
+  -> Spots amber "Assign supervisor" chip on James Kim
+  -> Clicks it -> dropdown -> assigns Sarah Chen -> done
+  -> Notices Michael's session goal seems low
+  -> Clicks "28" -> Goal Editor Modal opens with visual timeline
+  -> Drags March bar up to 32 -> Clicks Save -> done
+  -> Wants to give James a ramp-up schedule
+  -> Opens his goal modal -> drags each future month progressively higher
+```
+
+**Why this is better:** One screen, zero navigation. The practice owner scans their team, spots issues (amber chips, low goals), and fixes them inline. No "save changes" button for individual fields - each edit auto-persists. The whole experience feels like editing a spreadsheet, which is *exactly what these users already know* from their Excel workflows.
+
+### Smart Behaviors
+
+- When license changes to LMSW/MHC-LP -> supervision chip auto-switches from "Independent" to "Assign supervisor" with amber pulse
+- When role changes to include "Supervisor" -> that person becomes available in other clinicians' supervisor dropdowns instantly
+- Inactive clinicians dim to 35% opacity and sink to bottom of list
+- If all supervision assignments are complete, the `StatusPill` turns emerald "All assigned"
+
+---
+
+## Tab 2: Users & Access
+
+**Mental model:** "Who can log into Cortexa and what can they see"
+
+This is net-new. Critical for multi-location practices - practice owners are paranoid about clinicians seeing revenue data, and supervisors should only see their supervisees.
+
+### Layout
+
+**Header area:**
+
+- Title: "Users & Access"
+- Subtitle: "Control who can access Cortexa and what they see"
+- Right side: "Invite User" button (emerald gradient)
+
+**Main content: User Table**
+
+| User | Email | Role | Revenue Access | Group |
+| --- | --- | --- | --- | --- |
+- **User** - avatar + name
+- **Email** - their login email
+- **Role** - dropdown with 4 options:
+    - `Owner` - full access to everything (only 1, cannot be changed)
+    - `Admin` - full access, can configure settings
+    - `Supervisor` - sees their supervisees' data + practice-level aggregates
+    - `Viewer` - read-only access to practice-level data
+- **Revenue Access** - toggle (yes/no). When off, all dollar amounts are hidden across the platform. This is per-user, regardless of role.
+- **Group** - for Supervisor role: shows supervisee count (e.g., "3 clinicians"). **Click to open a visual relationship diagram** showing exactly who they can access. For others: "All" or blank.
+
+### Group Access Diagram
+
+When you click a supervisor's Group cell, a modal opens showing a **visual diagram** of their access:
+
+```
+┌────────────────────────────────────────────────────────────────┐
+│  Sarah Chen can view:                                          │
+│                                                                │
+│                    ┌───────────────┐                           │
+│                    │  Sarah Chen   │                           │
+│                    │  Supervisor   │                           │
+│                    └───────┬───────┘                           │
+│                            │                                   │
+│            ┌───────────────┼───────────────┐                   │
+│            │               │               │                   │
+│      ┌─────┴─────┐   ┌─────┴─────┐   ┌─────┴─────┐             │
+│      │ James Kim │   │ Michael J.│   │ Alex Wong │             │
+│      │   LMSW    │   │  MHC-LP   │   │   LMSW    │             │
+│      └───────────┘   └───────────┘   └───────────┘             │
+│                                                                │
+│  + Practice-level aggregates (no individual data for others)   │
+│                                                                │
+└────────────────────────────────────────────────────────────────┘
+```
+
+This pulls from the supervision relationships defined in the Clinicians tab. Visual and instantly clear.
+
+### The Invite Flow
+
+```
+Owner clicks "Invite User"
+  -> Slide-over panel appears from right
+  -> Fields: Name, Email, Role (dropdown), Revenue Access (toggle)
+  -> If role = Supervisor, additional step: "This user will see data for:"
+    -> Auto-shows the clinicians they supervise (pulled from Clinicians tab)
+    -> Can manually add/remove clinicians to their view
+  -> Click "Send Invite" -> invitation email sent -> user appears in table as "Pending"
+```
+
+### Smart Behaviors
+
+- Owner role is locked - shows a lock icon with tooltip "Practice owner cannot be changed"
+- Supervisor role auto-links to the supervision relationships from the Clinicians tab. If Sarah supervises James and Michael, her "Group" automatically shows "James Kim, Michael Johnson"
+- Removing someone's Supervisor role shows a confirmation: "Sarah will lose access to individual clinician data for her supervisees. Continue?"
+- Pending invites show as a subtle stone-toned row with "Pending" badge and "Resend" action
+
+### What we're NOT building (simplification vs competitor)
+
+- No custom permission groups - just the 4 roles. Keeps it dead simple.
+- No per-metric permissions - just the revenue toggle. Our audience doesn't need granular "can see rebook rate but not cancel rate."
+- No organizational hierarchy beyond supervisor groups - one level is enough for 5-20 person practices.
+
+---
+
+## Tab 3: Practice
+
+**Mental model:** "How my practice measures success"
+
+This merges Practice Goals + Thresholds, deduplicates the note deadline conflict, and organizes everything by *what you're measuring* rather than *goal vs threshold* (a distinction our audience doesn't care about).
+
+### Layout
+
+**Header area:**
+
+- Title: "Practice Settings"
+- Subtitle: "Goals, definitions, and how metrics are calculated"
+- Right side: "Save Changes" button (appears only when dirty, emerald gradient with check icon)
+
+**Main content: Stacked sections, not a grid of cards**
+
+The current Practice Goals uses a 2x2 card grid, and Thresholds uses another set of cards. This creates a lot of visual noise. Instead: clean stacked sections with clear dividers.
+
+### Section 1: Practice Goals
+
+Two goal inputs side by side:
+
+```
++--------------------+  +--------------------+
+|  Monthly Revenue   |  |  Target Rebook     |
+|     $125,000       |  |       90%          |
+|  $1.5M/year        |  |  Industry: 85%     |
++--------------------+  +--------------------+
+```
+
+Each is a `ConfigCard` with:
+
+- Icon + label at top
+- Large inline-editable value (Tiempos Headline serif, big)
+- Contextual subtext (annual projection, industry benchmark)
+
+**Note: Sessions and Clients goals are NOT here.** These are computed from individual clinician goals (set in the Clinicians tab). A read-only summary appears below:
+
+```
+┌────────────────────────────────────────────────────────────────┐
+│  Team Goals: 160 sessions/wk  •  225 clients                    │
+│  Based on 5 clinicians → Edit individual goals in Clinicians tab │
+└────────────────────────────────────────────────────────────────┘
+```
+
+Clicking "Edit individual goals" navigates to the Clinicians tab.
+
+### Section 2: Client & Session Rules
+
+Combined section for all client and session configuration:
+
+**Churn Definition**
+
+One simple input: "A client is considered churned after [X] days without an appointment."
+
+```
+┌────────────────────────────────────────────────────────┐
+│  Days until churned: [90]                              │
+│  Clients with no appointment in 90+ days are churned   │
+└────────────────────────────────────────────────────────┘
+```
+
+**At-Risk Thresholds**
+
+Three color-coded cards: Low Risk (X days), Medium Risk (X days), High Risk (X days). Keep current visual design - the colored cards work well.
+
+**Session Rules**
+
+Two settings side by side:
+
+```
++--------------------+  +--------------------+
+|  Late Cancel       |  |  Note Deadline     |
+|  Window            |  |                    |
+|    24 hours        |  |    48 hours        |
+|  before appt       |  |  after session     |
++--------------------+  +--------------------+
+```
+
+Note deadline uses button selector (24h / 48h / 72h / 96h) - more friendly than freeform input.
+
+### The Flow
+
+```
+Owner opens Practice tab
+  -> Sees Revenue goal and Rebook Rate at the top
+  -> Notices team session/client totals below (read-only, links to Clinicians)
+  -> Scrolls to Client & Session Rules
+  -> Notices note deadline is 72h, wants to tighten to 48h
+  -> Clicks 48h button -> button highlights -> "Save Changes" appears top-right
+  -> Clicks Save -> done
+```
+
+**Why this is better:** Practice-level settings are minimal and focused. Session/client goals are clearly tied to individual clinicians (where they belong). Two sections instead of five.
+
+---
+
+## Tab 4: Connections
+
+**Mental model:** "How Cortexa gets its data and how that data is interpreted"
+
+This merges EHR + Locations + adds Service Mapping. Organized as a vertical flow: connect -> map locations -> map clinicians -> map services. This mirrors the actual data pipeline.
+
+### Layout
+
+**Header area:**
+
+- Title: "Connections"
+- Subtitle: "EHR sync, location mapping, and service configuration"
+
+**Main content: Vertically stacked sections with completion indicators**
+
+Each section has a `StatusPill` in its header showing mapping progress.
+
+### Section 1: EHR Connection
+
+Simplified to a single horizontal card with key info:
+
+```
++-------------------------------------------------------------+
+| SimplePractice  Connected                                    |
+| Last sync: 2 hours ago  •  Next sync: in 4 hours            |
+| 156 clients  •  5 clinicians                  [Refresh Now] |
++-------------------------------------------------------------+
+```
+
+Keep the next sync countdown - users find this important for understanding data freshness.
+
+### Section 2: Location Mapping
+
+Keep the existing `OfficeMapping` component - it's already well-designed with the drag-and-drop assignment of EHR offices to logical locations.
+
+Header shows: `StatusPill` - "2 unassigned - 3/5" or "All assigned - 5/5"
+
+### Section 3: Service Mapping
+
+**Note:** Clinician Mapping has moved to the Clinicians tab (people-centric approach).
+
+**Header:**
+
+- "Service Mapping"
+- Subtitle: "Categorize your EHR appointment types so metrics are calculated correctly"
+- `StatusPill` - "2 need attention" or "All categorized ✓"
+
+**Simple Grouped Table:**
+
+One flat table with visual grouping by category. Change a dropdown → row animates to its new group.
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  Service Mapping                           2 need attention     │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ⚠ NEEDS ATTENTION                                              │
+│  New Service From EHR             99999      [Assign...   ▼]    │
+│  Unknown Code                     00000      [Assign...   ▼]    │
+│                                                                 │
+│  ─────────────────────────────────────────────────────────────  │
+│                                                                 │
+│  SESSIONS                                                       │
+│  Psychotherapy, 60 min            90837      [Session     ▼]    │
+│  Psychotherapy, 45 min            90834      [Session     ▼]    │
+│  Diagnostic Evaluation            90791      [Session     ▼]    │
+│  Family Therapy                   90847      [Session     ▼]    │
+│                                                                 │
+│  ─────────────────────────────────────────────────────────────  │
+│                                                                 │
+│  OTHER                                                          │
+│  Supervision for LMSW             S100       [Other       ▼]    │
+│                                                                 │
+│  ─────────────────────────────────────────────────────────────  │
+│                                                                 │
+│  EXCLUDED                                                       │
+│  Training Session                 T100       [Exclude     ▼]    │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Three simple categories:**
+
+- **Session** — counts toward session goals and utilization
+- **Other** — tracked but doesn't count (supervision, admin)
+- **Exclude** — hidden from all reports
+
+**Behaviors:**
+
+- "Needs Attention" group always at top with amber highlight
+- Empty groups don't show
+- Changing a dropdown moves the row to its new group with animation
+
+**Auto-categorization on first sync (differentiator):**
+
+When the EHR first syncs, we auto-assign based on CPT code ranges:
+
+- `90832-90840` → Session
+- `90791` → Session
+- `90846-90847` → Session
+- Known supervision codes → Other
+
+The owner sees their services pre-categorized with a banner: "We auto-categorized 12 of 15 services based on CPT codes. Review and adjust below." This saves them 90% of the setup work — massive win for time-starved users.
+
+### The Flow
+
+```
+Owner opens Connections tab for the first time
+  -> Sees EHR connected with sync status
+  -> Locations: "2 unassigned" - clicks to expand, drags offices to locations
+  -> Services: "3 uncategorized" - amber banner at top
+    -> Sees auto-categorized services already sorted into buckets
+    -> 3 new/unusual services in the "Uncategorized" section
+    -> Clicks [Exclude] on "Training Session" -> it slides to Excluded
+    -> Clicks [Sessions] on "New Therapy Code" -> it slides to Sessions
+    -> Clicks [Other] on "Admin Block" -> slides to Other Activities
+    -> StatusPill turns emerald "All categorized - 15/15"
+  -> Done. (Clinician mapping is in the Clinicians tab)
+```
+
+---
+
+## Cross-Tab Smart Connections
+
+These are the moments that make the configuration feel *intelligent* rather than like a dumb form:
+
+1. **Clinicians <-> Users & Access:** When you set someone's role to "Clinician and Supervisor" in the Clinicians tab, and that person has a User account, their User role auto-suggests "Supervisor" with their supervisees pre-populated in their group.
+2. **Clinicians <-> EHR Mapping:** Clinician Mapping now lives in the Clinicians tab (collapsible section). Adding a clinician creates a new mapping slot automatically.
+3. **Practice <-> Clinicians:** Practice-level session goals show a computed hint: "Your 5 clinicians have combined weekly goals of 160 sessions. That's ~640/month." - directly connected to the per-clinician goals in the Clinicians tab.
+4. **Connections -> Everything:** Service mapping determines which appointments count as "sessions." This flows into session counts, utilization, rebook rate - everything. A small info tooltip on the Service Mapping header explains this: "This determines how every metric in Cortexa is calculated."
+
+---
+
+## What We're Cutting
+
+| Current | Action | Why |
+| --- | --- | --- |
+| Pipeline/Consultation Flow tab | Comment out | Not ready yet |
+| TeamStructureTab component | Delete | Supervision lives in Clinicians tab |
+| Duplicate note deadline (Thresholds) | Remove | One setting in Practice tab |
+| 3-card EHR layout | Simplify to 1 card | Over-designed for the info shown |
+| Separate Clinician Goals tab | Merge into Clinicians | One place for people |
+| Separate "Manage EHR Mapping" flow | Inline in Clinicians tab | People-centric, no navigation jumps |
+| Performance Bands section | Remove | Unnecessary complexity |
+| Calendar Settings section | Remove | Premature complexity |
+| Practice-level Sessions/Clients goals | Make read-only | Computed from clinician goals |
+| Clinician Mapping in Connections | Move to Clinicians tab | People-centric approach |
