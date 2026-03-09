@@ -11,7 +11,6 @@ import {
   Gear,
   ArrowsClockwise,
   CaretRight,
-  ChartLineUp,
 } from '@phosphor-icons/react';
 import type { Icon } from '@phosphor-icons/react';
 import { useSettings } from '../context/SettingsContext';
@@ -102,13 +101,6 @@ const NAV_ITEMS = [
     icon: TrendUp,
     imageSrc: '/pipeline-icon.png',
     imageSize: 44,
-  },
-  {
-    path: '/revenue-planning',
-    label: 'Planning',
-    icon: ChartLineUp,
-    imageSrc: '/planning-icon.png',
-    imageSize: 42,
   },
 ];
 

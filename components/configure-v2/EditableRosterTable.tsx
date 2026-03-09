@@ -9,6 +9,8 @@ import {
   InlineInput,
   InlineSelect,
   TogglePill,
+  estimateAnnualRevenue,
+  formatRevenue,
 } from './shared';
 import type { Clinician, LicenseType, ClinicianRole } from './shared';
 import {
@@ -53,8 +55,8 @@ const COLUMNS: ColumnDef[] = [
   { key: 'license', label: 'License', width: '110px', align: 'center' },
   { key: 'role', label: 'Role', width: '180px', align: 'center' },
   { key: 'supervision', label: 'Supervision', width: '160px', align: 'center' },
-  { key: 'sessions', label: 'Sessions', width: '100px', align: 'center' },
-  { key: 'clients', label: 'Clients', width: '80px', align: 'center' },
+  { key: 'sessions', label: 'Sessions Goal', width: '120px', align: 'center' },
+  { key: 'clients', label: 'Caseload Goal', width: '120px', align: 'center' },
   { key: 'status', label: 'Status', width: '90px', align: 'center' },
 ];
 
@@ -304,12 +306,8 @@ const ClinicianRow: React.FC<ClinicianRowProps> = ({
           onClick={() => onOpenGoalEditor?.('sessions')}
         >
           <motion.button
-            className="flex items-center gap-1 px-3 py-1.5 rounded-lg transition-colors"
+            className="flex flex-col items-center px-3 py-1 rounded-lg transition-colors"
             style={{
-              fontFamily: FONT.mono,
-              fontSize: 15,
-              fontWeight: 500,
-              color: INK.black,
               backgroundColor: 'transparent',
               border: 'none',
               cursor: 'pointer',
@@ -317,8 +315,41 @@ const ClinicianRow: React.FC<ClinicianRowProps> = ({
             whileHover={{ backgroundColor: INK.goldGlow }}
             whileTap={{ scale: 0.98 }}
           >
-            <span>{clinician.sessionGoal}</span>
-            <span style={{ fontSize: 11, color: INK.ghost }}>/wk</span>
+            {/* Primary: Sessions per week */}
+            <div className="flex items-center gap-1">
+              <span
+                style={{
+                  fontFamily: FONT.mono,
+                  fontSize: 15,
+                  fontWeight: 500,
+                  color: INK.black,
+                }}
+              >
+                {clinician.sessionGoal}
+              </span>
+              <span
+                style={{
+                  fontFamily: FONT.mono,
+                  fontSize: 11,
+                  color: INK.ghost,
+                }}
+              >
+                /wk
+              </span>
+            </div>
+            {/* Secondary: Estimated annual revenue */}
+            <span
+              style={{
+                fontFamily: FONT.mono,
+                fontSize: 10,
+                fontWeight: 500,
+                color: INK.faded,
+                letterSpacing: '0.01em',
+                marginTop: 1,
+              }}
+            >
+              {formatRevenue(estimateAnnualRevenue(clinician.sessionGoal))}/yr
+            </span>
           </motion.button>
         </div>
 

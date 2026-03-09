@@ -21,7 +21,6 @@ import { RevenueBreakdownPage } from './components/RevenueBreakdownPage';
 import { SessionsBreakdownPage } from './components/SessionsBreakdownPage';
 import { AttendanceBreakdownPage } from './components/AttendanceBreakdownPage';
 import { Consultations } from './components/Consultations';
-import { RevenuePlanning } from './components/RevenuePlanning';
 import { Reference as Components } from './components/design-system';
 import { DevLoaderTest } from './components/DevLoaderTest';
 import { Menu } from 'lucide-react';
@@ -38,7 +37,6 @@ const PAGE_TITLES: Record<string, string> = {
   '/practice-analysis': 'Practice Details',
   '/clinician-details': 'Clinician Details',
   '/consultations': 'Consultations',
-  '/revenue-planning': 'Revenue Planning',
   '/configure': 'Configure',
   '/components': 'Components',
   '/settings': 'Settings',
@@ -220,7 +218,6 @@ const ProtectedApp: React.FC = () => {
                 <Route path="/sessions-breakdown" element={<SessionsBreakdownPage />} />
                 <Route path="/attendance-breakdown" element={<AttendanceBreakdownPage />} />
                 <Route path="/consultations" element={<Consultations />} />
-                <Route path="/revenue-planning" element={<RevenuePlanning />} />
                 <Route path="/configure" element={<ConfigurePage />} />
                 <Route path="/components" element={<Components />} />
                 <Route path="/settings" element={<SettingsPage />} />
