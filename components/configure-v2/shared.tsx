@@ -142,14 +142,23 @@ export function formatRevenue(amount: number, compact: boolean = true): string {
 // RE-EXPORTS from original shared for compatibility
 // =============================================================================
 
-export type {
-  LicenseType,
-  ClinicianRole,
-  Clinician,
-  Location,
-  EHRConnection,
-  RawEHRClinician,
+// Import types we need to use in this file
+import type {
+  LicenseType as LicenseTypeImport,
+  ClinicianRole as ClinicianRoleImport,
+  Clinician as ClinicianImport,
+  Location as LocationImport,
+  EHRConnection as EHRConnectionImport,
+  RawEHRClinician as RawEHRClinicianImport,
 } from '../configure/shared';
+
+// Re-export for external use
+export type LicenseType = LicenseTypeImport;
+export type ClinicianRole = ClinicianRoleImport;
+export type Clinician = ClinicianImport;
+export type Location = LocationImport;
+export type EHRConnection = EHRConnectionImport;
+export type RawEHRClinician = RawEHRClinicianImport;
 
 export {
   LICENSE_TYPE_NAMES,
@@ -168,7 +177,7 @@ export {
 } from '../configure/shared';
 
 // New types for Users & Access
-export type UserRole = 'owner' | 'admin' | 'supervisor' | 'viewer';
+export type UserRole = 'owner' | 'admin' | 'supervisor' | 'selfOnly';
 export type UserStatus = 'active' | 'pending';
 
 export interface UserAccess {
@@ -177,8 +186,21 @@ export interface UserAccess {
   email: string;
   role: UserRole;
   revenueAccess: boolean;
-  superviseeIds: string[];
+  clinicianId?: string;  // Links to Clinician record - supervision derives access
   status: UserStatus;
+  lastActive?: string;   // ISO date string or null for pending users
+  invitedAt?: string;    // ISO date string for pending users
+}
+
+// Helper to derive supervisees from clinician relationships
+export function deriveSuperviseesForUser(
+  user: UserAccess,
+  clinicians: ClinicianImport[]
+): ClinicianImport[] {
+  if (!user.clinicianId || user.role !== 'supervisor') return [];
+
+  // Find all clinicians where this user's linked clinician is their supervisor
+  return clinicians.filter(c => c.supervisorId === user.clinicianId && c.isActive);
 }
 
 // Service mapping types

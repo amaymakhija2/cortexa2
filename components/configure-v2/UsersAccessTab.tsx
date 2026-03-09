@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Lock, Mail, RotateCcw, Shield, Eye, Users, Crown } from 'lucide-react';
+import { Plus, Lock, RotateCcw, Shield, Eye, Users, Crown, ChevronRight, Pencil, Check, Clock } from 'lucide-react';
 import {
   FONT,
   INK,
@@ -9,14 +9,17 @@ import {
   PrimaryButton,
   InlineSelect,
   TogglePill,
+  deriveSuperviseesForUser,
 } from './shared';
 import type { UserAccess, UserRole, Clinician } from './shared';
 import { InviteUserSlideOver } from './InviteUserSlideOver';
+import { EditUserSlideOver } from './EditUserSlideOver';
+import { GroupAccessModal } from './GroupAccessModal';
 
 // =============================================================================
 // USERS & ACCESS TAB - The Registry
 // =============================================================================
-// Who can access your practice data and what can they see?
+// Who can log into Cortexa and what can they see?
 // Each user is an entry in the registry. Roles are like titles of nobility.
 // The owner wears the crown and cannot be dethroned.
 // =============================================================================
@@ -34,8 +37,8 @@ const DEFAULT_OWNER: UserAccess = {
   email: 'owner@practice.com',
   role: 'owner',
   revenueAccess: true,
-  superviseeIds: [],
   status: 'active',
+  lastActive: new Date().toISOString(), // Owner is always "just now"
 };
 
 // Role display config
@@ -43,15 +46,92 @@ const ROLE_DISPLAY: Record<UserRole, { label: string; icon: React.ReactNode; col
   owner: { label: 'Owner', icon: <Crown size={12} />, color: INK.gold },
   admin: { label: 'Admin', icon: <Shield size={12} />, color: INK.violet },
   supervisor: { label: 'Supervisor', icon: <Users size={12} />, color: INK.emerald },
-  viewer: { label: 'Viewer', icon: <Eye size={12} />, color: INK.muted },
+  selfOnly: { label: 'Self Only', icon: <Eye size={12} />, color: INK.muted },
 };
 
 // Role options for dropdown (excluding owner)
 const ROLE_OPTIONS: { value: UserRole; label: string }[] = [
   { value: 'admin', label: 'Admin' },
   { value: 'supervisor', label: 'Supervisor' },
-  { value: 'viewer', label: 'Viewer' },
+  { value: 'selfOnly', label: 'Self Only' },
 ];
+
+// =============================================================================
+// COLUMN STRUCTURE - Matching the spec
+// =============================================================================
+
+interface ColumnDef {
+  key: string;
+  label: string;
+  width: string;
+  align: 'left' | 'center' | 'right';
+}
+
+const COLUMNS: ColumnDef[] = [
+  { key: 'user', label: 'User', width: '1fr', align: 'left' },
+  { key: 'email', label: 'Email', width: '180px', align: 'left' },
+  { key: 'role', label: 'Role', width: '120px', align: 'center' },
+  { key: 'access', label: 'Access', width: '100px', align: 'center' },
+  { key: 'lastActive', label: 'Last Active', width: '110px', align: 'center' },
+  { key: 'revenue', label: 'Revenue', width: '90px', align: 'center' },
+  { key: 'group', label: 'Group', width: '120px', align: 'center' },
+  { key: 'actions', label: '', width: '70px', align: 'center' },
+];
+
+const gridTemplate = COLUMNS.map((c) => c.width).join(' ');
+
+// Format relative time for last active
+function formatLastActive(dateStr?: string): string {
+  if (!dateStr) return '—';
+
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return 'Just now';
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays === 1) return 'Yesterday';
+  if (diffDays < 7) return `${diffDays}d ago`;
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
+
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+// =============================================================================
+// HEADER ROW
+// =============================================================================
+
+const HeaderRow: React.FC = () => (
+  <div
+    className="grid items-end pb-4"
+    style={{
+      gridTemplateColumns: gridTemplate,
+      borderBottom: `2px solid ${INK.dark}`,
+    }}
+  >
+    {COLUMNS.map((col) => (
+      <div
+        key={col.key}
+        className={col.key === 'user' ? 'pl-3' : ''}
+        style={{
+          fontFamily: FONT.sans,
+          fontSize: 10,
+          fontWeight: 700,
+          color: INK.faded,
+          letterSpacing: '0.1em',
+          textTransform: 'uppercase',
+          textAlign: col.align,
+        }}
+      >
+        {col.label}
+      </div>
+    ))}
+  </div>
+);
 
 // =============================================================================
 // USER ROW COMPONENT
@@ -62,26 +142,51 @@ interface UserRowProps {
   index: number;
   clinicians: Clinician[];
   onUpdate: (updates: Partial<UserAccess>) => void;
+  onEdit: () => void;
   onResend?: () => void;
+  onGroupClick?: () => void;
 }
 
-const UserRow: React.FC<UserRowProps> = ({ user, index, clinicians, onUpdate, onResend }) => {
+const UserRow: React.FC<UserRowProps> = ({
+  user,
+  index,
+  clinicians,
+  onUpdate,
+  onEdit,
+  onResend,
+  onGroupClick,
+}) => {
   const roleInfo = ROLE_DISPLAY[user.role];
   const isPending = user.status === 'pending';
   const isOwner = user.role === 'owner';
   const [isHovered, setIsHovered] = useState(false);
 
-  // Get supervisee names
-  const superviseeNames = user.superviseeIds
-    .map((id) => clinicians.find((c) => c.id === id)?.name.split(' ')[0])
-    .filter(Boolean)
-    .join(', ');
+  // Derive supervisees from clinician relationships
+  const derivedSupervisees = useMemo(() => {
+    return deriveSuperviseesForUser(user, clinicians);
+  }, [user, clinicians]);
 
-  // Row animation variants - matches EditableRosterTable
+  // Get linked clinician info
+  const linkedClinician = useMemo(() => {
+    if (!user.clinicianId) return null;
+    return clinicians.find(c => c.id === user.clinicianId) || null;
+  }, [user.clinicianId, clinicians]);
+
+  // Supervisee label
+  const superviseeCount = derivedSupervisees.length;
+  const superviseeLabel = superviseeCount > 0
+    ? `${superviseeCount} clinician${superviseeCount > 1 ? 's' : ''}`
+    : user.role === 'supervisor'
+      ? 'None assigned'
+      : user.role === 'owner' || user.role === 'admin'
+        ? 'All data'
+        : '—';
+
+  // Row animation variants
   const rowVariants = {
     hidden: { opacity: 0, y: 16 },
     visible: (i: number) => ({
-      opacity: isPending ? 0.6 : 1,
+      opacity: isPending ? 0.7 : 1,
       y: 0,
       transition: {
         delay: i * 0.03,
@@ -95,10 +200,10 @@ const UserRow: React.FC<UserRowProps> = ({ user, index, clinicians, onUpdate, on
     <motion.div
       className="grid items-center relative"
       style={{
-        gridTemplateColumns: '1fr 200px 130px 100px 1fr',
+        gridTemplateColumns: gridTemplate,
         borderBottom: `1px solid ${INK.rule}`,
-        minHeight: 64,
-        backgroundColor: isHovered ? INK.cream : 'transparent',
+        minHeight: 72,
+        backgroundColor: isHovered ? INK.cream : isPending ? `${INK.amber}08` : 'transparent',
         transition: 'background-color 0.15s ease',
       }}
       custom={index}
@@ -108,60 +213,67 @@ const UserRow: React.FC<UserRowProps> = ({ user, index, clinicians, onUpdate, on
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* User */}
+      {/* User - Avatar + Name */}
       <div className="flex items-center gap-3 pl-3 min-w-0">
-        {/* Avatar */}
+        {/* Avatar - use clinician color if linked */}
         <div
-          className="w-9 h-9 rounded-full flex items-center justify-center text-white font-semibold text-xs flex-shrink-0"
+          className="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0"
           style={{
             fontFamily: FONT.sans,
-            backgroundColor: isPending ? INK.ghost : roleInfo.color,
+            fontSize: 13,
+            backgroundColor: isPending
+              ? INK.ghost
+              : linkedClinician
+                ? linkedClinician.color
+                : roleInfo.color,
+            boxShadow: isPending
+              ? 'none'
+              : `0 2px 8px ${linkedClinician ? linkedClinician.color : roleInfo.color}30`,
           }}
         >
-          {user.name
-            .split(' ')
-            .map((n) => n[0])
-            .join('')
-            .slice(0, 2)
-            .toUpperCase()}
+          {linkedClinician
+            ? linkedClinician.initials
+            : user.name
+                .split(' ')
+                .map((n) => n[0])
+                .join('')
+                .slice(0, 2)
+                .toUpperCase()}
         </div>
         <div className="min-w-0">
           <div
-            className="flex items-center gap-2 truncate"
+            className="truncate"
             style={{
               fontFamily: FONT.serif,
-              fontSize: 17,
+              fontSize: 16,
               color: INK.black,
               lineHeight: 1.3,
             }}
           >
             {user.name}
           </div>
-          {isPending && (
+          {/* Show linked clinician badge */}
+          {linkedClinician && (
             <span
-              className="mt-0.5 inline-block"
               style={{
-                fontFamily: FONT.sans,
+                fontFamily: FONT.mono,
                 fontSize: 10,
-                fontWeight: 600,
-                color: INK.amber,
-                letterSpacing: '0.02em',
+                color: INK.ghost,
               }}
             >
-              Invite pending
+              {linkedClinician.licenseType}
             </span>
           )}
         </div>
       </div>
 
       {/* Email */}
-      <div className="flex items-center gap-1.5 min-w-0">
-        <Mail size={12} style={{ color: INK.ghost, flexShrink: 0 }} />
+      <div className="min-w-0">
         <span
-          className="truncate"
+          className="truncate block"
           style={{
             fontFamily: FONT.sans,
-            fontSize: 12,
+            fontSize: 13,
             color: INK.muted,
           }}
         >
@@ -201,6 +313,64 @@ const UserRow: React.FC<UserRowProps> = ({ user, index, clinicians, onUpdate, on
         )}
       </div>
 
+      {/* Access Status */}
+      <div className="flex justify-center">
+        {isPending ? (
+          <div
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full"
+            style={{
+              backgroundColor: INK.amberLight,
+              border: `1px solid ${INK.amber}30`,
+            }}
+          >
+            <Clock size={10} style={{ color: INK.amber }} />
+            <span
+              style={{
+                fontFamily: FONT.sans,
+                fontSize: 11,
+                fontWeight: 600,
+                color: INK.amber,
+              }}
+            >
+              Pending
+            </span>
+          </div>
+        ) : (
+          <div
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full"
+            style={{
+              backgroundColor: INK.emeraldLight,
+              border: `1px solid ${INK.emerald}30`,
+            }}
+          >
+            <Check size={10} style={{ color: INK.emerald }} />
+            <span
+              style={{
+                fontFamily: FONT.sans,
+                fontSize: 11,
+                fontWeight: 600,
+                color: INK.emerald,
+              }}
+            >
+              Accepted
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Last Active */}
+      <div className="flex justify-center">
+        <span
+          style={{
+            fontFamily: FONT.mono,
+            fontSize: 12,
+            color: isPending ? INK.ghost : user.lastActive ? INK.muted : INK.ghost,
+          }}
+        >
+          {isPending ? '—' : formatLastActive(user.lastActive)}
+        </span>
+      </div>
+
       {/* Revenue Access */}
       <div className="flex justify-center">
         {isOwner ? (
@@ -223,28 +393,48 @@ const UserRow: React.FC<UserRowProps> = ({ user, index, clinicians, onUpdate, on
         )}
       </div>
 
-      {/* Group / Actions */}
-      <div className="flex items-center justify-between pr-2">
-        <span
-          style={{
-            fontFamily: FONT.sans,
-            fontSize: 12,
-            color: INK.faded,
-          }}
-        >
-          {user.role === 'supervisor' && superviseeNames
-            ? superviseeNames
-            : user.role === 'owner' || user.role === 'admin'
-            ? 'All data'
-            : '—'}
-        </span>
+      {/* Group - Clickable for supervisors */}
+      <div className="flex justify-center">
+        {user.role === 'supervisor' ? (
+          <motion.button
+            onClick={onGroupClick}
+            whileHover={{ scale: 1.02, backgroundColor: INK.emeraldLight }}
+            whileTap={{ scale: 0.98 }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors"
+            style={{
+              fontFamily: FONT.sans,
+              fontSize: 12,
+              color: INK.emerald,
+              backgroundColor: `${INK.emerald}10`,
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            <Users size={12} />
+            <span>{superviseeLabel}</span>
+            <ChevronRight size={12} style={{ opacity: 0.6 }} />
+          </motion.button>
+        ) : (
+          <span
+            style={{
+              fontFamily: FONT.sans,
+              fontSize: 12,
+              color: INK.faded,
+            }}
+          >
+            {superviseeLabel}
+          </span>
+        )}
+      </div>
 
-        {isPending && onResend && (
+      {/* Actions */}
+      <div className="flex items-center justify-center gap-2">
+        {isPending && onResend ? (
           <motion.button
             onClick={onResend}
-            whileHover={{ scale: 1.02, backgroundColor: INK.goldGlow }}
-            whileTap={{ scale: 0.98 }}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-md"
+            whileHover={{ scale: 1.05, backgroundColor: INK.goldGlow }}
+            whileTap={{ scale: 0.95 }}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg"
             style={{
               fontFamily: FONT.sans,
               fontSize: 11,
@@ -253,11 +443,26 @@ const UserRow: React.FC<UserRowProps> = ({ user, index, clinicians, onUpdate, on
               backgroundColor: 'transparent',
               border: 'none',
               cursor: 'pointer',
-              transition: 'background-color 0.15s ease',
             }}
           >
             <RotateCcw size={11} />
             Resend
+          </motion.button>
+        ) : (
+          <motion.button
+            onClick={onEdit}
+            whileHover={{ scale: 1.05, backgroundColor: INK.cream }}
+            whileTap={{ scale: 0.95 }}
+            className="p-2 rounded-lg"
+            style={{
+              color: isHovered ? INK.muted : INK.ghost,
+              backgroundColor: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              transition: 'color 0.15s ease',
+            }}
+          >
+            <Pencil size={14} />
           </motion.button>
         )}
       </div>
@@ -266,19 +471,16 @@ const UserRow: React.FC<UserRowProps> = ({ user, index, clinicians, onUpdate, on
 };
 
 // =============================================================================
-// SUMMARY BAR - Team Access Overview
+// SUMMARY BAR
 // =============================================================================
-// Compact header matching CliniciansTab style with key stats at a glance.
 
 interface UserSummaryBarProps {
-  totalUsers: number;
   activeUsers: number;
   pendingUsers: number;
   onInviteClick: () => void;
 }
 
 const UserSummaryBar: React.FC<UserSummaryBarProps> = ({
-  totalUsers,
   activeUsers,
   pendingUsers,
   onInviteClick,
@@ -289,16 +491,15 @@ const UserSummaryBar: React.FC<UserSummaryBarProps> = ({
     transition={{ duration: 0.4, ease: EASE.out }}
     className="mb-6"
   >
-    {/* Header row */}
     <div className="flex items-center justify-between mb-3">
       <div>
         <h2
           style={{
             fontFamily: FONT.serif,
-            fontSize: 20,
+            fontSize: 24,
             fontWeight: 400,
             color: INK.black,
-            marginBottom: 2,
+            letterSpacing: '-0.01em',
           }}
         >
           Users & Access
@@ -308,15 +509,14 @@ const UserSummaryBar: React.FC<UserSummaryBarProps> = ({
             fontFamily: FONT.sans,
             fontSize: 13,
             color: INK.muted,
+            marginTop: 4,
           }}
         >
           Control who can access Cortexa and what they see
         </p>
       </div>
 
-      {/* Right: Stats + Invite button */}
       <div className="flex items-center gap-3">
-        {/* Status pills */}
         <div className="flex items-center gap-2">
           <div
             className="flex items-center gap-1.5 px-3 py-2 rounded-lg"
@@ -376,66 +576,13 @@ const UserSummaryBar: React.FC<UserSummaryBarProps> = ({
         <PrimaryButton
           onClick={onInviteClick}
           icon={<Plus size={16} />}
-          variant="stone"
+          variant="emerald"
         >
           Invite User
         </PrimaryButton>
       </div>
     </div>
   </motion.div>
-);
-
-// =============================================================================
-// COLUMN STRUCTURE
-// =============================================================================
-
-interface ColumnDef {
-  key: string;
-  label: string;
-  width: string;
-  align: 'left' | 'center' | 'right';
-}
-
-const COLUMNS: ColumnDef[] = [
-  { key: 'user', label: 'User', width: '1fr', align: 'left' },
-  { key: 'email', label: 'Email', width: '200px', align: 'left' },
-  { key: 'role', label: 'Role', width: '130px', align: 'center' },
-  { key: 'revenue', label: 'Revenue', width: '100px', align: 'center' },
-  { key: 'group', label: 'Group', width: '1fr', align: 'left' },
-];
-
-const gridTemplate = COLUMNS.map((c) => c.width).join(' ');
-
-// =============================================================================
-// HEADER ROW
-// =============================================================================
-
-const HeaderRow: React.FC = () => (
-  <div
-    className="grid items-end pb-4"
-    style={{
-      gridTemplateColumns: gridTemplate,
-      borderBottom: `2px solid ${INK.dark}`,
-    }}
-  >
-    {COLUMNS.map((col) => (
-      <div
-        key={col.key}
-        className={col.key === 'user' ? 'pl-3' : ''}
-        style={{
-          fontFamily: FONT.sans,
-          fontSize: 10,
-          fontWeight: 700,
-          color: INK.faded,
-          letterSpacing: '0.1em',
-          textTransform: 'uppercase',
-          textAlign: col.align,
-        }}
-      >
-        {col.label}
-      </div>
-    ))}
-  </div>
 );
 
 // =============================================================================
@@ -447,24 +594,40 @@ export const UsersAccessTab: React.FC<UsersAccessTabProps> = ({
   onUpdateUsers,
   clinicians,
 }) => {
-  // Ensure owner is always present
   const users = propUsers.length > 0 ? propUsers : [DEFAULT_OWNER];
   const [showInvite, setShowInvite] = useState(false);
+  const [editingUser, setEditingUser] = useState<UserAccess | null>(null);
+  const [groupViewUser, setGroupViewUser] = useState<UserAccess | null>(null);
 
-  // Compute user stats
   const userStats = useMemo(() => {
     const active = users.filter((u) => u.status === 'active').length;
     const pending = users.filter((u) => u.status === 'pending').length;
     return { total: users.length, active, pending };
   }, [users]);
 
-  // Update a single user
+  // Sort users: owner first, then active, then pending
+  const sortedUsers = useMemo(() => {
+    return [...users].sort((a, b) => {
+      if (a.role === 'owner') return -1;
+      if (b.role === 'owner') return 1;
+      if (a.status === 'active' && b.status === 'pending') return -1;
+      if (a.status === 'pending' && b.status === 'active') return 1;
+      return 0;
+    });
+  }, [users]);
+
+  // Get clinician IDs that already have user accounts
+  const existingUserClinicianIds = useMemo(() => {
+    return users
+      .filter(u => u.clinicianId)
+      .map(u => u.clinicianId as string);
+  }, [users]);
+
   const updateUser = (id: string, updates: Partial<UserAccess>) => {
     const updated = users.map((u) => (u.id === id ? { ...u, ...updates } : u));
     onUpdateUsers(updated);
   };
 
-  // Add new user from invite
   const handleInvite = (newUser: Omit<UserAccess, 'id'>) => {
     const user: UserAccess = {
       ...newUser,
@@ -473,11 +636,49 @@ export const UsersAccessTab: React.FC<UsersAccessTabProps> = ({
     onUpdateUsers([...users, user]);
   };
 
-  // Resend invitation (mock)
-  const handleResend = (userId: string) => {
-    // In real app, this would trigger an email resend
-    console.log('Resending invitation to user:', userId);
+  const handleEditSave = (updates: Partial<UserAccess>) => {
+    if (editingUser) {
+      updateUser(editingUser.id, updates);
+    }
   };
+
+  const handleDelete = () => {
+    if (editingUser) {
+      const updated = users.filter((u) => u.id !== editingUser.id);
+      onUpdateUsers(updated);
+      setEditingUser(null);
+    }
+  };
+
+  const handleResend = (userId: string) => {
+    console.log('Resending invitation to user:', userId);
+    // In real app, this would trigger an email resend
+  };
+
+  const footerContent = users.length > 1 && (
+    <>
+      <div
+        style={{
+          fontFamily: FONT.sans,
+          fontSize: 12,
+          color: INK.faded,
+        }}
+      >
+        <span style={{ color: INK.muted, fontWeight: 600 }}>{userStats.active}</span> active
+      </div>
+      {userStats.pending > 0 && (
+        <div
+          style={{
+            fontFamily: FONT.sans,
+            fontSize: 12,
+            color: INK.amber,
+          }}
+        >
+          <span style={{ fontWeight: 500 }}>{userStats.pending}</span> pending
+        </div>
+      )}
+    </>
+  );
 
   return (
     <motion.div
@@ -485,15 +686,12 @@ export const UsersAccessTab: React.FC<UsersAccessTabProps> = ({
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
     >
-      {/* Summary Bar - matches CliniciansTab style */}
       <UserSummaryBar
-        totalUsers={userStats.total}
         activeUsers={userStats.active}
         pendingUsers={userStats.pending}
         onInviteClick={() => setShowInvite(true)}
       />
 
-      {/* Users Table */}
       <LedgerCard>
         <div className="p-8">
           {/* Table Header */}
@@ -501,19 +699,21 @@ export const UsersAccessTab: React.FC<UsersAccessTabProps> = ({
 
           {/* Table Rows */}
           <div>
-            {users.map((user, index) => (
+            {sortedUsers.map((user, index) => (
               <UserRow
                 key={user.id}
                 user={user}
                 index={index}
                 clinicians={clinicians}
                 onUpdate={(updates) => updateUser(user.id, updates)}
+                onEdit={() => setEditingUser(user)}
                 onResend={user.status === 'pending' ? () => handleResend(user.id) : undefined}
+                onGroupClick={user.role === 'supervisor' ? () => setGroupViewUser(user) : undefined}
               />
             ))}
           </div>
 
-          {/* Empty state hint */}
+          {/* Empty state */}
           {users.length === 1 && users[0].role === 'owner' && (
             <motion.div
               initial={{ opacity: 0 }}
@@ -533,8 +733,8 @@ export const UsersAccessTab: React.FC<UsersAccessTabProps> = ({
             </motion.div>
           )}
 
-          {/* Footer summary - matches EditableRosterTable style */}
-          {users.length > 1 && (
+          {/* Footer summary */}
+          {footerContent && (
             <motion.div
               className="mt-6 pt-4 flex items-center gap-6"
               style={{ borderTop: `1px dashed ${INK.rule}` }}
@@ -542,26 +742,7 @@ export const UsersAccessTab: React.FC<UsersAccessTabProps> = ({
               animate={{ opacity: 1 }}
               transition={{ delay: users.length * 0.03 + 0.2 }}
             >
-              <div
-                style={{
-                  fontFamily: FONT.sans,
-                  fontSize: 12,
-                  color: INK.faded,
-                }}
-              >
-                <span style={{ color: INK.muted, fontWeight: 600 }}>{userStats.active}</span> active
-              </div>
-              {userStats.pending > 0 && (
-                <div
-                  style={{
-                    fontFamily: FONT.sans,
-                    fontSize: 12,
-                    color: INK.amber,
-                  }}
-                >
-                  <span style={{ fontWeight: 500 }}>{userStats.pending}</span> pending
-                </div>
-              )}
+              {footerContent}
             </motion.div>
           )}
         </div>
@@ -573,7 +754,28 @@ export const UsersAccessTab: React.FC<UsersAccessTabProps> = ({
         onClose={() => setShowInvite(false)}
         onInvite={handleInvite}
         clinicians={clinicians}
+        existingUserClinicianIds={existingUserClinicianIds}
       />
+
+      {/* Edit Slide Over */}
+      <EditUserSlideOver
+        isOpen={!!editingUser}
+        onClose={() => setEditingUser(null)}
+        onSave={handleEditSave}
+        onDelete={editingUser?.role !== 'owner' ? handleDelete : undefined}
+        user={editingUser}
+        clinicians={clinicians}
+      />
+
+      {/* Group Access Modal */}
+      {groupViewUser && (
+        <GroupAccessModal
+          isOpen={!!groupViewUser}
+          onClose={() => setGroupViewUser(null)}
+          user={groupViewUser}
+          clinicians={clinicians}
+        />
+      )}
     </motion.div>
   );
 };
