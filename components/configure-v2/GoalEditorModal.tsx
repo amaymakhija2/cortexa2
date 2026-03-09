@@ -1,7 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence, useSpring, useTransform } from 'framer-motion';
 import { X, TrendingUp, TrendingDown, Minus } from 'lucide-react';
-import { FONT, INK, PrimaryButton } from './shared';
+import { FONT, INK, PrimaryButton, estimateAnnualRevenue, formatRevenue, ChartTooltip } from './shared';
 import type { Clinician } from './shared';
 
 // =============================================================================
@@ -554,6 +554,7 @@ const DraggableGoalBar: React.FC<DraggableGoalBarProps> = ({
       {/* The bar itself */}
       <motion.div
         ref={barRef}
+        data-bar
         className="relative rounded-t-[4px] origin-bottom cursor-grab active:cursor-grabbing"
         style={{
           width: barWidth,
@@ -618,6 +619,7 @@ const ActualBar: React.FC<ActualBarProps> = ({
 
   return (
     <motion.div
+      data-bar
       className="rounded-t-[4px]"
       style={{
         width: barWidth,
@@ -709,101 +711,37 @@ const MonthColumn: React.FC<MonthColumnProps> = ({
       animate={{ opacity: isOtherDragging ? 0.4 : 1, y: 0 }}
       transition={{ delay: index * 0.03, duration: 0.35 }}
     >
-      {/* Hover tooltip (when not dragging) */}
-      <AnimatePresence>
-        {isHovered && !isDragging && !isOtherDragging && (
-          <motion.div
-            initial={{ opacity: 0, y: 8, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 8, scale: 0.9 }}
-            transition={{ duration: 0.15 }}
-            className="absolute z-30 rounded-xl overflow-hidden"
-            style={{
-              bottom: chartHeight + 12,
-              backgroundColor: '#1C1917',
-              boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
-              minWidth: 100,
-            }}
-          >
-            <div className="px-3 py-2.5">
-              <div className="flex items-center justify-between gap-3 mb-1.5">
-                <span style={{ fontFamily: FONT.sans, fontSize: 10, color: 'rgba(255,255,255,0.5)' }}>
-                  {data.label}
-                </span>
-                {showActual && (
-                  <div
-                    className="flex items-center gap-1 px-1.5 py-0.5 rounded"
-                    style={{
-                      backgroundColor: variance >= 0 ? 'rgba(45, 138, 110, 0.2)' : 'rgba(196, 85, 58, 0.2)',
-                    }}
-                  >
-                    {variance > 0 ? (
-                      <TrendingUp size={10} color={COLORS.positive} />
-                    ) : variance < 0 ? (
-                      <TrendingDown size={10} color={COLORS.negative} />
-                    ) : (
-                      <Minus size={10} color={COLORS.neutral} />
-                    )}
-                    <span
-                      style={{
-                        fontFamily: FONT.mono,
-                        fontSize: 10,
-                        fontWeight: 600,
-                        color: variance >= 0 ? COLORS.positive : COLORS.negative,
-                      }}
-                    >
-                      {variance > 0 ? '+' : ''}{variancePercent}%
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex items-end gap-3">
-                {showActual && (
-                  <div>
-                    <div className="flex items-center gap-1.5 mb-0.5">
-                      <div className="w-2 h-2 rounded-sm" style={{ backgroundColor: COLORS.actual }} />
-                      <span style={{ fontFamily: FONT.sans, fontSize: 9, color: 'rgba(255,255,255,0.4)' }}>
-                        Actual
-                      </span>
-                    </div>
-                    <span style={{ fontFamily: FONT.mono, fontSize: 18, fontWeight: 600, color: COLORS.actualLight }}>
-                      {data.actual}
-                    </span>
-                  </div>
-                )}
-                <div>
-                  <div className="flex items-center gap-1.5 mb-0.5">
-                    <div className="w-2 h-2 rounded-sm" style={{ backgroundColor: getGoalColor() }} />
-                    <span style={{ fontFamily: FONT.sans, fontSize: 9, color: 'rgba(255,255,255,0.4)' }}>
-                      Goal
-                    </span>
-                  </div>
-                  <span style={{ fontFamily: FONT.mono, fontSize: 18, fontWeight: 600, color: 'white' }}>
-                    {data.goal}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div
-              className="absolute left-1/2 -translate-x-1/2 w-0 h-0"
-              style={{
-                bottom: -6,
-                borderLeft: '6px solid transparent',
-                borderRight: '6px solid transparent',
-                borderTop: '6px solid #1C1917',
-              }}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Bar area */}
+      {/* Bar area with tooltip positioned above */}
       <div
         className="relative flex items-end justify-center gap-[3px]"
         style={{ height: chartHeight, width: columnWidth }}
       >
+        {/* Hover tooltip (when not dragging) */}
+        <AnimatePresence>
+          {isHovered && !isDragging && !isOtherDragging && (
+            <ChartTooltip
+              title={data.label}
+              values={[
+                ...(showActual ? [{
+                  label: 'Actual',
+                  value: String(data.actual),
+                  color: COLORS.actual,
+                  isPrimary: true,
+                }] : []),
+                {
+                  label: data.isPast ? 'Goal' : (data.isCurrent ? 'Goal' : (data.isExplicit ? 'Goal' : 'Inherited')),
+                  value: String(data.goal),
+                  color: getGoalColor(),
+                  isPrimary: !showActual,
+                },
+              ]}
+              variance={showActual ? { value: variance, percent: variancePercent } : undefined}
+              hint={data.isPast ? undefined : 'Drag goal bar to adjust'}
+              position="above"
+            />
+          )}
+        </AnimatePresence>
+
         {/* Actual bar */}
         {showActual && (
           <ActualBar
@@ -1080,6 +1018,10 @@ export const GoalEditorModal: React.FC<GoalEditorModalProps> = ({
   const metricLabel = metric === 'sessions' ? 'Sessions Goal' : 'Clients Goal';
   const currentMonthIndex = months.findIndex(m => m.isCurrent);
 
+  // Compute estimated revenue from current month's goal (only for sessions metric)
+  const currentMonthGoal = currentMonthIndex >= 0 ? months[currentMonthIndex].goal : currentValue;
+  const estimatedRevenue = metric === 'sessions' ? estimateAnnualRevenue(currentMonthGoal) : null;
+
   return (
     <>
       <motion.div
@@ -1143,12 +1085,48 @@ export const GoalEditorModal: React.FC<GoalEditorModalProps> = ({
               </div>
             </div>
 
-            <button
-              onClick={onClose}
-              className="p-2 rounded-lg transition-all hover:bg-stone-100 active:scale-95"
-            >
-              <X size={18} color={INK.muted} strokeWidth={2} />
-            </button>
+            <div className="flex items-center gap-4">
+              {/* Estimated Revenue - only show for sessions */}
+              {estimatedRevenue !== null && (
+                <motion.div
+                  key={currentMonthGoal}
+                  initial={{ opacity: 0.5, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.15 }}
+                  className="flex flex-col items-end"
+                >
+                  <span
+                    style={{
+                      fontFamily: FONT.sans,
+                      fontSize: 10,
+                      color: INK.faded,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.05em',
+                    }}
+                  >
+                    Est. Revenue
+                  </span>
+                  <span
+                    style={{
+                      fontFamily: FONT.mono,
+                      fontSize: 18,
+                      fontWeight: 600,
+                      color: INK.emerald,
+                      letterSpacing: '-0.01em',
+                    }}
+                  >
+                    {formatRevenue(estimatedRevenue)}/yr
+                  </span>
+                </motion.div>
+              )}
+
+              <button
+                onClick={onClose}
+                className="p-2 rounded-lg transition-all hover:bg-stone-100 active:scale-95"
+              >
+                <X size={18} color={INK.muted} strokeWidth={2} />
+              </button>
+            </div>
           </div>
 
           <div className="px-6 pt-6 pb-4">

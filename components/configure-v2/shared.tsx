@@ -105,6 +105,40 @@ export const EASE = {
 } as const;
 
 // =============================================================================
+// REVENUE ASSUMPTIONS - Shared calculation constants
+// =============================================================================
+// These are the defaults used to derive revenue estimates from session goals.
+// In production, these would come from practice settings/historical data.
+
+export const REVENUE_DEFAULTS = {
+  avgRatePerSession: 185,    // $185 average per session
+  workingWeeksPerYear: 48,   // 48 working weeks (accounting for PTO)
+} as const;
+
+// Revenue calculation helper
+export function estimateAnnualRevenue(
+  sessionsPerWeek: number,
+  avgRate: number = REVENUE_DEFAULTS.avgRatePerSession,
+  weeksPerYear: number = REVENUE_DEFAULTS.workingWeeksPerYear
+): number {
+  return sessionsPerWeek * weeksPerYear * avgRate;
+}
+
+// Format revenue for display (compact K/M notation)
+export function formatRevenue(amount: number, compact: boolean = true): string {
+  if (compact) {
+    if (amount >= 1_000_000) {
+      return `$${(amount / 1_000_000).toFixed(1)}M`;
+    }
+    if (amount >= 1_000) {
+      return `$${Math.round(amount / 1_000)}K`;
+    }
+    return `$${Math.round(amount)}`;
+  }
+  return `$${amount.toLocaleString()}`;
+}
+
+// =============================================================================
 // RE-EXPORTS from original shared for compatibility
 // =============================================================================
 
@@ -650,5 +684,250 @@ export const PrimaryButton: React.FC<PrimaryButtonProps> = ({
       {icon}
       {children}
     </motion.button>
+  );
+};
+
+// =============================================================================
+// CHART TOOLTIP - Refined Data Presentation
+// =============================================================================
+// A sophisticated tooltip for bar charts that presents data with clarity.
+// Warm paper background with editorial typography and generous spacing.
+// Positioned above bars with smart overflow handling.
+
+export interface ChartTooltipValue {
+  label: string;
+  value: string | number;
+  color: string;
+  isPrimary?: boolean;
+}
+
+export interface ChartTooltipProps {
+  title: string;
+  values: ChartTooltipValue[];
+  variance?: {
+    value: number;
+    percent: number;
+  };
+  hint?: string;
+  position?: 'above' | 'below';
+}
+
+export const ChartTooltip: React.FC<ChartTooltipProps> = ({
+  title,
+  values,
+  variance,
+  hint,
+  position = 'above',
+}) => {
+  const isPositive = variance ? variance.value >= 0 : false;
+  const arrowPosition = position === 'above' ? 'bottom' : 'top';
+  const tooltipRef = useRef<HTMLDivElement>(null);
+  const [coords, setCoords] = useState<{ top: number; left: number } | null>(null);
+
+  // Calculate fixed position based on parent element (bar area)
+  // Find the actual bars to position tooltip just above them
+  useEffect(() => {
+    if (tooltipRef.current) {
+      const parent = tooltipRef.current.parentElement;
+      if (parent) {
+        const rect = parent.getBoundingClientRect();
+        const tooltipHeight = tooltipRef.current.offsetHeight;
+
+        // Find the tallest bar in this column to position above it
+        const bars = parent.querySelectorAll('[data-bar]');
+        let highestBarTop = rect.bottom; // Start at bottom
+        bars.forEach(bar => {
+          const barRect = bar.getBoundingClientRect();
+          if (barRect.top < highestBarTop) {
+            highestBarTop = barRect.top;
+          }
+        });
+
+        // If no bars found, use a reasonable offset from center
+        if (bars.length === 0) {
+          highestBarTop = rect.top + rect.height * 0.3;
+        }
+
+        setCoords({
+          top: position === 'above' ? highestBarTop - tooltipHeight - 10 : rect.bottom + 10,
+          left: rect.left + rect.width / 2,
+        });
+      }
+    }
+  }, [position]);
+
+  return (
+    <motion.div
+      ref={tooltipRef}
+      initial={{ opacity: 0, y: position === 'above' ? 6 : -6, scale: 0.96 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: position === 'above' ? 6 : -6, scale: 0.96 }}
+      transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
+      className="pointer-events-none"
+      style={{
+        position: 'fixed',
+        top: coords?.top ?? 0,
+        left: coords?.left ?? 0,
+        transform: 'translateX(-50%)',
+        zIndex: 10001, // Above modal backdrop
+        visibility: coords ? 'visible' : 'hidden',
+      }}
+    >
+      {/* Tooltip card */}
+      <div
+        style={{
+          background: INK.paper,
+          border: `1px solid ${INK.rule}`,
+          borderRadius: 12,
+          boxShadow: `
+            0 4px 16px rgba(26, 24, 21, 0.12),
+            0 8px 32px rgba(26, 24, 21, 0.08)
+          `,
+          minWidth: 160,
+          overflow: 'hidden',
+        }}
+      >
+        {/* Header with title and variance */}
+        <div
+          style={{
+            padding: '10px 14px 8px',
+            borderBottom: `1px solid ${INK.rule}`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+          }}
+        >
+          <span
+            style={{
+              fontFamily: FONT.serif,
+              fontSize: 14,
+              fontWeight: 500,
+              color: INK.black,
+              letterSpacing: '-0.01em',
+            }}
+          >
+            {title}
+          </span>
+
+          {variance && variance.value !== 0 && (
+            <span
+              style={{
+                fontFamily: FONT.mono,
+                fontSize: 11,
+                fontWeight: 600,
+                color: isPositive ? INK.emerald : INK.rose,
+                backgroundColor: isPositive ? INK.emeraldLight : INK.roseLight,
+                padding: '2px 6px',
+                borderRadius: 4,
+              }}
+            >
+              {isPositive ? '+' : ''}{variance.percent}%
+            </span>
+          )}
+        </div>
+
+        {/* Values section */}
+        <div style={{ padding: '10px 14px 12px' }}>
+          <div style={{ display: 'flex', gap: 16 }}>
+            {values.map((v, i) => (
+              <div key={i} style={{ flex: v.isPrimary ? 1 : 'none' }}>
+                {/* Label with color indicator */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    marginBottom: 4,
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: 2,
+                      backgroundColor: v.color,
+                      flexShrink: 0,
+                    }}
+                  />
+                  <span
+                    style={{
+                      fontFamily: FONT.sans,
+                      fontSize: 10,
+                      fontWeight: 500,
+                      color: INK.muted,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em',
+                    }}
+                  >
+                    {v.label}
+                  </span>
+                </div>
+
+                {/* Value */}
+                <span
+                  style={{
+                    fontFamily: FONT.mono,
+                    fontSize: 18,
+                    fontWeight: 600,
+                    color: INK.black,
+                    letterSpacing: '-0.02em',
+                  }}
+                >
+                  {v.value}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Hint footer */}
+        {hint && (
+          <div
+            style={{
+              padding: '8px 14px',
+              borderTop: `1px solid ${INK.rule}`,
+              backgroundColor: INK.cream,
+            }}
+          >
+            <span
+              style={{
+                fontFamily: FONT.sans,
+                fontSize: 10,
+                color: INK.ghost,
+                fontStyle: 'italic',
+              }}
+            >
+              {hint}
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Arrow */}
+      <div
+        style={{
+          position: 'absolute',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          [arrowPosition]: -6,
+          width: 12,
+          height: 12,
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          style={{
+            width: 10,
+            height: 10,
+            backgroundColor: arrowPosition === 'bottom' ? INK.paper : (hint ? INK.cream : INK.paper),
+            border: `1px solid ${INK.rule}`,
+            borderRadius: 2,
+            transform: `translateY(${arrowPosition === 'bottom' ? -6 : 6}px) rotate(45deg)`,
+            marginLeft: 1,
+          }}
+        />
+      </div>
+    </motion.div>
   );
 };
