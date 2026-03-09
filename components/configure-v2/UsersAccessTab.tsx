@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Lock, Mail, RotateCcw, Shield, Eye, Users, Crown } from 'lucide-react';
 import {
   FONT,
   INK,
   EASE,
-  SectionHeader,
   LedgerCard,
   PrimaryButton,
   InlineSelect,
@@ -70,6 +69,7 @@ const UserRow: React.FC<UserRowProps> = ({ user, index, clinicians, onUpdate, on
   const roleInfo = ROLE_DISPLAY[user.role];
   const isPending = user.status === 'pending';
   const isOwner = user.role === 'owner';
+  const [isHovered, setIsHovered] = useState(false);
 
   // Get supervisee names
   const superviseeNames = user.superviseeIds
@@ -77,22 +77,42 @@ const UserRow: React.FC<UserRowProps> = ({ user, index, clinicians, onUpdate, on
     .filter(Boolean)
     .join(', ');
 
+  // Row animation variants - matches EditableRosterTable
+  const rowVariants = {
+    hidden: { opacity: 0, y: 16 },
+    visible: (i: number) => ({
+      opacity: isPending ? 0.6 : 1,
+      y: 0,
+      transition: {
+        delay: i * 0.03,
+        duration: 0.4,
+        ease: EASE.out,
+      },
+    }),
+  };
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: isPending ? 0.7 : 1, y: 0 }}
-      transition={{ delay: index * 0.05, duration: 0.3, ease: EASE.out }}
-      className="grid items-center py-5"
+      className="grid items-center relative"
       style={{
         gridTemplateColumns: '1fr 200px 130px 100px 1fr',
         borderBottom: `1px solid ${INK.rule}`,
+        minHeight: 64,
+        backgroundColor: isHovered ? INK.cream : 'transparent',
+        transition: 'background-color 0.15s ease',
       }}
+      custom={index}
+      initial="hidden"
+      animate="visible"
+      variants={rowVariants}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
       {/* User */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 pl-3 min-w-0">
         {/* Avatar */}
         <div
-          className="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm"
+          className="w-9 h-9 rounded-full flex items-center justify-center text-white font-semibold text-xs flex-shrink-0"
           style={{
             fontFamily: FONT.sans,
             backgroundColor: isPending ? INK.ghost : roleInfo.color,
@@ -105,39 +125,43 @@ const UserRow: React.FC<UserRowProps> = ({ user, index, clinicians, onUpdate, on
             .slice(0, 2)
             .toUpperCase()}
         </div>
-        <div>
+        <div className="min-w-0">
           <div
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 truncate"
             style={{
               fontFamily: FONT.serif,
-              fontSize: 16,
+              fontSize: 17,
               color: INK.black,
+              lineHeight: 1.3,
             }}
           >
             {user.name}
-            {isPending && (
-              <span
-                className="px-2 py-0.5 rounded-full text-xs font-semibold"
-                style={{
-                  fontFamily: FONT.sans,
-                  backgroundColor: INK.amberLight,
-                  color: INK.amber,
-                }}
-              >
-                Pending
-              </span>
-            )}
           </div>
+          {isPending && (
+            <span
+              className="mt-0.5 inline-block"
+              style={{
+                fontFamily: FONT.sans,
+                fontSize: 10,
+                fontWeight: 600,
+                color: INK.amber,
+                letterSpacing: '0.02em',
+              }}
+            >
+              Invite pending
+            </span>
+          )}
         </div>
       </div>
 
       {/* Email */}
-      <div className="flex items-center gap-2">
-        <Mail size={14} style={{ color: INK.ghost }} />
+      <div className="flex items-center gap-1.5 min-w-0">
+        <Mail size={12} style={{ color: INK.ghost, flexShrink: 0 }} />
         <span
+          className="truncate"
           style={{
             fontFamily: FONT.sans,
-            fontSize: 13,
+            fontSize: 12,
             color: INK.muted,
           }}
         >
@@ -146,7 +170,7 @@ const UserRow: React.FC<UserRowProps> = ({ user, index, clinicians, onUpdate, on
       </div>
 
       {/* Role */}
-      <div className="flex items-center">
+      <div className="flex justify-center">
         {isOwner ? (
           <div
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full"
@@ -155,11 +179,11 @@ const UserRow: React.FC<UserRowProps> = ({ user, index, clinicians, onUpdate, on
               border: `1px solid ${INK.gold}30`,
             }}
           >
-            <Lock size={11} style={{ color: INK.gold }} />
+            <Lock size={10} style={{ color: INK.gold }} />
             <span
               style={{
                 fontFamily: FONT.sans,
-                fontSize: 12,
+                fontSize: 11,
                 fontWeight: 600,
                 color: INK.gold,
               }}
@@ -172,18 +196,18 @@ const UserRow: React.FC<UserRowProps> = ({ user, index, clinicians, onUpdate, on
             value={user.role}
             options={ROLE_OPTIONS}
             onChange={(value) => onUpdate({ role: value })}
-            width={110}
+            width={100}
           />
         )}
       </div>
 
       {/* Revenue Access */}
-      <div>
+      <div className="flex justify-center">
         {isOwner ? (
           <span
             style={{
-              fontFamily: FONT.sans,
-              fontSize: 12,
+              fontFamily: FONT.mono,
+              fontSize: 11,
               color: INK.faded,
             }}
           >
@@ -200,11 +224,11 @@ const UserRow: React.FC<UserRowProps> = ({ user, index, clinicians, onUpdate, on
       </div>
 
       {/* Group / Actions */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between pr-2">
         <span
           style={{
             fontFamily: FONT.sans,
-            fontSize: 13,
+            fontSize: 12,
             color: INK.faded,
           }}
         >
@@ -218,22 +242,21 @@ const UserRow: React.FC<UserRowProps> = ({ user, index, clinicians, onUpdate, on
         {isPending && onResend && (
           <motion.button
             onClick={onResend}
-            whileHover={{ scale: 1.02 }}
+            whileHover={{ scale: 1.02, backgroundColor: INK.goldGlow }}
             whileTap={{ scale: 0.98 }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-md"
             style={{
               fontFamily: FONT.sans,
-              fontSize: 12,
+              fontSize: 11,
               fontWeight: 600,
               color: INK.gold,
               backgroundColor: 'transparent',
               border: 'none',
               cursor: 'pointer',
+              transition: 'background-color 0.15s ease',
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = INK.goldGlow)}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
           >
-            <RotateCcw size={12} />
+            <RotateCcw size={11} />
             Resend
           </motion.button>
         )}
@@ -241,6 +264,179 @@ const UserRow: React.FC<UserRowProps> = ({ user, index, clinicians, onUpdate, on
     </motion.div>
   );
 };
+
+// =============================================================================
+// SUMMARY BAR - Team Access Overview
+// =============================================================================
+// Compact header matching CliniciansTab style with key stats at a glance.
+
+interface UserSummaryBarProps {
+  totalUsers: number;
+  activeUsers: number;
+  pendingUsers: number;
+  onInviteClick: () => void;
+}
+
+const UserSummaryBar: React.FC<UserSummaryBarProps> = ({
+  totalUsers,
+  activeUsers,
+  pendingUsers,
+  onInviteClick,
+}) => (
+  <motion.div
+    initial={{ opacity: 0, y: -8 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.4, ease: EASE.out }}
+    className="mb-6"
+  >
+    {/* Header row */}
+    <div className="flex items-center justify-between mb-3">
+      <div>
+        <h2
+          style={{
+            fontFamily: FONT.serif,
+            fontSize: 20,
+            fontWeight: 400,
+            color: INK.black,
+            marginBottom: 2,
+          }}
+        >
+          Users & Access
+        </h2>
+        <p
+          style={{
+            fontFamily: FONT.sans,
+            fontSize: 13,
+            color: INK.muted,
+          }}
+        >
+          Control who can access Cortexa and what they see
+        </p>
+      </div>
+
+      {/* Right: Stats + Invite button */}
+      <div className="flex items-center gap-3">
+        {/* Status pills */}
+        <div className="flex items-center gap-2">
+          <div
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg"
+            style={{ backgroundColor: INK.cream }}
+          >
+            <span
+              style={{
+                fontFamily: FONT.mono,
+                fontSize: 14,
+                fontWeight: 600,
+                color: INK.black,
+              }}
+            >
+              {activeUsers}
+            </span>
+            <span
+              style={{
+                fontFamily: FONT.sans,
+                fontSize: 11,
+                color: INK.muted,
+              }}
+            >
+              active
+            </span>
+          </div>
+          {pendingUsers > 0 && (
+            <div
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg"
+              style={{
+                backgroundColor: INK.amberLight,
+                border: `1px solid ${INK.amber}30`,
+              }}
+            >
+              <span
+                style={{
+                  fontFamily: FONT.mono,
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: INK.amber,
+                }}
+              >
+                {pendingUsers}
+              </span>
+              <span
+                style={{
+                  fontFamily: FONT.sans,
+                  fontSize: 11,
+                  color: INK.amber,
+                }}
+              >
+                pending
+              </span>
+            </div>
+          )}
+        </div>
+
+        <PrimaryButton
+          onClick={onInviteClick}
+          icon={<Plus size={16} />}
+          variant="stone"
+        >
+          Invite User
+        </PrimaryButton>
+      </div>
+    </div>
+  </motion.div>
+);
+
+// =============================================================================
+// COLUMN STRUCTURE
+// =============================================================================
+
+interface ColumnDef {
+  key: string;
+  label: string;
+  width: string;
+  align: 'left' | 'center' | 'right';
+}
+
+const COLUMNS: ColumnDef[] = [
+  { key: 'user', label: 'User', width: '1fr', align: 'left' },
+  { key: 'email', label: 'Email', width: '200px', align: 'left' },
+  { key: 'role', label: 'Role', width: '130px', align: 'center' },
+  { key: 'revenue', label: 'Revenue', width: '100px', align: 'center' },
+  { key: 'group', label: 'Group', width: '1fr', align: 'left' },
+];
+
+const gridTemplate = COLUMNS.map((c) => c.width).join(' ');
+
+// =============================================================================
+// HEADER ROW
+// =============================================================================
+
+const HeaderRow: React.FC = () => (
+  <div
+    className="grid items-end pb-4"
+    style={{
+      gridTemplateColumns: gridTemplate,
+      borderBottom: `2px solid ${INK.dark}`,
+    }}
+  >
+    {COLUMNS.map((col) => (
+      <div
+        key={col.key}
+        className={col.key === 'user' ? 'pl-3' : ''}
+        style={{
+          fontFamily: FONT.sans,
+          fontSize: 10,
+          fontWeight: 700,
+          color: INK.faded,
+          letterSpacing: '0.1em',
+          textTransform: 'uppercase',
+          textAlign: col.align,
+        }}
+      >
+        {col.label}
+      </div>
+    ))}
+  </div>
+);
 
 // =============================================================================
 // MAIN COMPONENT
@@ -254,6 +450,13 @@ export const UsersAccessTab: React.FC<UsersAccessTabProps> = ({
   // Ensure owner is always present
   const users = propUsers.length > 0 ? propUsers : [DEFAULT_OWNER];
   const [showInvite, setShowInvite] = useState(false);
+
+  // Compute user stats
+  const userStats = useMemo(() => {
+    const active = users.filter((u) => u.status === 'active').length;
+    const pending = users.filter((u) => u.status === 'pending').length;
+    return { total: users.length, active, pending };
+  }, [users]);
 
   // Update a single user
   const updateUser = (id: string, updates: Partial<UserAccess>) => {
@@ -282,48 +485,19 @@ export const UsersAccessTab: React.FC<UsersAccessTabProps> = ({
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
     >
-      {/* Header */}
-      <SectionHeader
-        title="Users & Access"
-        subtitle="Control who can access Cortexa and what they see"
-        actions={
-          <PrimaryButton
-            onClick={() => setShowInvite(true)}
-            icon={<Plus size={18} />}
-            variant="emerald"
-          >
-            Invite User
-          </PrimaryButton>
-        }
+      {/* Summary Bar - matches CliniciansTab style */}
+      <UserSummaryBar
+        totalUsers={userStats.total}
+        activeUsers={userStats.active}
+        pendingUsers={userStats.pending}
+        onInviteClick={() => setShowInvite(true)}
       />
 
       {/* Users Table */}
-      <LedgerCard accent="violet">
-        <div className="px-8 pt-6 pb-2">
+      <LedgerCard>
+        <div className="p-8">
           {/* Table Header */}
-          <div
-            className="grid items-end pb-4"
-            style={{
-              gridTemplateColumns: '1fr 200px 130px 100px 1fr',
-              borderBottom: `2px solid ${INK.dark}`,
-            }}
-          >
-            {['User', 'Email', 'Role', 'Revenue', 'Group'].map((label) => (
-              <div
-                key={label}
-                style={{
-                  fontFamily: FONT.sans,
-                  fontSize: 10,
-                  fontWeight: 700,
-                  color: INK.faded,
-                  letterSpacing: '0.1em',
-                  textTransform: 'uppercase',
-                }}
-              >
-                {label}
-              </div>
-            ))}
-          </div>
+          <HeaderRow />
 
           {/* Table Rows */}
           <div>
@@ -356,6 +530,38 @@ export const UsersAccessTab: React.FC<UsersAccessTabProps> = ({
               >
                 Invite team members to give them access to practice data.
               </p>
+            </motion.div>
+          )}
+
+          {/* Footer summary - matches EditableRosterTable style */}
+          {users.length > 1 && (
+            <motion.div
+              className="mt-6 pt-4 flex items-center gap-6"
+              style={{ borderTop: `1px dashed ${INK.rule}` }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: users.length * 0.03 + 0.2 }}
+            >
+              <div
+                style={{
+                  fontFamily: FONT.sans,
+                  fontSize: 12,
+                  color: INK.faded,
+                }}
+              >
+                <span style={{ color: INK.muted, fontWeight: 600 }}>{userStats.active}</span> active
+              </div>
+              {userStats.pending > 0 && (
+                <div
+                  style={{
+                    fontFamily: FONT.sans,
+                    fontSize: 12,
+                    color: INK.amber,
+                  }}
+                >
+                  <span style={{ fontWeight: 500 }}>{userStats.pending}</span> pending
+                </div>
+              )}
             </motion.div>
           )}
         </div>

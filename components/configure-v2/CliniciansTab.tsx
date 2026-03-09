@@ -311,27 +311,28 @@ const PracticeSummaryBar: React.FC<PracticeSummaryBarProps> = ({
       className="mb-6"
     >
       {/* Header row */}
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-4">
         <div>
           <h2
             style={{
               fontFamily: FONT.serif,
-              fontSize: 20,
+              fontSize: 24,
               fontWeight: 400,
               color: INK.black,
-              marginBottom: 2,
+              letterSpacing: '-0.01em',
             }}
           >
-            Practice Total Goals
+            Clinicians
           </h2>
           <p
             style={{
               fontFamily: FONT.sans,
               fontSize: 13,
               color: INK.muted,
+              marginTop: 4,
             }}
           >
-            Combined goals from {clinicianCount} clinicians
+            Set individual goals and manage your team
           </p>
         </div>
 
@@ -356,7 +357,23 @@ const PracticeSummaryBar: React.FC<PracticeSummaryBarProps> = ({
       </div>
 
       {/* Metric pills row */}
-      <div className="flex items-center gap-1">
+      <div>
+        {/* Section label */}
+        <div
+          className="flex items-center gap-2 mb-2"
+          style={{
+            fontFamily: FONT.sans,
+            fontSize: 10,
+            fontWeight: 600,
+            color: INK.ghost,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+          }}
+        >
+          <span>Practice Totals</span>
+          <div className="flex-1 h-px" style={{ backgroundColor: INK.rule }} />
+        </div>
+        <div className="flex items-center gap-1">
         <MetricPill
           label="Monthly Revenue Goal"
           value={formatRevenue(monthlyRevenue)}
@@ -386,6 +403,7 @@ const PracticeSummaryBar: React.FC<PracticeSummaryBarProps> = ({
           onClick={() => onMetricClick('clients')}
           accentColor="#7c3aed"
         />
+        </div>
       </div>
     </motion.div>
   );
