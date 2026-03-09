@@ -213,57 +213,29 @@ const UserRow: React.FC<UserRowProps> = ({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* User - Avatar + Name */}
-      <div className="flex items-center gap-3 pl-3 min-w-0">
-        {/* Avatar - use clinician color if linked */}
-        <div
-          className="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0"
+      {/* User - Name (matching Clinicians roster style) */}
+      <div className="min-w-0 pl-3">
+        <motion.div
+          className="truncate"
           style={{
-            fontFamily: FONT.sans,
-            fontSize: 13,
-            backgroundColor: isPending
-              ? INK.ghost
-              : linkedClinician
-                ? linkedClinician.color
-                : roleInfo.color,
-            boxShadow: isPending
-              ? 'none'
-              : `0 2px 8px ${linkedClinician ? linkedClinician.color : roleInfo.color}30`,
+            fontFamily: FONT.serif,
+            fontSize: 17,
+            color: INK.black,
+            lineHeight: 1.3,
           }}
         >
-          {linkedClinician
-            ? linkedClinician.initials
-            : user.name
-                .split(' ')
-                .map((n) => n[0])
-                .join('')
-                .slice(0, 2)
-                .toUpperCase()}
-        </div>
-        <div className="min-w-0">
-          <div
-            className="truncate"
-            style={{
-              fontFamily: FONT.serif,
-              fontSize: 16,
-              color: INK.black,
-              lineHeight: 1.3,
-            }}
-          >
-            {user.name}
-          </div>
-          {/* Show linked clinician badge */}
-          {linkedClinician && (
-            <span
-              style={{
-                fontFamily: FONT.mono,
-                fontSize: 10,
-                color: INK.ghost,
-              }}
-            >
-              {linkedClinician.licenseType}
-            </span>
-          )}
+          {user.name}
+        </motion.div>
+        <div
+          className="truncate mt-0.5"
+          style={{
+            fontFamily: FONT.sans,
+            fontSize: 11,
+            color: INK.ghost,
+            letterSpacing: '0.02em',
+          }}
+        >
+          {linkedClinician ? linkedClinician.licenseType : isPending ? 'Invitation pending' : 'Staff'}
         </div>
       </div>
 
