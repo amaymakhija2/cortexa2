@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { RefreshCw, Check, Wifi, MapPin, Users, Settings } from 'lucide-react';
+import { RefreshCw, Check, Wifi, Users } from 'lucide-react';
 import {
   FONT,
   INK,
@@ -10,10 +10,8 @@ import {
   PrimaryButton,
 } from './shared';
 import type { EHRConnection, Clinician } from './shared';
-import { MOCK_EHR, MOCK_EHR_OFFICES, MOCK_LOCATION_GROUPS } from './shared';
-import { OfficeMapping, type LocationGroup, type RawEHROffice } from '../OfficeMapping';
+import { MOCK_EHR } from './shared';
 import { ClinicianMapping } from '../ClinicianMapping';
-import { ServiceMappingComponent } from './ServiceMapping';
 
 // =============================================================================
 // CONNECTIONS TAB - The Data Pipeline
@@ -278,15 +276,7 @@ export const ConnectionsTab: React.FC<ConnectionsTabProps> = ({
   onUpdateClinicians,
   onRefreshEHR,
 }) => {
-  const [locationGroups, setLocationGroups] = useState<LocationGroup[]>(MOCK_LOCATION_GROUPS);
-  const [ehrOffices] = useState<RawEHROffice[]>(MOCK_EHR_OFFICES);
   const [showClinicianMapping, setShowClinicianMapping] = useState(false);
-
-  // Compute location mapping status
-  const locationStatus = useMemo(() => {
-    const assigned = locationGroups.reduce((sum, g) => sum + g.ehrOfficeIds.length, 0);
-    return { assigned, total: ehrOffices.length };
-  }, [locationGroups, ehrOffices]);
 
   // Compute clinician mapping status
   const clinicianStatus = useMemo(() => {
@@ -347,7 +337,7 @@ export const ConnectionsTab: React.FC<ConnectionsTabProps> = ({
     >
       <SectionHeader
         title="Connections"
-        subtitle="EHR sync, location mapping, and service configuration"
+        subtitle="EHR sync and clinician mapping"
       />
 
       {/* Section 1: EHR Connection */}
@@ -355,30 +345,8 @@ export const ConnectionsTab: React.FC<ConnectionsTabProps> = ({
         <EHRCard ehr={ehr} onRefresh={onRefreshEHR} />
       </LedgerCard>
 
-      {/* Section 2: Location Mapping */}
-      <LedgerCard className="mb-8">
-        <div className="p-6">
-          <SubSectionHeader
-            icon={<MapPin size={18} />}
-            title="Location Mapping"
-            subtitle="Assign EHR offices to your practice locations"
-            status={<StatusPill {...locationStatus} />}
-          />
-          <div
-            className="p-5 rounded-xl"
-            style={{ backgroundColor: INK.cream }}
-          >
-            <OfficeMapping
-              ehrOffices={ehrOffices}
-              locationGroups={locationGroups}
-              onUpdateGroups={setLocationGroups}
-            />
-          </div>
-        </div>
-      </LedgerCard>
-
-      {/* Section 3: Clinician Mapping */}
-      <LedgerCard className="mb-8">
+      {/* Section 2: Clinician Mapping */}
+      <LedgerCard>
         <div className="p-6">
           <SubSectionHeader
             icon={<Users size={18} />}
@@ -421,13 +389,6 @@ export const ConnectionsTab: React.FC<ConnectionsTabProps> = ({
                 : `${clinicianStatus.assigned} of ${clinicianStatus.total} clinicians mapped. Click "Manage Mapping" to assign the rest.`}
             </p>
           </div>
-        </div>
-      </LedgerCard>
-
-      {/* Section 4: Service Mapping */}
-      <LedgerCard>
-        <div className="p-6">
-          <ServiceMappingComponent />
         </div>
       </LedgerCard>
     </motion.div>

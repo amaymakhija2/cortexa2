@@ -531,9 +531,9 @@ const ServiceMappingSection: React.FC<ServiceMappingProps> = ({ services, onUpda
 
   return (
     <LedgerCard>
-      <div className="p-6">
+      <div className="p-8">
         {/* Section header */}
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-8 flex items-center justify-between">
           <div>
             <h2
               style={{
@@ -549,27 +549,27 @@ const ServiceMappingSection: React.FC<ServiceMappingProps> = ({ services, onUpda
             <p
               style={{
                 fontFamily: FONT.sans,
-                fontSize: 13,
+                fontSize: 14,
                 color: INK.muted,
-                marginTop: 4,
+                marginTop: 6,
               }}
             >
               Categorize appointment types to determine what counts toward goals
             </p>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-5">
             {BUCKETS.map((b) => (
-              <div key={b.id} className="flex items-center gap-1.5">
+              <div key={b.id} className="flex items-center gap-2">
                 <div
-                  className="w-2 h-2 rounded-full"
+                  className="w-2.5 h-2.5 rounded-full"
                   style={{ backgroundColor: b.color }}
                 />
                 <span
                   style={{
                     fontFamily: FONT.mono,
-                    fontSize: 12,
+                    fontSize: 13,
                     color: b.id === 'unassigned' && byBucket[b.id]?.length > 0 ? INK.rose : INK.muted,
-                    fontWeight: b.id === 'unassigned' && byBucket[b.id]?.length > 0 ? 600 : 400,
+                    fontWeight: b.id === 'unassigned' && byBucket[b.id]?.length > 0 ? 600 : 500,
                   }}
                 >
                   {byBucket[b.id]?.length || 0}
@@ -599,7 +599,7 @@ const ServiceMappingSection: React.FC<ServiceMappingProps> = ({ services, onUpda
                 {/* Bucket header */}
                 <button
                   onClick={() => toggleExpanded(bucket.id)}
-                  className="w-full px-4 py-3 flex items-center justify-between transition-colors hover:bg-stone-50"
+                  className="w-full px-5 py-4 flex items-center justify-between transition-colors hover:bg-stone-50"
                   style={{
                     backgroundColor: isExpanded ? INK.cream : 'transparent',
                     border: 'none',
@@ -611,17 +611,17 @@ const ServiceMappingSection: React.FC<ServiceMappingProps> = ({ services, onUpda
                       animate={{ rotate: isExpanded ? 90 : 0 }}
                       transition={{ duration: 0.15 }}
                     >
-                      <ChevronRight size={14} color={INK.faded} />
+                      <ChevronRight size={16} color={INK.faded} />
                     </motion.div>
                     <div
-                      className="w-2.5 h-2.5 rounded-full"
+                      className="w-3 h-3 rounded-full"
                       style={{ backgroundColor: bucket.color }}
                     />
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2.5">
                       <span
                         style={{
                           fontFamily: FONT.sans,
-                          fontSize: 13,
+                          fontSize: 15,
                           fontWeight: 600,
                           color: hasUnassigned ? INK.rose : INK.body,
                         }}
@@ -632,8 +632,8 @@ const ServiceMappingSection: React.FC<ServiceMappingProps> = ({ services, onUpda
                         <span
                           style={{
                             fontFamily: FONT.sans,
-                            fontSize: 11,
-                            color: INK.ghost,
+                            fontSize: 13,
+                            color: INK.muted,
                           }}
                         >
                           — {bucket.description}
@@ -642,12 +642,12 @@ const ServiceMappingSection: React.FC<ServiceMappingProps> = ({ services, onUpda
                     </div>
                   </div>
                   <span
-                    className="px-2 py-0.5 rounded-full"
+                    className="px-2.5 py-1 rounded-full"
                     style={{
                       fontFamily: FONT.mono,
-                      fontSize: 11,
+                      fontSize: 12,
                       fontWeight: 600,
-                      color: hasUnassigned ? 'white' : INK.muted,
+                      color: hasUnassigned ? 'white' : INK.body,
                       backgroundColor: hasUnassigned ? INK.rose : INK.cream,
                     }}
                   >
@@ -665,7 +665,7 @@ const ServiceMappingSection: React.FC<ServiceMappingProps> = ({ services, onUpda
                       transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
                       className="overflow-hidden"
                     >
-                      <div className="px-4 pb-3">
+                      <div className="px-5 pb-4">
                         <AnimatePresence mode="popLayout">
                           {items.map((service, serviceIdx) => (
                             <motion.div
@@ -675,18 +675,19 @@ const ServiceMappingSection: React.FC<ServiceMappingProps> = ({ services, onUpda
                               animate={{ opacity: 1, x: 0 }}
                               exit={{ opacity: 0, x: 10, transition: { duration: 0.15 } }}
                               transition={{ duration: 0.2, delay: serviceIdx * 0.02 }}
-                              className="flex items-center justify-between py-2.5 group"
+                              className="flex items-center justify-between py-3.5 group"
                               style={{
                                 borderBottom: serviceIdx < items.length - 1 ? `1px solid ${INK.rule}` : 'none',
                               }}
                             >
                               {/* Service info */}
-                              <div className="flex items-center gap-3">
+                              <div className="flex items-center gap-4">
                                 <span
-                                  className="px-1.5 py-0.5 rounded"
+                                  className="px-2 py-1 rounded"
                                   style={{
                                     fontFamily: FONT.mono,
-                                    fontSize: 10,
+                                    fontSize: 11,
+                                    fontWeight: 500,
                                     backgroundColor: INK.cream,
                                     color: INK.faded,
                                   }}
@@ -696,7 +697,7 @@ const ServiceMappingSection: React.FC<ServiceMappingProps> = ({ services, onUpda
                                 <span
                                   style={{
                                     fontFamily: FONT.sans,
-                                    fontSize: 13,
+                                    fontSize: 14,
                                     color: INK.body,
                                   }}
                                 >
@@ -715,9 +716,10 @@ const ServiceMappingSection: React.FC<ServiceMappingProps> = ({ services, onUpda
                                         category: (e.target.value as ServiceCategory) || undefined,
                                       })
                                     }
-                                    className="px-2 py-1 rounded border bg-white outline-none text-xs"
+                                    className="px-3 py-1.5 rounded-md border bg-white outline-none"
                                     style={{
                                       fontFamily: FONT.sans,
+                                      fontSize: 13,
                                       color: service.category ? INK.body : INK.ghost,
                                       borderColor: INK.rule,
                                     }}
@@ -736,6 +738,7 @@ const ServiceMappingSection: React.FC<ServiceMappingProps> = ({ services, onUpda
                                   value={bucket.id}
                                   onChange={(e) => {
                                     const newBucket = e.target.value as ServiceBucket;
+                                    if (newBucket === 'unassigned') return; // Can't move back to unassigned
                                     // Clear category if moving to excluded
                                     const updates: Partial<ServiceMapping> = {
                                       bucket: newBucket as ServiceBucket,
@@ -745,18 +748,23 @@ const ServiceMappingSection: React.FC<ServiceMappingProps> = ({ services, onUpda
                                     }
                                     updateService(service.id, updates);
                                   }}
-                                  className="px-2 py-1 rounded border outline-none text-xs transition-colors"
+                                  className="px-3 py-1.5 rounded-md border outline-none transition-colors"
                                   style={{
                                     fontFamily: FONT.sans,
+                                    fontSize: 13,
                                     fontWeight: 500,
                                     color: bucket.color,
                                     borderColor: `${bucket.color}40`,
-                                    backgroundColor: `${bucket.color}10`,
+                                    backgroundColor: `${bucket.color}08`,
                                   }}
                                 >
+                                  {/* Show current unassigned state if applicable */}
+                                  {isUnassigned && (
+                                    <option value="unassigned">Unassigned</option>
+                                  )}
                                   {BUCKETS.filter((b) => b.id !== 'unassigned').map((b) => (
                                     <option key={b.id} value={b.id}>
-                                      → {b.label}
+                                      {isUnassigned ? `→ ${b.label}` : b.label}
                                     </option>
                                   ))}
                                 </select>
@@ -771,16 +779,16 @@ const ServiceMappingSection: React.FC<ServiceMappingProps> = ({ services, onUpda
 
                 {/* Empty state for expanded sections */}
                 {isExpanded && items.length === 0 && (
-                  <div className="px-4 pb-4">
+                  <div className="px-5 pb-5">
                     <div
-                      className="py-6 text-center rounded-lg"
+                      className="py-8 text-center rounded-lg"
                       style={{ backgroundColor: INK.cream }}
                     >
                       <span
                         style={{
                           fontFamily: FONT.sans,
-                          fontSize: 12,
-                          color: INK.ghost,
+                          fontSize: 13,
+                          color: INK.muted,
                         }}
                       >
                         {isUnassigned ? 'All services have been categorized' : 'No services in this category'}
