@@ -177,20 +177,27 @@ export {
 } from '../configure/shared';
 
 // New types for Users & Access
-export type UserRole = 'owner' | 'admin' | 'supervisor' | 'selfOnly';
+export type UserType = 'clinician' | 'staff';
+export type AccessScope = 'fullPractice' | 'theirTeam' | 'custom' | 'selfOnly';
 export type UserStatus = 'active' | 'pending';
 
 export interface UserAccess {
   id: string;
   name: string;
   email: string;
-  role: UserRole;
-  revenueAccess: boolean;
-  clinicianId?: string;  // Links to Clinician record - supervision derives access
+  type: UserType;                    // Clinician or Staff
+  scope: AccessScope;                // Who they can see
+  revenueAccess: boolean;            // Can see $ amounts
+  clientDetailsAccess: boolean;      // Can see client names/PHI
+  clinicianId?: string;              // Links to Clinician record (only for type='clinician')
+  customClinicianIds?: string[];     // For scope='custom' - which clinicians they can see
+  customGroupIds?: string[];         // For scope='custom' - which supervisor groups/teams they can see
+  staffRole?: string;                // For staff: "Office Manager", "Biller", etc.
   status: UserStatus;
-  lastActive?: string;   // ISO date string or null for pending users
-  invitedAt?: string;    // ISO date string for pending users
-  joinedAt?: string;     // ISO date string for when user joined
+  lastActive?: string;               // ISO date string or null for pending users
+  invitedAt?: string;                // ISO date string for pending users
+  joinedAt?: string;                 // ISO date string for when user joined
+  isOwner?: boolean;                 // Special flag for practice owner
 }
 
 // Helper to derive supervisees from clinician relationships
@@ -198,7 +205,8 @@ export function deriveSuperviseesForUser(
   user: UserAccess,
   clinicians: ClinicianImport[]
 ): ClinicianImport[] {
-  if (!user.clinicianId || user.role !== 'supervisor') return [];
+  // Only clinician-type users with a linked clinician can have supervisees
+  if (!user.clinicianId) return [];
 
   // Find all clinicians where this user's linked clinician is their supervisor
   return clinicians.filter(c => c.supervisorId === user.clinicianId && c.isActive);
