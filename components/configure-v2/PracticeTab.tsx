@@ -220,25 +220,34 @@ const SettingRowPills: React.FC<SettingRowPillsProps> = ({
 };
 
 // =============================================================================
-// CHURN SLIDER - Draggable dual-handle range
+// SETTING ROW CHURN - Draggable churn slider in table row
 // =============================================================================
 
-interface ChurnSliderProps {
+interface SettingRowChurnProps {
   early: number;
   late: number;
   onEarlyChange: (v: number) => void;
   onLateChange: (v: number) => void;
+  description: string;
 }
 
-const ChurnSlider: React.FC<ChurnSliderProps> = ({
+const SettingRowChurn: React.FC<SettingRowChurnProps> = ({
   early,
   late,
   onEarlyChange,
   onLateChange,
+  description,
 }) => {
   const trackRef = useRef<HTMLDivElement>(null);
-  const [dragging, setDragging] = useState<'early' | 'late' | null>(null);
+  const draggingRef = useRef<'early' | 'late' | null>(null);
+  const [, forceRender] = useState(0);
   const maxValue = 30;
+
+  // Use refs to avoid stale closures in event handlers
+  const earlyRef = useRef(early);
+  const lateRef = useRef(late);
+  earlyRef.current = early;
+  lateRef.current = late;
 
   const getPositionFromValue = (val: number) => (val / maxValue) * 100;
   const getValueFromPosition = (clientX: number) => {
@@ -250,230 +259,199 @@ const ChurnSlider: React.FC<ChurnSliderProps> = ({
 
   const handleMouseDown = (handle: 'early' | 'late') => (e: React.MouseEvent) => {
     e.preventDefault();
-    setDragging(handle);
-  };
+    e.stopPropagation();
+    draggingRef.current = handle;
+    forceRender((n) => n + 1);
 
-  const handleMouseMove = useCallback(
-    (e: MouseEvent) => {
-      if (!dragging) return;
-      const newValue = getValueFromPosition(e.clientX);
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      if (!draggingRef.current) return;
+      const newValue = getValueFromPosition(moveEvent.clientX);
 
-      if (dragging === 'early') {
-        const clamped = Math.max(1, Math.min(late - 1, newValue));
+      if (draggingRef.current === 'early') {
+        const clamped = Math.max(1, Math.min(lateRef.current - 1, newValue));
         onEarlyChange(clamped);
       } else {
-        const clamped = Math.max(early + 1, Math.min(maxValue, newValue));
+        const clamped = Math.max(earlyRef.current + 1, Math.min(maxValue, newValue));
         onLateChange(clamped);
       }
-    },
-    [dragging, early, late, onEarlyChange, onLateChange]
-  );
+    };
 
-  const handleMouseUp = useCallback(() => {
-    setDragging(null);
-  }, []);
+    const handleMouseUp = () => {
+      draggingRef.current = null;
+      forceRender((n) => n + 1);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
 
-  useEffect(() => {
-    if (dragging) {
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
-      return () => {
-        window.removeEventListener('mousemove', handleMouseMove);
-        window.removeEventListener('mouseup', handleMouseUp);
-      };
-    }
-  }, [dragging, handleMouseMove, handleMouseUp]);
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  };
 
   const earlyPos = getPositionFromValue(early);
   const latePos = getPositionFromValue(late);
+  const isDraggingEarly = draggingRef.current === 'early';
+  const isDraggingLate = draggingRef.current === 'late';
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, ease: EASE.out }}
-    >
-      {/* Track container */}
-      <div className="relative pt-8 pb-10">
-        {/* Track */}
-        <div
-          ref={trackRef}
-          className="relative h-3 rounded-full overflow-hidden"
-          style={{ backgroundColor: INK.rule }}
+    <tr style={{ borderBottom: `1px solid ${INK.rule}` }}>
+      {/* Label */}
+      <td className="py-4 pr-4">
+        <span
+          style={{
+            fontFamily: FONT.sans,
+            fontSize: 14,
+            fontWeight: 500,
+            color: INK.body,
+          }}
         >
-          {/* Early segment (rose) */}
-          <div
-            className="absolute top-0 bottom-0 left-0 rounded-l-full"
-            style={{
-              width: `${earlyPos}%`,
-              background: `linear-gradient(90deg, ${INK.roseLight} 0%, ${INK.rose}40 100%)`,
-            }}
-          />
+          Churn Classification
+        </span>
+      </td>
 
-          {/* Mid segment (amber) */}
-          <div
-            className="absolute top-0 bottom-0"
-            style={{
-              left: `${earlyPos}%`,
-              width: `${latePos - earlyPos}%`,
-              background: `linear-gradient(90deg, ${INK.amberLight} 0%, ${INK.amber}40 100%)`,
-            }}
-          />
-
-          {/* Late segment (emerald) */}
-          <div
-            className="absolute top-0 bottom-0 right-0 rounded-r-full"
-            style={{
-              left: `${latePos}%`,
-              background: `linear-gradient(90deg, ${INK.emeraldLight} 0%, ${INK.emerald}40 100%)`,
-            }}
-          />
-        </div>
-
-        {/* Early handle */}
-        <motion.div
-          className="absolute top-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing"
-          style={{ left: `${earlyPos}%`, transform: 'translate(-50%, -50%)', marginTop: 4 }}
-          onMouseDown={handleMouseDown('early')}
-          whileHover={{ scale: 1.1 }}
-          animate={{ scale: dragging === 'early' ? 1.15 : 1 }}
-        >
-          {/* Value label */}
-          <div
-            className="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 rounded-lg"
-            style={{
-              backgroundColor: INK.rose,
-              opacity: dragging === 'early' ? 1 : 0.9,
-              transition: 'opacity 0.15s',
-            }}
-          >
-            <span
+      {/* Draggable slider */}
+      <td className="py-4 pr-4">
+        <div className="relative" style={{ width: 280 }}>
+          {/* Value labels row - separated above */}
+          <div className="flex justify-between mb-3" style={{ paddingLeft: 8, paddingRight: 8 }}>
+            <div
+              className="px-2 py-0.5 rounded"
               style={{
-                fontFamily: FONT.mono,
-                fontSize: 13,
-                fontWeight: 700,
-                color: 'white',
+                backgroundColor: INK.rose,
+                marginLeft: `calc(${earlyPos}% - 20px)`,
               }}
             >
-              {early}
-            </span>
-          </div>
-
-          {/* Handle */}
-          <div
-            className="w-7 h-7 rounded-full flex items-center justify-center"
-            style={{
-              backgroundColor: INK.rose,
-              boxShadow: dragging === 'early'
-                ? `0 0 0 4px ${INK.rose}30, 0 4px 12px ${INK.rose}40`
-                : `0 2px 8px ${INK.rose}30`,
-              transition: 'box-shadow 0.15s',
-            }}
-          >
-            <GripVertical size={12} color="white" />
-          </div>
-        </motion.div>
-
-        {/* Late handle */}
-        <motion.div
-          className="absolute top-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing"
-          style={{ left: `${latePos}%`, transform: 'translate(-50%, -50%)', marginTop: 4 }}
-          onMouseDown={handleMouseDown('late')}
-          whileHover={{ scale: 1.1 }}
-          animate={{ scale: dragging === 'late' ? 1.15 : 1 }}
-        >
-          {/* Value label */}
-          <div
-            className="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 rounded-lg"
-            style={{
-              backgroundColor: INK.emerald,
-              opacity: dragging === 'late' ? 1 : 0.9,
-              transition: 'opacity 0.15s',
-            }}
-          >
-            <span
+              <span style={{ fontFamily: FONT.mono, fontSize: 10, fontWeight: 700, color: 'white' }}>
+                &lt;{early}
+              </span>
+            </div>
+            <div
+              className="px-2 py-0.5 rounded"
               style={{
-                fontFamily: FONT.mono,
-                fontSize: 13,
-                fontWeight: 700,
-                color: 'white',
+                backgroundColor: INK.emerald,
+                marginRight: `calc(${100 - latePos}% - 20px)`,
               }}
             >
-              {late}
-            </span>
+              <span style={{ fontFamily: FONT.mono, fontSize: 10, fontWeight: 700, color: 'white' }}>
+                &gt;{late}
+              </span>
+            </div>
           </div>
 
-          {/* Handle */}
-          <div
-            className="w-7 h-7 rounded-full flex items-center justify-center"
-            style={{
-              backgroundColor: INK.emerald,
-              boxShadow: dragging === 'late'
-                ? `0 0 0 4px ${INK.emerald}30, 0 4px 12px ${INK.emerald}40`
-                : `0 2px 8px ${INK.emerald}30`,
-              transition: 'box-shadow 0.15s',
-            }}
-          >
-            <GripVertical size={12} color="white" />
-          </div>
-        </motion.div>
+          {/* Track with handles */}
+          <div className="relative" style={{ height: 24 }}>
+            {/* Track */}
+            <div
+              ref={trackRef}
+              className="absolute top-1/2 -translate-y-1/2 left-0 right-0 h-2.5 rounded-full overflow-hidden"
+              style={{ backgroundColor: INK.cream }}
+            >
+              {/* Early segment (rose) */}
+              <div
+                className="absolute top-0 bottom-0 left-0 rounded-l-full"
+                style={{
+                  width: `${earlyPos}%`,
+                  background: `linear-gradient(90deg, ${INK.roseLight} 0%, ${INK.rose}90 100%)`,
+                }}
+              />
 
-        {/* Segment labels */}
-        <div className="absolute -bottom-2 left-0 right-0 flex">
-          <div
-            className="text-center"
-            style={{ width: `${earlyPos}%` }}
-          >
-            <span
-              style={{
-                fontFamily: FONT.sans,
-                fontSize: 10,
-                fontWeight: 600,
-                color: INK.rose,
-                letterSpacing: '0.05em',
-                textTransform: 'uppercase',
-              }}
+              {/* Mid segment (amber) */}
+              <div
+                className="absolute top-0 bottom-0"
+                style={{
+                  left: `${earlyPos}%`,
+                  width: `${latePos - earlyPos}%`,
+                  background: `linear-gradient(90deg, ${INK.amberLight} 0%, ${INK.amber}90 100%)`,
+                }}
+              />
+
+              {/* Late segment (emerald) */}
+              <div
+                className="absolute top-0 bottom-0 right-0 rounded-r-full"
+                style={{
+                  left: `${latePos}%`,
+                  background: `linear-gradient(90deg, ${INK.emeraldLight} 0%, ${INK.emerald}90 100%)`,
+                }}
+              />
+            </div>
+
+            {/* Early handle */}
+            <motion.div
+              className="absolute top-1/2 cursor-grab active:cursor-grabbing select-none z-10"
+              style={{ left: `${earlyPos}%`, transform: 'translate(-50%, -50%)' }}
+              onMouseDown={handleMouseDown('early')}
+              whileHover={{ scale: 1.1 }}
+              animate={{ scale: isDraggingEarly ? 1.15 : 1 }}
             >
-              Early
-            </span>
+              <div
+                className="w-5 h-5 rounded-full flex items-center justify-center"
+                style={{
+                  backgroundColor: INK.rose,
+                  boxShadow: isDraggingEarly
+                    ? `0 0 0 3px ${INK.rose}30, 0 2px 6px ${INK.rose}40`
+                    : `0 1px 4px ${INK.rose}30`,
+                }}
+              >
+                <GripVertical size={10} color="white" />
+              </div>
+            </motion.div>
+
+            {/* Late handle */}
+            <motion.div
+              className="absolute top-1/2 cursor-grab active:cursor-grabbing select-none z-10"
+              style={{ left: `${latePos}%`, transform: 'translate(-50%, -50%)' }}
+              onMouseDown={handleMouseDown('late')}
+              whileHover={{ scale: 1.1 }}
+              animate={{ scale: isDraggingLate ? 1.15 : 1 }}
+            >
+              <div
+                className="w-5 h-5 rounded-full flex items-center justify-center"
+                style={{
+                  backgroundColor: INK.emerald,
+                  boxShadow: isDraggingLate
+                    ? `0 0 0 3px ${INK.emerald}30, 0 2px 6px ${INK.emerald}40`
+                    : `0 1px 4px ${INK.emerald}30`,
+                }}
+              >
+                <GripVertical size={10} color="white" />
+              </div>
+            </motion.div>
           </div>
-          <div
-            className="text-center"
-            style={{ width: `${latePos - earlyPos}%` }}
-          >
-            <span
-              style={{
-                fontFamily: FONT.sans,
-                fontSize: 10,
-                fontWeight: 600,
-                color: INK.amber,
-                letterSpacing: '0.05em',
-                textTransform: 'uppercase',
-              }}
-            >
-              Mid
-            </span>
-          </div>
-          <div
-            className="text-center flex-1"
-          >
-            <span
-              style={{
-                fontFamily: FONT.sans,
-                fontSize: 10,
-                fontWeight: 600,
-                color: INK.emerald,
-                letterSpacing: '0.05em',
-                textTransform: 'uppercase',
-              }}
-            >
-              Late
-            </span>
+
+          {/* Segment labels below track */}
+          <div className="flex mt-2">
+            <div className="text-center" style={{ width: `${earlyPos}%` }}>
+              <span style={{ fontFamily: FONT.sans, fontSize: 9, fontWeight: 600, color: INK.rose, letterSpacing: '0.05em' }}>
+                EARLY
+              </span>
+            </div>
+            <div className="text-center" style={{ width: `${latePos - earlyPos}%` }}>
+              <span style={{ fontFamily: FONT.sans, fontSize: 9, fontWeight: 600, color: INK.amber, letterSpacing: '0.05em' }}>
+                MID
+              </span>
+            </div>
+            <div className="text-center" style={{ flex: 1 }}>
+              <span style={{ fontFamily: FONT.sans, fontSize: 9, fontWeight: 600, color: INK.emerald, letterSpacing: '0.05em' }}>
+                LATE
+              </span>
+            </div>
           </div>
         </div>
-      </div>
+      </td>
 
-    </motion.div>
+      {/* Description */}
+      <td className="py-4">
+        <span
+          style={{
+            fontFamily: FONT.sans,
+            fontSize: 13,
+            color: INK.muted,
+            lineHeight: 1.4,
+          }}
+        >
+          {description}
+        </span>
+      </td>
+    </tr>
   );
 };
 
@@ -840,44 +818,17 @@ export const PracticeTab: React.FC<PracticeTabProps> = () => {
                 description="Time clinicians have to complete session notes after appointment"
               />
 
+              {/* Churn Classification */}
+              <SettingRowChurn
+                early={thresholds.earlyChurnSessions}
+                late={thresholds.lateChurnSessions}
+                onEarlyChange={(v) => setThresholds({ ...thresholds, earlyChurnSessions: v })}
+                onLateChange={(v) => setThresholds({ ...thresholds, lateChurnSessions: v })}
+                description="When a client leaves, classify by total sessions attended. Early churn signals intake issues; late churn suggests treatment completion or life changes."
+              />
+
             </tbody>
           </table>
-        </div>
-      </LedgerCard>
-
-      {/* Churn Classification - Visual slider */}
-      <LedgerCard className="mt-6">
-        <div className="p-8">
-          {/* Section header */}
-          <div className="mb-4">
-            <h3
-              style={{
-                fontFamily: FONT.sans,
-                fontSize: 14,
-                fontWeight: 600,
-                color: INK.body,
-              }}
-            >
-              Churn Classification
-            </h3>
-            <p
-              style={{
-                fontFamily: FONT.sans,
-                fontSize: 13,
-                color: INK.muted,
-                marginTop: 4,
-              }}
-            >
-              When a client stops treatment, classify their departure by session count
-            </p>
-          </div>
-
-          <ChurnSlider
-            early={thresholds.earlyChurnSessions}
-            late={thresholds.lateChurnSessions}
-            onEarlyChange={(v) => setThresholds({ ...thresholds, earlyChurnSessions: v })}
-            onLateChange={(v) => setThresholds({ ...thresholds, lateChurnSessions: v })}
-          />
         </div>
       </LedgerCard>
 
