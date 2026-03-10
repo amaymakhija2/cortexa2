@@ -4,21 +4,19 @@ import { AlertCircle } from 'lucide-react';
 import {
   FONT,
   INK,
-  SHADOW,
-  EASE,
-  InlineInput,
   InlineSelect,
   TogglePill,
   estimateAnnualRevenue,
   formatRevenue,
 } from './shared';
-import type { Clinician, LicenseType, ClinicianRole } from './shared';
+import type { Clinician, LicenseType } from './shared';
 import {
   LICENSE_TYPE_NAMES,
   ROLE_OPTIONS,
   canSupervise,
   LICENSES_REQUIRING_SUPERVISION,
 } from './shared';
+import { LedgerTable, type ColumnDef } from './LedgerTable';
 
 // =============================================================================
 // THE ROSTER LEDGER
@@ -39,95 +37,47 @@ export interface EditableRosterTableProps {
 }
 
 // =============================================================================
-// COLUMN STRUCTURE
+// COLUMN STRUCTURE (without rank - LedgerTable adds it automatically)
 // =============================================================================
 
-interface ColumnDef {
-  key: string;
-  label: string;
-  width: string;
-  align: 'left' | 'center' | 'right';
-}
-
 const COLUMNS: ColumnDef[] = [
-  { key: 'rank', label: '#', width: '44px', align: 'center' },
-  { key: 'clinician', label: 'Clinician', width: '1fr', align: 'left' },
-  { key: 'license', label: 'License', width: '110px', align: 'center' },
-  { key: 'role', label: 'Role', width: '180px', align: 'center' },
-  { key: 'supervision', label: 'Supervision', width: '160px', align: 'center' },
-  { key: 'sessions', label: 'Sessions Goal', width: '120px', align: 'center' },
-  { key: 'clients', label: 'Caseload Goal', width: '120px', align: 'center' },
+  { key: 'clinician', label: 'Clinician', width: 'minmax(140px, 180px)', align: 'left' },
+  { key: 'license', label: 'License', width: '100px', align: 'center' },
+  { key: 'role', label: 'Role', width: '1fr', align: 'center' },
+  { key: 'supervision', label: 'Supervised By', width: '1fr', align: 'center' },
+  { key: 'sessions', label: 'Sessions Goal', width: '1fr', align: 'center' },
+  { key: 'clients', label: 'Caseload Goal', width: '1fr', align: 'center' },
   { key: 'status', label: 'Status', width: '90px', align: 'center' },
 ];
 
-const gridTemplate = COLUMNS.map(c => c.width).join(' ');
-
 // =============================================================================
-// HEADER ROW
+// CLINICIAN ROW CELL RENDERER
 // =============================================================================
-
-const HeaderRow: React.FC = () => (
-  <div
-    className="grid items-end pb-4"
-    style={{
-      gridTemplateColumns: gridTemplate,
-      borderBottom: `2px solid ${INK.dark}`,
-    }}
-  >
-    {COLUMNS.map((col) => (
-      <div
-        key={col.key}
-        className={col.key === 'clinician' ? 'pl-3' : ''}
-        style={{
-          fontFamily: FONT.sans,
-          fontSize: 10,
-          fontWeight: 700,
-          color: INK.faded,
-          letterSpacing: '0.1em',
-          textTransform: 'uppercase',
-          textAlign: col.align,
-        }}
-      >
-        {col.label}
-      </div>
-    ))}
-  </div>
-);
-
-// =============================================================================
-// CLINICIAN ROW
+// Renders the cells for a clinician row. This is a pure function that returns
+// an array of React nodes - one per column (excluding rank, which LedgerTable adds).
 // =============================================================================
 
-interface ClinicianRowProps {
+interface RenderClinicianCellsProps {
   clinician: Clinician;
-  rank: number;
-  index: number;
   supervisors: Clinician[];
   onUpdate: (updates: Partial<Clinician>) => void;
   onOpenGoalEditor?: (metric: 'sessions' | 'clients') => void;
+  recentlySaved: boolean;
+  onSave: () => void;
 }
 
-const ClinicianRow: React.FC<ClinicianRowProps> = ({
+function renderClinicianCells({
   clinician,
-  rank,
-  index,
   supervisors,
   onUpdate,
   onOpenGoalEditor,
-}) => {
-  const [isHovered, setIsHovered] = useState(false);
-  const [recentlySaved, setRecentlySaved] = useState(false);
-
+  recentlySaved,
+  onSave,
+}: RenderClinicianCellsProps): React.ReactNode[] {
   // Format start date
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     return `Since ${date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`;
-  };
-
-  // Handle save with visual feedback
-  const handleSave = () => {
-    setRecentlySaved(true);
-    setTimeout(() => setRecentlySaved(false), 800);
   };
 
   // License options
@@ -149,247 +99,201 @@ const ClinicianRow: React.FC<ClinicianRowProps> = ({
   const supervisionOptions = [
     {
       value: '',
-      label: needsSupervision ? (hasNoSupervisor ? 'Assign...' : 'Clear') : 'Independent',
+      label: needsSupervision ? (hasNoSupervisor ? 'Assign...' : 'Clear') : 'No Supervisor',
     },
     ...supervisors
       .filter((s) => s.id !== clinician.id)
-      .map((s) => ({ value: s.id, label: s.name.split(' ')[0] })), // First name only
+      .map((s) => ({ value: s.id, label: s.name })),
   ];
 
-  // Determine chip color for supervision
-  const supervisionChipColor = hasNoSupervisor ? 'amber' : needsSupervision ? 'emerald' : 'stone';
-
-  // Row animation variants
-  const rowVariants = {
-    hidden: { opacity: 0, y: 16 },
-    visible: (i: number) => ({
-      opacity: clinician.isActive ? 1 : 0.4,
-      y: 0,
-      transition: {
-        delay: i * 0.03,
-        duration: 0.4,
-        ease: EASE.out,
-      },
-    }),
-  };
-
-  return (
-    <>
-      <motion.div
-        className="grid items-center relative"
-        style={{
-          gridTemplateColumns: gridTemplate,
-          borderBottom: `1px solid ${INK.rule}`,
-          minHeight: 64,
-          backgroundColor: isHovered ? INK.cream : 'transparent',
-          transition: 'background-color 0.15s ease',
-        }}
-        custom={index}
-        initial="hidden"
-        animate="visible"
-        variants={rowVariants}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
-        {/* Save confirmation glow */}
-        <AnimatePresence>
-          {recentlySaved && (
-            <motion.div
-              className="absolute inset-0 pointer-events-none"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              style={{
-                background: `linear-gradient(90deg, ${INK.emeraldLight} 0%, transparent 30%)`,
-                borderRadius: 4,
-              }}
-            />
-          )}
-        </AnimatePresence>
-
-        {/* Rank */}
-        <div
-          className="flex items-center justify-center"
-          style={{
-            fontFamily: FONT.serif,
-            fontSize: 18,
-            fontWeight: 400,
-            color: rank === 1 ? INK.gold : INK.faded,
-          }}
-        >
-          {rank}
-        </div>
-
-        {/* Clinician Name */}
-        <div className="min-w-0 pl-3">
+  return [
+    // Clinician Name
+    <div key="name" className="min-w-0 pl-3 relative">
+      {/* Save confirmation glow - positioned relative to name cell but spans full row visually */}
+      <AnimatePresence>
+        {recentlySaved && (
           <motion.div
-            className="truncate"
+            className="absolute pointer-events-none"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             style={{
-              fontFamily: FONT.serif,
-              fontSize: 17,
-              color: INK.black,
-              lineHeight: 1.3,
+              left: -60,
+              top: -20,
+              bottom: -20,
+              right: -400,
+              background: `linear-gradient(90deg, ${INK.emeraldLight} 0%, transparent 30%)`,
+              borderRadius: 4,
             }}
-          >
-            {clinician.name}
-          </motion.div>
-          <div
-            className="truncate mt-0.5"
-            style={{
-              fontFamily: FONT.sans,
-              fontSize: 11,
-              color: INK.ghost,
-              letterSpacing: '0.02em',
-            }}
-          >
-            {formatDate(clinician.startDate)}
-          </div>
-        </div>
-
-        {/* License */}
-        <div className="flex justify-center" >
-          <InlineSelect
-            value={clinician.licenseType}
-            options={licenseOptions}
-            onChange={(value) => {
-              const newRequiresSupervision = LICENSES_REQUIRING_SUPERVISION.includes(value);
-              onUpdate({
-                licenseType: value,
-                requiresSupervision: newRequiresSupervision,
-                supervisorId: newRequiresSupervision ? clinician.supervisorId : null,
-              });
-              handleSave();
-            }}
-            width={85}
           />
-        </div>
+        )}
+      </AnimatePresence>
+      <motion.div
+        className="truncate relative z-10"
+        style={{
+          fontFamily: FONT.serif,
+          fontSize: 17,
+          color: INK.black,
+          lineHeight: 1.3,
+        }}
+      >
+        {clinician.name}
+      </motion.div>
+      <div
+        className="truncate mt-0.5 relative z-10"
+        style={{
+          fontFamily: FONT.sans,
+          fontSize: 11,
+          color: INK.ghost,
+          letterSpacing: '0.02em',
+        }}
+      >
+        {formatDate(clinician.startDate)}
+      </div>
+    </div>,
 
-        {/* Role */}
-        <div className="flex justify-center" >
-          <InlineSelect
-            value={clinician.role}
-            options={roleOptions}
-            onChange={(value) => {
-              onUpdate({ role: value });
-              handleSave();
-            }}
-            width={155}
-          />
-        </div>
+    // License
+    <div key="license" className="flex justify-center">
+      <InlineSelect
+        value={clinician.licenseType}
+        options={licenseOptions}
+        onChange={(value) => {
+          const newRequiresSupervision = LICENSES_REQUIRING_SUPERVISION.includes(value);
+          onUpdate({
+            licenseType: value,
+            requiresSupervision: newRequiresSupervision,
+            supervisorId: newRequiresSupervision ? clinician.supervisorId : null,
+          });
+          onSave();
+        }}
+        width={85}
+      />
+    </div>,
 
-        {/* Supervision */}
-        <div className="flex justify-center items-center gap-1" >
-          {hasNoSupervisor && (
-            <motion.div
-              animate={{ scale: [1, 1.2, 1] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
-              <AlertCircle size={14} color={INK.amber} />
-            </motion.div>
-          )}
-          <InlineSelect
-            value={clinician.supervisorId || ''}
-            options={supervisionOptions}
-            onChange={(value) => {
-              onUpdate({ supervisorId: value || null });
-              handleSave();
-            }}
-            width={hasNoSupervisor ? 110 : 140}
-            variant="chip"
-            chipColor={supervisionChipColor}
-          />
-        </div>
+    // Role
+    <div key="role" className="flex justify-center">
+      <InlineSelect
+        value={clinician.role}
+        options={roleOptions}
+        onChange={(value) => {
+          onUpdate({ role: value });
+          onSave();
+        }}
+        width={155}
+      />
+    </div>,
 
-        {/* Sessions Goal - Clickable to open editor */}
-        <div
-          className="flex justify-center"
-          onClick={() => onOpenGoalEditor?.('sessions')}
+    // Supervision
+    <div key="supervision" className="flex justify-center items-center gap-1">
+      {hasNoSupervisor && (
+        <motion.div
+          animate={{ scale: [1, 1.2, 1] }}
+          transition={{ duration: 2, repeat: Infinity }}
         >
-          <motion.button
-            className="flex flex-col items-center px-3 py-1 rounded-lg transition-colors"
-            style={{
-              backgroundColor: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-            }}
-            whileHover={{ backgroundColor: INK.goldGlow }}
-            whileTap={{ scale: 0.98 }}
-          >
-            {/* Primary: Sessions per week */}
-            <div className="flex items-center gap-1">
-              <span
-                style={{
-                  fontFamily: FONT.mono,
-                  fontSize: 15,
-                  fontWeight: 500,
-                  color: INK.black,
-                }}
-              >
-                {clinician.sessionGoal}
-              </span>
-              <span
-                style={{
-                  fontFamily: FONT.mono,
-                  fontSize: 11,
-                  color: INK.ghost,
-                }}
-              >
-                /wk
-              </span>
-            </div>
-            {/* Secondary: Estimated annual revenue */}
-            <span
-              style={{
-                fontFamily: FONT.mono,
-                fontSize: 10,
-                fontWeight: 500,
-                color: INK.faded,
-                letterSpacing: '0.01em',
-                marginTop: 1,
-              }}
-            >
-              {formatRevenue(estimateAnnualRevenue(clinician.sessionGoal))}/yr
-            </span>
-          </motion.button>
-        </div>
+          <AlertCircle size={14} color={INK.amber} />
+        </motion.div>
+      )}
+      <InlineSelect
+        value={clinician.supervisorId || ''}
+        options={supervisionOptions}
+        onChange={(value) => {
+          onUpdate({ supervisorId: value || null });
+          onSave();
+        }}
+        width={155}
+      />
+    </div>,
 
-        {/* Clients Goal - Clickable to open editor */}
-        <div
-          className="flex justify-center"
-          onClick={() => onOpenGoalEditor?.('clients')}
-        >
-          <motion.button
-            className="flex items-center justify-center px-3 py-1.5 rounded-lg transition-colors"
+    // Sessions Goal - Clickable to open editor
+    <div
+      key="sessions"
+      className="flex justify-center"
+      onClick={() => onOpenGoalEditor?.('sessions')}
+    >
+      <motion.button
+        className="flex flex-col items-center px-3 py-1 rounded-lg transition-colors"
+        style={{
+          backgroundColor: 'transparent',
+          border: 'none',
+          cursor: 'pointer',
+        }}
+        whileHover={{ backgroundColor: INK.goldGlow }}
+        whileTap={{ scale: 0.98 }}
+      >
+        {/* Primary: Sessions per week */}
+        <div className="flex items-center gap-1">
+          <span
             style={{
               fontFamily: FONT.mono,
               fontSize: 15,
               fontWeight: 500,
               color: INK.black,
-              backgroundColor: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
             }}
-            whileHover={{ backgroundColor: INK.goldGlow }}
-            whileTap={{ scale: 0.98 }}
           >
-            {clinician.clientGoal}
-          </motion.button>
-        </div>
-
-        {/* Status */}
-        <div className="flex justify-center">
-          <TogglePill
-            active={clinician.isActive}
-            onChange={(active) => {
-              onUpdate({ isActive: active });
-              handleSave();
+            {clinician.sessionGoal}
+          </span>
+          <span
+            style={{
+              fontFamily: FONT.mono,
+              fontSize: 11,
+              color: INK.ghost,
             }}
-          />
+          >
+            /wk
+          </span>
         </div>
-      </motion.div>
-    </>
-  );
-};
+        {/* Secondary: Estimated annual revenue */}
+        <span
+          style={{
+            fontFamily: FONT.mono,
+            fontSize: 10,
+            fontWeight: 500,
+            color: INK.faded,
+            letterSpacing: '0.01em',
+            marginTop: 1,
+          }}
+        >
+          {formatRevenue(estimateAnnualRevenue(clinician.sessionGoal))}/yr
+        </span>
+      </motion.button>
+    </div>,
+
+    // Clients Goal - Clickable to open editor
+    <div
+      key="clients"
+      className="flex justify-center"
+      onClick={() => onOpenGoalEditor?.('clients')}
+    >
+      <motion.button
+        className="flex items-center justify-center px-3 py-1.5 rounded-lg transition-colors"
+        style={{
+          fontFamily: FONT.mono,
+          fontSize: 15,
+          fontWeight: 500,
+          color: INK.black,
+          backgroundColor: 'transparent',
+          border: 'none',
+          cursor: 'pointer',
+        }}
+        whileHover={{ backgroundColor: INK.goldGlow }}
+        whileTap={{ scale: 0.98 }}
+      >
+        {clinician.clientGoal}
+      </motion.button>
+    </div>,
+
+    // Status
+    <div key="status" className="flex justify-center">
+      <TogglePill
+        active={clinician.isActive}
+        onChange={(active) => {
+          onUpdate({ isActive: active });
+          onSave();
+        }}
+      />
+    </div>,
+  ];
+}
 
 // =============================================================================
 // MAIN COMPONENT
@@ -400,6 +304,9 @@ export const EditableRosterTable: React.FC<EditableRosterTableProps> = ({
   onUpdate,
   onOpenGoalEditor,
 }) => {
+  // Track recently saved clinicians for animation
+  const [recentlySavedMap, setRecentlySavedMap] = useState<Record<string, boolean>>({});
+
   // Sort: active clinicians first, then inactive at bottom
   const sortedClinicians = useMemo(() => {
     return [...clinicians].sort((a, b) => {
@@ -422,59 +329,49 @@ export const EditableRosterTable: React.FC<EditableRosterTableProps> = ({
     [clinicians, onUpdate]
   );
 
+  // Handle save with visual feedback per clinician
+  const handleSave = useCallback((clinicianId: string) => {
+    setRecentlySavedMap((prev) => ({ ...prev, [clinicianId]: true }));
+    setTimeout(() => {
+      setRecentlySavedMap((prev) => ({ ...prev, [clinicianId]: false }));
+    }, 800);
+  }, []);
+
   // Count active vs inactive
   const activeCount = sortedClinicians.filter((c) => c.isActive).length;
+  const inactiveCount = sortedClinicians.length - activeCount;
+
+  // Render row cells for LedgerTable
+  const renderRow = useCallback(
+    (clinician: Clinician, _index: number, _isHovered: boolean): React.ReactNode[] => {
+      const recentlySaved = recentlySavedMap[clinician.id] || false;
+      return renderClinicianCells({
+        clinician,
+        supervisors,
+        onUpdate: (updates) => updateClinician(clinician.id, updates),
+        onOpenGoalEditor: onOpenGoalEditor ? (metric) => onOpenGoalEditor(clinician.id, metric) : undefined,
+        recentlySaved,
+        onSave: () => handleSave(clinician.id),
+      });
+    },
+    [supervisors, updateClinician, onOpenGoalEditor, recentlySavedMap, handleSave]
+  );
 
   return (
-    <div className="w-full">
-      {/* Header */}
-      <HeaderRow />
-
-      {/* Rows */}
-      <div>
-        {sortedClinicians.map((clinician, index) => (
-          <ClinicianRow
-            key={clinician.id}
-            clinician={clinician}
-            rank={index + 1}
-            index={index}
-            supervisors={supervisors}
-            onUpdate={(updates) => updateClinician(clinician.id, updates)}
-            onOpenGoalEditor={onOpenGoalEditor ? (metric) => onOpenGoalEditor(clinician.id, metric) : undefined}
-          />
-        ))}
-      </div>
-
-      {/* Footer summary */}
-      <motion.div
-        className="mt-6 pt-4 flex items-center gap-6"
-        style={{ borderTop: `1px dashed ${INK.rule}` }}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: sortedClinicians.length * 0.03 + 0.2 }}
-      >
-        <div
-          style={{
-            fontFamily: FONT.sans,
-            fontSize: 12,
-            color: INK.faded,
-          }}
-        >
-          <span style={{ color: INK.muted, fontWeight: 600 }}>{activeCount}</span> active
-        </div>
-        {sortedClinicians.length - activeCount > 0 && (
-          <div
-            style={{
-              fontFamily: FONT.sans,
-              fontSize: 12,
-              color: INK.ghost,
-            }}
-          >
-            <span style={{ fontWeight: 500 }}>{sortedClinicians.length - activeCount}</span> inactive
-          </div>
-        )}
-      </motion.div>
-    </div>
+    <LedgerTable
+      columns={COLUMNS}
+      data={sortedClinicians}
+      keyExtractor={(clinician) => clinician.id}
+      renderRow={renderRow}
+      rowOpacity={(clinician) => (clinician.isActive ? 1 : 0.4)}
+      footer={{
+        activeCount,
+        activeLabel: 'active',
+        inactiveCount,
+        inactiveLabel: 'inactive',
+      }}
+      emptyMessage="No clinicians added yet."
+    />
   );
 };
 

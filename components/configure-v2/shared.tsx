@@ -190,6 +190,7 @@ export interface UserAccess {
   status: UserStatus;
   lastActive?: string;   // ISO date string or null for pending users
   invitedAt?: string;    // ISO date string for pending users
+  joinedAt?: string;     // ISO date string for when user joined
 }
 
 // Helper to derive supervisees from clinician relationships

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Lock, RotateCcw, Shield, Eye, Users, Crown, ChevronRight, Pencil, Check, Clock } from 'lucide-react';
+import { Plus, Lock, RotateCcw, Users, ChevronRight, Pencil, Check, Clock } from 'lucide-react';
 import {
   FONT,
   INK,
@@ -15,6 +15,7 @@ import type { UserAccess, UserRole, Clinician } from './shared';
 import { InviteUserSlideOver } from './InviteUserSlideOver';
 import { EditUserSlideOver } from './EditUserSlideOver';
 import { GroupAccessModal } from './GroupAccessModal';
+import { LedgerTable, ColumnDef, LedgerTableFooter } from './LedgerTable';
 
 // =============================================================================
 // USERS & ACCESS TAB - The Registry
@@ -38,15 +39,8 @@ const DEFAULT_OWNER: UserAccess = {
   role: 'owner',
   revenueAccess: true,
   status: 'active',
-  lastActive: new Date().toISOString(), // Owner is always "just now"
-};
-
-// Role display config
-const ROLE_DISPLAY: Record<UserRole, { label: string; icon: React.ReactNode; color: string }> = {
-  owner: { label: 'Owner', icon: <Crown size={12} />, color: INK.gold },
-  admin: { label: 'Admin', icon: <Shield size={12} />, color: INK.violet },
-  supervisor: { label: 'Supervisor', icon: <Users size={12} />, color: INK.emerald },
-  selfOnly: { label: 'Self Only', icon: <Eye size={12} />, color: INK.muted },
+  lastActive: new Date().toISOString(),
+  joinedAt: '2021-01-15', // Practice founding date
 };
 
 // Role options for dropdown (excluding owner)
@@ -57,28 +51,19 @@ const ROLE_OPTIONS: { value: UserRole; label: string }[] = [
 ];
 
 // =============================================================================
-// COLUMN STRUCTURE - Matching the spec
+// COLUMN STRUCTURE - For LedgerTable
 // =============================================================================
 
-interface ColumnDef {
-  key: string;
-  label: string;
-  width: string;
-  align: 'left' | 'center' | 'right';
-}
-
-const COLUMNS: ColumnDef[] = [
-  { key: 'user', label: 'User', width: '1fr', align: 'left' },
-  { key: 'email', label: 'Email', width: '180px', align: 'left' },
-  { key: 'role', label: 'Role', width: '120px', align: 'center' },
-  { key: 'access', label: 'Access', width: '100px', align: 'center' },
-  { key: 'lastActive', label: 'Last Active', width: '110px', align: 'center' },
-  { key: 'revenue', label: 'Revenue', width: '90px', align: 'center' },
-  { key: 'group', label: 'Group', width: '120px', align: 'center' },
+const USER_COLUMNS: ColumnDef[] = [
+  { key: 'user', label: 'User', width: 'minmax(140px, 180px)', align: 'left' },
+  { key: 'email', label: 'Email', width: 'minmax(150px, 220px)', align: 'left' },
+  { key: 'role', label: 'Role', width: '1fr', align: 'center' },
+  { key: 'access', label: 'Access', width: '1fr', align: 'center' },
+  { key: 'lastActive', label: 'Last Active', width: '1fr', align: 'center' },
+  { key: 'revenue', label: 'Revenue', width: '100px', align: 'center' },
+  { key: 'group', label: 'Group', width: '1fr', align: 'center' },
   { key: 'actions', label: '', width: '70px', align: 'center' },
 ];
-
-const gridTemplate = COLUMNS.map((c) => c.width).join(' ');
 
 // Format relative time for last active
 function formatLastActive(dateStr?: string): string {
@@ -101,346 +86,6 @@ function formatLastActive(dateStr?: string): string {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-// =============================================================================
-// HEADER ROW
-// =============================================================================
-
-const HeaderRow: React.FC = () => (
-  <div
-    className="grid items-end pb-4"
-    style={{
-      gridTemplateColumns: gridTemplate,
-      borderBottom: `2px solid ${INK.dark}`,
-    }}
-  >
-    {COLUMNS.map((col) => (
-      <div
-        key={col.key}
-        className={col.key === 'user' ? 'pl-3' : ''}
-        style={{
-          fontFamily: FONT.sans,
-          fontSize: 10,
-          fontWeight: 700,
-          color: INK.faded,
-          letterSpacing: '0.1em',
-          textTransform: 'uppercase',
-          textAlign: col.align,
-        }}
-      >
-        {col.label}
-      </div>
-    ))}
-  </div>
-);
-
-// =============================================================================
-// USER ROW COMPONENT
-// =============================================================================
-
-interface UserRowProps {
-  user: UserAccess;
-  index: number;
-  clinicians: Clinician[];
-  onUpdate: (updates: Partial<UserAccess>) => void;
-  onEdit: () => void;
-  onResend?: () => void;
-  onGroupClick?: () => void;
-}
-
-const UserRow: React.FC<UserRowProps> = ({
-  user,
-  index,
-  clinicians,
-  onUpdate,
-  onEdit,
-  onResend,
-  onGroupClick,
-}) => {
-  const roleInfo = ROLE_DISPLAY[user.role];
-  const isPending = user.status === 'pending';
-  const isOwner = user.role === 'owner';
-  const [isHovered, setIsHovered] = useState(false);
-
-  // Derive supervisees from clinician relationships
-  const derivedSupervisees = useMemo(() => {
-    return deriveSuperviseesForUser(user, clinicians);
-  }, [user, clinicians]);
-
-  // Get linked clinician info
-  const linkedClinician = useMemo(() => {
-    if (!user.clinicianId) return null;
-    return clinicians.find(c => c.id === user.clinicianId) || null;
-  }, [user.clinicianId, clinicians]);
-
-  // Supervisee label
-  const superviseeCount = derivedSupervisees.length;
-  const superviseeLabel = superviseeCount > 0
-    ? `${superviseeCount} clinician${superviseeCount > 1 ? 's' : ''}`
-    : user.role === 'supervisor'
-      ? 'None assigned'
-      : user.role === 'owner' || user.role === 'admin'
-        ? 'All data'
-        : '—';
-
-  // Row animation variants
-  const rowVariants = {
-    hidden: { opacity: 0, y: 16 },
-    visible: (i: number) => ({
-      opacity: isPending ? 0.7 : 1,
-      y: 0,
-      transition: {
-        delay: i * 0.03,
-        duration: 0.4,
-        ease: EASE.out,
-      },
-    }),
-  };
-
-  return (
-    <motion.div
-      className="grid items-center relative"
-      style={{
-        gridTemplateColumns: gridTemplate,
-        borderBottom: `1px solid ${INK.rule}`,
-        minHeight: 72,
-        backgroundColor: isHovered ? INK.cream : isPending ? `${INK.amber}08` : 'transparent',
-        transition: 'background-color 0.15s ease',
-      }}
-      custom={index}
-      initial="hidden"
-      animate="visible"
-      variants={rowVariants}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      {/* User - Name (matching Clinicians roster style) */}
-      <div className="min-w-0 pl-3">
-        <motion.div
-          className="truncate"
-          style={{
-            fontFamily: FONT.serif,
-            fontSize: 17,
-            color: INK.black,
-            lineHeight: 1.3,
-          }}
-        >
-          {user.name}
-        </motion.div>
-        <div
-          className="truncate mt-0.5"
-          style={{
-            fontFamily: FONT.sans,
-            fontSize: 11,
-            color: INK.ghost,
-            letterSpacing: '0.02em',
-          }}
-        >
-          {linkedClinician ? linkedClinician.licenseType : isPending ? 'Invitation pending' : 'Staff'}
-        </div>
-      </div>
-
-      {/* Email */}
-      <div className="min-w-0">
-        <span
-          className="truncate block"
-          style={{
-            fontFamily: FONT.sans,
-            fontSize: 13,
-            color: INK.muted,
-          }}
-        >
-          {user.email}
-        </span>
-      </div>
-
-      {/* Role */}
-      <div className="flex justify-center">
-        {isOwner ? (
-          <div
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full"
-            style={{
-              backgroundColor: INK.goldGlow,
-              border: `1px solid ${INK.gold}30`,
-            }}
-          >
-            <Lock size={10} style={{ color: INK.gold }} />
-            <span
-              style={{
-                fontFamily: FONT.sans,
-                fontSize: 11,
-                fontWeight: 600,
-                color: INK.gold,
-              }}
-            >
-              Owner
-            </span>
-          </div>
-        ) : (
-          <InlineSelect
-            value={user.role}
-            options={ROLE_OPTIONS}
-            onChange={(value) => onUpdate({ role: value })}
-            width={100}
-          />
-        )}
-      </div>
-
-      {/* Access Status */}
-      <div className="flex justify-center">
-        {isPending ? (
-          <div
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full"
-            style={{
-              backgroundColor: INK.amberLight,
-              border: `1px solid ${INK.amber}30`,
-            }}
-          >
-            <Clock size={10} style={{ color: INK.amber }} />
-            <span
-              style={{
-                fontFamily: FONT.sans,
-                fontSize: 11,
-                fontWeight: 600,
-                color: INK.amber,
-              }}
-            >
-              Pending
-            </span>
-          </div>
-        ) : (
-          <div
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full"
-            style={{
-              backgroundColor: INK.emeraldLight,
-              border: `1px solid ${INK.emerald}30`,
-            }}
-          >
-            <Check size={10} style={{ color: INK.emerald }} />
-            <span
-              style={{
-                fontFamily: FONT.sans,
-                fontSize: 11,
-                fontWeight: 600,
-                color: INK.emerald,
-              }}
-            >
-              Accepted
-            </span>
-          </div>
-        )}
-      </div>
-
-      {/* Last Active */}
-      <div className="flex justify-center">
-        <span
-          style={{
-            fontFamily: FONT.mono,
-            fontSize: 12,
-            color: isPending ? INK.ghost : user.lastActive ? INK.muted : INK.ghost,
-          }}
-        >
-          {isPending ? '—' : formatLastActive(user.lastActive)}
-        </span>
-      </div>
-
-      {/* Revenue Access */}
-      <div className="flex justify-center">
-        {isOwner ? (
-          <span
-            style={{
-              fontFamily: FONT.mono,
-              fontSize: 11,
-              color: INK.faded,
-            }}
-          >
-            Always
-          </span>
-        ) : (
-          <TogglePill
-            active={user.revenueAccess}
-            onChange={(active) => onUpdate({ revenueAccess: active })}
-            activeLabel="Yes"
-            inactiveLabel="No"
-          />
-        )}
-      </div>
-
-      {/* Group - Clickable for supervisors */}
-      <div className="flex justify-center">
-        {user.role === 'supervisor' ? (
-          <motion.button
-            onClick={onGroupClick}
-            whileHover={{ scale: 1.02, backgroundColor: INK.emeraldLight }}
-            whileTap={{ scale: 0.98 }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors"
-            style={{
-              fontFamily: FONT.sans,
-              fontSize: 12,
-              color: INK.emerald,
-              backgroundColor: `${INK.emerald}10`,
-              border: 'none',
-              cursor: 'pointer',
-            }}
-          >
-            <Users size={12} />
-            <span>{superviseeLabel}</span>
-            <ChevronRight size={12} style={{ opacity: 0.6 }} />
-          </motion.button>
-        ) : (
-          <span
-            style={{
-              fontFamily: FONT.sans,
-              fontSize: 12,
-              color: INK.faded,
-            }}
-          >
-            {superviseeLabel}
-          </span>
-        )}
-      </div>
-
-      {/* Actions */}
-      <div className="flex items-center justify-center gap-2">
-        {isPending && onResend ? (
-          <motion.button
-            onClick={onResend}
-            whileHover={{ scale: 1.05, backgroundColor: INK.goldGlow }}
-            whileTap={{ scale: 0.95 }}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg"
-            style={{
-              fontFamily: FONT.sans,
-              fontSize: 11,
-              fontWeight: 600,
-              color: INK.gold,
-              backgroundColor: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-            }}
-          >
-            <RotateCcw size={11} />
-            Resend
-          </motion.button>
-        ) : (
-          <motion.button
-            onClick={onEdit}
-            whileHover={{ scale: 1.05, backgroundColor: INK.cream }}
-            whileTap={{ scale: 0.95 }}
-            className="p-2 rounded-lg"
-            style={{
-              color: isHovered ? INK.muted : INK.ghost,
-              backgroundColor: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              transition: 'color 0.15s ease',
-            }}
-          >
-            <Pencil size={14} />
-          </motion.button>
-        )}
-      </div>
-    </motion.div>
-  );
-};
 
 // =============================================================================
 // SUMMARY BAR
@@ -627,30 +272,292 @@ export const UsersAccessTab: React.FC<UsersAccessTabProps> = ({
     // In real app, this would trigger an email resend
   };
 
-  const footerContent = users.length > 1 && (
-    <>
-      <div
-        style={{
-          fontFamily: FONT.sans,
-          fontSize: 12,
-          color: INK.faded,
-        }}
-      >
-        <span style={{ color: INK.muted, fontWeight: 600 }}>{userStats.active}</span> active
-      </div>
-      {userStats.pending > 0 && (
+  // Footer for LedgerTable
+  const tableFooter: LedgerTableFooter | undefined = users.length > 1
+    ? {
+        activeCount: userStats.active,
+        activeLabel: 'active',
+        inactiveCount: userStats.pending,
+        inactiveLabel: 'pending',
+      }
+    : undefined;
+
+  // Row opacity handler for pending users
+  const getRowOpacity = (user: UserAccess): number => {
+    return user.status === 'pending' ? 0.7 : 1;
+  };
+
+  // Render row cells for LedgerTable
+  const renderUserRow = (user: UserAccess, index: number, isHovered: boolean): React.ReactNode[] => {
+    const isPending = user.status === 'pending';
+    const isOwner = user.role === 'owner';
+
+    // Derive supervisees from clinician relationships
+    const derivedSupervisees = deriveSuperviseesForUser(user, clinicians);
+    const linkedClinician = user.clinicianId
+      ? clinicians.find(c => c.id === user.clinicianId) || null
+      : null;
+
+    // Supervisee label
+    const superviseeCount = derivedSupervisees.length;
+    const superviseeLabel = superviseeCount > 0
+      ? `${superviseeCount} clinician${superviseeCount > 1 ? 's' : ''}`
+      : user.role === 'supervisor'
+        ? 'None assigned'
+        : user.role === 'owner' || user.role === 'admin'
+          ? 'All data'
+          : '—';
+
+    // Format date for subtitle (like clinician view)
+    const formatDate = (dateStr: string) => {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    };
+
+    // Subtitle: "Since [date]" for all users
+    const subtitle = linkedClinician
+      ? `Since ${formatDate(linkedClinician.startDate)}`
+      : isPending && user.invitedAt
+        ? `Invited ${formatDate(user.invitedAt)}`
+        : user.joinedAt
+          ? `Since ${formatDate(user.joinedAt)}`
+          : null;
+
+    return [
+      // User - Name + optional subtitle
+      <div key="user" className="min-w-0 pl-3">
         <div
+          className="truncate"
           style={{
-            fontFamily: FONT.sans,
-            fontSize: 12,
-            color: INK.amber,
+            fontFamily: FONT.serif,
+            fontSize: 17,
+            color: INK.black,
+            lineHeight: 1.3,
           }}
         >
-          <span style={{ fontWeight: 500 }}>{userStats.pending}</span> pending
+          {user.name}
         </div>
-      )}
-    </>
-  );
+        {subtitle && (
+          <div
+            className="truncate mt-0.5"
+            style={{
+              fontFamily: FONT.sans,
+              fontSize: 11,
+              color: INK.ghost,
+              letterSpacing: '0.02em',
+            }}
+          >
+            {subtitle}
+          </div>
+        )}
+      </div>,
+
+      // Email
+      <div key="email" className="min-w-0">
+        <span
+          className="truncate block"
+          style={{
+            fontFamily: FONT.sans,
+            fontSize: 13,
+            color: INK.muted,
+          }}
+        >
+          {user.email}
+        </span>
+      </div>,
+
+      // Role
+      <div key="role" className="flex justify-center">
+        {isOwner ? (
+          <div
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full"
+            style={{
+              backgroundColor: INK.goldGlow,
+              border: `1px solid ${INK.gold}30`,
+            }}
+          >
+            <Lock size={10} style={{ color: INK.gold }} />
+            <span
+              style={{
+                fontFamily: FONT.sans,
+                fontSize: 11,
+                fontWeight: 600,
+                color: INK.gold,
+              }}
+            >
+              Owner
+            </span>
+          </div>
+        ) : (
+          <InlineSelect
+            value={user.role}
+            options={ROLE_OPTIONS}
+            onChange={(value) => updateUser(user.id, { role: value })}
+            width={100}
+          />
+        )}
+      </div>,
+
+      // Access Status
+      <div key="access" className="flex justify-center">
+        {isPending ? (
+          <div
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full"
+            style={{
+              backgroundColor: INK.amberLight,
+              border: `1px solid ${INK.amber}30`,
+            }}
+          >
+            <Clock size={10} style={{ color: INK.amber }} />
+            <span
+              style={{
+                fontFamily: FONT.sans,
+                fontSize: 11,
+                fontWeight: 600,
+                color: INK.amber,
+              }}
+            >
+              Pending
+            </span>
+          </div>
+        ) : (
+          <div
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full"
+            style={{
+              backgroundColor: INK.emeraldLight,
+              border: `1px solid ${INK.emerald}30`,
+            }}
+          >
+            <Check size={10} style={{ color: INK.emerald }} />
+            <span
+              style={{
+                fontFamily: FONT.sans,
+                fontSize: 11,
+                fontWeight: 600,
+                color: INK.emerald,
+              }}
+            >
+              Accepted
+            </span>
+          </div>
+        )}
+      </div>,
+
+      // Last Active
+      <div key="lastActive" className="flex justify-center">
+        <span
+          style={{
+            fontFamily: FONT.mono,
+            fontSize: 12,
+            color: isPending ? INK.ghost : user.lastActive ? INK.muted : INK.ghost,
+          }}
+        >
+          {isPending ? '—' : formatLastActive(user.lastActive)}
+        </span>
+      </div>,
+
+      // Revenue Access
+      <div key="revenue" className="flex justify-center">
+        {isOwner ? (
+          <span
+            style={{
+              fontFamily: FONT.mono,
+              fontSize: 11,
+              color: INK.faded,
+            }}
+          >
+            Always
+          </span>
+        ) : (
+          <TogglePill
+            active={user.revenueAccess}
+            onChange={(active) => updateUser(user.id, { revenueAccess: active })}
+            activeLabel="Yes"
+            inactiveLabel="No"
+          />
+        )}
+      </div>,
+
+      // Group - Clickable for supervisors
+      <div key="group" className="flex justify-center">
+        {user.role === 'supervisor' ? (
+          <motion.button
+            onClick={() => setGroupViewUser(user)}
+            whileHover={{ scale: 1.02, backgroundColor: INK.emeraldLight }}
+            whileTap={{ scale: 0.98 }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors"
+            style={{
+              fontFamily: FONT.sans,
+              fontSize: 12,
+              color: INK.emerald,
+              backgroundColor: `${INK.emerald}10`,
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            <Users size={12} />
+            <span>{superviseeLabel}</span>
+            <ChevronRight size={12} style={{ opacity: 0.6 }} />
+          </motion.button>
+        ) : (
+          <span
+            style={{
+              fontFamily: FONT.sans,
+              fontSize: 12,
+              color: INK.faded,
+            }}
+          >
+            {superviseeLabel}
+          </span>
+        )}
+      </div>,
+
+      // Actions
+      <div key="actions" className="flex items-center justify-center gap-2">
+        {isPending ? (
+          <motion.button
+            onClick={() => handleResend(user.id)}
+            whileHover={{ scale: 1.05, backgroundColor: INK.goldGlow }}
+            whileTap={{ scale: 0.95 }}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg"
+            style={{
+              fontFamily: FONT.sans,
+              fontSize: 11,
+              fontWeight: 600,
+              color: INK.gold,
+              backgroundColor: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            <RotateCcw size={11} />
+            Resend
+          </motion.button>
+        ) : (
+          <motion.button
+            onClick={() => setEditingUser(user)}
+            whileHover={{ scale: 1.05, backgroundColor: INK.cream }}
+            whileTap={{ scale: 0.95 }}
+            className="p-2 rounded-lg"
+            style={{
+              color: isHovered ? INK.muted : INK.ghost,
+              backgroundColor: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              transition: 'color 0.15s ease',
+            }}
+          >
+            <Pencil size={14} />
+          </motion.button>
+        )}
+      </div>,
+    ];
+  };
+
+  // Empty message for users table
+  const emptyMessage = users.length === 1 && users[0].role === 'owner'
+    ? 'Invite team members to give them access to practice data.'
+    : 'No users to display.';
 
   return (
     <motion.div
@@ -666,57 +573,15 @@ export const UsersAccessTab: React.FC<UsersAccessTabProps> = ({
 
       <LedgerCard>
         <div className="p-8">
-          {/* Table Header */}
-          <HeaderRow />
-
-          {/* Table Rows */}
-          <div>
-            {sortedUsers.map((user, index) => (
-              <UserRow
-                key={user.id}
-                user={user}
-                index={index}
-                clinicians={clinicians}
-                onUpdate={(updates) => updateUser(user.id, updates)}
-                onEdit={() => setEditingUser(user)}
-                onResend={user.status === 'pending' ? () => handleResend(user.id) : undefined}
-                onGroupClick={user.role === 'supervisor' ? () => setGroupViewUser(user) : undefined}
-              />
-            ))}
-          </div>
-
-          {/* Empty state */}
-          {users.length === 1 && users[0].role === 'owner' && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-              className="py-8 text-center"
-            >
-              <p
-                style={{
-                  fontFamily: FONT.sans,
-                  fontSize: 14,
-                  color: INK.faded,
-                }}
-              >
-                Invite team members to give them access to practice data.
-              </p>
-            </motion.div>
-          )}
-
-          {/* Footer summary */}
-          {footerContent && (
-            <motion.div
-              className="mt-6 pt-4 flex items-center gap-6"
-              style={{ borderTop: `1px dashed ${INK.rule}` }}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: users.length * 0.03 + 0.2 }}
-            >
-              {footerContent}
-            </motion.div>
-          )}
+          <LedgerTable
+            columns={USER_COLUMNS}
+            data={sortedUsers}
+            keyExtractor={(user) => user.id}
+            renderRow={renderUserRow}
+            rowOpacity={getRowOpacity}
+            footer={tableFooter}
+            emptyMessage={emptyMessage}
+          />
         </div>
       </LedgerCard>
 
