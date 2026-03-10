@@ -213,7 +213,7 @@ export function deriveSuperviseesForUser(
 }
 
 // Service mapping types
-export type ServiceBucket = 'sessions' | 'cancellations' | 'other' | 'excluded';
+export type ServiceBucket = 'sessions' | 'cancellations' | 'other' | 'excluded' | 'unassigned';
 export type ServiceCategory = 'session' | 'intake' | 'supervision' | 'admin' | 'group' | 'other';
 
 export interface ServiceMapping {

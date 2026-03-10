@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, Check, GripVertical, Info } from 'lucide-react';
-import { FONT, INK, SHADOW, EASE, LedgerCard, SectionDivider } from './shared';
+import { FONT, INK, SHADOW, EASE, LedgerCard, SectionDivider, MOCK_EHR_OFFICES, MOCK_LOCATION_GROUPS } from './shared';
 import { useSettings, MetricThresholds } from '../../context/SettingsContext';
 import type { ServiceMapping, ServiceBucket, ServiceCategory } from './shared';
+import { OfficeMapping, type LocationGroup, type RawEHROffice } from '../OfficeMapping';
 
 // =============================================================================
 // PRACTICE DEFINITIONS - The Accountant's Ledger
@@ -470,12 +471,17 @@ const MOCK_SERVICES: ServiceMapping[] = [
   { id: 's8', name: 'Admin Block', code: 'ADMIN', bucket: 'other', category: 'admin' },
   { id: 's9', name: 'Training', code: 'T100', bucket: 'excluded' },
   { id: 's10', name: 'Free Consult', code: '00000', bucket: 'excluded' },
+  // Unassigned examples - newly synced from EHR
+  { id: 's11', name: 'Telehealth Session', code: '90837-95', bucket: 'unassigned' },
+  { id: 's12', name: 'Crisis Intervention', code: '90839', bucket: 'unassigned' },
+  { id: 's13', name: 'Medication Mgmt', code: '99213', bucket: 'unassigned' },
 ];
 
-const BUCKETS: { id: ServiceBucket; label: string; color: string }[] = [
-  { id: 'sessions', label: 'Sessions', color: INK.emerald },
-  { id: 'other', label: 'Other', color: INK.amber },
-  { id: 'excluded', label: 'Excluded', color: INK.faded },
+const BUCKETS: { id: ServiceBucket; label: string; color: string; description?: string }[] = [
+  { id: 'unassigned', label: 'Needs Review', color: INK.rose, description: 'New services synced from your EHR' },
+  { id: 'sessions', label: 'Sessions', color: INK.emerald, description: 'Count toward session goals' },
+  { id: 'other', label: 'Other Work', color: INK.amber, description: 'Tracked but not session goals' },
+  { id: 'excluded', label: 'Excluded', color: INK.faded, description: 'Ignored in all metrics' },
 ];
 
 const CATEGORIES: { value: ServiceCategory; label: string }[] = [
@@ -493,7 +499,22 @@ interface ServiceMappingProps {
 }
 
 const ServiceMappingSection: React.FC<ServiceMappingProps> = ({ services, onUpdate }) => {
-  const [expanded, setExpanded] = useState<ServiceBucket | null>(null);
+  // All sections expanded by default
+  const [expanded, setExpanded] = useState<Set<ServiceBucket>>(
+    new Set(BUCKETS.map((b) => b.id))
+  );
+
+  const toggleExpanded = (bucketId: ServiceBucket) => {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(bucketId)) {
+        next.delete(bucketId);
+      } else {
+        next.add(bucketId);
+      }
+      return next;
+    });
+  };
 
   const byBucket = useMemo(() => {
     return BUCKETS.reduce((acc, b) => {
@@ -506,26 +527,25 @@ const ServiceMappingSection: React.FC<ServiceMappingProps> = ({ services, onUpda
     onUpdate(services.map((s) => (s.id === id ? { ...s, ...updates } : s)));
   };
 
+  const unassignedCount = byBucket['unassigned']?.length || 0;
+
   return (
     <LedgerCard>
       <div className="p-6">
         {/* Section header */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="mb-6 flex items-center justify-between">
           <div>
-            <div
-              className="flex items-center gap-2 mb-1"
+            <h2
               style={{
-                fontFamily: FONT.sans,
-                fontSize: 10,
-                fontWeight: 600,
-                color: INK.ghost,
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
+                fontFamily: FONT.serif,
+                fontSize: 24,
+                fontWeight: 400,
+                color: INK.black,
+                letterSpacing: '-0.01em',
               }}
             >
-              <span>Service Mapping</span>
-              <div className="flex-1 h-px" style={{ backgroundColor: INK.rule }} />
-            </div>
+              Service Mapping
+            </h2>
             <p
               style={{
                 fontFamily: FONT.sans,
@@ -548,141 +568,230 @@ const ServiceMappingSection: React.FC<ServiceMappingProps> = ({ services, onUpda
                   style={{
                     fontFamily: FONT.mono,
                     fontSize: 12,
-                    color: INK.muted,
+                    color: b.id === 'unassigned' && byBucket[b.id]?.length > 0 ? INK.rose : INK.muted,
+                    fontWeight: b.id === 'unassigned' && byBucket[b.id]?.length > 0 ? 600 : 400,
                   }}
                 >
-                  {byBucket[b.id].length}
+                  {byBucket[b.id]?.length || 0}
                 </span>
               </div>
             ))}
           </div>
         </div>
 
-      {/* Buckets */}
-      <div className="mt-4 rounded-lg overflow-hidden" style={{ border: `1px solid ${INK.rule}` }}>
-      {BUCKETS.map((bucket, idx) => {
-        const items = byBucket[bucket.id];
-        const isExpanded = expanded === bucket.id;
-        const isLast = idx === BUCKETS.length - 1;
+        {/* Buckets */}
+        <div className="rounded-lg overflow-hidden" style={{ border: `1px solid ${INK.rule}` }}>
+          {BUCKETS.map((bucket, idx) => {
+            const items = byBucket[bucket.id] || [];
+            const isExpanded = expanded.has(bucket.id);
+            const isLast = idx === BUCKETS.length - 1;
+            const isUnassigned = bucket.id === 'unassigned';
+            const hasUnassigned = isUnassigned && items.length > 0;
 
-        return (
-          <div key={bucket.id} style={{ borderBottom: isLast ? 'none' : `1px solid ${INK.rule}` }}>
-            {/* Bucket row */}
-            <button
-              onClick={() => setExpanded(isExpanded ? null : bucket.id)}
-              className="w-full px-4 py-3 flex items-center justify-between transition-colors"
-              style={{
-                backgroundColor: isExpanded ? INK.cream : 'transparent',
-                border: 'none',
-                cursor: 'pointer',
-              }}
-            >
-              <div className="flex items-center gap-3">
-                <motion.div
-                  animate={{ rotate: isExpanded ? 90 : 0 }}
-                  transition={{ duration: 0.15 }}
-                >
-                  <ChevronRight size={14} color={INK.faded} />
-                </motion.div>
-                <div
-                  className="w-2 h-2 rounded-full"
-                  style={{ backgroundColor: bucket.color }}
-                />
-                <span
-                  style={{
-                    fontFamily: FONT.sans,
-                    fontSize: 13,
-                    fontWeight: 500,
-                    color: INK.body,
-                  }}
-                >
-                  {bucket.label}
-                </span>
-              </div>
-              <span
+            return (
+              <div
+                key={bucket.id}
                 style={{
-                  fontFamily: FONT.mono,
-                  fontSize: 12,
-                  color: INK.ghost,
+                  borderBottom: isLast ? 'none' : `1px solid ${INK.rule}`,
+                  backgroundColor: hasUnassigned ? `${INK.rose}08` : 'transparent',
                 }}
               >
-                {items.length}
-              </span>
-            </button>
-
-            {/* Expanded content */}
-            <AnimatePresence>
-              {isExpanded && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="overflow-hidden"
+                {/* Bucket header */}
+                <button
+                  onClick={() => toggleExpanded(bucket.id)}
+                  className="w-full px-4 py-3 flex items-center justify-between transition-colors hover:bg-stone-50"
+                  style={{
+                    backgroundColor: isExpanded ? INK.cream : 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                  }}
                 >
-                  <div className="px-4 pb-3">
-                    {items.map((service) => (
-                      <div
-                        key={service.id}
-                        className="flex items-center justify-between py-2"
-                        style={{ borderBottom: `1px solid ${INK.rule}` }}
+                  <div className="flex items-center gap-3">
+                    <motion.div
+                      animate={{ rotate: isExpanded ? 90 : 0 }}
+                      transition={{ duration: 0.15 }}
+                    >
+                      <ChevronRight size={14} color={INK.faded} />
+                    </motion.div>
+                    <div
+                      className="w-2.5 h-2.5 rounded-full"
+                      style={{ backgroundColor: bucket.color }}
+                    />
+                    <div className="flex items-center gap-2">
+                      <span
+                        style={{
+                          fontFamily: FONT.sans,
+                          fontSize: 13,
+                          fontWeight: 600,
+                          color: hasUnassigned ? INK.rose : INK.body,
+                        }}
                       >
-                        <div className="flex items-center gap-3">
-                          <span
-                            className="px-1.5 py-0.5 rounded"
-                            style={{
-                              fontFamily: FONT.mono,
-                              fontSize: 10,
-                              backgroundColor: INK.cream,
-                              color: INK.faded,
-                            }}
-                          >
-                            {service.code}
-                          </span>
-                          <span
-                            style={{
-                              fontFamily: FONT.sans,
-                              fontSize: 13,
-                              color: INK.body,
-                            }}
-                          >
-                            {service.name}
-                          </span>
-                        </div>
-                        {bucket.id !== 'excluded' && (
-                          <select
-                            value={service.category || ''}
-                            onChange={(e) =>
-                              updateService(service.id, {
-                                category: (e.target.value as ServiceCategory) || undefined,
-                              })
-                            }
-                            className="px-2 py-1 rounded border bg-white outline-none"
-                            style={{
-                              fontFamily: FONT.sans,
-                              fontSize: 11,
-                              color: service.category ? INK.body : INK.ghost,
-                              borderColor: INK.rule,
-                            }}
-                          >
-                            <option value="">—</option>
-                            {CATEGORIES.map((c) => (
-                              <option key={c.value} value={c.value}>
-                                {c.label}
-                              </option>
-                            ))}
-                          </select>
-                        )}
-                      </div>
-                    ))}
+                        {bucket.label}
+                      </span>
+                      {bucket.description && (
+                        <span
+                          style={{
+                            fontFamily: FONT.sans,
+                            fontSize: 11,
+                            color: INK.ghost,
+                          }}
+                        >
+                          — {bucket.description}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        );
-      })}
-      </div>
+                  <span
+                    className="px-2 py-0.5 rounded-full"
+                    style={{
+                      fontFamily: FONT.mono,
+                      fontSize: 11,
+                      fontWeight: 600,
+                      color: hasUnassigned ? 'white' : INK.muted,
+                      backgroundColor: hasUnassigned ? INK.rose : INK.cream,
+                    }}
+                  >
+                    {items.length}
+                  </span>
+                </button>
+
+                {/* Expanded content */}
+                <AnimatePresence initial={false}>
+                  {isExpanded && items.length > 0 && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+                      className="overflow-hidden"
+                    >
+                      <div className="px-4 pb-3">
+                        <AnimatePresence mode="popLayout">
+                          {items.map((service, serviceIdx) => (
+                            <motion.div
+                              key={service.id}
+                              layout
+                              initial={{ opacity: 0, x: -10 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              exit={{ opacity: 0, x: 10, transition: { duration: 0.15 } }}
+                              transition={{ duration: 0.2, delay: serviceIdx * 0.02 }}
+                              className="flex items-center justify-between py-2.5 group"
+                              style={{
+                                borderBottom: serviceIdx < items.length - 1 ? `1px solid ${INK.rule}` : 'none',
+                              }}
+                            >
+                              {/* Service info */}
+                              <div className="flex items-center gap-3">
+                                <span
+                                  className="px-1.5 py-0.5 rounded"
+                                  style={{
+                                    fontFamily: FONT.mono,
+                                    fontSize: 10,
+                                    backgroundColor: INK.cream,
+                                    color: INK.faded,
+                                  }}
+                                >
+                                  {service.code}
+                                </span>
+                                <span
+                                  style={{
+                                    fontFamily: FONT.sans,
+                                    fontSize: 13,
+                                    color: INK.body,
+                                  }}
+                                >
+                                  {service.name}
+                                </span>
+                              </div>
+
+                              {/* Controls */}
+                              <div className="flex items-center gap-3">
+                                {/* Category dropdown (not for excluded/unassigned) */}
+                                {bucket.id !== 'excluded' && bucket.id !== 'unassigned' && (
+                                  <select
+                                    value={service.category || ''}
+                                    onChange={(e) =>
+                                      updateService(service.id, {
+                                        category: (e.target.value as ServiceCategory) || undefined,
+                                      })
+                                    }
+                                    className="px-2 py-1 rounded border bg-white outline-none text-xs"
+                                    style={{
+                                      fontFamily: FONT.sans,
+                                      color: service.category ? INK.body : INK.ghost,
+                                      borderColor: INK.rule,
+                                    }}
+                                  >
+                                    <option value="">Category...</option>
+                                    {CATEGORIES.map((c) => (
+                                      <option key={c.value} value={c.value}>
+                                        {c.label}
+                                      </option>
+                                    ))}
+                                  </select>
+                                )}
+
+                                {/* Bucket dropdown - move to different section */}
+                                <select
+                                  value={bucket.id}
+                                  onChange={(e) => {
+                                    const newBucket = e.target.value as ServiceBucket;
+                                    // Clear category if moving to excluded
+                                    const updates: Partial<ServiceMapping> = {
+                                      bucket: newBucket as ServiceBucket,
+                                    };
+                                    if (newBucket === 'excluded') {
+                                      updates.category = undefined;
+                                    }
+                                    updateService(service.id, updates);
+                                  }}
+                                  className="px-2 py-1 rounded border outline-none text-xs transition-colors"
+                                  style={{
+                                    fontFamily: FONT.sans,
+                                    fontWeight: 500,
+                                    color: bucket.color,
+                                    borderColor: `${bucket.color}40`,
+                                    backgroundColor: `${bucket.color}10`,
+                                  }}
+                                >
+                                  {BUCKETS.filter((b) => b.id !== 'unassigned').map((b) => (
+                                    <option key={b.id} value={b.id}>
+                                      → {b.label}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                            </motion.div>
+                          ))}
+                        </AnimatePresence>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Empty state for expanded sections */}
+                {isExpanded && items.length === 0 && (
+                  <div className="px-4 pb-4">
+                    <div
+                      className="py-6 text-center rounded-lg"
+                      style={{ backgroundColor: INK.cream }}
+                    >
+                      <span
+                        style={{
+                          fontFamily: FONT.sans,
+                          fontSize: 12,
+                          color: INK.ghost,
+                        }}
+                      >
+                        {isUnassigned ? 'All services have been categorized' : 'No services in this category'}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </LedgerCard>
   );
@@ -697,6 +806,8 @@ export const PracticeTab: React.FC<PracticeTabProps> = () => {
   const [thresholds, setThresholds] = useState<MetricThresholds>(settings.thresholds);
   const [noteDeadline, setNoteDeadline] = useState(settings.practiceGoals.noteDeadlineHours);
   const [services, setServices] = useState<ServiceMapping[]>(MOCK_SERVICES);
+  const [locationGroups, setLocationGroups] = useState<LocationGroup[]>(MOCK_LOCATION_GROUPS);
+  const [ehrOffices] = useState<RawEHROffice[]>(MOCK_EHR_OFFICES);
 
   // Persist
   useEffect(() => {
@@ -722,34 +833,34 @@ export const PracticeTab: React.FC<PracticeTabProps> = () => {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
     >
-      {/* Header - matches CliniciansTab */}
-      <div className="mb-6">
-        <h2
-          style={{
-            fontFamily: FONT.serif,
-            fontSize: 24,
-            fontWeight: 400,
-            color: INK.black,
-            letterSpacing: '-0.01em',
-          }}
-        >
-          Practice Definitions
-        </h2>
-        <p
-          style={{
-            fontFamily: FONT.sans,
-            fontSize: 13,
-            color: INK.muted,
-            marginTop: 4,
-          }}
-        >
-          Settings that define how metrics are calculated across your practice
-        </p>
-      </div>
-
-      {/* Settings Card - single card like Clinicians roster */}
+      {/* Settings Card */}
       <LedgerCard>
         <div className="p-8">
+          {/* Header inside card - matches Clinicians tab style */}
+          <div className="mb-6">
+            <h2
+              style={{
+                fontFamily: FONT.serif,
+                fontSize: 24,
+                fontWeight: 400,
+                color: INK.black,
+                letterSpacing: '-0.01em',
+              }}
+            >
+              Practice Definitions
+            </h2>
+            <p
+              style={{
+                fontFamily: FONT.sans,
+                fontSize: 13,
+                color: INK.muted,
+                marginTop: 4,
+              }}
+            >
+              Settings that define how metrics are calculated across your practice
+            </p>
+          </div>
+
           {/* Thresholds Table */}
           <table className="w-full" style={{ borderCollapse: 'separate', borderSpacing: 0 }}>
             <thead>
@@ -829,6 +940,17 @@ export const PracticeTab: React.FC<PracticeTabProps> = () => {
 
             </tbody>
           </table>
+        </div>
+      </LedgerCard>
+
+      {/* Location Mapping */}
+      <LedgerCard className="mt-6">
+        <div className="p-6">
+          <OfficeMapping
+            ehrOffices={ehrOffices}
+            locationGroups={locationGroups}
+            onUpdateGroups={setLocationGroups}
+          />
         </div>
       </LedgerCard>
 
