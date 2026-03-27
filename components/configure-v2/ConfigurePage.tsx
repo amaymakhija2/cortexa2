@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, Shield, Target, Link2 } from 'lucide-react';
+import { Users, Shield, Target, Link2, Wallet } from 'lucide-react';
 import { PageHeader, SegmentedControl } from '../design-system';
 import type { SegmentedControlOption } from '../design-system/controls/SegmentedControl';
 import { useSettings } from '../../context/SettingsContext';
@@ -12,6 +12,7 @@ import { CliniciansTab } from './CliniciansTab';
 import { UsersAccessTab } from './UsersAccessTab';
 import { PracticeTab } from './PracticeTab';
 import { ConnectionsTab } from './ConnectionsTab';
+import { BillingTab } from './BillingTab';
 
 // =============================================================================
 // CONFIGURE PAGE V2 - The Practice Ledger
@@ -20,13 +21,14 @@ import { ConnectionsTab } from './ConnectionsTab';
 // Clinicians | Users & Access | Practice | Connections
 // =============================================================================
 
-type ConfigTab = 'clinicians' | 'users' | 'practice' | 'connections';
+type ConfigTab = 'clinicians' | 'users' | 'practice' | 'connections' | 'billing';
 
 const CONFIG_TABS: SegmentedControlOption<ConfigTab>[] = [
   { id: 'clinicians', label: 'Clinicians', icon: <Users size={16} /> },
   { id: 'users', label: 'Users & Access', icon: <Shield size={16} /> },
   { id: 'practice', label: 'Practice', icon: <Target size={16} /> },
   { id: 'connections', label: 'Connections', icon: <Link2 size={16} /> },
+  { id: 'billing', label: 'Billing', icon: <Wallet size={16} /> },
 ];
 
 // =============================================================================
@@ -145,6 +147,12 @@ export const ConfigurePage: React.FC = () => {
                 clinicians={clinicians}
                 onUpdateClinicians={handleUpdateClinicians}
                 onRefreshEHR={handleRefreshEHR}
+              />
+            )}
+
+            {activeTab === 'billing' && (
+              <BillingTab
+                clinicianCount={clinicians.filter(c => c.isActive).length}
               />
             )}
           </motion.div>

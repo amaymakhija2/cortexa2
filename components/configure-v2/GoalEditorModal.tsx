@@ -1,635 +1,223 @@
-import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence, useSpring, useTransform } from 'framer-motion';
-import { X, TrendingUp, TrendingDown, Minus } from 'lucide-react';
-import { FONT, INK, PrimaryButton, estimateAnnualRevenue, formatRevenue, ChartTooltip } from './shared';
+import React, { useState, useRef, useMemo, useCallback, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, Plus, Trash2 } from 'lucide-react';
+import { FONT, INK, SHADOW, EASE, PrimaryButton, estimateAnnualRevenue, formatRevenue, ChartTooltip } from './shared';
 import type { Clinician } from './shared';
 
 // =============================================================================
-// GOAL EDITOR MODAL - Premium Drag Experience
+// GOAL EDITOR MODAL - Period-Based Goal Management
+// =============================================================================
+// A clinician's goal is a timeline of contiguous periods. The chart visualizes
+// the goal over time (read-only). The period ledger below is where editing
+// happens. Each period's start = previous period's end + 1. The last period
+// always runs to "present."
 // =============================================================================
 
 export type GoalMetric = 'sessions' | 'clients';
 
-interface MonthData {
-  month: string;
-  label: string;
-  shortLabel: string;
-  goal: number;
-  actual?: number;
-  isExplicit: boolean;
-  isPast: boolean;
-  isCurrent: boolean;
+export interface GoalPeriod {
+  id: string;
+  startDate: string;       // YYYY-MM-DD
+  endDate: string | null;  // null = present/ongoing
+  value: number;           // sessions/wk or active clients
+  reason?: string;         // Optional label (maternity, ramp-up, etc.)
 }
 
 interface GoalEditorModalProps {
   clinician: Clinician;
   metric: GoalMetric;
-  currentValue: number;
-  history?: Array<{ month: string; value: number }>;
-  performanceHistory?: Array<{ month: string; actual: number; goal: number }>;
-  onSave: (monthlyGoals: Array<{ month: string; value: number }>) => void;
+  periods: GoalPeriod[];
+  onSave: (periods: GoalPeriod[]) => void;
   onClose: () => void;
 }
 
 // =============================================================================
-// COLORS
+// CONSTANTS
 // =============================================================================
 
+const REASON_PRESETS = [
+  'Maternity leave',
+  'Paternity leave',
+  'Medical leave',
+  'Ramp-up',
+  'Ramp-down',
+  'Reduced hours',
+  'Seasonal adjustment',
+];
+
 const COLORS = {
-  actual: '#D4634B',
-  actualLight: '#E8857A',
-  actualGlow: 'rgba(212, 99, 75, 0.12)',
   goalPast: '#9A8B7A',
   goalCurrent: INK.gold,
   goalFuture: INK.emerald,
-  goalInherited: INK.ghost,
-  positive: '#2D8A6E',
-  negative: '#C4553A',
-  neutral: INK.muted,
 };
+
+const CHART_HEIGHT = 200;
 
 // =============================================================================
 // HELPERS
 // =============================================================================
 
-function getMonthRange(): { start: Date; end: Date; current: Date } {
+function generateId(): string {
+  return `gp_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+}
+
+function parseDate(str: string): Date {
+  const [y, m, d] = str.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+
+function toISO(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+function addDays(str: string, n: number): string {
+  const d = parseDate(str);
+  d.setDate(d.getDate() + n);
+  return toISO(d);
+}
+
+function formatDateDisplay(str: string): string {
+  return parseDate(str).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
+function getMonday(date: Date): Date {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+  d.setDate(diff);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+// =============================================================================
+// WEEK GENERATION
+// =============================================================================
+
+interface WeekData {
+  start: Date;
+  key: string;
+  goal: number;
+  isPast: boolean;
+  isCurrent: boolean;
+  monthLabel?: string;
+  isPeriodBoundary: boolean;
+}
+
+function generateWeeks(
+  periods: GoalPeriod[],
+  monthsBack = 6,
+  monthsForward = 3
+): WeekData[] {
   const now = new Date();
-  const current = new Date(now.getFullYear(), now.getMonth(), 1);
-  const start = new Date(current);
-  start.setMonth(start.getMonth() - 6);
-  const end = new Date(current);
-  end.setMonth(end.getMonth() + 5);
-  return { start, end, current };
-}
+  const currentWeek = getMonday(now);
 
-function formatMonthLabel(date: Date): string {
-  return date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
-}
+  const rangeStart = new Date(currentWeek);
+  rangeStart.setMonth(rangeStart.getMonth() - monthsBack);
+  const firstWeek = getMonday(rangeStart);
 
-function formatShortMonth(date: Date): string {
-  return date.toLocaleDateString('en-US', { month: 'short' });
-}
+  const rangeEnd = new Date(currentWeek);
+  rangeEnd.setMonth(rangeEnd.getMonth() + monthsForward);
 
-function formatMonthKey(date: Date): string {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-}
+  // Collect period start dates for boundary markers
+  const periodStartDates = periods.slice(1).map((p) => parseDate(p.startDate).getTime());
 
-function generateMonthData(
-  currentValue: number,
-  history?: Array<{ month: string; value: number }>,
-  performanceHistory?: Array<{ month: string; actual: number }>
-): MonthData[] {
-  const { start, end, current } = getMonthRange();
-  const months: MonthData[] = [];
-  const historyMap = new Map(history?.map(h => [h.month, h.value]) || []);
-  const actualMap = new Map(performanceHistory?.map(p => [p.month, p.actual]) || []);
+  const weeks: WeekData[] = [];
+  const cursor = new Date(firstWeek);
+  let lastMonth = -1;
 
-  const cursor = new Date(start);
-  let lastExplicitValue = currentValue;
+  while (cursor <= rangeEnd) {
+    const weekStart = new Date(cursor);
+    const weekKey = toISO(weekStart);
+    const isPast = weekStart < currentWeek;
+    const isCurrent = weekStart.getTime() === currentWeek.getTime();
 
-  while (cursor <= end) {
-    const key = formatMonthKey(cursor);
-    const isPast = cursor < current;
-    const isCurrent = cursor.getTime() === current.getTime();
-    const isFuture = cursor > current;
-
-    const explicitValue = historyMap.get(key);
-    const isExplicit = explicitValue !== undefined || isCurrent;
-
-    let goal: number;
-    if (explicitValue !== undefined) {
-      goal = explicitValue;
-      lastExplicitValue = explicitValue;
-    } else if (isCurrent) {
-      goal = currentValue;
-      lastExplicitValue = currentValue;
-    } else if (isFuture) {
-      goal = lastExplicitValue;
-    } else {
-      goal = currentValue;
-    }
-
-    let actual: number | undefined;
-    if (isPast || isCurrent) {
-      if (actualMap.has(key)) {
-        actual = actualMap.get(key);
-      } else {
-        const variance = Math.random() * 0.25 - 0.08;
-        const seasonalFactor = Math.sin((cursor.getMonth() / 12) * Math.PI * 2) * 0.06;
-        actual = Math.round(goal * (1 + variance + seasonalFactor));
+    // Find goal value from periods
+    let goal = 0;
+    for (const p of periods) {
+      const ps = parseDate(p.startDate);
+      const pe = p.endDate ? parseDate(p.endDate) : new Date(9999, 11, 31);
+      if (weekStart >= ps && weekStart <= pe) {
+        goal = p.value;
+        break;
       }
     }
 
-    months.push({
-      month: key,
-      label: formatMonthLabel(cursor),
-      shortLabel: formatShortMonth(cursor),
+    // Month label on first week of each month
+    let monthLabel: string | undefined;
+    if (weekStart.getMonth() !== lastMonth) {
+      monthLabel = weekStart.toLocaleDateString('en-US', { month: 'short' });
+      if (weekStart.getMonth() === 0) {
+        monthLabel += ` '${String(weekStart.getFullYear()).slice(2)}`;
+      }
+      lastMonth = weekStart.getMonth();
+    }
+
+    // Period boundary: a period starts within this week
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekEnd.getDate() + 6);
+    const isPeriodBoundary = periodStartDates.some(
+      (ts) => ts >= weekStart.getTime() && ts <= weekEnd.getTime()
+    );
+
+    weeks.push({
+      start: weekStart,
+      key: weekKey,
       goal,
-      actual,
-      isExplicit,
       isPast,
       isCurrent,
+      monthLabel,
+      isPeriodBoundary,
     });
-
-    cursor.setMonth(cursor.getMonth() + 1);
+    cursor.setDate(cursor.getDate() + 7);
   }
 
-  return months;
+  return weeks;
 }
 
 // =============================================================================
-// DRAGGABLE GOAL BAR - Premium drag + click-to-edit experience
+// READ-ONLY BAR
 // =============================================================================
 
-interface DraggableGoalBarProps {
+const ReadOnlyBar: React.FC<{
   value: number;
-  minValue: number;
   maxValue: number;
   chartHeight: number;
   barWidth: number;
   color: string;
-  isDashed: boolean;
-  onValueChange: (value: number) => void;
-  onDragStateChange: (isDragging: boolean) => void;
-  metric: GoalMetric;
-}
-
-const DraggableGoalBar: React.FC<DraggableGoalBarProps> = ({
-  value,
-  minValue,
-  maxValue,
-  chartHeight,
-  barWidth,
-  color,
-  isDashed,
-  onValueChange,
-  onDragStateChange,
-  metric,
-}) => {
-  const barRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const isDraggingRef = useRef(false);
-  const startYRef = useRef(0);
-  const startXRef = useRef(0);
-  const startValueRef = useRef(value);
-  const currentValueRef = useRef(value);
-  const lastThresholdRef = useRef(Math.round(value / 5) * 5);
-  const velocityRef = useRef(0);
-  const lastMoveTimeRef = useRef(0);
-  const lastMoveYRef = useRef(0);
-  const totalMovementRef = useRef(0);
-  const isClickRef = useRef(true);
-
-  // Framer Motion springs for smooth animations
-  const springConfig = { stiffness: 400, damping: 30, mass: 0.8 };
-  const heightSpring = useSpring(0, springConfig);
-  const scaleSpring = useSpring(1, { stiffness: 500, damping: 25 });
-  const glowSpring = useSpring(0, { stiffness: 300, damping: 25 });
-  const tickPulseSpring = useSpring(1, { stiffness: 600, damping: 15 });
-  const tickGlowSpring = useSpring(0, { stiffness: 400, damping: 20 });
-
-  // Derived values
-  const range = maxValue - minValue;
-  const getHeight = (v: number) => {
-    const normalized = range > 0 ? (v - minValue) / range : 0.5;
-    return Math.max(8, normalized * chartHeight);
-  };
-
-  // Initialize height
-  useEffect(() => {
-    heightSpring.set(getHeight(value));
-  }, [value, chartHeight, minValue, maxValue]);
-
-  // State
-  const [interactionState, setInteractionState] = useState<{
-    mode: 'idle' | 'dragging' | 'editing';
-    currentValue: number;
-    editValue: string;
-  }>({
-    mode: 'idle',
-    currentValue: value,
-    editValue: String(value),
-  });
-
-  // Update local value when prop changes (and not interacting)
-  useEffect(() => {
-    if (interactionState.mode === 'idle') {
-      currentValueRef.current = value;
-      setInteractionState(s => ({ ...s, currentValue: value, editValue: String(value) }));
-    }
-  }, [value, interactionState.mode]);
-
-  // Focus input when entering edit mode
-  useEffect(() => {
-    if (interactionState.mode === 'editing' && inputRef.current) {
-      inputRef.current.focus();
-      inputRef.current.select();
-    }
-  }, [interactionState.mode]);
-
-  // Trigger tick animation
-  const triggerTickFeedback = useCallback(() => {
-    // Subtle scale pulse
-    tickPulseSpring.set(1.08);
-    setTimeout(() => tickPulseSpring.set(1), 80);
-
-    // Soft glow pulse
-    tickGlowSpring.set(1);
-    setTimeout(() => tickGlowSpring.set(0), 150);
-  }, [tickPulseSpring, tickGlowSpring]);
-
-  const handlePointerDown = useCallback((e: React.PointerEvent) => {
-    if (interactionState.mode === 'editing') return;
-
-    e.preventDefault();
-    e.stopPropagation();
-
-    const target = e.currentTarget as HTMLElement;
-    target.setPointerCapture(e.pointerId);
-
-    // Track start position for click detection
-    startYRef.current = e.clientY;
-    startXRef.current = e.clientX;
-    totalMovementRef.current = 0;
-    isClickRef.current = true;
-
-    isDraggingRef.current = false; // Don't start dragging immediately
-    startValueRef.current = currentValueRef.current;
-    lastMoveTimeRef.current = performance.now();
-    lastMoveYRef.current = e.clientY;
-    velocityRef.current = 0;
-
-    const handlePointerMove = (moveEvent: PointerEvent) => {
-      const deltaX = Math.abs(moveEvent.clientX - startXRef.current);
-      const deltaY = Math.abs(moveEvent.clientY - startYRef.current);
-      totalMovementRef.current = Math.max(deltaX, deltaY);
-
-      // Start dragging only after moving more than 4px
-      if (totalMovementRef.current > 4 && !isDraggingRef.current) {
-        isDraggingRef.current = true;
-        isClickRef.current = false;
-
-        // Visual feedback - lift the bar
-        scaleSpring.set(1.08);
-        glowSpring.set(1);
-
-        setInteractionState(s => ({ ...s, mode: 'dragging' }));
-        onDragStateChange(true);
-        document.body.style.cursor = 'grabbing';
-      }
-
-      if (!isDraggingRef.current) return;
-
-      const now = performance.now();
-      const deltaTime = now - lastMoveTimeRef.current;
-      const moveDeltaY = moveEvent.clientY - lastMoveYRef.current;
-
-      if (deltaTime > 0) {
-        velocityRef.current = moveDeltaY / deltaTime;
-      }
-      lastMoveTimeRef.current = now;
-      lastMoveYRef.current = moveEvent.clientY;
-
-      const totalDeltaY = startYRef.current - moveEvent.clientY;
-      const valueDelta = (totalDeltaY / chartHeight) * range;
-      const rawValue = startValueRef.current + valueDelta;
-      const clampedValue = Math.max(minValue, Math.min(maxValue, rawValue));
-
-      currentValueRef.current = clampedValue;
-      heightSpring.set(getHeight(clampedValue));
-
-      // Check for threshold crossing (every 5 units)
-      const currentThreshold = Math.round(clampedValue / 5) * 5;
-      if (currentThreshold !== lastThresholdRef.current) {
-        lastThresholdRef.current = currentThreshold;
-        triggerTickFeedback();
-      }
-
-      setInteractionState(s => ({
-        ...s,
-        mode: 'dragging',
-        currentValue: clampedValue,
-      }));
-    };
-
-    const handlePointerUp = () => {
-      target.releasePointerCapture(e.pointerId);
-      window.removeEventListener('pointermove', handlePointerMove);
-      window.removeEventListener('pointerup', handlePointerUp);
-
-      // Was this a click (minimal movement)?
-      if (isClickRef.current && totalMovementRef.current <= 4) {
-        // Enter edit mode
-        setInteractionState(s => ({
-          ...s,
-          mode: 'editing',
-          editValue: String(Math.round(s.currentValue)),
-        }));
-        onDragStateChange(true); // Hide hover tooltip during edit
-        return;
-      }
-
-      // End drag
-      if (isDraggingRef.current) {
-        isDraggingRef.current = false;
-
-        const finalValue = Math.round(currentValueRef.current);
-        currentValueRef.current = finalValue;
-
-        scaleSpring.set(1, { velocity: velocityRef.current * -0.5 });
-        glowSpring.set(0);
-        heightSpring.set(getHeight(finalValue));
-
-        setInteractionState({
-          mode: 'idle',
-          currentValue: finalValue,
-          editValue: String(finalValue),
-        });
-
-        onDragStateChange(false);
-        onValueChange(finalValue);
-        document.body.style.cursor = '';
-      }
-    };
-
-    window.addEventListener('pointermove', handlePointerMove);
-    window.addEventListener('pointerup', handlePointerUp);
-  }, [interactionState.mode, chartHeight, range, minValue, maxValue, onValueChange, onDragStateChange, heightSpring, scaleSpring, glowSpring, triggerTickFeedback]);
-
-  // Handle edit input
-  const handleEditKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      const parsed = parseInt(interactionState.editValue, 10);
-      if (!isNaN(parsed)) {
-        const clamped = Math.max(minValue, Math.min(maxValue, parsed));
-        currentValueRef.current = clamped;
-        heightSpring.set(getHeight(clamped));
-        onValueChange(clamped);
-        setInteractionState({
-          mode: 'idle',
-          currentValue: clamped,
-          editValue: String(clamped),
-        });
-      } else {
-        // Invalid, revert
-        setInteractionState(s => ({
-          ...s,
-          mode: 'idle',
-          editValue: String(s.currentValue),
-        }));
-      }
-      onDragStateChange(false);
-    } else if (e.key === 'Escape') {
-      setInteractionState(s => ({
-        ...s,
-        mode: 'idle',
-        editValue: String(Math.round(s.currentValue)),
-      }));
-      onDragStateChange(false);
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      const current = parseInt(interactionState.editValue, 10) || 0;
-      const newVal = Math.min(maxValue, current + 1);
-      setInteractionState(s => ({ ...s, editValue: String(newVal) }));
-    } else if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      const current = parseInt(interactionState.editValue, 10) || 0;
-      const newVal = Math.max(minValue, current - 1);
-      setInteractionState(s => ({ ...s, editValue: String(newVal) }));
-    }
-  }, [interactionState.editValue, minValue, maxValue, onValueChange, onDragStateChange, heightSpring]);
-
-  const handleEditBlur = useCallback(() => {
-    const parsed = parseInt(interactionState.editValue, 10);
-    if (!isNaN(parsed)) {
-      const clamped = Math.max(minValue, Math.min(maxValue, parsed));
-      currentValueRef.current = clamped;
-      heightSpring.set(getHeight(clamped));
-      onValueChange(clamped);
-      setInteractionState({
-        mode: 'idle',
-        currentValue: clamped,
-        editValue: String(clamped),
-      });
-    } else {
-      setInteractionState(s => ({
-        ...s,
-        mode: 'idle',
-        editValue: String(Math.round(s.currentValue)),
-      }));
-    }
-    onDragStateChange(false);
-  }, [interactionState.editValue, minValue, maxValue, onValueChange, onDragStateChange, heightSpring]);
-
-  // Transform springs to style values - ALL hooks must be at top level
-  const height = useTransform(heightSpring, h => h);
-  const scale = useTransform(scaleSpring, s => s);
-  const tickPulse = useTransform(tickPulseSpring, p => p);
-
-  // Pre-compute all derived motion values (can't call useTransform in JSX)
-  const barBoxShadow = useTransform(glowSpring, g =>
-    g > 0
-      ? `0 0 0 ${3 * g}px ${INK.goldGlow}, 0 ${-8 * g}px ${24 * g}px rgba(0,0,0,0.15)`
-      : 'none'
-  );
-
-  const tickBoxShadow = useTransform(tickGlowSpring, g =>
-    `0 8px 32px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.1)${g > 0 ? `, 0 0 ${20 * g}px ${8 * g}px rgba(255,255,255,${0.1 * g})` : ''}`
-  );
-
-  const tickInnerGlow = useTransform(tickGlowSpring, g =>
-    `radial-gradient(circle at center, rgba(255,255,255,${0.08 * g}) 0%, transparent 70%)`
-  );
-
-  const tickTextShadow = useTransform(tickGlowSpring, g =>
-    g > 0 ? `0 0 ${12 * g}px rgba(255,255,255,${0.5 * g})` : 'none'
-  );
-
-  const displayValue = interactionState.mode === 'dragging'
-    ? Math.round(interactionState.currentValue)
-    : value;
-
-  const unit = metric === 'sessions' ? '/wk' : '';
-
-  const isActive = interactionState.mode !== 'idle';
-  const isEditing = interactionState.mode === 'editing';
-
-  return (
-    <div className="relative flex flex-col items-center">
-      {/* Unified floating indicator - for both drag and edit */}
-      <AnimatePresence>
-        {isActive && (
-          <motion.div
-            initial={{ opacity: 0, y: 10, scale: 0.8 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.8 }}
-            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-            className={`absolute z-50 ${isEditing ? '' : 'pointer-events-none'}`}
-            style={{
-              bottom: getHeight(interactionState.currentValue) + 16,
-            }}
-          >
-            <motion.div
-              className="px-3 py-2 rounded-lg relative overflow-hidden"
-              style={{
-                backgroundColor: '#1C1917',
-                scale: isEditing ? 1 : tickPulse,
-                boxShadow: isEditing
-                  ? '0 4px 16px rgba(0,0,0,0.3)'
-                  : tickBoxShadow,
-              }}
-            >
-              {/* Subtle inner glow on tick (only during drag) */}
-              {!isEditing && (
-                <motion.div
-                  className="absolute inset-0 rounded-lg"
-                  style={{
-                    background: tickInnerGlow,
-                  }}
-                />
-              )}
-
-              <div className="flex items-baseline justify-center gap-0.5 relative">
-                {isEditing ? (
-                  // Editable input - clean, no background
-                  <input
-                    ref={inputRef}
-                    type="text"
-                    inputMode="numeric"
-                    value={interactionState.editValue}
-                    onChange={(e) => setInteractionState(s => ({ ...s, editValue: e.target.value }))}
-                    onKeyDown={handleEditKeyDown}
-                    onBlur={handleEditBlur}
-                    className="bg-transparent outline-none text-center"
-                    style={{
-                      fontFamily: FONT.mono,
-                      fontSize: 28,
-                      fontWeight: 700,
-                      color: 'white',
-                      width: 48,
-                      caretColor: 'white',
-                    }}
-                  />
-                ) : (
-                  // Display value during drag
-                  <motion.span
-                    style={{
-                      fontFamily: FONT.mono,
-                      fontSize: 28,
-                      fontWeight: 700,
-                      color: 'white',
-                      lineHeight: 1,
-                      textShadow: tickTextShadow,
-                    }}
-                  >
-                    {displayValue}
-                  </motion.span>
-                )}
-                <span
-                  style={{
-                    fontFamily: FONT.sans,
-                    fontSize: 11,
-                    color: 'rgba(255,255,255,0.4)',
-                  }}
-                >
-                  {unit}
-                </span>
-              </div>
-            </motion.div>
-
-            {/* Arrow */}
-            <div
-              className="absolute left-1/2 -translate-x-1/2 w-0 h-0"
-              style={{
-                bottom: -6,
-                borderLeft: '6px solid transparent',
-                borderRight: '6px solid transparent',
-                borderTop: '6px solid #1C1917',
-              }}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* The bar itself */}
-      <motion.div
-        ref={barRef}
-        data-bar
-        className="relative rounded-t-[4px] origin-bottom cursor-grab active:cursor-grabbing"
-        style={{
-          width: barWidth,
-          height,
-          scale,
-          background: isDashed
-            ? 'transparent'
-            : `linear-gradient(180deg, ${color} 0%, ${color}cc 100%)`,
-          border: isDashed ? `2px dashed ${COLORS.goalInherited}` : 'none',
-          boxShadow: barBoxShadow,
-        }}
-        onPointerDown={handlePointerDown}
-        whileHover={{ scale: 1.03 }}
-      >
-        {/* Grip indicator */}
-        <motion.div
-          className="absolute top-1.5 left-0 right-0 flex justify-center gap-[3px]"
-          initial={{ opacity: 0 }}
-          whileHover={{ opacity: 1 }}
-          animate={{ opacity: interactionState.mode === 'dragging' ? 1 : 0 }}
-        >
-          <div className={`w-1 h-1 rounded-full ${isDashed ? 'bg-stone-400' : 'bg-white/60'}`} />
-          <div className={`w-1 h-1 rounded-full ${isDashed ? 'bg-stone-400' : 'bg-white/60'}`} />
-        </motion.div>
-
-        {/* Bottom highlight */}
-        {!isDashed && (
-          <div
-            className="absolute bottom-0 left-0 right-0 h-[2px] rounded-b"
-            style={{ backgroundColor: 'rgba(0,0,0,0.15)' }}
-          />
-        )}
-      </motion.div>
-    </div>
-  );
-};
-
-// =============================================================================
-// ACTUAL BAR - Simple, non-interactive
-// =============================================================================
-
-interface ActualBarProps {
-  value: number;
-  minValue: number;
-  maxValue: number;
-  chartHeight: number;
-  barWidth: number;
   index: number;
-}
-
-const ActualBar: React.FC<ActualBarProps> = ({
-  value,
-  minValue,
-  maxValue,
-  chartHeight,
-  barWidth,
-  index,
-}) => {
-  const range = maxValue - minValue;
-  const normalized = range > 0 ? (value - minValue) / range : 0.5;
-  const height = Math.max(8, normalized * chartHeight);
+  isFuture?: boolean;
+}> = ({ value, maxValue, chartHeight, barWidth, color, index, isFuture }) => {
+  const height =
+    maxValue > 0 ? Math.max(value > 0 ? 4 : 0, (value / maxValue) * chartHeight) : 0;
 
   return (
     <motion.div
       data-bar
-      className="rounded-t-[4px]"
+      className="rounded-t-[3px]"
       style={{
         width: barWidth,
-        background: `linear-gradient(180deg, ${COLORS.actual} 0%, ${COLORS.actual}dd 100%)`,
+        background: isFuture
+          ? 'transparent'
+          : value > 0
+            ? `linear-gradient(180deg, ${color} 0%, ${color}cc 100%)`
+            : 'transparent',
+        border: isFuture && value > 0
+          ? `1.5px dashed ${INK.ghost}`
+          : 'none',
+        borderBottom: isFuture ? 'none' : undefined,
       }}
       initial={{ height: 0 }}
       animate={{ height }}
       transition={{
-        delay: 0.15 + index * 0.025,
-        duration: 0.5,
+        delay: 0.08 + index * 0.01,
+        duration: 0.4,
         ease: [0.34, 1.56, 0.64, 1],
       }}
     />
@@ -637,153 +225,136 @@ const ActualBar: React.FC<ActualBarProps> = ({
 };
 
 // =============================================================================
-// MONTH COLUMN
+// Y-AXIS
 // =============================================================================
 
-interface MonthColumnProps {
-  data: MonthData;
-  index: number;
+const YAxis: React.FC<{
   maxValue: number;
-  minValue: number;
   chartHeight: number;
-  onGoalChange: (value: number) => void;
   metric: GoalMetric;
-  activeDragIndex: number | null;
-  onDragStart: () => void;
-  onDragEnd: () => void;
-}
-
-const MonthColumn: React.FC<MonthColumnProps> = ({
-  data,
-  index,
-  maxValue,
-  minValue,
-  chartHeight,
-  onGoalChange,
-  metric,
-  activeDragIndex,
-  onDragStart,
-  onDragEnd,
-}) => {
-  const [isHovered, setIsHovered] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
-
-  const showActual = data.actual !== undefined;
-  const isFutureInherited = !data.isPast && !data.isCurrent && !data.isExplicit;
-
-  const columnWidth = 72;
-  const barWidth = showActual ? 14 : 24;
-
-  // Variance calculation
-  const variance = data.actual !== undefined ? data.actual - data.goal : 0;
-  const variancePercent = data.goal > 0 ? Math.round((variance / data.goal) * 100) : 0;
-
-  // Goal bar color
-  const getGoalColor = () => {
-    if (data.isCurrent) return COLORS.goalCurrent;
-    if (data.isPast) return COLORS.goalPast;
-    if (data.isExplicit) return COLORS.goalFuture;
-    return COLORS.goalInherited;
-  };
-
-  const handleDragStateChange = (dragging: boolean) => {
-    setIsDragging(dragging);
-    if (dragging) {
-      onDragStart();
-    } else {
-      onDragEnd();
-    }
-  };
-
-  const isOtherDragging = activeDragIndex !== null && !isDragging;
+}> = ({ maxValue, chartHeight, metric }) => {
+  const steps = 5;
+  const stepValue = maxValue / (steps - 1);
+  const unit = metric === 'sessions' ? '/wk' : '';
 
   return (
-    <motion.div
+    <div
+      className="relative flex flex-col justify-between items-end pr-4"
+      style={{ height: chartHeight, width: 52 }}
+    >
+      {Array.from({ length: steps }).map((_, i) => (
+        <div key={i} className="flex items-center">
+          <span style={{ fontFamily: FONT.mono, fontSize: 12, color: INK.muted, fontWeight: 500 }}>
+            {Math.round(maxValue - i * stepValue)}
+            {i === 0 && (
+              <span style={{ fontSize: 10, color: INK.muted, marginLeft: 1 }}>{unit}</span>
+            )}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// =============================================================================
+// WEEK COLUMN
+// =============================================================================
+
+const WeekColumn: React.FC<{
+  data: WeekData;
+  index: number;
+  maxValue: number;
+  chartHeight: number;
+  columnWidth: number;
+  barWidth: number;
+  metric: GoalMetric;
+}> = ({ data, index, maxValue, chartHeight, columnWidth, barWidth, metric }) => {
+  const [isHovered, setIsHovered] = useState(false);
+
+  const getColor = () => {
+    if (data.isCurrent) return COLORS.goalCurrent;
+    if (data.isPast) return COLORS.goalPast;
+    return COLORS.goalFuture;
+  };
+
+  const unit = metric === 'sessions' ? '/wk' : '';
+
+  return (
+    <div
       className="flex flex-col items-center relative"
-      style={{
-        width: columnWidth,
-        opacity: isOtherDragging ? 0.4 : 1,
-        transition: 'opacity 0.2s ease',
-      }}
+      style={{ width: columnWidth, flexShrink: 0 }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: isOtherDragging ? 0.4 : 1, y: 0 }}
-      transition={{ delay: index * 0.03, duration: 0.35 }}
     >
-      {/* Bar area with tooltip positioned above */}
+      {/* Period boundary marker */}
+      {data.isPeriodBoundary && (
+        <div
+          className="absolute left-0 z-10 pointer-events-none"
+          style={{
+            top: 0,
+            height: chartHeight,
+            width: 1,
+            background: `linear-gradient(180deg, ${INK.gold}00 0%, ${INK.gold}60 30%, ${INK.gold}60 70%, ${INK.gold}00 100%)`,
+          }}
+        />
+      )}
+
+      {/* Bar area */}
       <div
-        className="relative flex items-end justify-center gap-[3px]"
-        style={{ height: chartHeight, width: columnWidth }}
+        className="relative flex items-end justify-center"
+        style={{ height: chartHeight }}
       >
-        {/* Hover tooltip (when not dragging) */}
+        {/* Hover tooltip */}
         <AnimatePresence>
-          {isHovered && !isDragging && !isOtherDragging && (
+          {isHovered && (
             <ChartTooltip
-              title={data.label}
+              title={`Week of ${data.start.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+              })}`}
               values={[
-                ...(showActual ? [{
-                  label: 'Actual',
-                  value: String(data.actual),
-                  color: COLORS.actual,
-                  isPrimary: true,
-                }] : []),
                 {
-                  label: data.isPast ? 'Goal' : (data.isCurrent ? 'Goal' : (data.isExplicit ? 'Goal' : 'Inherited')),
-                  value: String(data.goal),
-                  color: getGoalColor(),
-                  isPrimary: !showActual,
+                  label: 'Goal',
+                  value: `${data.goal}${unit}`,
+                  color: getColor(),
+                  isPrimary: true,
                 },
               ]}
-              variance={showActual ? { value: variance, percent: variancePercent } : undefined}
-              hint={data.isPast ? undefined : 'Drag goal bar to adjust'}
               position="above"
             />
           )}
         </AnimatePresence>
 
-        {/* Actual bar */}
-        {showActual && (
-          <ActualBar
-            value={data.actual!}
-            minValue={minValue}
-            maxValue={maxValue}
-            chartHeight={chartHeight}
-            barWidth={barWidth}
-            index={index}
-          />
-        )}
-
-        {/* Goal bar (draggable) */}
-        <DraggableGoalBar
+        <ReadOnlyBar
           value={data.goal}
-          minValue={minValue}
           maxValue={maxValue}
           chartHeight={chartHeight}
           barWidth={barWidth}
-          color={getGoalColor()}
-          isDashed={isFutureInherited}
-          onValueChange={onGoalChange}
-          onDragStateChange={handleDragStateChange}
-          metric={metric}
+          color={getColor()}
+          index={index}
+          isFuture={!data.isPast && !data.isCurrent}
         />
       </div>
 
-      {/* Month label */}
-      <div className="mt-2 text-center">
-        <span
-          style={{
-            fontFamily: FONT.sans,
-            fontSize: 11,
-            fontWeight: data.isCurrent ? 600 : 400,
-            color: data.isCurrent ? INK.black : data.isPast ? INK.muted : INK.ghost,
-          }}
-        >
-          {data.shortLabel}
-        </span>
-      </div>
+      {/* Month label (first week of each month only) */}
+      {data.monthLabel ? (
+        <div className="mt-2 text-center" style={{ minHeight: 18 }}>
+          <span
+            style={{
+              fontFamily: FONT.sans,
+              fontSize: 11,
+              fontWeight: data.isCurrent ? 700 : 500,
+              color: data.isCurrent ? INK.black : INK.body,
+            }}
+          >
+            {data.monthLabel}
+          </span>
+        </div>
+      ) : (
+        <div className="mt-2" style={{ minHeight: data.isCurrent ? 30 : 18 }} />
+      )}
 
-      {/* Current month indicator */}
+      {/* Current week dot */}
       {data.isCurrent && (
         <motion.div
           initial={{ opacity: 0, scale: 0.5 }}
@@ -797,165 +368,469 @@ const MonthColumn: React.FC<MonthColumnProps> = ({
           />
         </motion.div>
       )}
-    </motion.div>
-  );
-};
-
-// =============================================================================
-// Y-AXIS
-// =============================================================================
-
-interface YAxisProps {
-  minValue: number;
-  maxValue: number;
-  chartHeight: number;
-  metric: GoalMetric;
-}
-
-const YAxis: React.FC<YAxisProps> = ({ minValue, maxValue, chartHeight, metric }) => {
-  const steps = 5;
-  const range = maxValue - minValue;
-  const stepValue = range / (steps - 1);
-  const unit = metric === 'sessions' ? '/wk' : '';
-
-  return (
-    <div
-      className="relative flex flex-col justify-between items-end pr-3"
-      style={{ height: chartHeight, width: 48 }}
-    >
-      {Array.from({ length: steps }).map((_, i) => {
-        const value = Math.round(maxValue - i * stepValue);
-        return (
-          <div key={i} className="flex items-center">
-            <span
-              style={{
-                fontFamily: FONT.mono,
-                fontSize: 10,
-                color: INK.ghost,
-              }}
-            >
-              {value}
-              {i === 0 && <span style={{ fontSize: 8, color: INK.faded }}>{unit}</span>}
-            </span>
-          </div>
-        );
-      })}
     </div>
   );
 };
 
 // =============================================================================
-// SUMMARY STATS
+// GOAL PERIOD ROW - Ledger Entry
 // =============================================================================
 
-interface SummaryStatsProps {
-  months: MonthData[];
+const GoalPeriodRow: React.FC<{
+  period: GoalPeriod;
+  index: number;
+  isFirst: boolean;
+  isLast: boolean;
   metric: GoalMetric;
-}
+  minStartDate?: string;
+  maxStartDate?: string;
+  minEndDate?: string;
+  maxEndDate?: string;
+  onUpdateValue: (value: number) => void;
+  onUpdateStartDate: (date: string) => void;
+  onUpdateEndDate: (date: string | null) => void;
+  onUpdateReason: (reason: string | undefined) => void;
+  onDelete: () => void;
+}> = ({
+  period,
+  index,
+  isFirst,
+  isLast,
+  metric,
+  minStartDate,
+  maxStartDate,
+  minEndDate,
+  maxEndDate,
+  onUpdateValue,
+  onUpdateStartDate,
+  onUpdateEndDate,
+  onUpdateReason,
+  onDelete,
+}) => {
+  const [editingValue, setEditingValue] = useState(false);
+  const [valueStr, setValueStr] = useState(String(period.value));
+  const [editingEndDate, setEditingEndDate] = useState(false);
+  const [editingLabel, setEditingLabel] = useState(false);
+  const [labelStr, setLabelStr] = useState(period.reason || '');
+  const valueInputRef = useRef<HTMLInputElement>(null);
+  const labelInputRef = useRef<HTMLInputElement>(null);
 
-const SummaryStats: React.FC<SummaryStatsProps> = ({ months, metric }) => {
-  const pastMonths = months.filter(m => (m.isPast || m.isCurrent) && m.actual !== undefined);
+  const unit = metric === 'sessions' ? '/wk' : 'active';
 
-  if (pastMonths.length === 0) return null;
+  // Default label for first period
+  const defaultLabel = isFirst ? 'Baseline' : `Period ${index + 1}`;
+  const displayLabel = period.reason || defaultLabel;
+  const isDefaultLabel = !period.reason;
 
-  const avgActual = Math.round(
-    pastMonths.reduce((sum, m) => sum + (m.actual || 0), 0) / pastMonths.length
-  );
-  const avgGoal = Math.round(
-    pastMonths.reduce((sum, m) => sum + m.goal, 0) / pastMonths.length
-  );
+  // Sync state
+  useEffect(() => { setValueStr(String(period.value)); }, [period.value]);
+  useEffect(() => { setLabelStr(period.reason || ''); }, [period.reason]);
+  useEffect(() => {
+    if (editingValue && valueInputRef.current) {
+      valueInputRef.current.focus();
+      valueInputRef.current.select();
+    }
+  }, [editingValue]);
+  useEffect(() => {
+    if (editingLabel && labelInputRef.current) {
+      labelInputRef.current.focus();
+      if (isDefaultLabel) labelInputRef.current.select();
+    }
+  }, [editingLabel]);
 
-  const variance = avgActual - avgGoal;
-  const variancePercent = avgGoal > 0 ? Math.round((variance / avgGoal) * 100) : 0;
+  const handleValueSave = () => {
+    const parsed = parseInt(valueStr, 10);
+    if (!isNaN(parsed) && parsed >= 0) {
+      onUpdateValue(parsed);
+    } else {
+      setValueStr(String(period.value));
+    }
+    setEditingValue(false);
+  };
 
-  const monthsAbove = pastMonths.filter(m => (m.actual || 0) >= m.goal).length;
-  const hitRate = Math.round((monthsAbove / pastMonths.length) * 100);
+  const handleValueKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') handleValueSave();
+    if (e.key === 'Escape') {
+      setValueStr(String(period.value));
+      setEditingValue(false);
+    }
+  };
 
-  const unit = metric === 'sessions' ? '/wk' : '';
+  const handleLabelSave = () => {
+    const trimmed = labelStr.trim();
+    onUpdateReason(trimmed || undefined);
+    setEditingLabel(false);
+  };
+
+  const handleLabelKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') handleLabelSave();
+    if (e.key === 'Escape') {
+      setLabelStr(period.reason || '');
+      setEditingLabel(false);
+    }
+  };
+
+  // Shared date input styling
+  const dateInputStyle: React.CSSProperties = {
+    fontFamily: FONT.mono,
+    fontSize: 15,
+    color: INK.black,
+    letterSpacing: '-0.01em',
+    padding: '4px 8px',
+    border: '1.5px solid transparent',
+  };
+
+  const handleDateFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    e.currentTarget.style.borderColor = INK.gold;
+    e.currentTarget.style.boxShadow = SHADOW.goldFocus;
+    e.currentTarget.style.backgroundColor = INK.paper;
+  };
+
+  const handleDateBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    e.currentTarget.style.borderColor = 'transparent';
+    e.currentTarget.style.boxShadow = 'none';
+    e.currentTarget.style.backgroundColor = 'transparent';
+  };
+
+  const handleDateHoverEnter = (e: React.MouseEvent<HTMLInputElement>) => {
+    if (document.activeElement !== e.currentTarget) {
+      e.currentTarget.style.backgroundColor = INK.cream;
+    }
+  };
+
+  const handleDateHoverLeave = (e: React.MouseEvent<HTMLInputElement>) => {
+    if (document.activeElement !== e.currentTarget) {
+      e.currentTarget.style.backgroundColor = 'transparent';
+    }
+  };
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.6 }}
-      className="flex items-stretch gap-6 px-6 py-4"
-      style={{
-        backgroundColor: INK.cream,
-        borderTop: `1px solid ${INK.rule}`,
-      }}
+      exit={{ opacity: 0, y: -8, height: 0 }}
+      transition={{ duration: 0.25, ease: EASE.out }}
+      layout
     >
-      <div className="flex items-center gap-3">
-        <div className="w-3 h-8 rounded-[3px]" style={{ backgroundColor: COLORS.actual }} />
-        <div>
-          <div style={{ fontFamily: FONT.sans, fontSize: 10, color: INK.muted, marginBottom: 2 }}>
-            Avg. Actual
-          </div>
-          <div style={{ fontFamily: FONT.mono, fontSize: 20, fontWeight: 600, color: INK.black }}>
-            {avgActual}
-            <span style={{ fontSize: 11, color: INK.muted }}>{unit}</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="w-px self-stretch" style={{ backgroundColor: INK.rule }} />
-
-      <div className="flex items-center gap-3">
-        <div className="w-3 h-8 rounded-[3px]" style={{ backgroundColor: COLORS.goalPast }} />
-        <div>
-          <div style={{ fontFamily: FONT.sans, fontSize: 10, color: INK.muted, marginBottom: 2 }}>
-            Avg. Goal
-          </div>
-          <div style={{ fontFamily: FONT.mono, fontSize: 20, fontWeight: 600, color: INK.black }}>
-            {avgGoal}
-            <span style={{ fontSize: 11, color: INK.muted }}>{unit}</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="w-px self-stretch" style={{ backgroundColor: INK.rule }} />
-
-      <div className="flex items-center gap-3">
-        <div
-          className="w-8 h-8 rounded-lg flex items-center justify-center"
-          style={{
-            backgroundColor: variance >= 0 ? `${COLORS.positive}15` : `${COLORS.negative}15`,
-          }}
-        >
-          {variance > 0 ? (
-            <TrendingUp size={16} color={COLORS.positive} />
-          ) : variance < 0 ? (
-            <TrendingDown size={16} color={COLORS.negative} />
-          ) : (
-            <Minus size={16} color={COLORS.neutral} />
-          )}
-        </div>
-        <div>
-          <div style={{ fontFamily: FONT.sans, fontSize: 10, color: INK.muted, marginBottom: 2 }}>
-            vs. Goal
-          </div>
+      <div
+        className="group"
+        style={{
+          padding: '16px 20px',
+          borderBottom: isLast ? 'none' : `1px solid ${INK.rule}`,
+        }}
+      >
+        <div className="flex items-start gap-3">
+          {/* Period number */}
           <div
+            className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
             style={{
-              fontFamily: FONT.mono,
-              fontSize: 20,
-              fontWeight: 600,
-              color: variance >= 0 ? COLORS.positive : COLORS.negative,
+              backgroundColor: INK.cream,
+              border: `1px solid ${INK.rule}`,
             }}
           >
-            {variance > 0 ? '+' : ''}{variancePercent}%
+            <span
+              style={{
+                fontFamily: FONT.mono,
+                fontSize: 12,
+                fontWeight: 600,
+                color: INK.body,
+              }}
+            >
+              {index + 1}
+            </span>
           </div>
-        </div>
-      </div>
 
-      <div className="flex-1" />
+          {/* Content */}
+          <div className="flex-1 min-w-0">
+            {/* Row 1: Label/title + value + delete */}
+            <div className="flex items-center justify-between gap-3">
+              {/* Label — the period's name */}
+              <div className="flex-1 min-w-0">
+                {editingLabel ? (
+                  <input
+                    ref={labelInputRef}
+                    type="text"
+                    value={labelStr}
+                    onChange={(e) => setLabelStr(e.target.value)}
+                    onBlur={handleLabelSave}
+                    onKeyDown={handleLabelKeyDown}
+                    placeholder="Name this period..."
+                    list="reason-suggestions"
+                    className="w-full outline-none"
+                    style={{
+                      fontFamily: FONT.serif,
+                      fontSize: 17,
+                      fontWeight: 400,
+                      color: INK.black,
+                      padding: '2px 6px',
+                      borderRadius: 6,
+                      border: `1.5px solid ${INK.gold}`,
+                      backgroundColor: INK.paper,
+                      boxShadow: SHADOW.goldFocus,
+                      letterSpacing: '-0.01em',
+                    }}
+                  />
+                ) : (
+                  <button
+                    onClick={() => setEditingLabel(true)}
+                    className="text-left cursor-pointer transition-all duration-150 w-full"
+                    style={{
+                      fontFamily: FONT.serif,
+                      fontSize: 17,
+                      fontWeight: 400,
+                      color: isDefaultLabel ? INK.faded : INK.black,
+                      fontStyle: isDefaultLabel ? 'italic' : 'normal',
+                      background: 'none',
+                      border: 'none',
+                      padding: '2px 6px',
+                      borderRadius: 6,
+                      cursor: 'pointer',
+                      letterSpacing: '-0.01em',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = INK.cream;
+                      if (isDefaultLabel) e.currentTarget.style.color = INK.muted;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                      if (isDefaultLabel) e.currentTarget.style.color = INK.faded;
+                    }}
+                  >
+                    {displayLabel}
+                  </button>
+                )}
+                {/* Datalist for suggestions */}
+                <datalist id="reason-suggestions">
+                  {REASON_PRESETS.map((r) => (
+                    <option key={r} value={r} />
+                  ))}
+                </datalist>
+              </div>
 
-      <div className="flex items-center gap-3">
-        <div>
-          <div style={{ fontFamily: FONT.sans, fontSize: 10, color: INK.muted, marginBottom: 2, textAlign: 'right' }}>
-            Hit Rate
-          </div>
-          <div style={{ fontFamily: FONT.mono, fontSize: 20, fontWeight: 600, color: INK.black, textAlign: 'right' }}>
-            {monthsAbove}/{pastMonths.length}
-            <span style={{ fontSize: 11, color: INK.muted, marginLeft: 4 }}>({hitRate}%)</span>
+              {/* Goal value */}
+              <div className="flex items-baseline gap-1 flex-shrink-0">
+                {editingValue ? (
+                  <input
+                    ref={valueInputRef}
+                    type="text"
+                    inputMode="numeric"
+                    value={valueStr}
+                    onChange={(e) => setValueStr(e.target.value)}
+                    onBlur={handleValueSave}
+                    onKeyDown={handleValueKeyDown}
+                    className="outline-none text-right"
+                    style={{
+                      fontFamily: FONT.mono,
+                      fontSize: 22,
+                      fontWeight: 600,
+                      color: INK.black,
+                      width: 56,
+                      padding: '2px 6px',
+                      borderRadius: 6,
+                      border: `1.5px solid ${INK.gold}`,
+                      backgroundColor: INK.paper,
+                      boxShadow: SHADOW.goldFocus,
+                    }}
+                  />
+                ) : (
+                  <motion.button
+                    onClick={() => setEditingValue(true)}
+                    className="cursor-pointer transition-all duration-150"
+                    whileHover={{ scale: 1.04 }}
+                    whileTap={{ scale: 0.96 }}
+                    style={{
+                      fontFamily: FONT.mono,
+                      fontSize: 22,
+                      fontWeight: 600,
+                      color: INK.black,
+                      background: 'none',
+                      border: 'none',
+                      padding: '2px 6px',
+                      borderRadius: 6,
+                      cursor: 'pointer',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = INK.cream;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }}
+                  >
+                    {period.value}
+                  </motion.button>
+                )}
+                <span
+                  style={{
+                    fontFamily: FONT.sans,
+                    fontSize: 13,
+                    color: INK.muted,
+                    fontWeight: 500,
+                  }}
+                >
+                  {unit}
+                </span>
+              </div>
+
+              {/* Delete button */}
+              {!isFirst ? (
+                <motion.button
+                  onClick={onDelete}
+                  className="flex-shrink-0 transition-all duration-200 p-1.5 rounded-lg cursor-pointer"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  style={{
+                    border: 'none',
+                    backgroundColor: 'transparent',
+                    cursor: 'pointer',
+                    color: INK.faded,
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = INK.rose;
+                    e.currentTarget.style.backgroundColor = INK.roseLight;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = INK.faded;
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }}
+                >
+                  <Trash2 size={15} />
+                </motion.button>
+              ) : (
+                <div style={{ width: 27 }} />
+              )}
+            </div>
+
+            {/* Row 2: Date range */}
+            <div
+              className="flex items-center gap-2 mt-1"
+              style={{ paddingLeft: 6 }}
+            >
+              {/* Start date */}
+              {isFirst ? (
+                <div className="flex items-center gap-2">
+                  <span
+                    style={{
+                      fontFamily: FONT.mono,
+                      fontSize: 15,
+                      color: INK.black,
+                      letterSpacing: '-0.01em',
+                    }}
+                  >
+                    {formatDateDisplay(period.startDate)}
+                  </span>
+                  <span
+                    style={{
+                      fontFamily: FONT.sans,
+                      fontSize: 10,
+                      fontWeight: 600,
+                      color: INK.faded,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.06em',
+                      backgroundColor: INK.cream,
+                      padding: '2px 6px',
+                      borderRadius: 4,
+                    }}
+                  >
+                    Start
+                  </span>
+                </div>
+              ) : (
+                <input
+                  type="date"
+                  value={period.startDate}
+                  min={minStartDate}
+                  max={maxStartDate}
+                  onChange={(e) => {
+                    if (e.target.value) onUpdateStartDate(e.target.value);
+                  }}
+                  className="appearance-none bg-transparent outline-none cursor-pointer transition-all duration-200 rounded-lg"
+                  style={dateInputStyle}
+                  onFocus={handleDateFocus}
+                  onBlur={handleDateBlur}
+                  onMouseEnter={handleDateHoverEnter}
+                  onMouseLeave={handleDateHoverLeave}
+                />
+              )}
+
+              {/* Arrow */}
+              <span
+                style={{
+                  fontFamily: FONT.mono,
+                  fontSize: 15,
+                  color: INK.muted,
+                  flexShrink: 0,
+                }}
+              >
+                →
+              </span>
+
+              {/* End date */}
+              {period.endDate ? (
+                <input
+                  type="date"
+                  value={period.endDate}
+                  min={minEndDate}
+                  max={maxEndDate}
+                  onChange={(e) => {
+                    if (e.target.value) onUpdateEndDate(e.target.value);
+                  }}
+                  className="appearance-none bg-transparent outline-none cursor-pointer transition-all duration-200 rounded-lg"
+                  style={dateInputStyle}
+                  onFocus={handleDateFocus}
+                  onBlur={handleDateBlur}
+                  onMouseEnter={handleDateHoverEnter}
+                  onMouseLeave={handleDateHoverLeave}
+                />
+              ) : editingEndDate ? (
+                <input
+                  type="date"
+                  autoFocus
+                  min={addDays(period.startDate, 1)}
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      onUpdateEndDate(e.target.value);
+                      setEditingEndDate(false);
+                    }
+                  }}
+                  onBlur={() => setEditingEndDate(false)}
+                  className="appearance-none bg-transparent outline-none cursor-pointer transition-all duration-200 rounded-lg"
+                  style={{
+                    ...dateInputStyle,
+                    borderColor: INK.gold,
+                    boxShadow: SHADOW.goldFocus,
+                    backgroundColor: INK.paper,
+                  }}
+                />
+              ) : (
+                <button
+                  onClick={() => setEditingEndDate(true)}
+                  className="cursor-pointer transition-all duration-150"
+                  style={{
+                    fontFamily: FONT.sans,
+                    fontSize: 15,
+                    color: INK.gold,
+                    fontWeight: 600,
+                    fontStyle: 'italic',
+                    background: 'none',
+                    border: 'none',
+                    padding: '3px 6px',
+                    borderRadius: 6,
+                    cursor: 'pointer',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = INK.goldGlow;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }}
+                >
+                  present
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -970,60 +845,140 @@ const SummaryStats: React.FC<SummaryStatsProps> = ({ months, metric }) => {
 export const GoalEditorModal: React.FC<GoalEditorModalProps> = ({
   clinician,
   metric,
-  currentValue,
-  history,
-  performanceHistory,
+  periods: initialPeriods,
   onSave,
   onClose,
 }) => {
-  const [months, setMonths] = useState<MonthData[]>(() =>
-    generateMonthData(currentValue, history, performanceHistory)
-  );
-  const [activeDragIndex, setActiveDragIndex] = useState<number | null>(null);
+  const [periods, setPeriods] = useState<GoalPeriod[]>(initialPeriods);
   const [hasChanges, setHasChanges] = useState(false);
 
-  const allValues = months.flatMap(m => [m.goal, m.actual].filter((v): v is number => v !== undefined));
-  const dataMax = Math.max(...allValues);
-  // Always allow dragging to 0, and give headroom above current max
-  const minValue = 0;
-  const maxValue = Math.max(dataMax + 20, Math.round(dataMax * 1.3));
-  const chartHeight = 220;
+  // Generate weeks from current periods
+  const weeks = useMemo(() => generateWeeks(periods), [periods]);
 
-  const handleGoalChange = useCallback((index: number, newValue: number) => {
-    setMonths(prev => {
+  // Chart scale
+  const maxGoal = Math.max(...periods.map((p) => p.value), 1);
+  const maxValue = Math.max(maxGoal + 10, Math.round(maxGoal * 1.25));
+
+  // Dynamic sizing based on week count
+  const columnWidth = Math.max(16, Math.min(24, 900 / weeks.length));
+  const barWidth = Math.max(8, columnWidth - 6);
+
+  // Current week index for the vertical gold line
+  const currentWeekIndex = weeks.findIndex((w) => w.isCurrent);
+
+  // Estimated annual revenue (sessions only)
+  const currentPeriod = periods.find((p) => !p.endDate);
+  const currentGoal = currentPeriod?.value ?? 0;
+  const estimatedRevenue =
+    metric === 'sessions' ? estimateAnnualRevenue(currentGoal) : null;
+
+  const metricLabel =
+    metric === 'sessions' ? 'Sessions Goal' : 'Clients Goal';
+
+  // =========================================================================
+  // PERIOD MUTATIONS
+  // =========================================================================
+
+  const updatePeriod = useCallback(
+    (id: string, updates: Partial<GoalPeriod>) => {
+      setPeriods((prev) =>
+        prev.map((p) => (p.id === id ? { ...p, ...updates } : p))
+      );
+      setHasChanges(true);
+    },
+    []
+  );
+
+  const updateStartDate = useCallback((id: string, newStartDate: string) => {
+    setPeriods((prev) => {
+      const idx = prev.findIndex((p) => p.id === id);
+      if (idx <= 0) return prev;
+
       const updated = [...prev];
-      updated[index] = { ...updated[index], goal: newValue, isExplicit: true };
+      updated[idx] = { ...updated[idx], startDate: newStartDate };
+      updated[idx - 1] = {
+        ...updated[idx - 1],
+        endDate: addDays(newStartDate, -1),
+      };
+      return updated;
+    });
+    setHasChanges(true);
+  }, []);
 
-      for (let i = index + 1; i < updated.length; i++) {
-        if (!updated[i].isExplicit) {
-          updated[i] = { ...updated[i], goal: newValue };
-        } else {
-          break;
-        }
+  const updateEndDate = useCallback((id: string, newEndDate: string | null) => {
+    setPeriods((prev) => {
+      const idx = prev.findIndex((p) => p.id === id);
+      if (idx < 0) return prev;
+
+      const updated = [...prev];
+      updated[idx] = { ...updated[idx], endDate: newEndDate };
+      // If there's a next period, auto-adjust its start date
+      if (newEndDate && idx < updated.length - 1) {
+        updated[idx + 1] = {
+          ...updated[idx + 1],
+          startDate: addDays(newEndDate, 1),
+        };
       }
+      return updated;
+    });
+    setHasChanges(true);
+  }, []);
 
+  const addPeriod = useCallback(() => {
+    const lastPeriod = periods[periods.length - 1];
+    // If last period has an explicit end date, start the new one the day after
+    const newStart = lastPeriod.endDate
+      ? addDays(lastPeriod.endDate, 1)
+      : toISO(new Date());
+
+    const newPeriod: GoalPeriod = {
+      id: generateId(),
+      startDate: newStart,
+      endDate: null,
+      value: lastPeriod.value,
+    };
+
+    setPeriods((prev) => {
+      const updated = [...prev];
+      // Only set end date on previous period if it doesn't already have one
+      if (!updated[updated.length - 1].endDate) {
+        updated[updated.length - 1] = {
+          ...updated[updated.length - 1],
+          endDate: addDays(newStart, -1),
+        };
+      }
+      return [...updated, newPeriod];
+    });
+    setHasChanges(true);
+  }, [periods]);
+
+  const deletePeriod = useCallback((id: string) => {
+    setPeriods((prev) => {
+      const idx = prev.findIndex((p) => p.id === id);
+      if (idx <= 0) return prev;
+
+      const updated = [...prev];
+      const deleted = updated[idx];
+      // Previous period inherits deleted period's end date
+      updated[idx - 1] = { ...updated[idx - 1], endDate: deleted.endDate };
+      updated.splice(idx, 1);
       return updated;
     });
     setHasChanges(true);
   }, []);
 
   const handleSave = () => {
-    const goalData = months
-      .filter(m => m.isExplicit)
-      .map(m => ({ month: m.month, value: m.goal }));
-    onSave(goalData);
+    onSave(periods);
     onClose();
   };
 
-  const metricLabel = metric === 'sessions' ? 'Sessions Goal' : 'Clients Goal';
-  const currentMonthIndex = months.findIndex(m => m.isCurrent);
-
-  // Compute estimated revenue from current month's goal (only for sessions metric)
-  const currentMonthGoal = currentMonthIndex >= 0 ? months[currentMonthIndex].goal : currentValue;
-  const estimatedRevenue = metric === 'sessions' ? estimateAnnualRevenue(currentMonthGoal) : null;
+  // =========================================================================
+  // RENDER
+  // =========================================================================
 
   return (
     <>
+      {/* Backdrop */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -1038,6 +993,7 @@ export const GoalEditorModal: React.FC<GoalEditorModalProps> = ({
         }}
       />
 
+      {/* Modal */}
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -1047,15 +1003,17 @@ export const GoalEditorModal: React.FC<GoalEditorModalProps> = ({
         style={{ pointerEvents: 'none' }}
       >
         <div
-          className="relative w-full max-w-[1000px] max-h-[90vh] overflow-hidden rounded-2xl"
+          className="relative w-full max-w-[1000px] max-h-[90vh] overflow-hidden rounded-2xl flex flex-col"
           style={{
             pointerEvents: 'auto',
             background: '#FEFDFB',
-            boxShadow: '0 50px 100px -20px rgba(0,0,0,0.3), 0 0 0 1px rgba(0,0,0,0.03)',
+            boxShadow:
+              '0 50px 100px -20px rgba(0,0,0,0.3), 0 0 0 1px rgba(0,0,0,0.03)',
           }}
         >
+          {/* ─── Header ─── */}
           <div
-            className="flex items-center justify-between px-6 py-4"
+            className="flex items-center justify-between px-6 py-4 flex-shrink-0"
             style={{ borderBottom: `1px solid ${INK.rule}` }}
           >
             <div className="flex items-center gap-3">
@@ -1079,17 +1037,24 @@ export const GoalEditorModal: React.FC<GoalEditorModalProps> = ({
                 >
                   {clinician.name}
                 </h2>
-                <p style={{ fontFamily: FONT.sans, fontSize: 12, color: INK.muted, marginTop: 1 }}>
-                  {metricLabel} — drag bars to adjust
+                <p
+                  style={{
+                    fontFamily: FONT.sans,
+                    fontSize: 12,
+                    color: INK.muted,
+                    marginTop: 1,
+                  }}
+                >
+                  {metricLabel}
                 </p>
               </div>
             </div>
 
             <div className="flex items-center gap-4">
-              {/* Estimated Revenue - only show for sessions */}
+              {/* Estimated Revenue (sessions only) */}
               {estimatedRevenue !== null && (
                 <motion.div
-                  key={currentMonthGoal}
+                  key={currentGoal}
                   initial={{ opacity: 0.5, scale: 0.98 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.15 }}
@@ -1123,92 +1088,223 @@ export const GoalEditorModal: React.FC<GoalEditorModalProps> = ({
               <button
                 onClick={onClose}
                 className="p-2 rounded-lg transition-all hover:bg-stone-100 active:scale-95"
+                style={{
+                  border: 'none',
+                  background: 'none',
+                  cursor: 'pointer',
+                }}
               >
                 <X size={18} color={INK.muted} strokeWidth={2} />
               </button>
             </div>
           </div>
 
-          <div className="px-6 pt-6 pb-4">
-            <div className="flex items-center gap-5 mb-4">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-[2px]" style={{ backgroundColor: COLORS.actual }} />
-                <span style={{ fontFamily: FONT.sans, fontSize: 11, color: INK.muted }}>Actual</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-[2px]" style={{ backgroundColor: COLORS.goalCurrent }} />
-                <span style={{ fontFamily: FONT.sans, fontSize: 11, color: INK.muted }}>Goal</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div
-                  className="w-3 h-3 rounded-[2px]"
-                  style={{ border: `1.5px dashed ${COLORS.goalInherited}`, backgroundColor: 'transparent' }}
+          {/* ─── Scrollable Content ─── */}
+          <div className="overflow-y-auto flex-1 min-h-0">
+            {/* Chart Area */}
+            <div className="px-6 pt-6 pb-4">
+              <div className="flex">
+                <YAxis
+                  maxValue={maxValue}
+                  chartHeight={CHART_HEIGHT}
+                  metric={metric}
                 />
-                <span style={{ fontFamily: FONT.sans, fontSize: 11, color: INK.muted }}>Inherited</span>
+
+                <div className="flex-1 relative overflow-hidden">
+                  {/* Horizontal gridlines */}
+                  <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <div
+                        key={i}
+                        className="w-full h-px"
+                        style={{
+                          backgroundColor:
+                            i === 4 ? INK.rule : INK.cream,
+                        }}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Current week vertical line */}
+                  {currentWeekIndex >= 0 && (
+                    <div
+                      className="absolute top-0 bottom-0 w-px z-10"
+                      style={{
+                        left: `${((currentWeekIndex + 0.5) / weeks.length) * 100}%`,
+                        background: `linear-gradient(180deg, ${INK.gold}00 0%, ${INK.gold}40 50%, ${INK.gold}00 100%)`,
+                      }}
+                    />
+                  )}
+
+                  {/* Weekly bars */}
+                  <div className="flex justify-between">
+                    {weeks.map((week, i) => (
+                      <WeekColumn
+                        key={week.key}
+                        data={week}
+                        index={i}
+                        maxValue={maxValue}
+                        chartHeight={CHART_HEIGHT}
+                        columnWidth={columnWidth}
+                        barWidth={barWidth}
+                        metric={metric}
+                      />
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="flex">
-              <YAxis
-                minValue={minValue}
-                maxValue={maxValue}
-                chartHeight={chartHeight}
-                metric={metric}
-              />
+            {/* ─── Divider ─── */}
+            <div className="px-6">
+              <div className="relative">
+                <div
+                  className="h-px w-full"
+                  style={{ backgroundColor: INK.rule }}
+                />
+                <div
+                  className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rotate-45"
+                  style={{
+                    backgroundColor: INK.cream,
+                    border: `1px solid ${INK.rule}`,
+                  }}
+                />
+              </div>
+            </div>
 
-              <div className="flex-1 relative">
-                <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <div
-                      key={i}
-                      className="w-full h-px"
-                      style={{ backgroundColor: i === 4 ? INK.rule : INK.cream }}
-                    />
-                  ))}
-                </div>
+            {/* ─── Goal Periods Ledger ─── */}
+            <div className="px-6 py-5">
+              <div className="flex items-center justify-between mb-3">
+                <h3
+                  style={{
+                    fontFamily: FONT.serif,
+                    fontSize: 17,
+                    fontWeight: 400,
+                    color: INK.black,
+                  }}
+                >
+                  Goal Periods
+                </h3>
+                <span
+                  style={{
+                    fontFamily: FONT.mono,
+                    fontSize: 11,
+                    color: INK.ghost,
+                  }}
+                >
+                  {periods.length}{' '}
+                  {periods.length === 1 ? 'period' : 'periods'}
+                </span>
+              </div>
 
-                {currentMonthIndex >= 0 && (
-                  <div
-                    className="absolute top-0 bottom-0 w-px z-10"
-                    style={{
-                      left: `${((currentMonthIndex + 0.5) / months.length) * 100}%`,
-                      background: `linear-gradient(180deg, ${INK.gold}00 0%, ${INK.gold}40 50%, ${INK.gold}00 100%)`,
-                    }}
-                  />
-                )}
+              {/* Add Period button */}
+              <motion.button
+                onClick={addPeriod}
+                className="w-full mb-3 py-3 rounded-xl transition-all duration-200 cursor-pointer"
+                whileHover={{ scale: 1.005 }}
+                whileTap={{ scale: 0.995 }}
+                style={{
+                  fontFamily: FONT.sans,
+                  fontSize: 13,
+                  fontWeight: 500,
+                  color: INK.muted,
+                  backgroundColor: 'transparent',
+                  border: `1.5px dashed ${INK.rule}`,
+                  cursor: 'pointer',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = INK.gold;
+                  e.currentTarget.style.color = INK.gold;
+                  e.currentTarget.style.backgroundColor = INK.goldGlow;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = INK.rule;
+                  e.currentTarget.style.color = INK.muted;
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }}
+              >
+                <Plus
+                  size={14}
+                  className="inline mr-1.5"
+                  style={{ verticalAlign: -2 }}
+                />
+                Add Goal Period
+              </motion.button>
 
-                <div className="flex justify-between">
-                  {months.map((month, index) => (
-                    <MonthColumn
-                      key={month.month}
-                      data={month}
-                      index={index}
-                      maxValue={maxValue}
-                      minValue={minValue}
-                      chartHeight={chartHeight}
-                      onGoalChange={(value) => handleGoalChange(index, value)}
-                      metric={metric}
-                      activeDragIndex={activeDragIndex}
-                      onDragStart={() => setActiveDragIndex(index)}
-                      onDragEnd={() => setActiveDragIndex(null)}
-                    />
-                  ))}
-                </div>
+              <div
+                style={{
+                  backgroundColor: INK.paper,
+                  borderRadius: 12,
+                  border: `1px solid ${INK.rule}`,
+                  overflow: 'hidden',
+                }}
+              >
+                <AnimatePresence mode="popLayout">
+                  {[...periods].reverse().map((period) => {
+                    const i = periods.indexOf(period);
+                    const isFirstInData = i === 0;
+                    const isLastDisplay = i === 0;
+                    return (
+                      <GoalPeriodRow
+                        key={period.id}
+                        period={period}
+                        index={i}
+                        isFirst={isFirstInData}
+                        isLast={isLastDisplay}
+                        metric={metric}
+                        minStartDate={
+                          i > 0
+                            ? addDays(periods[i - 1].startDate, 1)
+                            : undefined
+                        }
+                        maxStartDate={
+                          period.endDate
+                            ? addDays(period.endDate, -1)
+                            : undefined
+                        }
+                        minEndDate={addDays(period.startDate, 1)}
+                        maxEndDate={
+                          i < periods.length - 1
+                            ? addDays(periods[i + 1].endDate || periods[i + 1].startDate, -1)
+                            : undefined
+                        }
+                        onUpdateValue={(v) =>
+                          updatePeriod(period.id, { value: v })
+                        }
+                        onUpdateStartDate={(d) =>
+                          updateStartDate(period.id, d)
+                        }
+                        onUpdateEndDate={(d) =>
+                          updateEndDate(period.id, d)
+                        }
+                        onUpdateReason={(r) =>
+                          updatePeriod(period.id, { reason: r })
+                        }
+                        onDelete={() => deletePeriod(period.id)}
+                      />
+                    );
+                  })}
+                </AnimatePresence>
               </div>
             </div>
           </div>
 
-          <SummaryStats months={months} metric={metric} />
-
+          {/* ─── Footer ─── */}
           <div
-            className="flex items-center justify-between px-6 py-3"
+            className="flex items-center justify-between px-6 py-3 flex-shrink-0"
             style={{
               borderTop: `1px solid ${INK.rule}`,
               backgroundColor: INK.paper,
             }}
           >
-            <span style={{ fontFamily: FONT.sans, fontSize: 11, color: INK.ghost }}>
-              Future months inherit the last explicitly set goal
+            <span
+              style={{
+                fontFamily: FONT.sans,
+                fontSize: 11,
+                color: INK.ghost,
+              }}
+            >
+              Click a goal value to edit · Add periods for schedule changes
             </span>
 
             <div className="flex items-center gap-2">

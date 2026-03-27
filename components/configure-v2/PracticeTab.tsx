@@ -527,8 +527,6 @@ const ServiceMappingSection: React.FC<ServiceMappingProps> = ({ services, onUpda
     onUpdate(services.map((s) => (s.id === id ? { ...s, ...updates } : s)));
   };
 
-  const unassignedCount = byBucket['unassigned']?.length || 0;
-
   return (
     <LedgerCard>
       <div className="p-8">
@@ -558,7 +556,7 @@ const ServiceMappingSection: React.FC<ServiceMappingProps> = ({ services, onUpda
             </p>
           </div>
           <div className="flex items-center gap-5">
-            {BUCKETS.map((b) => (
+            {BUCKETS.filter((b) => b.id !== 'unassigned' || (byBucket[b.id]?.length || 0) > 0).map((b) => (
               <div key={b.id} className="flex items-center gap-2">
                 <div
                   className="w-2.5 h-2.5 rounded-full"
@@ -579,12 +577,12 @@ const ServiceMappingSection: React.FC<ServiceMappingProps> = ({ services, onUpda
           </div>
         </div>
 
-        {/* Buckets */}
+        {/* Buckets - filter out empty unassigned */}
         <div className="rounded-lg overflow-hidden" style={{ border: `1px solid ${INK.rule}` }}>
-          {BUCKETS.map((bucket, idx) => {
+          {BUCKETS.filter((b) => b.id !== 'unassigned' || (byBucket[b.id]?.length || 0) > 0).map((bucket, idx, filteredBuckets) => {
             const items = byBucket[bucket.id] || [];
             const isExpanded = expanded.has(bucket.id);
-            const isLast = idx === BUCKETS.length - 1;
+            const isLast = idx === filteredBuckets.length - 1;
             const isUnassigned = bucket.id === 'unassigned';
             const hasUnassigned = isUnassigned && items.length > 0;
 

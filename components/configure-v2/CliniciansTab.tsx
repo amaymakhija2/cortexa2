@@ -1,8 +1,8 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Link2 } from 'lucide-react';
+import { Link2, ChevronRight } from 'lucide-react';
 import { EditableRosterTable } from './EditableRosterTable';
-import { GoalEditorModal, type GoalMetric } from './GoalEditorModal';
+import { GoalEditorModal, type GoalMetric, type GoalPeriod } from './GoalEditorModal';
 import { PracticeInsightsModal, Sparkline, type PracticeMetric } from './PracticeInsightsModal';
 import { LedgerCard, PrimaryButton, FONT, INK, EASE, estimateAnnualRevenue, formatRevenue, REVENUE_DEFAULTS } from './shared';
 import type { Clinician } from './shared';
@@ -16,6 +16,12 @@ import { useSettings } from '../../context/SettingsContext';
 // supervision, and goals - all visible at a glance, all editable inline.
 // The StatusPill shows supervision health. The roster is the heart.
 // =============================================================================
+
+// =============================================================================
+// FEATURE FLAGS - Phase 2 features (disabled for now)
+// =============================================================================
+// Set to true to enable supervision, goals columns, and practice totals
+const ENABLE_PHASE_2_FEATURES = true;
 
 // =============================================================================
 // TYPES
@@ -410,6 +416,433 @@ const PracticeSummaryBar: React.FC<PracticeSummaryBarProps> = ({
 };
 
 // =============================================================================
+// CHANGES BAR - Shows unsaved changes OR pending sync status
+// =============================================================================
+
+type ChangesBarMode = 'unsaved' | 'pending-sync';
+
+interface ChangesBarProps {
+  mode: ChangesBarMode;
+  changeCount: number;
+  onSave?: () => void;
+  onDiscard?: () => void;
+  isSaving?: boolean;
+}
+
+const ChangesBar: React.FC<ChangesBarProps> = ({
+  mode,
+  changeCount,
+  onSave,
+  onDiscard,
+  isSaving = false,
+}) => {
+  const isUnsaved = mode === 'unsaved';
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -8, height: 0 }}
+      animate={{ opacity: 1, y: 0, height: 'auto' }}
+      exit={{ opacity: 0, y: -8, height: 0 }}
+      transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+      className="mb-4 overflow-hidden"
+    >
+      <div
+        className="flex items-center justify-between px-5 py-3.5 rounded-lg"
+        style={{
+          backgroundColor: isUnsaved ? INK.amberLight : INK.cream,
+          border: `1px solid ${isUnsaved ? INK.amber + '30' : INK.rule}`,
+        }}
+      >
+        {/* Left: Status message */}
+        <div className="flex items-center gap-3">
+          {/* Dot */}
+          <motion.div
+            className="w-2 h-2 rounded-full"
+            style={{ backgroundColor: isUnsaved ? INK.amber : INK.gold }}
+            animate={isUnsaved ? { scale: [1, 1.2, 1] } : {}}
+            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+          />
+
+          <span
+            style={{
+              fontFamily: FONT.sans,
+              fontSize: 14,
+              fontWeight: 500,
+              color: isUnsaved ? INK.amber : INK.muted,
+            }}
+          >
+            {isUnsaved ? (
+              <>
+                <span style={{ fontWeight: 600 }}>{changeCount} unsaved {changeCount === 1 ? 'change' : 'changes'}</span>
+              </>
+            ) : (
+              <>
+                <span style={{ fontWeight: 600 }}>{changeCount} pending {changeCount === 1 ? 'change' : 'changes'}</span>
+                <span style={{ color: INK.faded }}> — will apply after next sync</span>
+              </>
+            )}
+          </span>
+        </div>
+
+        {/* Right: Actions (only for unsaved) */}
+        {isUnsaved && (
+          <div className="flex items-center gap-2">
+            <motion.button
+              onClick={onDiscard}
+              className="px-3 py-1.5 rounded-md transition-colors"
+              style={{
+                fontFamily: FONT.sans,
+                fontSize: 13,
+                fontWeight: 500,
+                color: INK.amber,
+                backgroundColor: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+              }}
+              whileHover={{ backgroundColor: `${INK.amber}15` }}
+              whileTap={{ scale: 0.98 }}
+            >
+              Discard
+            </motion.button>
+
+            <motion.button
+              onClick={onSave}
+              disabled={isSaving}
+              className="px-4 py-1.5 rounded-md transition-all"
+              style={{
+                fontFamily: FONT.sans,
+                fontSize: 13,
+                fontWeight: 600,
+                color: 'white',
+                backgroundColor: INK.amber,
+                border: 'none',
+                cursor: isSaving ? 'wait' : 'pointer',
+                opacity: isSaving ? 0.7 : 1,
+              }}
+              whileHover={{ scale: isSaving ? 1 : 1.02 }}
+              whileTap={{ scale: isSaving ? 1 : 0.98 }}
+            >
+              {isSaving ? 'Saving...' : 'Save'}
+            </motion.button>
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+};
+
+// =============================================================================
+// ACCORDION SECTION - Matches Service Mapping style exactly
+// =============================================================================
+
+interface AccordionSectionProps {
+  label: string;
+  description: string;
+  count: number;
+  color: string;
+  isLast?: boolean;
+  children: React.ReactNode;
+}
+
+const AccordionSection: React.FC<AccordionSectionProps> = ({
+  label,
+  description,
+  count,
+  color,
+  isLast = false,
+  children,
+}) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  return (
+    <div
+      style={{
+        borderBottom: isLast ? 'none' : `1px solid ${INK.rule}`,
+      }}
+    >
+      {/* Header */}
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full px-5 py-4 flex items-center justify-between transition-colors hover:bg-stone-50"
+        style={{
+          backgroundColor: isExpanded ? INK.cream : 'transparent',
+          border: 'none',
+          cursor: 'pointer',
+        }}
+      >
+        <div className="flex items-center gap-3">
+          <motion.div
+            animate={{ rotate: isExpanded ? 90 : 0 }}
+            transition={{ duration: 0.15 }}
+          >
+            <ChevronRight size={16} color={INK.faded} />
+          </motion.div>
+          <div
+            className="w-3 h-3 rounded-full"
+            style={{ backgroundColor: color }}
+          />
+          <div className="flex items-center gap-2.5">
+            <span
+              style={{
+                fontFamily: FONT.sans,
+                fontSize: 15,
+                fontWeight: 600,
+                color: INK.body,
+              }}
+            >
+              {label}
+            </span>
+            <span
+              style={{
+                fontFamily: FONT.sans,
+                fontSize: 13,
+                color: INK.muted,
+              }}
+            >
+              — {description}
+            </span>
+          </div>
+        </div>
+        <span
+          className="px-2.5 py-1 rounded-full"
+          style={{
+            fontFamily: FONT.mono,
+            fontSize: 12,
+            fontWeight: 600,
+            color: INK.body,
+            backgroundColor: INK.cream,
+          }}
+        >
+          {count}
+        </span>
+      </button>
+
+      {/* Expanded content */}
+      <AnimatePresence initial={false}>
+        {isExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+            className="overflow-hidden"
+          >
+            <div className="px-5 pb-4">
+              {children}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+// =============================================================================
+// SIMPLE ROW COMPONENTS - For accordion content (flex rows, not table grid)
+// =============================================================================
+
+interface InactiveClinicianRowProps {
+  clinician: Clinician;
+  onReactivate: (id: string) => void;
+  isLast: boolean;
+}
+
+const InactiveClinicianRow: React.FC<InactiveClinicianRowProps> = ({
+  clinician,
+  onReactivate,
+  isLast,
+}) => {
+  const [isHovered, setIsHovered] = useState(false);
+
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return `Since ${date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`;
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -10 }}
+      animate={{ opacity: 1, x: 0 }}
+      className="flex items-center justify-between py-3.5 group"
+      style={{
+        borderBottom: isLast ? 'none' : `1px solid ${INK.rule}`,
+        backgroundColor: isHovered ? `${INK.cream}80` : 'transparent',
+        transition: 'background-color 0.15s ease',
+        marginLeft: -20,
+        marginRight: -20,
+        paddingLeft: 20,
+        paddingRight: 20,
+      }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {/* Clinician info */}
+      <div className="flex items-center gap-4">
+        <span
+          style={{
+            fontFamily: FONT.serif,
+            fontSize: 16,
+            color: INK.body,
+          }}
+        >
+          {clinician.name}
+        </span>
+        <span
+          className="px-2 py-0.5 rounded"
+          style={{
+            fontFamily: FONT.mono,
+            fontSize: 11,
+            fontWeight: 500,
+            backgroundColor: INK.cream,
+            color: INK.faded,
+          }}
+        >
+          {clinician.licenseType}
+        </span>
+        <span
+          style={{
+            fontFamily: FONT.sans,
+            fontSize: 12,
+            color: INK.ghost,
+          }}
+        >
+          {formatDate(clinician.startDate)}
+        </span>
+      </div>
+
+      {/* Reactivate button */}
+      <motion.button
+        onClick={() => onReactivate(clinician.id)}
+        className="px-3 py-1.5 rounded-md transition-all"
+        style={{
+          fontFamily: FONT.sans,
+          fontSize: 12,
+          fontWeight: 600,
+          color: INK.emerald,
+          backgroundColor: isHovered ? INK.emeraldLight : 'transparent',
+          border: `1px solid ${isHovered ? INK.emerald + '40' : 'transparent'}`,
+          cursor: 'pointer',
+          opacity: isHovered ? 1 : 0,
+        }}
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+      >
+        Reactivate
+      </motion.button>
+    </motion.div>
+  );
+};
+
+// =============================================================================
+// ACTIVE CLINICIAN SECTION - Accordion with full table inside
+// =============================================================================
+
+interface ActiveClinicianSectionProps {
+  clinicians: Clinician[];
+  onUpdate: (clinicians: Clinician[]) => void;
+  onOpenGoalEditor: (clinicianId: string, metric: 'sessions' | 'clients') => void;
+  showPhase2Columns: boolean;
+  isLast?: boolean;
+}
+
+const ActiveClinicianSection: React.FC<ActiveClinicianSectionProps> = ({
+  clinicians,
+  onUpdate,
+  onOpenGoalEditor,
+  showPhase2Columns,
+  isLast = false,
+}) => {
+  const [isExpanded, setIsExpanded] = useState(true); // Expanded by default
+
+  return (
+    <div
+      style={{
+        borderBottom: isLast ? 'none' : `1px solid ${INK.rule}`,
+      }}
+    >
+      {/* Header */}
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full px-5 py-4 flex items-center justify-between transition-colors hover:bg-stone-50"
+        style={{
+          backgroundColor: isExpanded ? INK.cream : 'transparent',
+          border: 'none',
+          cursor: 'pointer',
+        }}
+      >
+        <div className="flex items-center gap-3">
+          <motion.div
+            animate={{ rotate: isExpanded ? 90 : 0 }}
+            transition={{ duration: 0.15 }}
+          >
+            <ChevronRight size={16} color={INK.faded} />
+          </motion.div>
+          <div
+            className="w-3 h-3 rounded-full"
+            style={{ backgroundColor: INK.emerald }}
+          />
+          <div className="flex items-center gap-2.5">
+            <span
+              style={{
+                fontFamily: FONT.sans,
+                fontSize: 15,
+                fontWeight: 600,
+                color: INK.body,
+              }}
+            >
+              Active Clinicians
+            </span>
+            <span
+              style={{
+                fontFamily: FONT.sans,
+                fontSize: 13,
+                color: INK.muted,
+              }}
+            >
+              — your clinical team
+            </span>
+          </div>
+        </div>
+        <span
+          className="px-2.5 py-1 rounded-full"
+          style={{
+            fontFamily: FONT.mono,
+            fontSize: 12,
+            fontWeight: 600,
+            color: INK.body,
+            backgroundColor: INK.cream,
+          }}
+        >
+          {clinicians.length}
+        </span>
+      </button>
+
+      {/* Expanded content - the full table */}
+      <AnimatePresence initial={false}>
+        {isExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+            className="overflow-hidden"
+          >
+            <div className="px-4 pb-4">
+              <EditableRosterTable
+                clinicians={clinicians}
+                onUpdate={onUpdate}
+                onOpenGoalEditor={onOpenGoalEditor}
+                showPhase2Columns={showPhase2Columns}
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+// =============================================================================
 // MAIN COMPONENT
 // =============================================================================
 
@@ -425,6 +858,55 @@ export const CliniciansTab: React.FC<CliniciansTabProps> = ({
   } | null>(null);
   const [practiceInsightsMetric, setPracticeInsightsMetric] = useState<PracticeMetric | null>(null);
 
+  // Track original state for change detection
+  const [originalClinicians, setOriginalClinicians] = useState<Clinician[]>(clinicians);
+  const [isSaving, setIsSaving] = useState(false);
+  const [pendingSyncCount, setPendingSyncCount] = useState(0); // Changes saved but not yet synced
+
+  // Calculate unsaved changes (current vs last saved)
+  const unsavedChanges = useMemo(() => {
+    const changes: string[] = [];
+    clinicians.forEach((c) => {
+      const original = originalClinicians.find((o) => o.id === c.id);
+      if (!original) return;
+
+      // Check for meaningful changes
+      if (c.isActive !== original.isActive) changes.push(c.id);
+      else if (c.includeNotes !== original.includeNotes) changes.push(c.id);
+      else if (c.licenseType !== original.licenseType) changes.push(c.id);
+      else if (c.role !== original.role) changes.push(c.id);
+      else if (c.supervisorId !== original.supervisorId) changes.push(c.id);
+      else if (c.sessionGoal !== original.sessionGoal) changes.push(c.id);
+      else if (c.clientGoal !== original.clientGoal) changes.push(c.id);
+    });
+    return [...new Set(changes)]; // Dedupe
+  }, [clinicians, originalClinicians]);
+
+  // Separate active and inactive clinicians
+  const { activeClinicians, inactiveClinicians } = useMemo(() => {
+    return {
+      activeClinicians: clinicians.filter((c) => c.isActive),
+      inactiveClinicians: clinicians.filter((c) => !c.isActive),
+    };
+  }, [clinicians]);
+
+  // Handle save
+  const handleSave = useCallback(() => {
+    setIsSaving(true);
+    const changeCount = unsavedChanges.length;
+    // Simulate API call
+    setTimeout(() => {
+      setOriginalClinicians(clinicians);
+      setPendingSyncCount((prev) => prev + changeCount); // Add to pending sync
+      setIsSaving(false);
+    }, 600);
+  }, [clinicians, unsavedChanges.length]);
+
+  // Handle discard
+  const handleDiscard = useCallback(() => {
+    onUpdate(originalClinicians);
+  }, [originalClinicians, onUpdate]);
+
   // Compute supervision status
   const supervisionStatus = useMemo(() => {
     const needingSupervision = clinicians.filter(
@@ -439,7 +921,6 @@ export const CliniciansTab: React.FC<CliniciansTabProps> = ({
 
   // Compute team totals including estimated revenue
   const teamTotals = useMemo(() => {
-    const activeClinicians = clinicians.filter((c) => c.isActive);
     const totalSessions = activeClinicians.reduce((sum, c) => sum + c.sessionGoal, 0);
     return {
       sessions: totalSessions,
@@ -447,44 +928,75 @@ export const CliniciansTab: React.FC<CliniciansTabProps> = ({
       count: activeClinicians.length,
       estimatedRevenue: estimateAnnualRevenue(totalSessions),
     };
-  }, [clinicians]);
+  }, [activeClinicians]);
 
   // Handle opening goal editor
   const handleOpenGoalEditor = useCallback((clinicianId: string, metric: GoalMetric) => {
     setGoalEditorState({ clinicianId, metric });
   }, []);
 
-  // Handle saving goals from editor
-  const handleSaveGoals = useCallback((monthlyGoals: Array<{ month: string; value: number }>) => {
+  // Handle saving goals from editor (period-based)
+  const handleSaveGoals = useCallback((periods: GoalPeriod[]) => {
     if (!goalEditorState) return;
 
     const { clinicianId, metric } = goalEditorState;
-    const clinician = clinicians.find((c) => c.id === clinicianId);
-    if (!clinician) return;
 
-    // Get the current month's goal (or the latest set value)
-    const now = new Date();
-    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-    const currentGoal = monthlyGoals.find((g) => g.month === currentMonth);
+    // The active period (endDate === null) determines the current goal
+    const activePeriod = periods.find((p) => !p.endDate);
+    if (!activePeriod) return;
 
-    if (currentGoal) {
-      // Update the clinician's current goal
-      const updatedClinicians = clinicians.map((c) =>
-        c.id === clinicianId
-          ? { ...c, [metric === 'sessions' ? 'sessionGoal' : 'clientGoal']: currentGoal.value }
-          : c
-      );
-      onUpdate(updatedClinicians);
-    }
+    // Update the clinician's current goal value
+    const goalField = metric === 'sessions' ? 'sessionGoal' : 'clientGoal';
+    const updatedClinicians = clinicians.map((c) =>
+      c.id === clinicianId ? { ...c, [goalField]: activePeriod.value } : c
+    );
+    onUpdate(updatedClinicians);
 
-    // Also save to goal history in settings
-    // TODO: Implement full goal history persistence when backend is ready
-  }, [goalEditorState, clinicians, onUpdate]);
+    // Persist goal periods to settings context
+    const goalType = metric === 'sessions' ? 'sessionGoal' : 'clientGoal';
+    updateSettings({
+      clinicianGoalHistory: {
+        ...settings.clinicianGoalHistory,
+        [clinicianId]: {
+          ...settings.clinicianGoalHistory?.[clinicianId],
+          [goalType]: periods,
+        },
+      },
+    });
+  }, [goalEditorState, clinicians, onUpdate, settings, updateSettings]);
+
+  // Handle reactivating a clinician
+  const handleReactivate = useCallback((clinicianId: string) => {
+    const updatedClinicians = clinicians.map((c) =>
+      c.id === clinicianId ? { ...c, isActive: true } : c
+    );
+    onUpdate(updatedClinicians);
+  }, [clinicians, onUpdate]);
 
   // Find clinician for goal editor
   const goalEditorClinician = goalEditorState
     ? clinicians.find((c) => c.id === goalEditorState.clinicianId)
     : null;
+
+  // Get goal periods for the editor (from settings history, or create a default)
+  const goalEditorPeriods = useMemo((): GoalPeriod[] => {
+    if (!goalEditorState || !goalEditorClinician) return [];
+
+    const { clinicianId, metric } = goalEditorState;
+    const goalType = metric === 'sessions' ? 'sessionGoal' : 'clientGoal';
+    const history = settings.clinicianGoalHistory?.[clinicianId];
+    const existing = history?.[goalType] as GoalPeriod[] | undefined;
+
+    if (existing && existing.length > 0) return existing;
+
+    // Default: one period from clinician's start date to present
+    return [{
+      id: `gp_default_${clinicianId}_${goalType}`,
+      startDate: goalEditorClinician.startDate,
+      endDate: null,
+      value: metric === 'sessions' ? goalEditorClinician.sessionGoal : goalEditorClinician.clientGoal,
+    }];
+  }, [goalEditorState, goalEditorClinician, settings.clinicianGoalHistory]);
 
   return (
     <motion.div
@@ -492,26 +1004,102 @@ export const CliniciansTab: React.FC<CliniciansTabProps> = ({
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
     >
-      {/* Summary Bar - replaces redundant header */}
-      <PracticeSummaryBar
-        totalSessions={teamTotals.sessions}
-        totalClients={teamTotals.clients}
-        clinicianCount={teamTotals.count}
-        estimatedRevenue={teamTotals.estimatedRevenue}
-        supervisionStatus={supervisionStatus}
-        onOpenMapping={onOpenMapping}
-        onMetricClick={setPracticeInsightsMetric}
-        clinicians={clinicians}
-      />
+      {/* Summary Bar - Phase 2 feature */}
+      {ENABLE_PHASE_2_FEATURES && (
+        <PracticeSummaryBar
+          totalSessions={teamTotals.sessions}
+          totalClients={teamTotals.clients}
+          clinicianCount={teamTotals.count}
+          estimatedRevenue={teamTotals.estimatedRevenue}
+          supervisionStatus={supervisionStatus}
+          onOpenMapping={onOpenMapping}
+          onMetricClick={setPracticeInsightsMetric}
+          clinicians={clinicians}
+        />
+      )}
 
-      {/* Roster Card */}
-      <LedgerCard>
-        <div className="p-8">
-          <EditableRosterTable
-            clinicians={clinicians}
-            onUpdate={onUpdate}
-            onOpenGoalEditor={handleOpenGoalEditor}
+      {/* Header - OUTSIDE the card */}
+      <div className="mb-6">
+        <h2
+          style={{
+            fontFamily: FONT.serif,
+            fontSize: 24,
+            fontWeight: 400,
+            color: INK.black,
+            letterSpacing: '-0.01em',
+          }}
+        >
+          Clinicians
+        </h2>
+        <p
+          style={{
+            fontFamily: FONT.sans,
+            fontSize: 14,
+            color: INK.muted,
+            marginTop: 6,
+          }}
+        >
+          Set individual goals and manage your team
+        </p>
+      </div>
+
+      {/* Changes Bar - unsaved or pending sync */}
+      <AnimatePresence mode="wait">
+        {unsavedChanges.length > 0 ? (
+          <ChangesBar
+            key="unsaved"
+            mode="unsaved"
+            changeCount={unsavedChanges.length}
+            onSave={handleSave}
+            onDiscard={handleDiscard}
+            isSaving={isSaving}
           />
+        ) : pendingSyncCount > 0 ? (
+          <ChangesBar
+            key="pending-sync"
+            mode="pending-sync"
+            changeCount={pendingSyncCount}
+          />
+        ) : null}
+      </AnimatePresence>
+
+      {/* All sections in one card - all accordions */}
+      <LedgerCard>
+        <div
+          className="rounded-lg overflow-hidden"
+          style={{ border: `1px solid ${INK.rule}` }}
+        >
+          {/* Active Clinicians - expanded by default, contains table */}
+          <ActiveClinicianSection
+            clinicians={activeClinicians}
+            onUpdate={(updated) => {
+              const allClinicians = [...updated, ...inactiveClinicians];
+              onUpdate(allClinicians);
+            }}
+            onOpenGoalEditor={handleOpenGoalEditor}
+            showPhase2Columns={ENABLE_PHASE_2_FEATURES}
+            isLast={inactiveClinicians.length === 0}
+          />
+
+          {/* Inactive Clinicians */}
+          {inactiveClinicians.length > 0 && (
+            <AccordionSection
+              label="Inactive Clinicians"
+              description="former team members"
+              count={inactiveClinicians.length}
+              color={INK.faded}
+              isLast
+            >
+              {inactiveClinicians.map((c, idx) => (
+                <InactiveClinicianRow
+                  key={c.id}
+                  clinician={c}
+                  onReactivate={handleReactivate}
+                  isLast={idx === inactiveClinicians.length - 1}
+                />
+              ))}
+            </AccordionSection>
+          )}
         </div>
       </LedgerCard>
 
@@ -521,11 +1109,7 @@ export const CliniciansTab: React.FC<CliniciansTabProps> = ({
           <GoalEditorModal
             clinician={goalEditorClinician}
             metric={goalEditorState.metric}
-            currentValue={
-              goalEditorState.metric === 'sessions'
-                ? goalEditorClinician.sessionGoal
-                : goalEditorClinician.clientGoal
-            }
+            periods={goalEditorPeriods}
             onSave={handleSaveGoals}
             onClose={() => setGoalEditorState(null)}
           />

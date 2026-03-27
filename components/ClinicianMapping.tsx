@@ -99,6 +99,7 @@ export const ClinicianMapping: React.FC<ClinicianMappingProps> = ({
       supervisorId: null,
       requiresSupervision: false,
       isActive: true,
+      includeNotes: true,
       startDate: new Date().toISOString().split('T')[0],
       sessionGoal: 30,
       clientGoal: 25,

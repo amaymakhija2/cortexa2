@@ -34,20 +34,27 @@ export interface EditableRosterTableProps {
   clinicians: Clinician[];
   onUpdate: (clinicians: Clinician[]) => void;
   onOpenGoalEditor?: (clinicianId: string, metric: 'sessions' | 'clients') => void;
+  showPhase2Columns?: boolean; // Show supervision, sessions goal, caseload goal columns
 }
 
 // =============================================================================
 // COLUMN STRUCTURE (without rank - LedgerTable adds it automatically)
 // =============================================================================
 
-const COLUMNS: ColumnDef[] = [
-  { key: 'clinician', label: 'Clinician', width: 'minmax(140px, 180px)', align: 'left' },
-  { key: 'license', label: 'License', width: '100px', align: 'center' },
-  { key: 'role', label: 'Role', width: '1fr', align: 'center' },
-  { key: 'supervision', label: 'Supervised By', width: '1fr', align: 'center' },
-  { key: 'sessions', label: 'Sessions Goal', width: '1fr', align: 'center' },
-  { key: 'clients', label: 'Caseload Goal', width: '1fr', align: 'center' },
-  { key: 'status', label: 'Status', width: '90px', align: 'center' },
+// Phase 2 column keys (supervision, sessions goal, caseload goal)
+const PHASE_2_COLUMN_KEYS = ['supervision', 'sessions', 'clients'];
+
+// Proportional distribution using weighted fr units.
+// All space is used - no gaps. Weights reflect content needs.
+const ALL_COLUMNS: ColumnDef[] = [
+  { key: 'clinician', label: 'Clinician', width: '2.5fr', align: 'left' },
+  { key: 'license', label: 'License', width: '1fr', align: 'center' },
+  { key: 'role', label: 'Role', width: '2fr', align: 'center' },
+  { key: 'supervision', label: 'Supervised By', width: '1.8fr', align: 'center' },
+  { key: 'sessions', label: 'Sessions Goal', width: '1.4fr', align: 'center' },
+  { key: 'clients', label: 'Caseload Goal', width: '1.4fr', align: 'center' },
+  { key: 'include', label: 'Include', width: '1.2fr', align: 'center' },
+  { key: 'includeNotes', label: 'Include Notes', width: '1.4fr', align: 'center' },
 ];
 
 // =============================================================================
@@ -282,14 +289,29 @@ function renderClinicianCells({
       </motion.button>
     </div>,
 
-    // Status
-    <div key="status" className="flex justify-center">
+    // Include (formerly Status)
+    <div key="include" className="flex justify-center">
       <TogglePill
         active={clinician.isActive}
         onChange={(active) => {
           onUpdate({ isActive: active });
           onSave();
         }}
+        activeLabel="Include"
+        inactiveLabel="Exclude"
+      />
+    </div>,
+
+    // Include Notes
+    <div key="includeNotes" className="flex justify-center">
+      <TogglePill
+        active={clinician.includeNotes}
+        onChange={(includeNotes) => {
+          onUpdate({ includeNotes });
+          onSave();
+        }}
+        activeLabel="Include"
+        inactiveLabel="Exclude"
       />
     </div>,
   ];
@@ -299,23 +321,26 @@ function renderClinicianCells({
 // MAIN COMPONENT
 // =============================================================================
 
+// =============================================================================
+// MAIN COMPONENT - Simple table for active clinicians
+// =============================================================================
+
 export const EditableRosterTable: React.FC<EditableRosterTableProps> = ({
   clinicians,
   onUpdate,
   onOpenGoalEditor,
+  showPhase2Columns = true,
 }) => {
   // Track recently saved clinicians for animation
   const [recentlySavedMap, setRecentlySavedMap] = useState<Record<string, boolean>>({});
 
-  // Sort: active clinicians first, then inactive at bottom
-  const sortedClinicians = useMemo(() => {
-    return [...clinicians].sort((a, b) => {
-      if (a.isActive === b.isActive) return 0;
-      return a.isActive ? -1 : 1;
-    });
-  }, [clinicians]);
+  // Filter columns based on phase 2 flag
+  const columns = useMemo(() => {
+    if (showPhase2Columns) return ALL_COLUMNS;
+    return ALL_COLUMNS.filter((col) => !PHASE_2_COLUMN_KEYS.includes(col.key));
+  }, [showPhase2Columns]);
 
-  // Get available supervisors
+  // Get available supervisors (from all clinicians that can supervise)
   const supervisors = useMemo(() => {
     return clinicians.filter((c) => canSupervise(c.role) && c.isActive);
   }, [clinicians]);
@@ -337,15 +362,11 @@ export const EditableRosterTable: React.FC<EditableRosterTableProps> = ({
     }, 800);
   }, []);
 
-  // Count active vs inactive
-  const activeCount = sortedClinicians.filter((c) => c.isActive).length;
-  const inactiveCount = sortedClinicians.length - activeCount;
-
   // Render row cells for LedgerTable
   const renderRow = useCallback(
     (clinician: Clinician, _index: number, _isHovered: boolean): React.ReactNode[] => {
       const recentlySaved = recentlySavedMap[clinician.id] || false;
-      return renderClinicianCells({
+      const allCells = renderClinicianCells({
         clinician,
         supervisors,
         onUpdate: (updates) => updateClinician(clinician.id, updates),
@@ -353,22 +374,31 @@ export const EditableRosterTable: React.FC<EditableRosterTableProps> = ({
         recentlySaved,
         onSave: () => handleSave(clinician.id),
       });
+
+      // Filter out phase 2 cells if disabled
+      if (!showPhase2Columns) {
+        // Cell indices match ALL_COLUMNS order: 0=clinician, 1=license, 2=role, 3=supervision, 4=sessions, 5=clients, 6=include, 7=includeNotes
+        // Remove indices 3, 4, 5 (supervision, sessions, clients)
+        return allCells.filter((_, idx) => ![3, 4, 5].includes(idx));
+      }
+      return allCells;
     },
-    [supervisors, updateClinician, onOpenGoalEditor, recentlySavedMap, handleSave]
+    [supervisors, updateClinician, onOpenGoalEditor, recentlySavedMap, handleSave, showPhase2Columns]
   );
+
+  // Count active clinicians
+  const activeCount = clinicians.filter((c) => c.isActive).length;
 
   return (
     <LedgerTable
-      columns={COLUMNS}
-      data={sortedClinicians}
+      columns={columns}
+      data={clinicians}
       keyExtractor={(clinician) => clinician.id}
       renderRow={renderRow}
-      rowOpacity={(clinician) => (clinician.isActive ? 1 : 0.4)}
+      rowOpacity={(clinician) => (clinician.isActive ? 1 : 0.5)}
       footer={{
         activeCount,
         activeLabel: 'active',
-        inactiveCount,
-        inactiveLabel: 'inactive',
       }}
       emptyMessage="No clinicians added yet."
     />

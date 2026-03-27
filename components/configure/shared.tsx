@@ -49,6 +49,7 @@ export interface Clinician {
   supervisorId: string | null;
   requiresSupervision: boolean;
   isActive: boolean;
+  includeNotes: boolean;  // Whether to include this clinician's notes in analysis
   startDate: string;
   sessionGoal: number;
   clientGoal: number;
@@ -215,6 +216,7 @@ export const MOCK_CLINICIANS: Clinician[] = MASTER_CLINICIANS.map(c => {
     supervisorId: needsSupervision ? c.supervisorId : null,
     requiresSupervision: needsSupervision,
     isActive: c.isActive,
+    includeNotes: true,  // Default to including notes
     startDate: c.startDate,
     sessionGoal: c.sessionGoal,
     clientGoal: c.clientGoal,

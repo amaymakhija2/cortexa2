@@ -139,3 +139,28 @@
   font-display: swap;
   size-adjust: 110%;
 }
+
+/* Suisse Int'l Mono (Monospace - Numbers/Data) */
+@font-face {
+  font-family: 'Suisse Intl Mono';
+  src: url('/fonts/suisse-intl-mono/SuisseIntlMono-Thin-WebTrial.woff2') format('woff2');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Suisse Intl Mono';
+  src: url('/fonts/suisse-intl-mono/SuisseIntlMono-Regular-WebTrial.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Suisse Intl Mono';
+  src: url('/fonts/suisse-intl-mono/SuisseIntlMono-Bold-WebTrial.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}

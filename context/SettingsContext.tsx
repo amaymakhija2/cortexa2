@@ -148,6 +148,7 @@ export interface SingleGoalPeriod {
   startDate: string;    // ISO date string (YYYY-MM-DD)
   endDate: string | null; // ISO date string or null for current/ongoing
   value: number;        // The goal value
+  reason?: string;      // Optional label (maternity leave, ramp-up, etc.)
 }
 
 // Per-clinician goal history for each goal type

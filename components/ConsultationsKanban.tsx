@@ -1083,7 +1083,8 @@ export const ConsultationsKanban: React.FC<ConsultationsKanbanProps> = ({
       }}
     >
       {/* Header */}
-      <div className="px-6 py-5 border-b border-stone-200/80 bg-white/80 backdrop-blur-sm flex-shrink-0 relative z-50">
+      <div className="py-5 border-b border-stone-200/80 bg-white/80 backdrop-blur-sm flex-shrink-0 relative z-50">
+        <div className="lg:pl-[116px] pl-10 pr-6">
         <div className="flex items-center gap-5">
           <h2
             className="text-2xl font-semibold text-stone-900 tracking-tight"
@@ -1175,11 +1176,12 @@ export const ConsultationsKanban: React.FC<ConsultationsKanbanProps> = ({
             </button>
           </div>
         )}
+        </div>
       </div>
 
       {/* Columns */}
       <div className="flex-1 overflow-y-hidden">
-        <div className="flex gap-4 p-5 h-full min-w-[1800px]">
+        <div className="flex gap-4 lg:pl-[100px] pl-6 pr-6 py-5 h-full min-w-[1800px]">
           {columnData.map((column) => (
             <KanbanColumnComponent
               key={column.id}

@@ -344,15 +344,10 @@ const StaticBar: React.FC<StaticBarProps> = ({
       style={{
         width: barWidth,
         background: isProjected
-          ? `repeating-linear-gradient(
-              -45deg,
-              ${color}40,
-              ${color}40 2px,
-              transparent 2px,
-              transparent 4px
-            )`
+          ? 'transparent'
           : `linear-gradient(180deg, ${color} 0%, ${color}cc 100%)`,
-        border: isProjected ? `1px dashed ${color}80` : 'none',
+        border: isProjected ? `1.5px dashed ${INK.ghost}` : 'none',
+        borderBottom: isProjected ? 'none' : undefined,
       }}
       initial={{ height: 0 }}
       animate={{ height }}
@@ -1083,14 +1078,8 @@ export const PracticeInsightsModal: React.FC<PracticeInsightsModalProps> = ({
                   <div
                     className="w-3 h-3 rounded-[2px]"
                     style={{
-                      background: `repeating-linear-gradient(
-                        -45deg,
-                        ${COLORS.goalFuture}60,
-                        ${COLORS.goalFuture}60 1px,
-                        transparent 1px,
-                        transparent 2px
-                      )`,
-                      border: `1px dashed ${COLORS.goalFuture}`,
+                      background: 'transparent',
+                      border: `1.5px dashed ${INK.ghost}`,
                     }}
                   />
                   <span style={{ fontFamily: FONT.sans, fontSize: 11, color: INK.muted }}>Projected</span>
@@ -1152,119 +1141,14 @@ export const PracticeInsightsModal: React.FC<PracticeInsightsModalProps> = ({
               </div>
             </div>
 
-            {/* Summary stats */}
-            <PracticeSummaryStats months={months} metric={metric} formatValue={formatValue} />
+            {/* Summary stats removed — chart is for visualization, not analytics */}
 
-            {/* Breakdown section - only when a month is selected */}
-            <AnimatePresence>
+            {/* Clinician breakdown section — commented out for now */}
+            {/* <AnimatePresence>
               {selectedMonth && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                  className="overflow-hidden"
-                >
-                  <div className="px-6 py-5" style={{ borderTop: `1px solid ${INK.rule}` }}>
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <h3
-                          style={{
-                            fontFamily: FONT.serif,
-                            fontSize: 16,
-                            fontWeight: 400,
-                            color: INK.black,
-                          }}
-                        >
-                          {selectedMonth.label} Breakdown
-                        </h3>
-                        {/* Badge(s) showing values - different layout for past months */}
-                        {selectedMonth.isPast && selectedMonth.actual !== undefined ? (
-                          <div className="flex items-center gap-2">
-                            <span
-                              className="px-2 py-0.5 rounded-md"
-                              style={{
-                                fontFamily: FONT.mono,
-                                fontSize: 12,
-                                fontWeight: 600,
-                                color: COLORS.actual,
-                                backgroundColor: `${COLORS.actual}15`,
-                              }}
-                            >
-                              {formatValue(selectedMonth.actual)}
-                            </span>
-                            <span style={{ fontFamily: FONT.sans, fontSize: 10, color: INK.ghost }}>vs</span>
-                            <span
-                              className="px-2 py-0.5 rounded-md"
-                              style={{
-                                fontFamily: FONT.mono,
-                                fontSize: 12,
-                                fontWeight: 600,
-                                color: COLORS.goalPast,
-                                backgroundColor: `${COLORS.goalPast}15`,
-                              }}
-                            >
-                              {formatValue(selectedMonth.goal)}
-                            </span>
-                          </div>
-                        ) : (
-                          <span
-                            className="px-2 py-0.5 rounded-md"
-                            style={{
-                              fontFamily: FONT.mono,
-                              fontSize: 12,
-                              fontWeight: 600,
-                              color: selectedMonth.isCurrent ? INK.gold : COLORS.goalFuture,
-                              backgroundColor: selectedMonth.isCurrent ? INK.goldGlow : `${COLORS.goalFuture}15`,
-                            }}
-                          >
-                            {formatValue(selectedMonth.goal)}
-                          </span>
-                        )}
-                      </div>
-                      <button
-                        onClick={() => setSelectedMonthIndex(null)}
-                        className="flex items-center gap-1 px-2 py-1 rounded-lg transition-colors hover:bg-stone-100"
-                        style={{
-                          fontFamily: FONT.sans,
-                          fontSize: 11,
-                          color: INK.ghost,
-                          border: 'none',
-                          cursor: 'pointer',
-                          backgroundColor: 'transparent',
-                        }}
-                      >
-                        <X size={12} />
-                        Close
-                      </button>
-                    </div>
-
-                    <div className="space-y-2.5">
-                      {contributions.top.map((contribution, index) => (
-                        <ContributionBar
-                          key={contribution.id}
-                          contribution={contribution}
-                          maxValue={maxContribution}
-                          formatValue={formatValue}
-                          index={index}
-                        />
-                      ))}
-
-                      {contributions.other && (
-                        <OtherRollup
-                          count={contributions.other.count}
-                          value={contributions.other.value}
-                          percentage={contributions.other.percentage}
-                          maxValue={maxContribution}
-                          formatValue={formatValue}
-                          topCount={contributions.top.length}
-                        />
-                      )}
-                    </div>
-                  </div>
-                </motion.div>
+                ...breakdown content...
               )}
-            </AnimatePresence>
+            </AnimatePresence> */}
           </div>
 
           {/* Footer */}

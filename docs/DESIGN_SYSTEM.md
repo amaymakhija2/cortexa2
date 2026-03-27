@@ -61,7 +61,7 @@ The type system uses three font families:
 |------|------|-------|
 | **Display** | `'Tiempos Headline', Georgia, serif` | Page titles, card headlines, names, key metrics |
 | **UI** | `'Suisse Intl', system-ui, sans-serif` | Labels, body text, buttons, navigation |
-| **Mono** | `'JetBrains Mono', 'SF Mono', monospace` | Numbers in tables, data values, code |
+| **Mono** | `'Suisse Intl Mono', 'SF Mono', monospace` | Numbers in tables, data values, code |
 
 ### Type Scale
 
@@ -323,7 +323,7 @@ settle: { stiffness: 300, damping: 25 }  // Gentle settle
 export const FONT = {
   serif: "'Tiempos Headline', 'Freight Display', Georgia, serif",
   sans: "'Suisse Intl', 'Söhne', -apple-system, sans-serif",
-  mono: "'JetBrains Mono', 'SF Mono', 'Consolas', monospace",
+  mono: "'Suisse Intl Mono', 'SF Mono', 'Consolas', monospace",
 };
 
 export const INK = {

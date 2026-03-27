@@ -15,12 +15,12 @@ import { Check } from 'lucide-react';
 // =============================================================================
 // Tiempos Headline: Distinguished serif for names and titles
 // Suisse Intl: Clean Swiss precision for UI and labels
-// JetBrains Mono: Technical clarity for numbers (optional enhancement)
+// Suisse Intl Mono: Technical clarity for numbers and data
 
 export const FONT = {
   serif: "'Tiempos Headline', 'Freight Display', Georgia, serif",
   sans: "'Suisse Intl', 'Söhne', -apple-system, sans-serif",
-  mono: "'JetBrains Mono', 'SF Mono', 'Consolas', monospace",
+  mono: "'Suisse Intl Mono', 'SF Mono', 'Consolas', monospace",
 } as const;
 
 // =============================================================================
@@ -175,6 +175,46 @@ export {
   StatusPill,
   ConfigCard,
 } from '../configure/shared';
+
+// =============================================================================
+// STAFF MEMBER TYPE - Non-clinical team members
+// =============================================================================
+// Admin users, billers, office managers - people who use the system
+// but don't see clients. They appear in the "Office Staff" drawer.
+
+export type StaffRole = 'Biller' | 'Office Manager' | 'Receptionist' | 'Admin' | 'Other';
+
+export interface StaffMember {
+  id: string;
+  name: string;
+  email: string;
+  role: StaffRole;
+  isActive: boolean;
+  startDate: string;
+  lastActive?: string;
+}
+
+// Mock staff data for development
+export const MOCK_STAFF: StaffMember[] = [
+  {
+    id: 'staff-1',
+    name: 'Patricia Hernandez',
+    email: 'patricia@practice.com',
+    role: 'Biller',
+    isActive: true,
+    startDate: '2022-03-15',
+    lastActive: '2024-01-14',
+  },
+  {
+    id: 'staff-2',
+    name: 'Robert Kim',
+    email: 'robert@practice.com',
+    role: 'Office Manager',
+    isActive: true,
+    startDate: '2021-08-01',
+    lastActive: '2024-01-15',
+  },
+];
 
 // New types for Users & Access
 export type UserType = 'clinician' | 'staff';
