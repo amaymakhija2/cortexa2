@@ -3283,6 +3283,20 @@ export const ClinicianDetailsTab: React.FC = () => {
               {/* Action buttons */}
               <div className="flex items-center gap-2">
                 <button
+                  onClick={() => setShowGoalsPanel(true)}
+                  className="group flex items-center gap-2 px-3.5 py-2 rounded-xl transition-all duration-200 active:scale-[0.97]"
+                  style={{
+                    background: 'rgba(251, 191, 36, 0.08)',
+                    border: '1px solid rgba(251, 191, 36, 0.18)',
+                  }}
+                >
+                  <Target size={16} className="text-amber-400/70 group-hover:text-amber-300 transition-colors" />
+                  <span className="hidden sm:inline text-sm font-medium text-amber-300/80 group-hover:text-amber-200 transition-colors">
+                    Goals
+                  </span>
+                </button>
+
+                <button
                   onClick={() => setExpandedCard('client-roster')}
                   className="group flex items-center gap-2 px-3.5 py-2 rounded-xl transition-all duration-200 hover:bg-white/12 active:scale-[0.97]"
                   style={{
@@ -3403,6 +3417,18 @@ export const ClinicianDetailsTab: React.FC = () => {
 
             {/* Action buttons */}
             <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowGoalsPanel(true)}
+                className="group flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                style={{
+                  background: 'rgba(251, 191, 36, 0.08)',
+                  border: '1px solid rgba(251, 191, 36, 0.20)',
+                  color: 'rgba(252, 211, 77, 0.9)',
+                }}
+              >
+                <Target size={16} className="text-amber-400/80 group-hover:text-amber-300 transition-colors" />
+                <span>Goals</span>
+              </button>
               <button
                 onClick={() => setExpandedCard('client-roster')}
                 className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
