@@ -12,849 +12,227 @@
   --font-serif: 'Tiempos Headline', 'Cormorant Garamond', Georgia, serif;
   --font-sans: 'Suisse Intl', 'DM Sans', system-ui, sans-serif;
   --font-mono: 'Suisse Intl Mono', 'JetBrains Mono', 'SF Mono', monospace;
-
-  --ink-black: #1a1815;
-  --ink-dark: #2d2a26;
-  --ink-body: #3d3a35;
-  --ink-muted: #5c5850;
-  --ink-stone: #78716c;
-  --ink-faded: #8a8579;
-  --ink-ghost: #b5b0a6;
-  --ink-rule: #e8e5df;
-  --ink-cream: #f7f5f2;
-  --ink-paper: #fdfcfa;
-
-  --gold: #c9a227;
-  --gold-muted: #d4b85c;
-  --gold-glow: rgba(201, 162, 39, 0.15);
-  --emerald: #047857;
-  --emerald-light: #d1fae5;
-  --rose: #be123c;
-  --rose-light: #fff7f7;
-
+  --ink-black: #1a1815; --ink-dark: #2d2a26; --ink-body: #3d3a35;
+  --ink-muted: #4a4740; --ink-stone: #635d57; --ink-faded: #7a756e;
+  --ink-ghost: #b5b0a6; --ink-rule: #e8e5df; --ink-cream: #f7f5f2; --ink-paper: #fdfcfa;
+  --gold: #c9a227; --gold-muted: #d4b85c; --gold-glow: rgba(201,162,39,0.15);
+  --emerald: #047857; --emerald-light: #d1fae5;
+  --rose: #be123c; --rose-light: #fff7f7;
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-out: cubic-bezier(0.33, 1, 0.68, 1);
 }
-
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; background: #1e1c19; font-family: var(--font-sans); color: var(--ink-body); -webkit-font-smoothing: antialiased; overflow: hidden; }
 
-html, body {
-  height: 100%;
-  background: #1e1c19;
-  font-family: var(--font-sans);
-  color: var(--ink-body);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  overflow: hidden;
-}
+/* ── Viewport ── */
+.viewport { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: radial-gradient(ellipse 80% 60% at 50% 40%, rgba(201,162,39,0.04) 0%, transparent 70%), #1e1c19; position: relative; transition: background 0.5s var(--ease); }
 
-/* ── Viewport & Phone Frame ── */
-.viewport {
-  width: 100%; height: 100%;
-  display: flex; align-items: center; justify-content: center;
-  background: radial-gradient(ellipse 80% 60% at 50% 40%, rgba(201,162,39,0.04) 0%, transparent 70%),
-              #1e1c19;
-  position: relative;
-}
-
-.phone-device {
-  width: 393px; height: 852px;
-  background: #000;
-  border-radius: 52px;
-  padding: 11px;
-  box-shadow:
-    0 0 0 1px rgba(255,255,255,0.08),
-    0 40px 80px -15px rgba(0,0,0,0.6),
-    0 20px 40px -10px rgba(0,0,0,0.4);
-  position: relative;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.phone-screen {
-  flex: 1;
-  min-height: 0;
-  background: #fff;
-  border-radius: 42px;
-  overflow: hidden;
-  position: relative;
-  display: flex; flex-direction: column;
-}
-
-.phone-notch {
-  position: absolute; top: 9px; left: 50%; transform: translateX(-50%);
-  width: 126px; height: 34px;
-  background: #000;
-  border-radius: 18px;
-  z-index: 100;
-}
-
-.status-bar {
-  height: 54px; flex-shrink: 0;
-  display: flex; justify-content: space-between; align-items: flex-end;
-  padding: 0 32px 8px;
-  font-size: 15px; font-weight: 600;
-  color: var(--ink-black);
-  position: relative; z-index: 50;
-}
-.status-bar .time { font-variant-numeric: tabular-nums; }
-.status-bar .icons { display: flex; gap: 6px; align-items: center; font-size: 12px; }
+/* ── Phone Frame ── */
+.phone-device { width: 393px; height: 852px; background: #000; border-radius: 52px; padding: 11px; box-shadow: 0 0 0 1px rgba(255,255,255,0.08), 0 40px 80px -15px rgba(0,0,0,0.6); position: relative; flex-shrink: 0; display: flex; flex-direction: column; transition: all 0.5s var(--ease); }
+.phone-screen { flex: 1; min-height: 0; background: #fff; border-radius: 42px; overflow: hidden; position: relative; display: flex; flex-direction: column; transition: border-radius 0.5s var(--ease), background 0.5s var(--ease); }
+.phone-notch { position: absolute; top: 9px; left: 50%; transform: translateX(-50%); width: 126px; height: 34px; background: #000; border-radius: 18px; z-index: 100; }
+.status-bar { height: 54px; flex-shrink: 0; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 32px 8px; font-size: 15px; font-weight: 600; color: var(--ink-black); position: relative; z-index: 50; }
+.home-indicator { height: 22px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.home-indicator div { width: 134px; height: 5px; border-radius: 100px; background: var(--ink-black); opacity: 0.18; }
 
 /* ── Screen System ── */
-.screen-area {
-  flex: 1;
-  position: relative;
-  overflow: hidden;
-}
+.screen-area { flex: 1; position: relative; overflow: hidden; }
+.screen { position: absolute; inset: 0; display: flex; flex-direction: column; opacity: 0; transform: translateX(40px); transition: opacity 0.5s var(--ease), transform 0.5s var(--ease); pointer-events: none; }
+.screen.active { opacity: 1; transform: translateX(0); pointer-events: auto; z-index: 2; }
+.screen.exit-left { opacity: 0; transform: translateX(-40px); z-index: 1; }
 
-.screen {
-  position: absolute;
-  inset: 0;
-  display: flex; flex-direction: column;
-  opacity: 0;
-  transform: translateX(40px);
-  transition: opacity 0.5s var(--ease), transform 0.5s var(--ease);
-  pointer-events: none;
-  will-change: transform, opacity;
-}
-.screen.active {
-  opacity: 1;
-  transform: translateX(0);
-  pointer-events: auto;
-  z-index: 2;
-}
-.screen.exit-left {
-  opacity: 0;
-  transform: translateX(-40px);
-  z-index: 1;
-}
-.screen.exit-right {
-  opacity: 0;
-  transform: translateX(40px);
-  z-index: 1;
-}
-
-/* ── Nav Header ── */
-.nav {
-  padding: 6px 22px 10px;
-  display: flex; align-items: center;
-  flex-shrink: 0;
-  gap: 8px;
-}
-.nav-brand {
-  font-family: var(--font-serif); font-weight: 300; font-style: italic;
-  font-size: 18px; color: var(--ink-black);
-  letter-spacing: -0.01em;
-}
+/* ── Nav ── */
+.nav { padding: 8px 22px 12px; display: flex; align-items: center; flex-shrink: 0; gap: 10px; }
+.nav-brand { font-family: var(--font-serif); font-weight: 300; font-style: italic; font-size: 19px; color: var(--ink-black); }
 .nav-brand .dot { color: var(--gold); font-style: normal; }
-.nav-meta {
-  margin-left: auto;
-  font-size: 11px; color: var(--ink-stone);
-  letter-spacing: 0.04em;
-  font-family: var(--font-sans); font-weight: 600;
-  flex-shrink: 0;
-}
+.nav-meta { margin-left: auto; font-size: 12px; color: var(--ink-stone); letter-spacing: 0.04em; font-family: var(--font-sans); font-weight: 600; flex-shrink: 0; }
 .nav-meta.emerald { color: var(--emerald); }
 .nav-meta.gold { color: var(--gold); }
-.nav-meta.rose { color: var(--rose); }
-
-.nav-back {
-  font-size: 20px; color: var(--ink-stone);
-  cursor: pointer; padding: 4px 6px 4px 0;
-  transition: color 0.2s;
-  background: none; border: none;
-  font-family: var(--font-sans);
-  flex-shrink: 0;
-}
+.nav-back { font-size: 22px; color: var(--ink-stone); cursor: pointer; padding: 4px 6px 4px 0; background: none; border: none; font-family: var(--font-sans); flex-shrink: 0; transition: color 0.2s; }
 .nav-back:hover { color: var(--ink-black); }
-
-/* ── Progress Dots ── */
-.progress {
-  margin-left: auto;
-  display: flex; gap: 5px; align-items: center;
-  flex-shrink: 0;
-}
-.progress-dot {
-  width: 20px; height: 3.5px;
-  border-radius: 2px;
-  background: var(--ink-rule);
-  transition: background 0.4s var(--ease);
-}
+.progress { margin-left: auto; display: flex; gap: 5px; align-items: center; flex-shrink: 0; }
+.progress-dot { width: 20px; height: 3.5px; border-radius: 2px; background: var(--ink-rule); transition: background 0.4s var(--ease); }
 .progress-dot.done { background: var(--gold); }
 .progress-dot.current { background: var(--ink-black); }
 
-/* ── Screen Content ── */
-.screen-body {
-  flex: 1;
-  padding: 10px 22px 20px;
-  display: flex; flex-direction: column;
-  min-height: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-}
+/* ── Content ── */
+.screen-body { flex: 1; padding: 12px 22px 22px; display: flex; flex-direction: column; min-height: 0; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
 .screen-body::-webkit-scrollbar { display: none; }
-
-.step-label {
-  font-size: 10px; font-weight: 700;
-  letter-spacing: 0.22em; text-transform: uppercase;
-  color: var(--ink-stone);
-  margin-bottom: 10px;
-}
-
-.headline {
-  font-family: var(--font-serif); font-weight: 300;
-  font-size: 28px; line-height: 1.12;
-  letter-spacing: -0.02em;
-  color: var(--ink-black);
-  margin-bottom: 6px;
-}
+.step-label { font-size: 13px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-stone); margin-bottom: 12px; }
+.headline { font-family: var(--font-serif); font-weight: 300; font-size: 32px; line-height: 1.1; letter-spacing: -0.02em; color: var(--ink-black); margin-bottom: 18px; }
 .headline em { font-style: italic; color: var(--gold); }
+.subtext { font-size: 16px; line-height: 1.55; color: var(--ink-muted); margin-bottom: 20px; }
 
-.subtext {
-  font-size: 13px; line-height: 1.5;
-  color: var(--ink-muted);
-  margin-bottom: 18px;
-}
-
-/* ── Form Fields ── */
-.field { margin-bottom: 12px; }
-.field-label {
-  font-size: 10px; font-weight: 700;
-  letter-spacing: 0.18em; text-transform: uppercase;
-  color: var(--ink-stone);
-  margin-bottom: 6px;
-}
-.input {
-  width: 100%;
-  padding: 11px 14px;
-  border: 1.5px solid var(--ink-rule);
-  border-radius: 12px;
-  background: #fff;
-  font-family: var(--font-sans); font-size: 15px;
-  color: var(--ink-black);
-  line-height: 1.4;
-  outline: none;
-  transition: border-color 0.25s, box-shadow 0.25s;
-  -webkit-appearance: none;
-}
-.input:focus {
-  border-color: var(--gold);
-  box-shadow: 0 0 0 3px var(--gold-glow);
-}
-.input.filled { border-color: var(--ink-black); }
+/* ── Forms ── */
+.field { margin-bottom: 14px; }
+.field-label { font-size: 13px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-stone); margin-bottom: 7px; }
+.input { width: 100%; padding: 13px 15px; border: 1.5px solid var(--ink-rule); border-radius: 12px; background: #fff; font-family: var(--font-sans); font-size: 16px; color: var(--ink-black); line-height: 1.4; outline: none; transition: border-color 0.25s, box-shadow 0.25s; -webkit-appearance: none; }
+.input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-glow); }
 .input::placeholder { color: var(--ink-ghost); }
-
-.textarea {
-  width: 100%;
-  padding: 14px;
-  border: 1.5px solid var(--ink-rule);
-  border-radius: 12px;
-  background: #fff;
-  font-family: var(--font-sans); font-size: 15px;
-  color: var(--ink-black);
-  line-height: 1.55;
-  outline: none;
-  resize: none;
-  min-height: 130px;
-  transition: border-color 0.25s, box-shadow 0.25s;
-  -webkit-appearance: none;
-}
-.textarea:focus {
-  border-color: var(--gold);
-  box-shadow: 0 0 0 3px var(--gold-glow);
-}
+.textarea { width: 100%; padding: 15px; border: 1.5px solid var(--ink-rule); border-radius: 12px; background: #fff; font-family: var(--font-sans); font-size: 16px; color: var(--ink-black); line-height: 1.55; outline: none; resize: none; min-height: 140px; transition: border-color 0.25s, box-shadow 0.25s; -webkit-appearance: none; }
+.textarea:focus { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-glow); }
 .textarea::placeholder { color: var(--ink-ghost); }
-
-/* ── Checkbox ── */
-.check-row {
-  display: flex; gap: 12px;
-  padding: 14px 16px;
-  border: 1.5px solid var(--ink-rule);
-  border-radius: 12px;
-  background: #fff;
-  align-items: flex-start;
-  cursor: pointer;
-  transition: border-color 0.25s, background 0.25s;
-  user-select: none;
-  margin-top: 10px;
-}
-.check-row.checked {
-  border-color: var(--ink-black);
-  background: var(--ink-cream);
-}
-.check-box {
-  width: 20px; height: 20px;
-  border-radius: 5px;
-  border: 1.5px solid var(--ink-stone);
-  flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 12px; color: transparent;
-  transition: all 0.2s;
-}
-.check-row.checked .check-box {
-  background: var(--ink-black); border-color: var(--ink-black);
-  color: #fff;
-}
-.check-text {
-  font-size: 13px; line-height: 1.45;
-  color: var(--ink-body);
-}
+.check-row { display: flex; gap: 12px; padding: 15px 16px; border: 1.5px solid var(--ink-rule); border-radius: 12px; background: #fff; align-items: flex-start; cursor: pointer; transition: border-color 0.25s, background 0.25s; user-select: none; margin-top: 10px; }
+.check-row.checked { border-color: var(--ink-black); background: var(--ink-cream); }
+.check-box { width: 22px; height: 22px; border-radius: 5px; border: 1.5px solid var(--ink-stone); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; color: transparent; transition: all 0.2s; }
+.check-row.checked .check-box { background: var(--ink-black); border-color: var(--ink-black); color: #fff; }
+.check-text { font-size: 15px; line-height: 1.45; color: var(--ink-body); }
 
 /* ── Chips ── */
-.chip-group {
-  display: flex; flex-wrap: wrap; gap: 9px;
-  margin-bottom: 16px;
-}
-.chip-group.vertical {
-  flex-direction: column;
-}
-.chip {
-  padding: 11px 16px;
-  border: 1.5px solid var(--ink-rule);
-  border-radius: 999px;
-  font-size: 14px;
-  color: var(--ink-body);
-  background: #fff;
-  cursor: pointer;
-  transition: all 0.2s var(--ease);
-  user-select: none;
-  text-align: center;
-}
-.chip:hover {
-  border-color: var(--ink-stone);
-  background: var(--ink-cream);
-}
-.chip.selected {
-  background: var(--ink-black); color: #fff;
-  border-color: var(--ink-black);
-}
+.chip-group { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
+.chip-group.vertical { flex-direction: column; }
+.chip { padding: 13px 18px; border: 1.5px solid var(--ink-rule); border-radius: 999px; font-size: 16px; color: var(--ink-body); background: #fff; cursor: pointer; transition: all 0.2s var(--ease); user-select: none; text-align: center; }
+.chip:hover { border-color: var(--ink-stone); background: var(--ink-cream); }
+.chip.selected { background: var(--ink-black); color: #fff; border-color: var(--ink-black); }
+.option-card { width: 100%; padding: 18px 20px; border: 1.5px solid var(--ink-rule); border-radius: 14px; background: #fff; cursor: pointer; transition: all 0.25s var(--ease); user-select: none; text-align: left; }
+.option-card:hover { border-color: var(--ink-stone); background: var(--ink-cream); }
+.option-card.selected { border-color: var(--ink-black); background: var(--ink-cream); }
+.option-card .option-title { font-family: var(--font-serif); font-style: italic; font-weight: 400; font-size: 18px; color: var(--ink-black); }
+.option-card .option-desc { font-size: 15px; color: var(--ink-muted); margin-top: 4px; }
+.select-wrap { position: relative; }
+.select-wrap select { width: 100%; padding: 13px 15px; padding-right: 36px; border: 1.5px solid var(--ink-rule); border-radius: 12px; background: #fff; font-family: var(--font-sans); font-size: 16px; color: var(--ink-black); outline: none; -webkit-appearance: none; appearance: none; cursor: pointer; transition: border-color 0.25s, box-shadow 0.25s; }
+.select-wrap select:focus { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-glow); }
+.select-wrap::after { content: "▾"; position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--ink-stone); font-size: 14px; pointer-events: none; }
 
-.option-card {
-  width: 100%;
-  padding: 16px 18px;
-  border: 1.5px solid var(--ink-rule);
-  border-radius: 14px;
-  background: #fff;
-  cursor: pointer;
-  transition: all 0.25s var(--ease);
-  user-select: none;
-  text-align: left;
-}
-.option-card:hover {
-  border-color: var(--ink-stone);
-  background: var(--ink-cream);
-}
-.option-card.selected {
-  border-color: var(--ink-black);
-  background: var(--ink-cream);
-}
-.option-card .option-title {
-  font-family: var(--font-serif); font-style: italic; font-weight: 400;
-  font-size: 17px; color: var(--ink-black);
-}
-.option-card .option-desc {
-  font-size: 12px; color: var(--ink-stone);
-  margin-top: 3px;
-}
-
-/* ── CTA Button ── */
-.cta {
-  margin-top: auto;
-  padding: 14px 20px;
-  border-radius: 14px;
-  font-family: var(--font-sans); font-weight: 500; font-size: 16px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.25s var(--ease);
-  display: flex; justify-content: space-between; align-items: center;
-  border: none;
-  flex-shrink: 0;
-  width: 100%;
-  -webkit-appearance: none;
-}
-.cta.gold {
-  background: var(--gold); color: var(--ink-black);
-}
+/* ── CTA ── */
+.cta { margin-top: auto; padding: 15px 22px; border-radius: 14px; font-family: var(--font-sans); font-weight: 500; font-size: 17px; text-align: center; cursor: pointer; transition: all 0.25s var(--ease); display: flex; justify-content: space-between; align-items: center; border: none; flex-shrink: 0; width: 100%; -webkit-appearance: none; }
+.cta.gold { background: var(--gold); color: var(--ink-black); }
 .cta.gold:hover { background: #b8921f; }
 .cta.gold:active { transform: scale(0.98); }
-.cta.ink {
-  background: var(--ink-black); color: #fff;
-}
+.cta.ink { background: var(--ink-black); color: #fff; }
 .cta.ink:hover { background: #2d2a26; }
-.cta.ink:active { transform: scale(0.98); }
-.cta.disabled {
-  opacity: 0.35; pointer-events: none;
-}
+.cta.disabled { opacity: 0.35; pointer-events: none; }
 .cta .arrow { font-size: 18px; }
+.hint { font-size: 15px; color: var(--ink-muted); margin-top: 8px; font-style: italic; font-family: var(--font-serif); line-height: 1.45; }
+.spacer { flex: 1; min-height: 8px; }
+.footer-link { text-align: center; font-size: 15px; color: var(--ink-muted); margin-top: 12px; font-family: var(--font-serif); font-style: italic; cursor: pointer; }
+.sub-field { overflow: hidden; max-height: 0; opacity: 0; transition: max-height 0.4s var(--ease), opacity 0.3s, margin 0.3s; margin-top: 0; }
+.sub-field.visible { max-height: 500px; opacity: 1; margin-top: 16px; }
 
-/* ── Hint ── */
-.hint {
-  font-size: 12px; color: var(--ink-stone);
-  margin-top: 8px;
-  font-style: italic; font-family: var(--font-serif);
-  line-height: 1.45;
+/* ── Week Calendar ── */
+.week-cal {
+  display: grid; grid-template-columns: 40px repeat(5, 1fr);
+  gap: 5px; align-items: center;
 }
+.week-th {
+  text-align: center; font-size: 12px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--ink-stone); padding: 6px 0 10px;
+}
+.week-tl {
+  font-family: var(--font-mono); font-size: 11px; color: var(--ink-stone);
+  text-align: right; padding-right: 6px; line-height: 1;
+}
+.week-cell { display: flex; align-items: center; justify-content: center; }
+.wslot {
+  width: 100%; padding: 13px 2px; border: 1.5px solid var(--ink-rule);
+  border-radius: 10px; text-align: center; font-family: var(--font-mono);
+  font-size: 14px; color: var(--ink-body); background: #fff; cursor: pointer;
+  transition: all 0.2s var(--ease); user-select: none; line-height: 1;
+}
+.wslot:hover { border-color: var(--ink-stone); background: var(--ink-cream); }
+.wslot.selected { background: var(--ink-black); color: #fff; border-color: var(--ink-black); }
+.week-count {
+  text-align: center; font-size: 14px; color: var(--ink-stone);
+  margin-top: 16px; font-family: var(--font-serif); font-style: italic; min-height: 20px;
+}
+.viewport.desktop [data-screen="schedule"] .screen-body { max-width: 900px; padding-top: 8px; }
+.viewport.desktop [data-screen="schedule"] .step-label { display: none; }
+.viewport.desktop [data-screen="schedule"] .headline { font-size: 36px; margin-bottom: 6px; }
+.viewport.desktop .week-cal { grid-template-columns: 52px repeat(5, 1fr); gap: 4px 8px; }
+.viewport.desktop .week-th { font-size: 13px; padding: 4px 0 8px; letter-spacing: 0.1em; }
+.viewport.desktop .week-tl { font-size: 12px; padding-right: 10px; }
+.viewport.desktop .wslot { padding: 11px 6px; font-size: 15px; border-radius: 10px; }
+.viewport.desktop .week-count { font-size: 15px; margin-top: 14px; }
 
-/* ── AI Bubble ── */
-.ai-bubble {
-  background: var(--ink-cream);
-  border-radius: 14px;
-  padding: 14px 16px;
-  font-size: 14px; line-height: 1.55;
-  color: var(--ink-body);
-  margin-bottom: 16px;
-  border-left: 2.5px solid var(--gold);
+/* ── Combobox ── */
+.combobox { position: relative; }
+.combo-list {
+  background: #fff; border: 1.5px solid var(--ink-rule); border-top: none;
+  border-radius: 0 0 12px 12px; max-height: 240px; overflow-y: auto;
+  box-shadow: 0 12px 32px rgba(26,24,21,0.12);
+  display: none;
 }
-.ai-bubble-label {
-  font-size: 9px; font-weight: 700;
-  letter-spacing: 0.22em; text-transform: uppercase;
-  color: var(--gold);
-  margin-bottom: 5px;
+.combobox.open .combo-list { display: block; }
+.combobox.open .input { border-radius: 12px 12px 0 0; border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-glow); }
+.combo-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 15px; cursor: pointer;
+  transition: background 0.15s;
 }
-.ai-bubble em {
-  font-style: italic; color: var(--ink-black);
-  font-family: var(--font-serif); font-weight: 400;
+.combo-item:hover, .combo-item.highlighted { background: var(--ink-cream); }
+.combo-item:last-child { border-radius: 0 0 10px 10px; }
+.combo-avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--ink-cream); border: 1px solid var(--ink-rule);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-serif); font-style: italic; font-size: 15px;
+  color: var(--ink-black); flex-shrink: 0;
 }
+.combo-info { min-width: 0; }
+.combo-name { font-size: 15px; font-weight: 500; color: var(--ink-black); }
+.combo-name mark { background: var(--gold-glow); color: var(--ink-black); border-radius: 2px; padding: 0 1px; }
+.combo-creds { font-size: 13px; color: var(--ink-muted); margin-top: 2px; font-family: var(--font-mono); letter-spacing: 0.02em; }
+.combo-empty { padding: 16px; text-align: center; font-size: 14px; color: var(--ink-stone); font-style: italic; font-family: var(--font-serif); }
+.combo-list::-webkit-scrollbar { width: 5px; }
+.combo-list::-webkit-scrollbar-thumb { background: var(--ink-rule); border-radius: 3px; }
 
 /* ── Match Cards ── */
-.match-card {
-  border: 1.5px solid var(--ink-rule);
-  border-radius: 16px;
-  padding: 16px;
-  background: #fff;
-  margin-bottom: 12px;
-  cursor: pointer;
-  transition: all 0.3s var(--ease);
-}
-.match-card:hover {
-  border-color: var(--ink-stone);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(26,24,21,0.06);
-}
-.match-card.top {
-  border-color: var(--gold);
-  box-shadow: 0 0 0 3px rgba(201,162,39,0.1);
-  background: linear-gradient(180deg, #fffbe8 0%, #fff 100%);
-}
-.match-card.top:hover {
-  box-shadow: 0 0 0 3px rgba(201,162,39,0.15), 0 4px 12px rgba(26,24,21,0.06);
-}
-.match-head {
-  display: flex; gap: 12px; align-items: center;
-}
-.match-avatar {
-  width: 50px; height: 50px;
-  border-radius: 50%;
-  background: var(--ink-cream);
-  border: 1px solid var(--ink-rule);
-  display: flex; align-items: center; justify-content: center;
-  font-family: var(--font-serif); font-style: italic; font-weight: 400;
-  font-size: 20px; color: var(--ink-black);
-  flex-shrink: 0;
-}
-.match-card.top .match-avatar {
-  border-color: var(--gold-muted);
-  background: linear-gradient(135deg, #fef9e7, var(--ink-cream));
-}
-.match-name {
-  font-family: var(--font-serif); font-weight: 400;
-  font-size: 18px; color: var(--ink-black);
-  line-height: 1.15;
-}
-.match-creds {
-  font-size: 11px; color: var(--ink-stone);
-  margin-top: 3px;
-  font-family: var(--font-mono); letter-spacing: 0.03em;
-  text-transform: uppercase;
-}
-.match-tag {
-  margin-left: auto;
-  font-size: 9px; font-weight: 700;
-  letter-spacing: 0.18em; text-transform: uppercase;
-  padding: 5px 10px;
-  border-radius: 999px;
-  background: var(--gold); color: var(--ink-black);
-  flex-shrink: 0;
-}
-.match-why {
-  margin-top: 12px; padding-top: 12px;
-  border-top: 1px dashed var(--ink-rule);
-  font-size: 13px; line-height: 1.5;
-  color: var(--ink-muted);
-  font-style: italic; font-family: var(--font-serif);
-}
+.match-card { border: 1.5px solid var(--ink-rule); border-radius: 16px; padding: 18px; background: #fff; margin-bottom: 14px; cursor: pointer; transition: all 0.3s var(--ease); }
+.match-card:hover { border-color: var(--ink-stone); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(26,24,21,0.06); }
+.match-card.top { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,162,39,0.1); background: linear-gradient(180deg, #fffbe8 0%, #fff 100%); }
+.match-head { display: flex; gap: 14px; align-items: center; }
+.match-avatar { width: 52px; height: 52px; border-radius: 50%; background: var(--ink-cream); border: 1px solid var(--ink-rule); display: flex; align-items: center; justify-content: center; font-family: var(--font-serif); font-style: italic; font-weight: 400; font-size: 21px; color: var(--ink-black); flex-shrink: 0; }
+.match-card.top .match-avatar { border-color: var(--gold-muted); background: linear-gradient(135deg, #fef9e7, var(--ink-cream)); }
+.match-name { font-family: var(--font-serif); font-weight: 400; font-size: 19px; color: var(--ink-black); line-height: 1.15; }
+.match-creds { font-size: 13px; color: var(--ink-muted); margin-top: 3px; font-family: var(--font-mono); letter-spacing: 0.03em; text-transform: uppercase; }
+.match-tag { margin-left: auto; font-size: 10px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; padding: 6px 11px; border-radius: 999px; background: var(--gold); color: var(--ink-black); flex-shrink: 0; }
+.match-why { margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--ink-rule); font-size: 15px; line-height: 1.5; color: var(--ink-muted); font-style: italic; font-family: var(--font-serif); }
 
 /* ── Time Slots ── */
-.time-grid {
-  display: grid; grid-template-columns: repeat(3, 1fr);
-  gap: 8px; margin-bottom: 16px;
-}
-.time-slot {
-  padding: 10px 0;
-  border: 1.5px solid var(--ink-rule);
-  border-radius: 10px;
-  text-align: center;
-  font-size: 11px; color: var(--ink-stone);
-  line-height: 1.2;
-  background: #fff;
-  cursor: pointer;
-  transition: all 0.2s var(--ease);
-}
-.time-slot b {
-  display: block;
-  font-family: var(--font-serif); font-size: 15px;
-  color: var(--ink-black); margin-top: 2px;
-  font-weight: 400;
-}
-.time-slot:hover {
-  border-color: var(--ink-stone);
-  background: var(--ink-cream);
-}
-.time-slot.selected {
-  background: var(--ink-black); color: rgba(255,255,255,0.7);
-  border-color: var(--ink-black);
-}
+.time-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin-bottom: 18px; }
+.time-slot { padding: 12px 0; border: 1.5px solid var(--ink-rule); border-radius: 10px; text-align: center; font-size: 12px; color: var(--ink-stone); line-height: 1.2; background: #fff; cursor: pointer; transition: all 0.2s var(--ease); }
+.time-slot b { display: block; font-family: var(--font-serif); font-size: 16px; color: var(--ink-black); margin-top: 3px; font-weight: 400; }
+.time-slot:hover { border-color: var(--ink-stone); background: var(--ink-cream); }
+.time-slot.selected { background: var(--ink-black); color: rgba(255,255,255,0.7); border-color: var(--ink-black); }
 .time-slot.selected b { color: #fff; }
-.time-slot.empty {
-  opacity: 0.3; pointer-events: none;
-  border-style: dashed;
-}
+.time-slot.empty { opacity: 0.3; pointer-events: none; border-style: dashed; }
 
 /* ── Confirmation ── */
-.confirm-check {
-  width: 72px; height: 72px;
-  border-radius: 50%;
-  background: var(--emerald-light);
-  color: var(--emerald);
-  display: flex; align-items: center; justify-content: center;
-  margin: 0 auto 20px;
-  font-family: var(--font-serif); font-size: 36px;
-  animation: checkPop 0.6s var(--ease) both;
-  animation-delay: 0.2s;
-}
-@keyframes checkPop {
-  0% { transform: scale(0); opacity: 0; }
-  60% { transform: scale(1.15); }
-  100% { transform: scale(1); opacity: 1; }
-}
+.confirm-check { width: 76px; height: 76px; border-radius: 50%; background: var(--emerald-light); color: var(--emerald); display: flex; align-items: center; justify-content: center; margin: 0 auto 22px; font-family: var(--font-serif); font-size: 38px; animation: checkPop 0.6s var(--ease) both 0.2s; }
+@keyframes checkPop { 0% { transform: scale(0); opacity: 0; } 60% { transform: scale(1.15); } 100% { transform: scale(1); opacity: 1; } }
+.next-card { border: 2px solid var(--gold); border-radius: 16px; padding: 22px 22px 20px; background: linear-gradient(180deg, #fffbe8 0%, #fff 100%); margin: 20px 0 16px; text-align: left; box-shadow: 0 0 0 4px var(--gold-glow), 0 4px 16px rgba(201,162,39,0.12); }
+.next-card-label { font-size: 11px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 7px; }
+.next-card-title { font-family: var(--font-serif); font-style: italic; font-size: 20px; color: var(--ink-black); margin-bottom: 6px; }
+.next-card-note { font-size: 15px; color: var(--ink-muted); line-height: 1.5; }
 
-.next-card {
-  border: 1.5px solid var(--ink-rule);
-  border-radius: 14px;
-  padding: 16px;
-  background: var(--ink-cream);
-  margin-bottom: 14px;
-}
-.next-card-label {
-  font-size: 10px; font-weight: 700;
-  letter-spacing: 0.22em; text-transform: uppercase;
-  color: var(--ink-stone);
-  margin-bottom: 6px;
-}
-.next-card-title {
-  font-family: var(--font-serif); font-style: italic;
-  font-size: 17px; color: var(--ink-black);
-  margin-bottom: 5px;
-}
-.next-card-note {
-  font-size: 13px; color: var(--ink-muted);
-  line-height: 1.45;
-}
+/* ── Estimate Card ── */
+.estimate-card { border: 2px solid var(--ink-black); border-radius: 16px; padding: 22px 24px; background: #fff; margin: 16px 0 20px; }
+.estimate-card-label { font-size: 11px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-stone); margin-bottom: 10px; }
+.estimate-row { display: flex; justify-content: space-between; align-items: baseline; padding: 7px 0; font-size: 15px; color: var(--ink-body); }
+.estimate-row b { font-family: var(--font-serif); font-style: italic; font-weight: 400; color: var(--ink-black); font-size: 17px; }
+.estimate-row.total { border-top: 1px solid var(--ink-rule); padding-top: 14px; margin-top: 6px; }
+.estimate-row.total b { font-size: 30px; color: var(--gold); font-style: normal; font-weight: 300; }
+.estimate-row .coverage { color: var(--emerald); }
 
-/* ── Chat Interface ── */
-.chat-scroll {
-  flex: 1;
-  overflow-y: auto;
-  display: flex; flex-direction: column;
-  gap: 6px;
-  padding: 4px 2px 8px;
-  min-height: 0;
-  scroll-behavior: smooth;
-}
-.chat-scroll::-webkit-scrollbar { display: none; }
-
-.chat-day {
-  text-align: center;
-  font-size: 9px; font-weight: 700;
-  letter-spacing: 0.22em; text-transform: uppercase;
-  color: var(--ink-stone);
-  margin: 6px 0 4px;
-}
-.chat-sender {
-  font-size: 9px; font-weight: 700;
-  letter-spacing: 0.22em; text-transform: uppercase;
-  color: var(--gold);
-  margin-bottom: -2px;
-  padding-left: 4px;
-}
-.chat-sender.user {
-  color: var(--ink-stone);
-  text-align: right;
-  padding-left: 0; padding-right: 4px;
-}
-
-.chat-bubble {
-  max-width: 86%;
-  padding: 11px 14px;
-  border-radius: 16px;
-  font-size: 13px; line-height: 1.5;
-  color: var(--ink-body);
-  animation: chatSlideIn 0.35s var(--ease) both;
-}
-@keyframes chatSlideIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.chat-bubble.ai {
-  background: var(--ink-cream);
-  border: 1px solid var(--ink-rule);
-  border-top-left-radius: 5px;
-  align-self: flex-start;
-}
-.chat-bubble.ai b {
-  font-family: var(--font-serif); font-weight: 400; font-style: italic;
-  color: var(--ink-black);
-}
-.chat-bubble.ai em {
-  font-family: var(--font-serif); font-weight: 400; font-style: italic;
-  color: var(--gold);
-}
-.chat-bubble.user {
-  background: var(--ink-black); color: #fff;
-  border-top-right-radius: 5px;
-  align-self: flex-end;
-}
-
-.chat-quick {
-  display: flex; gap: 7px; flex-wrap: wrap;
-  align-self: flex-end;
-  max-width: 92%;
-  justify-content: flex-end;
-  animation: chatSlideIn 0.35s var(--ease) both;
-}
-.chat-quick-btn {
-  padding: 8px 14px;
-  border: 1.5px solid var(--ink-rule);
-  background: #fff;
-  border-radius: 999px;
-  font-size: 12.5px;
-  color: var(--ink-body);
-  cursor: pointer;
-  transition: all 0.2s;
-  font-family: var(--font-sans);
-}
-.chat-quick-btn:hover {
-  border-color: var(--ink-stone);
-  background: var(--ink-cream);
-}
-.chat-quick-btn.active {
-  background: var(--ink-black); color: #fff;
-  border-color: var(--ink-black);
-}
-
-.chat-estimate {
-  background: #fff;
-  border: 1.5px solid var(--ink-black);
-  border-radius: 16px;
-  padding: 14px 16px;
-  align-self: flex-start;
-  max-width: 92%;
-  animation: chatSlideIn 0.4s var(--ease) both;
-}
-.chat-estimate-label {
-  font-size: 9px; font-weight: 700;
-  letter-spacing: 0.22em; text-transform: uppercase;
-  color: var(--ink-stone);
-  margin-bottom: 6px;
-}
-.chat-estimate-line {
-  display: flex; justify-content: space-between; align-items: baseline;
-  padding: 5px 0;
-  font-size: 12.5px; color: var(--ink-body);
-}
-.chat-estimate-line b {
-  font-family: var(--font-serif); font-style: italic; font-weight: 400;
-  color: var(--ink-black); font-size: 15px;
-}
-.chat-estimate-line.total {
-  border-top: 1px solid var(--ink-rule);
-  padding-top: 10px; margin-top: 4px;
-}
-.chat-estimate-line.total b {
-  font-size: 24px; color: var(--gold);
-  font-style: normal; font-weight: 300;
-}
-
-.chat-typing {
-  align-self: flex-start;
-  padding: 10px 14px;
-  background: var(--ink-cream);
-  border: 1px solid var(--ink-rule);
-  border-radius: 16px;
-  border-top-left-radius: 5px;
-  display: flex; gap: 5px;
-  animation: chatSlideIn 0.3s var(--ease) both;
-}
-.chat-typing-dot {
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: var(--ink-stone);
-  animation: typingBounce 1.4s ease-in-out infinite;
-}
-.chat-typing-dot:nth-child(2) { animation-delay: 0.15s; }
-.chat-typing-dot:nth-child(3) { animation-delay: 0.3s; }
-@keyframes typingBounce {
-  0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
-  30% { opacity: 1; transform: translateY(-4px); }
-}
-
-.chat-attach {
-  background: #fff;
-  border: 1.5px solid var(--ink-rule);
-  border-radius: 14px;
-  padding: 12px;
-  align-self: flex-end;
-  max-width: 80%;
-  display: flex; gap: 12px; align-items: center;
-  animation: chatSlideIn 0.35s var(--ease) both;
-}
-.chat-attach-thumb {
-  width: 56px; height: 38px;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #1f4e79, #0a2c47);
-  flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-  color: rgba(255,255,255,0.8);
-  font-family: var(--font-mono); font-size: 8px;
-  font-weight: 700; letter-spacing: 0.1em;
-  position: relative; overflow: hidden;
-}
-.chat-attach-thumb::after {
-  content: ""; position: absolute; inset: 4px;
-  border: 1px dashed rgba(255,255,255,0.35);
-  border-radius: 4px;
-}
-.chat-attach-meta {
-  font-size: 12px; line-height: 1.35;
-}
-.chat-attach-meta b {
-  display: block; font-weight: 500;
-  color: var(--ink-black);
-}
-.chat-attach-meta span {
-  font-family: var(--font-mono);
-  font-size: 10px; opacity: 0.5;
-  letter-spacing: 0.04em;
-}
-
-.chat-input-bar {
-  margin-top: 10px; flex-shrink: 0;
-  display: flex; gap: 10px; align-items: center;
-  padding: 10px 14px;
-  border: 1.5px solid var(--ink-rule);
-  border-radius: 999px;
-  background: #fff;
-  font-size: 13px; color: var(--ink-stone);
-  cursor: pointer;
-  transition: border-color 0.2s;
-}
-.chat-input-bar:hover { border-color: var(--ink-stone); }
-.chat-input-bar .send-btn {
-  margin-left: auto;
-  width: 30px; height: 30px;
-  border-radius: 50%;
-  background: var(--gold); color: var(--ink-black);
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 700; font-size: 14px;
-  flex-shrink: 0;
-  border: none; cursor: pointer;
-  transition: background 0.2s;
-}
-.chat-input-bar .send-btn:hover { background: #b8921f; }
-
-/* ── Welcome Screen Specific ── */
-.welcome-section {
-  font-family: var(--font-serif); font-style: italic;
-  font-size: 15px; color: var(--gold);
-  margin-bottom: 18px;
-}
-
-.welcome-title {
-  font-family: var(--font-serif); font-weight: 300;
-  font-size: 34px; line-height: 1.12;
-  letter-spacing: -0.025em;
-  color: var(--ink-black);
-  margin-bottom: 18px;
-}
-.welcome-title em { font-style: italic; }
-
-/* ── Select Dropdown ── */
-.select-wrap {
-  position: relative;
-}
-.select-wrap select {
-  width: 100%;
-  padding: 11px 14px;
-  padding-right: 36px;
-  border: 1.5px solid var(--ink-rule);
-  border-radius: 12px;
-  background: #fff;
-  font-family: var(--font-sans); font-size: 15px;
-  color: var(--ink-black);
-  outline: none;
-  -webkit-appearance: none;
-  appearance: none;
-  cursor: pointer;
-  transition: border-color 0.25s, box-shadow 0.25s;
-}
-.select-wrap select:focus {
-  border-color: var(--gold);
-  box-shadow: 0 0 0 3px var(--gold-glow);
-}
-.select-wrap::after {
-  content: "▾";
-  position: absolute; right: 14px; top: 50%;
-  transform: translateY(-50%);
-  color: var(--ink-stone); font-size: 14px;
-  pointer-events: none;
-}
-
-/* ── Crisis Card ── */
-.crisis-card {
-  border: 1.5px solid var(--rose);
-  border-radius: 14px;
-  padding: 18px;
-  background: var(--rose-light);
-  margin-bottom: 16px;
-}
-.crisis-label {
-  font-size: 10px; font-weight: 700;
-  letter-spacing: 0.22em;
-  color: var(--rose);
-  margin-bottom: 10px;
-}
-.crisis-title {
-  font-family: var(--font-serif); font-weight: 400;
-  font-size: 20px; line-height: 1.3;
-  color: var(--ink-black);
-  margin-bottom: 12px;
-}
-.crisis-resource {
-  padding: 11px 14px;
-  background: #fff; border: 1px solid var(--ink-rule);
-  border-radius: 10px;
-  font-size: 14px; color: var(--ink-black);
-  margin-bottom: 8px;
-}
+/* ── Crisis ── */
+.crisis-overlay { position: absolute; inset: 0; background: rgba(253,252,250,0.98); z-index: 10; display: flex; flex-direction: column; opacity: 0; pointer-events: none; transition: opacity 0.4s var(--ease); overflow-y: auto; }
+.crisis-overlay.visible { opacity: 1; pointer-events: auto; }
+.crisis-card { border: 1.5px solid var(--rose); border-radius: 14px; padding: 20px; background: var(--rose-light); margin-bottom: 18px; }
+.crisis-label { font-size: 11px; font-weight: 700; letter-spacing: 0.2em; color: var(--rose); margin-bottom: 10px; }
+.crisis-title { font-family: var(--font-serif); font-weight: 400; font-size: 22px; line-height: 1.3; color: var(--ink-black); margin-bottom: 14px; }
+.crisis-resource { padding: 13px 15px; background: #fff; border: 1px solid var(--ink-rule); border-radius: 10px; font-size: 15px; color: var(--ink-black); margin-bottom: 8px; }
 .crisis-resource b { font-weight: 600; }
 
-/* ── Stagger children animations ── */
-.screen.active .stagger > * {
-  animation: fadeInUp 0.4s var(--ease) both;
-}
+/* ── Overlays ── */
+.loading-overlay { position: absolute; inset: 0; background: rgba(253,252,250,0.97); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10; opacity: 0; pointer-events: none; transition: opacity 0.4s var(--ease); }
+.loading-overlay.visible { opacity: 1; pointer-events: auto; }
+.loading-spinner { width: 52px; height: 52px; border: 2.5px solid var(--ink-rule); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.9s linear infinite; margin-bottom: 22px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { font-family: var(--font-serif); font-style: italic; font-size: 22px; color: var(--ink-black); }
+.loading-sub { font-size: 15px; color: var(--ink-stone); margin-top: 8px; }
+
+/* ── Stagger ── */
+.screen.active .stagger > * { animation: fadeInUp 0.4s var(--ease) both; }
 .screen.active .stagger > *:nth-child(1) { animation-delay: 0.05s; }
 .screen.active .stagger > *:nth-child(2) { animation-delay: 0.1s; }
 .screen.active .stagger > *:nth-child(3) { animation-delay: 0.15s; }
@@ -866,520 +244,290 @@ html, body {
 .screen.active .stagger > *:nth-child(9) { animation-delay: 0.45s; }
 .screen.active .stagger > *:nth-child(10) { animation-delay: 0.5s; }
 .screen.active .stagger > *:nth-child(11) { animation-delay: 0.55s; }
-
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* ── Footer link ── */
-.footer-link {
-  text-align: center; font-size: 12px;
-  color: var(--ink-stone); margin-top: 10px;
-  font-family: var(--font-serif); font-style: italic;
-}
-.footer-link a {
-  color: var(--ink-stone); text-decoration: none;
-  border-bottom: 1px solid var(--ink-rule);
-  transition: color 0.2s;
-}
-.footer-link a:hover { color: var(--ink-black); }
-
-/* ── State for format sub-field ── */
-.sub-field {
-  overflow: hidden;
-  max-height: 0;
-  opacity: 0;
-  transition: max-height 0.4s var(--ease), opacity 0.3s, margin 0.3s;
-  margin-top: 0;
-}
-.sub-field.visible {
-  max-height: 120px;
-  opacity: 1;
-  margin-top: 16px;
-}
-
-/* ── Spacer ── */
-.spacer { flex: 1; min-height: 8px; }
-
-/* ── Readability Overrides ── */
-.step-label, .field-label, .next-card-label, .crisis-label { font-size: 11px; letter-spacing: 0.2em; }
-.nav-meta { font-size: 12px; }
-.ai-bubble-label, .match-tag, .chat-sender, .chat-day, .chat-estimate-label { font-size: 10px; letter-spacing: 0.2em; }
-.match-creds { font-size: 12px; }
-.subtext, .check-text, .match-why, .next-card-note { font-size: 14px; }
-.hint, .footer-link { font-size: 13px; }
-.chat-bubble { font-size: 14px; }
-.chat-quick-btn { font-size: 13px; }
-.chat-estimate-line { font-size: 13px; }
-.option-desc { font-size: 13px; }
-.ai-bubble { font-size: 15px; }
-.headline { font-size: 30px; }
-.welcome-title { font-size: 36px; }
-.nav-brand { font-size: 19px; }
-.chip { font-size: 15px; }
-.option-card .option-title { font-size: 18px; }
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 
 /* ── View Toggle ── */
-.view-toggle {
-  position: absolute;
-  top: 20px;
-  right: 24px;
-  display: flex;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.07);
-  border-radius: 10px;
-  padding: 3px;
-  z-index: 200;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-.view-btn {
-  padding: 7px 18px;
-  border: none;
-  background: transparent;
-  color: rgba(255,255,255,0.35);
-  font-family: var(--font-sans);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s var(--ease);
-}
+.view-toggle { position: absolute; top: 20px; right: 24px; display: flex; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.07); border-radius: 10px; padding: 3px; z-index: 200; }
+.view-btn { padding: 7px 18px; border: none; background: transparent; color: rgba(255,255,255,0.35); font-family: var(--font-sans); font-size: 13px; font-weight: 600; letter-spacing: 0.06em; border-radius: 8px; cursor: pointer; transition: all 0.3s var(--ease); }
 .view-btn:hover { color: rgba(255,255,255,0.55); }
-.view-btn.active {
-  background: rgba(255,255,255,0.1);
-  color: rgba(255,255,255,0.85);
-}
-
-/* ── Browser Chrome ── */
-.browser-chrome {
-  display: none;
-  height: 44px;
-  background: linear-gradient(180deg, #f2f0ed 0%, #eae8e5 100%);
-  border-bottom: 1px solid var(--ink-rule);
-  padding: 0 16px;
-  align-items: center;
-  gap: 14px;
-  flex-shrink: 0;
-  border-radius: 10px 10px 0 0;
-}
-.traffic-lights {
-  display: flex; gap: 7px;
-  padding-left: 2px;
-}
-.traffic-dot {
-  width: 12px; height: 12px;
-  border-radius: 50%;
-}
-.traffic-dot:nth-child(1) { background: #ff5f57; }
-.traffic-dot:nth-child(2) { background: #febc2e; }
-.traffic-dot:nth-child(3) { background: #28c840; }
-.url-bar {
-  flex: 1;
-  max-width: 380px;
-  margin: 0 auto;
-  background: #fff;
-  border: 1px solid var(--ink-rule);
-  border-radius: 6px;
-  padding: 5px 16px;
-  font-size: 12.5px;
-  font-family: var(--font-sans);
-  color: var(--ink-stone);
-  text-align: center;
-  letter-spacing: 0.01em;
-}
-.url-spacer { width: 52px; flex-shrink: 0; }
+.view-btn.active { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.85); }
 
 /* ── Desktop Mode ── */
-.phone-device {
-  transition: width 0.5s var(--ease), height 0.5s var(--ease),
-              border-radius 0.5s var(--ease), padding 0.5s var(--ease),
-              box-shadow 0.5s var(--ease);
-}
+.desktop-panel { display: none; }
 
-.viewport.desktop .phone-device {
-  width: 920px;
-  height: 680px;
-  border-radius: 10px;
-  padding: 0;
-  background: #fff;
-  display: flex;
-  flex-direction: column;
-  box-shadow:
-    0 0 0 1px rgba(255,255,255,0.06),
-    0 25px 60px -12px rgba(0,0,0,0.5);
-}
+/* Viewport */
+.viewport.desktop { background: var(--ink-paper); }
+.viewport.desktop .view-toggle { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.07); }
+.viewport.desktop .view-btn { color: var(--ink-ghost); }
+.viewport.desktop .view-btn:hover { color: var(--ink-stone); }
+.viewport.desktop .view-btn.active { background: rgba(0,0,0,0.07); color: var(--ink-black); }
 
-.viewport.desktop .browser-chrome {
-  display: flex;
-}
+/* Remove phone chrome */
+.viewport.desktop .phone-device { width: 100%; height: 100%; background: transparent; border-radius: 0; padding: 0; box-shadow: none; }
+.viewport.desktop .phone-screen { display: grid; grid-template-columns: 400px 1fr; border-radius: 0; background: var(--ink-paper); }
+.viewport.desktop .phone-notch, .viewport.desktop .status-bar, .viewport.desktop .home-indicator { display: none; }
+.viewport.desktop .screen-area { min-height: 0; }
 
-.viewport.desktop .phone-screen {
-  flex: 1;
-  width: auto;
-  height: auto;
-  border-radius: 0 0 10px 10px;
+/* ── Sidebar Panel ── */
+.viewport.desktop .desktop-panel {
+  display: flex; flex-direction: column; position: relative; overflow: hidden;
+  background: #1e1b18;
+  background-image: radial-gradient(ellipse 80% 50% at 20% 15%, rgba(201,162,39,0.07) 0%, transparent 60%),
+                    radial-gradient(ellipse 60% 40% at 80% 85%, rgba(201,162,39,0.04) 0%, transparent 50%);
+  border-right: 2.5px solid var(--gold);
 }
-
-.viewport.desktop .phone-notch,
-.viewport.desktop .status-bar,
-.viewport.desktop .home-indicator {
-  display: none;
+.dp-inner { flex: 1; display: flex; flex-direction: column; padding: 52px 44px 48px; position: relative; z-index: 2; }
+.dp-brand { font-family: var(--font-serif); font-weight: 300; font-style: italic; font-size: 24px; color: #ede8e0; flex-shrink: 0; }
+.dp-dot { color: var(--gold); font-style: normal; }
+.dp-content { margin: auto 0; padding: 40px 0; }
+.dp-quote {
+  font-family: var(--font-serif); font-weight: 300; font-style: italic;
+  font-size: 36px; line-height: 1.15; letter-spacing: -0.02em;
+  color: #fff; margin-bottom: 14px;
+  transition: opacity 0.3s var(--ease), transform 0.3s var(--ease);
 }
+.dp-note { display: none; }
 
-.viewport.desktop .nav {
-  padding: 16px 48px;
-  border-bottom: 1px solid var(--ink-rule);
+/* Step indicators */
+.dp-steps { display: flex; flex-direction: column; gap: 0; transition: opacity 0.4s var(--ease); }
+.dp-step-item {
+  display: flex; align-items: center; gap: 16px; padding: 14px 0;
+  font-family: var(--font-sans); font-size: 13px; font-weight: 600;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  color: rgba(255,255,255,0.45); position: relative;
+  transition: color 0.4s var(--ease);
 }
-.viewport.desktop .nav-brand { font-size: 21px; }
-.viewport.desktop .nav-back { left: auto; position: static; padding: 4px 10px 4px 0; }
-.viewport.desktop .progress { position: static; margin-left: auto; }
-.viewport.desktop .nav-meta { position: static; margin-left: auto; }
-
-.viewport.desktop .screen-body {
-  max-width: 540px;
-  margin-left: auto;
-  margin-right: auto;
-  padding: 32px 24px 40px;
+.dp-step-item:not(:last-child)::after {
+  content: ''; position: absolute; left: 8px; top: 38px;
+  width: 1.5px; height: calc(100% - 22px);
+  background: rgba(255,255,255,0.15);
+  transition: background 0.4s var(--ease);
 }
-
-.viewport.desktop .headline {
-  font-size: 42px;
-  margin-bottom: 10px;
+.dp-step-dot {
+  width: 17px; height: 17px; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.3);
+  flex-shrink: 0; transition: all 0.4s var(--ease);
 }
-
-.viewport.desktop .subtext {
-  font-size: 16px;
-  margin-bottom: 24px;
-  line-height: 1.6;
+.dp-step-item.current { color: #fff; }
+.dp-step-item.current .dp-step-dot {
+  border-color: #fff; background: #fff;
+  box-shadow: 0 0 0 5px rgba(255,255,255,0.1);
 }
+.dp-step-item.done { color: var(--gold); }
+.dp-step-item.done .dp-step-dot { border-color: var(--gold); background: var(--gold); }
+.dp-step-item.done:not(:last-child)::after { background: rgba(201,162,39,0.4); }
 
-.viewport.desktop .step-label {
-  font-size: 12px;
-  margin-bottom: 14px;
-}
+/* Hide steps on welcome */
+.viewport.desktop[data-current="welcome"] .dp-steps { opacity: 0; }
 
-.viewport.desktop .welcome-title {
-  font-size: 52px;
-  margin-bottom: 24px;
-}
+/* ── Desktop Nav (simplified) ── */
+.viewport.desktop .nav { padding: 24px 48px 16px; }
+.viewport.desktop .nav-brand { display: none; }
+.viewport.desktop .progress { display: none; }
+.viewport.desktop .nav-back { font-size: 22px; }
+.viewport.desktop .nav-meta { font-size: 13px; letter-spacing: 0.08em; }
 
-.viewport.desktop .welcome-section {
-  font-size: 18px;
-  margin-bottom: 22px;
-}
+/* ── Desktop Content ── */
+.viewport.desktop .screen-body { max-width: 720px; padding: 16px 48px 48px; width: 100%; }
 
+/* Typography */
+.viewport.desktop .step-label { font-size: 12px; margin-bottom: 14px; letter-spacing: 0.2em; }
+.viewport.desktop .headline { font-size: 42px; margin-bottom: 10px; line-height: 1.08; }
+.viewport.desktop .subtext { font-size: 17px; margin-bottom: 24px; line-height: 1.55; max-width: 440px; }
+
+/* Forms */
 .viewport.desktop .field { margin-bottom: 16px; }
-.viewport.desktop .field-label { font-size: 11px; margin-bottom: 8px; }
-.viewport.desktop .input {
-  font-size: 16px;
-  padding: 14px 16px;
-  border-radius: 14px;
-}
-.viewport.desktop .textarea {
-  font-size: 16px;
-  padding: 16px 18px;
-  min-height: 150px;
-  border-radius: 14px;
-}
-.viewport.desktop .check-row {
-  padding: 16px 18px;
-  gap: 14px;
-}
+.viewport.desktop .field-label { font-size: 12px; margin-bottom: 7px; }
+.viewport.desktop .input, .viewport.desktop .textarea, .viewport.desktop .select-wrap select { font-size: 16px; padding: 15px 18px; border-radius: 11px; }
+.viewport.desktop .textarea { min-height: 150px; }
+.viewport.desktop .check-row { padding: 16px 20px; gap: 14px; border-radius: 11px; }
 .viewport.desktop .check-text { font-size: 15px; }
 
-.viewport.desktop .chip {
-  font-size: 15px;
-  padding: 13px 22px;
-}
+/* Chips */
+.viewport.desktop .chip { font-size: 15px; padding: 13px 22px; }
 .viewport.desktop .chip-group { gap: 10px; }
-
-.viewport.desktop .option-card { padding: 20px 22px; }
+.viewport.desktop .option-card { padding: 20px 24px; border-radius: 13px; }
 .viewport.desktop .option-card .option-title { font-size: 19px; }
-.viewport.desktop .option-card .option-desc { font-size: 14px; margin-top: 4px; }
+.viewport.desktop .option-card .option-desc { font-size: 14px; margin-top: 3px; }
 
-.viewport.desktop .ai-bubble {
-  font-size: 16px;
-  padding: 18px 20px;
-  border-radius: 16px;
-}
-.viewport.desktop .ai-bubble-label { font-size: 10px; }
-
-.viewport.desktop .match-card { padding: 20px; margin-bottom: 16px; border-radius: 18px; }
-.viewport.desktop .match-avatar { width: 56px; height: 56px; font-size: 22px; }
-.viewport.desktop .match-name { font-size: 20px; }
-.viewport.desktop .match-creds { font-size: 12px; margin-top: 4px; }
-.viewport.desktop .match-tag { font-size: 10px; padding: 6px 12px; }
-.viewport.desktop .match-why { font-size: 14px; margin-top: 14px; padding-top: 14px; }
-
-.viewport.desktop .time-grid { gap: 10px; margin-bottom: 20px; }
-.viewport.desktop .time-slot { padding: 14px 0; border-radius: 12px; font-size: 12px; }
-.viewport.desktop .time-slot b { font-size: 17px; }
-
-.viewport.desktop .cta {
-  padding: 16px 24px;
-  font-size: 17px;
-  border-radius: 16px;
-}
-
-.viewport.desktop .hint { font-size: 14px; }
+/* CTA */
+.viewport.desktop .cta { padding: 16px 26px; font-size: 17px; border-radius: 13px; max-width: 380px; }
+.viewport.desktop .hint { font-size: 14px; max-width: 380px; }
 .viewport.desktop .footer-link { font-size: 14px; }
 
-.viewport.desktop .confirm-check { width: 80px; height: 80px; font-size: 40px; }
-.viewport.desktop .next-card { padding: 20px; border-radius: 16px; }
-.viewport.desktop .next-card-title { font-size: 19px; }
+/* ── Contact: two-column fields ── */
+.viewport.desktop [data-screen="contact"] .screen-body {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; align-content: start;
+}
+.viewport.desktop [data-screen="contact"] .step-label,
+.viewport.desktop [data-screen="contact"] .headline,
+.viewport.desktop [data-screen="contact"] .subtext,
+.viewport.desktop [data-screen="contact"] .check-row,
+.viewport.desktop [data-screen="contact"] .spacer,
+.viewport.desktop [data-screen="contact"] .cta { grid-column: 1 / -1; }
+
+/* ── Matches: three-column cards ── */
+.viewport.desktop [data-screen="matches"] .screen-body {
+  max-width: 920px; display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 0 18px; align-content: start;
+}
+.viewport.desktop [data-screen="matches"] .step-label,
+.viewport.desktop [data-screen="matches"] .headline,
+.viewport.desktop [data-screen="matches"] .subtext { grid-column: 1 / -1; }
+.viewport.desktop .match-card {
+  padding: 20px; margin-bottom: 0; border-radius: 14px;
+  display: flex; flex-direction: column;
+}
+.viewport.desktop .match-head { flex-direction: column; gap: 10px; align-items: flex-start; }
+.viewport.desktop .match-avatar { width: 50px; height: 50px; font-size: 21px; }
+.viewport.desktop .match-name { font-size: 18px; }
+.viewport.desktop .match-creds { font-size: 11px; margin-top: 2px; }
+.viewport.desktop .match-tag { margin-left: 0; margin-top: 6px; align-self: flex-start; font-size: 9px; padding: 5px 10px; }
+.viewport.desktop .match-why { font-size: 13px; margin-top: 12px; padding-top: 12px; line-height: 1.5; }
+
+/* ── Time slots ── */
+.viewport.desktop .time-grid { grid-template-columns: repeat(5, 1fr); gap: 10px; }
+.viewport.desktop .time-slot { padding: 14px 0; font-size: 13px; border-radius: 10px; }
+.viewport.desktop .time-slot b { font-size: 18px; margin-top: 3px; }
+
+/* ── Confirmation ── */
+.viewport.desktop .confirm-check { width: 80px; height: 80px; font-size: 40px; margin-bottom: 22px; }
+.viewport.desktop .next-card { padding: 24px 26px; border-radius: 14px; max-width: 440px; margin-left: auto; margin-right: auto; }
+.viewport.desktop .next-card-title { font-size: 20px; }
 .viewport.desktop .next-card-note { font-size: 15px; }
 
-.viewport.desktop .chat-scroll { gap: 8px; padding: 8px 4px 12px; }
-.viewport.desktop .chat-bubble { max-width: 75%; font-size: 15px; padding: 13px 16px; border-radius: 18px; }
-.viewport.desktop .chat-bubble.ai { border-top-left-radius: 6px; }
-.viewport.desktop .chat-bubble.user { border-top-right-radius: 6px; }
-.viewport.desktop .chat-sender { font-size: 10px; }
-.viewport.desktop .chat-day { font-size: 10px; }
-.viewport.desktop .chat-quick-btn { font-size: 14px; padding: 10px 18px; }
-.viewport.desktop .chat-estimate { max-width: 80%; padding: 18px 20px; border-radius: 18px; }
-.viewport.desktop .chat-estimate-line { font-size: 14px; }
-.viewport.desktop .chat-estimate-line b { font-size: 16px; }
-.viewport.desktop .chat-estimate-line.total b { font-size: 28px; }
-.viewport.desktop .chat-input-bar { padding: 12px 16px; font-size: 14px; }
-.viewport.desktop .chat-input-bar .send-btn { width: 34px; height: 34px; font-size: 16px; }
-.viewport.desktop .chat-attach { padding: 14px; gap: 14px; border-radius: 16px; }
-.viewport.desktop .chat-attach-meta { font-size: 13px; }
+/* ── Estimates ── */
+.viewport.desktop .estimate-card { padding: 26px 28px; border-radius: 14px; max-width: 440px; }
+.viewport.desktop .estimate-card-label { font-size: 12px; }
+.viewport.desktop .estimate-row { font-size: 16px; padding: 8px 0; }
+.viewport.desktop .estimate-row b { font-size: 18px; }
+.viewport.desktop .estimate-row.total b { font-size: 34px; }
 
-.viewport.desktop .crisis-card { padding: 22px; border-radius: 16px; }
+/* ── Crisis ── */
+.viewport.desktop .crisis-card { padding: 22px 26px; border-radius: 14px; }
 .viewport.desktop .crisis-title { font-size: 24px; }
 .viewport.desktop .crisis-resource { font-size: 15px; padding: 13px 16px; }
 
-.viewport.desktop .finding-text { font-size: 24px; }
-.viewport.desktop .finding-sub { font-size: 15px; }
-.viewport.desktop .finding-spinner { width: 56px; height: 56px; }
+/* ── Loading ── */
+.viewport.desktop .loading-spinner { width: 52px; height: 52px; }
+.viewport.desktop .loading-text { font-size: 24px; }
+.viewport.desktop .loading-sub { font-size: 15px; }
 
-/* ── Mobile (no phone frame) ── */
+/* ── Welcome: editorial layout ── */
+.viewport.desktop [data-screen="welcome"] .screen-body {
+  justify-content: center; text-align: left !important;
+  padding-left: 48px !important; padding-right: 48px !important;
+  max-width: 580px;
+}
+.viewport.desktop .welcome-title { font-size: 52px; margin-bottom: 18px; text-align: left !important; }
+.viewport.desktop .welcome-section { font-size: 16px; margin-bottom: 18px; }
+.viewport.desktop [data-screen="welcome"] .subtext { text-align: left !important; font-size: 18px; }
+.viewport.desktop [data-screen="welcome"] .cta { margin-top: 4px !important; }
+.viewport.desktop [data-screen="welcome"] .footer-link { text-align: left; }
+
+/* ── Confirmed: centered ── */
+.viewport.desktop [data-screen="confirmed"] .screen-body { max-width: 520px; margin: 0 auto; }
+.viewport.desktop [data-screen="confirmed"] .headline { font-size: 32px; }
+
+/* ── Mobile ── */
 @media (max-width: 500px) {
   .viewport { align-items: stretch; }
-  .phone-device {
-    width: 100%; height: 100%;
-    border-radius: 0;
-    padding: 0;
-    box-shadow: none;
-    background: #fff;
-    transition: none;
-  }
+  .phone-device { width: 100%; height: 100%; border-radius: 0; padding: 0; box-shadow: none; background: #fff; transition: none; }
   .phone-screen { border-radius: 0; }
   .phone-notch { display: none; }
   .status-bar { height: env(safe-area-inset-top, 44px); }
-  .desktop-branding { display: none; }
   .view-toggle { display: none; }
-  .browser-chrome { display: none !important; }
 }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
 
-/* ── Finding Matches Overlay ── */
-.finding-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(253,252,250,0.97);
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  z-index: 10;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.4s var(--ease);
-}
-.finding-overlay.visible {
-  opacity: 1;
-  pointer-events: auto;
-}
-.finding-spinner {
-  width: 48px; height: 48px;
-  border: 2.5px solid var(--ink-rule);
-  border-top-color: var(--gold);
-  border-radius: 50%;
-  animation: spin 0.9s linear infinite;
-  margin-bottom: 20px;
-}
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-.finding-text {
-  font-family: var(--font-serif); font-style: italic;
-  font-size: 20px; color: var(--ink-black);
-  letter-spacing: -0.01em;
-  animation: fadeInUp 0.5s var(--ease) both;
-}
-.finding-sub {
-  font-size: 13px; color: var(--ink-stone);
-  margin-top: 8px;
-  animation: fadeInUp 0.5s var(--ease) both;
-  animation-delay: 0.15s;
-}
-
-/* ── Crisis Overlay ── */
-.crisis-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(253,252,250,0.98);
-  z-index: 10;
-  display: flex; flex-direction: column;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.4s var(--ease);
-  overflow-y: auto;
-}
-.crisis-overlay.visible {
-  opacity: 1;
-  pointer-events: auto;
-}
-.crisis-overlay .screen-body {
-  animation: fadeInUp 0.4s var(--ease) both;
-}
-
-/* ── Reduced motion ── */
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
+.welcome-section { font-family: var(--font-serif); font-style: italic; font-size: 16px; color: var(--gold); margin-bottom: 20px; }
+.welcome-title { font-family: var(--font-serif); font-weight: 300; font-size: 38px; line-height: 1.1; letter-spacing: -0.025em; color: var(--ink-black); margin-bottom: 20px; }
+.welcome-title em { font-style: italic; }
 </style>
 </head>
 <body>
+<div class="viewport" id="viewport" data-current="contact">
 
-<div class="viewport" id="viewport">
-
-<!-- View Toggle -->
 <div class="view-toggle">
   <button class="view-btn active" data-view="mobile" onclick="setView('mobile')">Mobile</button>
   <button class="view-btn" data-view="desktop" onclick="setView('desktop')">Desktop</button>
 </div>
 
 <div class="phone-device">
-
-<!-- Browser chrome (desktop mode only) -->
-<div class="browser-chrome">
-  <div class="traffic-lights">
-    <div class="traffic-dot"></div>
-    <div class="traffic-dot"></div>
-    <div class="traffic-dot"></div>
-  </div>
-  <div class="url-bar">agoodplace.com/start</div>
-  <div class="url-spacer"></div>
-</div>
-
 <div class="phone-screen">
-
+<div class="desktop-panel" id="desktop-panel">
+  <div class="dp-inner">
+    <div class="dp-brand">A Good Place<span class="dp-dot"> &middot;</span></div>
+    <div class="dp-content">
+      <div class="dp-quote" id="dp-quote">We're glad<br>you're here.</div>
+      <div class="dp-note" id="dp-note">~ 5 minutes</div>
+    </div>
+    <div class="dp-steps" id="dp-steps">
+      <div class="dp-step-item" data-dp-step="1"><div class="dp-step-dot"></div><span>About you</span></div>
+      <div class="dp-step-item" data-dp-step="2"><div class="dp-step-dot"></div><span>What&rsquo;s going on</span></div>
+      <div class="dp-step-item" data-dp-step="3"><div class="dp-step-dot"></div><span>Logistics</span></div>
+      <div class="dp-step-item" data-dp-step="4"><div class="dp-step-dot"></div><span>Your matches</span></div>
+    </div>
+  </div>
+</div>
 <div class="phone-notch"></div>
 <div class="status-bar">
-  <span class="time">9:41</span>
-  <span class="icons">
+  <span>9:41</span>
+  <span style="display:flex;gap:6px;align-items:center;font-size:12px;">
     <svg width="16" height="12" fill="none"><rect x="0" y="3" width="3" height="9" rx="0.5" fill="currentColor" opacity="0.3"/><rect x="4.5" y="2" width="3" height="10" rx="0.5" fill="currentColor" opacity="0.5"/><rect x="9" y="0.5" width="3" height="11.5" rx="0.5" fill="currentColor" opacity="0.7"/><rect x="13" y="0" width="3" height="12" rx="0.5" fill="currentColor"/></svg>
     <svg width="24" height="12" viewBox="0 0 24 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="2" stroke="currentColor" opacity="0.35"/><rect x="22" y="3.5" width="2" height="5" rx="1" fill="currentColor" opacity="0.3"/><rect x="2" y="2" width="14" height="8" rx="1" fill="var(--emerald)"/></svg>
   </span>
 </div>
-
 <div class="screen-area">
 
-<!-- ═══════════════ SCREEN 0: WELCOME ═══════════════ -->
-<div class="screen active" data-screen="welcome">
+<!-- ══ 0: WELCOME (commented out) ══ -->
+<!--
+<div class="screen" data-screen="welcome">
   <div class="nav">
     <div class="nav-brand">A Good Place <span class="dot">&middot;</span></div>
     <div class="nav-meta">~ 5 MIN</div>
   </div>
-  <div class="screen-body" style="justify-content: center; text-align: center; padding-left: 28px; padding-right: 28px; position: relative;">
-    <!-- Subtle decorative rule -->
-    <div style="position: absolute; top: 30%; left: 22px; right: 22px; height: 1px; background: var(--ink-rule); opacity: 0.5;"></div>
-    <div style="position: absolute; bottom: 28%; left: 22px; right: 22px; height: 1px; background: var(--ink-rule); opacity: 0.5;"></div>
-    <div class="stagger" style="position: relative;">
+  <div class="screen-body" style="justify-content:center;text-align:center;padding-left:28px;padding-right:28px;position:relative;">
+    <div class="stagger" style="position:relative;">
       <div class="welcome-section">&sect; Welcome</div>
-      <div class="welcome-title" style="text-align: center;">Looking for a<br>therapist? <em>Let's<br>find one.</em></div>
-      <div class="subtext" style="margin-bottom: 36px;">Five minutes of questions, a few real matches,<br>a consult call on the calendar.</div>
-      <button class="cta gold" onclick="flow.next()" style="margin-top: 0;">
-        <span>Begin</span>
-        <span class="arrow">&rarr;</span>
-      </button>
-      <div class="footer-link" style="margin-top: 24px;">
-        Crisis support &middot; <a href="tel:988">988 Lifeline</a>
-      </div>
+      <div class="welcome-title" style="text-align:center;">Looking for a<br>therapist? <em>Let's<br>find one.</em></div>
+      <div class="subtext" style="margin-bottom:36px;">A few questions, real matches,<br>and a consult on the calendar.</div>
+      <button class="cta gold" onclick="flow.next()" style="margin-top:0;"><span>Begin</span><span class="arrow">&rarr;</span></button>
+      <div class="footer-link" style="margin-top:22px;">Crisis support &middot; <a href="tel:988" style="color:var(--ink-stone);text-decoration:none;border-bottom:1px solid var(--ink-rule);">988 Lifeline</a></div>
     </div>
   </div>
 </div>
+-->
 
-<!-- ═══════════════ SCREEN 1: CONTACT ═══════════════ -->
-<div class="screen" data-screen="contact">
-  <div class="nav">
-    <button class="nav-back" onclick="flow.prev()">&larr;</button>
-    <div class="nav-brand">A Good Place <span class="dot">&middot;</span></div>
-    <div class="progress" id="progress-1">
-      <div class="progress-dot current"></div>
-      <div class="progress-dot"></div>
-      <div class="progress-dot"></div>
-      <div class="progress-dot"></div>
-    </div>
-  </div>
+<!-- ══ 1: CONTACT ══ -->
+<div class="screen active" data-screen="contact">
+  <div class="nav"><button class="nav-back" onclick="flow.prev()">&larr;</button><div class="nav-brand">A Good Place <span class="dot">&middot;</span></div><div class="progress"><div class="progress-dot current"></div><div class="progress-dot"></div><div class="progress-dot"></div><div class="progress-dot"></div></div></div>
   <div class="screen-body stagger">
     <div class="step-label">Step 1 of 4 &middot; About you</div>
     <div class="headline">A few <em>basics</em> first.</div>
-    <div class="subtext">So we can reach you.</div>
-    <div class="field">
-      <div class="field-label">First name</div>
-      <input class="input" type="text" id="fname" placeholder="Sarah" autocomplete="given-name">
-    </div>
-    <div class="field">
-      <div class="field-label">Last name</div>
-      <input class="input" type="text" id="lname" placeholder="Chen" autocomplete="family-name">
-    </div>
-    <div class="field">
-      <div class="field-label">Email</div>
-      <input class="input" type="email" id="email" placeholder="sarah.chen@gmail.com" autocomplete="email">
-    </div>
-    <div class="field">
-      <div class="field-label">Mobile</div>
-      <input class="input" type="tel" id="phone" placeholder="(917) 555-0143" autocomplete="tel">
-    </div>
-    <div class="check-row" id="consent-check" onclick="toggleCheck(this)">
-      <div class="check-box">&check;</div>
-      <div class="check-text">I consent to email and text about my care from A Good Place.</div>
-    </div>
+    <div class="field"><div class="field-label">First name</div><input class="input" type="text" id="fname" placeholder="Sarah" autocomplete="given-name"></div>
+    <div class="field"><div class="field-label">Last name</div><input class="input" type="text" id="lname" placeholder="Chen" autocomplete="family-name"></div>
+    <div class="field"><div class="field-label">Email</div><input class="input" type="email" id="email" placeholder="sarah.chen@gmail.com" autocomplete="email"></div>
+    <div class="field"><div class="field-label">Mobile</div><input class="input" type="tel" id="phone" placeholder="(917) 555-0143" autocomplete="tel"></div>
+    <div class="check-row" onclick="toggleCheck(this)"><div class="check-box">&check;</div><div class="check-text">I consent to email and text about my care from A Good Place Therapy.</div></div>
     <div class="spacer"></div>
-    <button class="cta gold" onclick="flow.next()">
-      <span>Continue</span>
-      <span class="arrow">&rarr;</span>
-    </button>
+    <button class="cta gold" onclick="flow.next()"><span>Continue</span><span class="arrow">&rarr;</span></button>
   </div>
 </div>
 
-<!-- ═══════════════ SCREEN 2: WHAT BRINGS YOU ═══════════════ -->
+<!-- ══ 2: WHAT BRINGS YOU ══ -->
 <div class="screen" data-screen="concerns">
-  <div class="nav">
-    <button class="nav-back" onclick="flow.prev()">&larr;</button>
-    <div class="nav-brand">A Good Place <span class="dot">&middot;</span></div>
-    <div class="progress">
-      <div class="progress-dot done"></div>
-      <div class="progress-dot current"></div>
-      <div class="progress-dot"></div>
-      <div class="progress-dot"></div>
-    </div>
-  </div>
+  <div class="nav"><button class="nav-back" onclick="flow.prev()">&larr;</button><div class="nav-brand">A Good Place <span class="dot">&middot;</span></div><div class="progress"><div class="progress-dot done"></div><div class="progress-dot current"></div><div class="progress-dot"></div><div class="progress-dot"></div></div></div>
   <div class="screen-body stagger">
     <div class="step-label">Step 2 of 4 &middot; What's going on</div>
     <div class="headline">What brings you to <em>therapy?</em></div>
-    <div class="subtext">In your own words.</div>
-    <textarea class="textarea" id="concerns-text" placeholder="Work stress, relationship changes, anxiety, life transitions &#8212; whatever's on your mind..."></textarea>
-    <div class="hint">Cortexa picks up modality, focus areas and preferences. You won't be asked them again.</div>
+    <textarea class="textarea" id="concerns-text" placeholder="Work stress, relationship changes, anxiety, life transitions &#8212; whatever is on your mind..."></textarea>
     <div class="spacer"></div>
-    <button class="cta gold" onclick="handleConcernsNext()">
-      <span>Continue</span>
-      <span class="arrow">&rarr;</span>
-    </button>
+    <button class="cta gold" onclick="handleConcernsNext()"><span>Continue</span><span class="arrow">&rarr;</span></button>
+    <div class="footer-link" onclick="showCrisis()" style="margin-top:10px;font-size:13px;opacity:0.6;">Preview crisis flow</div>
   </div>
-  <!-- Crisis detection overlay -->
   <div class="crisis-overlay" id="crisis-overlay">
-    <div class="nav">
-      <div class="nav-brand">A Good Place <span class="dot">&middot;</span></div>
-      <div class="nav-meta rose">PRIORITY</div>
-    </div>
+    <div class="nav"><div class="nav-brand">A Good Place <span class="dot">&middot;</span></div><div class="nav-meta" style="color:var(--rose);">PRIORITY</div></div>
     <div class="screen-body">
       <div class="step-label">Right now, first</div>
       <div class="crisis-card">
@@ -1388,171 +536,81 @@ html, body {
         <div class="crisis-resource"><b>988</b> &middot; Suicide &amp; Crisis Lifeline</div>
         <div class="crisis-resource"><b>Text HOME to 741741</b> &middot; Crisis Text Line</div>
       </div>
-      <div class="subtext" style="font-family: var(--font-sans); font-style: normal;">A team member has been notified. We can also expedite a call today.</div>
-      <button class="cta ink" onclick="closeCrisisOverlay()" style="margin-top: 16px;">
-        <span>Yes, call me today</span>
-        <span class="arrow">&rarr;</span>
-      </button>
-      <div class="footer-link" style="margin-top: 14px; cursor: pointer;" onclick="closeCrisisOverlay(); flow.next();">
-        or continue with regular matching &rarr;
-      </div>
+      <button class="cta ink" onclick="hideCrisis();flow.next();" style="margin-top:16px;"><span>Continue with matching</span><span class="arrow">&rarr;</span></button>
     </div>
   </div>
 </div>
 
-<!-- ═══════════════ SCREEN 3: AI FOLLOW-UP ═══════════════ -->
-<div class="screen" data-screen="ai-followup">
-  <div class="nav">
-    <button class="nav-back" onclick="flow.prev()">&larr;</button>
-    <div class="nav-brand">A Good Place <span class="dot">&middot;</span></div>
-    <div class="progress">
-      <div class="progress-dot done"></div>
-      <div class="progress-dot current"></div>
-      <div class="progress-dot"></div>
-      <div class="progress-dot"></div>
-    </div>
-  </div>
+<!-- ══ 3: FOLLOW-UP ══ -->
+<div class="screen" data-screen="followup">
+  <div class="nav"><button class="nav-back" onclick="flow.prev()">&larr;</button><div class="nav-brand">A Good Place <span class="dot">&middot;</span></div><div class="progress"><div class="progress-dot done"></div><div class="progress-dot current"></div><div class="progress-dot"></div><div class="progress-dot"></div></div></div>
   <div class="screen-body stagger">
-    <div class="step-label">Step 2 of 4 &middot; One follow-up</div>
-    <div class="ai-bubble">
-      <div class="ai-bubble-label">From what you wrote</div>
-      We picked up: <em id="extracted-prefs">individual therapy &middot; anxiety &middot; CBT &middot; prefers a woman.</em>
+    <div class="step-label">Step 2 of 4 &middot; A couple follow-ups</div>
+    <div class="headline">A few more <em>details.</em></div>
+    <div class="field-label" style="margin-bottom:10px;">Are you looking for&hellip;</div>
+    <div class="chip-group" data-group="modality" data-single="true" style="margin-bottom:22px;">
+      <div class="chip" onclick="selectChip(this)">Individual</div>
+      <div class="chip" onclick="selectChip(this)">Couples</div>
+      <div class="chip" onclick="selectChip(this)">Family</div>
     </div>
-    <div class="headline" style="font-size: 24px;">Any preference on therapist <em>age?</em></div>
-    <div class="subtext">Optional.</div>
-    <div class="chip-group" data-group="age">
-      <div class="chip" onclick="selectChip(this)">Younger (under 35)</div>
-      <div class="chip" onclick="selectChip(this)">Similar (35&ndash;50)</div>
-      <div class="chip" onclick="selectChip(this)">Older (50+)</div>
+    <div class="field-label" style="margin-bottom:10px;">Therapist gender preference?</div>
+    <div class="chip-group" data-group="gender" data-single="true" style="margin-bottom:22px;">
+      <div class="chip" onclick="selectChip(this)">Woman</div>
+      <div class="chip" onclick="selectChip(this)">Man</div>
+      <div class="chip" onclick="selectChip(this)">Non-binary</div>
+      <div class="chip" onclick="selectChip(this)">No preference</div>
+    </div>
+    <div class="field-label" style="margin-bottom:10px;">Age range preference?</div>
+    <div class="chip-group" data-group="age" data-single="true">
+      <div class="chip" onclick="selectChip(this)">Under 35</div>
+      <div class="chip" onclick="selectChip(this)">35&ndash;50</div>
+      <div class="chip" onclick="selectChip(this)">50+</div>
       <div class="chip" onclick="selectChip(this)">No preference</div>
     </div>
     <div class="spacer"></div>
-    <button class="cta gold" onclick="flow.next()">
-      <span>Continue</span>
-      <span class="arrow">&rarr;</span>
-    </button>
+    <button class="cta gold" onclick="flow.next()"><span>Continue</span><span class="arrow">&rarr;</span></button>
   </div>
 </div>
 
-<!-- ═══════════════ SCREEN 4: THERAPIST PREFERENCE ═══════════════ -->
+<!-- ══ 4: THERAPIST PREF ══ -->
 <div class="screen" data-screen="therapist-pref">
-  <div class="nav">
-    <button class="nav-back" onclick="flow.prev()">&larr;</button>
-    <div class="nav-brand">A Good Place <span class="dot">&middot;</span></div>
-    <div class="progress">
-      <div class="progress-dot done"></div>
-      <div class="progress-dot current"></div>
-      <div class="progress-dot"></div>
-      <div class="progress-dot"></div>
-    </div>
-  </div>
+  <div class="nav"><button class="nav-back" onclick="flow.prev()">&larr;</button><div class="nav-brand">A Good Place <span class="dot">&middot;</span></div><div class="progress"><div class="progress-dot done"></div><div class="progress-dot current"></div><div class="progress-dot"></div><div class="progress-dot"></div></div></div>
   <div class="screen-body stagger">
     <div class="step-label">Step 2 of 4 &middot; Preference</div>
     <div class="headline">Have a specific therapist <em>in mind?</em></div>
-    <div class="subtext">If someone referred you to a particular person.</div>
     <div class="chip-group vertical" data-group="therapist-pref" data-single="true">
-      <div class="option-card" onclick="selectOption(this, 'no'); document.getElementById('pref-name-field').classList.remove('visible');">
-        <div class="option-title">No, match me</div>
-        <div class="option-desc">Show me the best options based on what I've shared.</div>
-      </div>
-      <div class="option-card" onclick="selectOption(this, 'yes'); document.getElementById('pref-name-field').classList.add('visible');">
-        <div class="option-title">Yes, I have someone</div>
-        <div class="option-desc">We'll check availability and fit.</div>
-      </div>
+      <div class="option-card" onclick="selectOption(this,'no');document.getElementById('pref-name-field').classList.remove('visible');"><div class="option-title">No, match me</div><div class="option-desc">Show me the best options based on what I've shared.</div></div>
+      <div class="option-card" onclick="selectOption(this,'yes');document.getElementById('pref-name-field').classList.add('visible');"><div class="option-title">Yes, I have someone</div><div class="option-desc">We'll check their availability and fit.</div></div>
     </div>
-    <div class="sub-field" id="pref-name-field">
-      <div class="field">
-        <div class="field-label">Therapist name</div>
-        <input class="input" type="text" placeholder="e.g. Alysha Tobin">
-      </div>
-    </div>
+    <div class="sub-field" id="pref-name-field"><div class="field"><div class="field-label">Therapist name</div><div class="combobox" id="therapist-combo"><input class="input" type="text" id="therapist-search" placeholder="Start typing a name&hellip;" autocomplete="off" onclick="openCombobox()" oninput="filterTherapists()"><div class="combo-list" id="combo-list"></div></div></div></div>
     <div class="spacer"></div>
-    <button class="cta gold" onclick="flow.next()">
-      <span>Continue</span>
-      <span class="arrow">&rarr;</span>
-    </button>
+    <button class="cta gold" onclick="flow.next()"><span>Continue</span><span class="arrow">&rarr;</span></button>
   </div>
 </div>
 
-<!-- ═══════════════ SCREEN 5: FORMAT ═══════════════ -->
+<!-- ══ 5: FORMAT ══ -->
 <div class="screen" data-screen="format">
-  <div class="nav">
-    <button class="nav-back" onclick="flow.prev()">&larr;</button>
-    <div class="nav-brand">A Good Place <span class="dot">&middot;</span></div>
-    <div class="progress">
-      <div class="progress-dot done"></div>
-      <div class="progress-dot done"></div>
-      <div class="progress-dot current"></div>
-      <div class="progress-dot"></div>
-    </div>
-  </div>
+  <div class="nav"><button class="nav-back" onclick="flow.prev()">&larr;</button><div class="nav-brand">A Good Place <span class="dot">&middot;</span></div><div class="progress"><div class="progress-dot done"></div><div class="progress-dot done"></div><div class="progress-dot current"></div><div class="progress-dot"></div></div></div>
   <div class="screen-body stagger">
     <div class="step-label">Step 3 of 4 &middot; How you'd like to meet</div>
     <div class="headline">In person or <em>virtual?</em></div>
-    <div class="subtext">Whatever's easier.</div>
     <div class="chip-group vertical" data-group="format" data-single="true">
-      <div class="option-card" onclick="selectFormat(this, 'virtual')">
-        <div class="option-title">Virtual &middot; video call</div>
-      </div>
-      <div class="option-card" onclick="selectFormat(this, 'inperson')">
-        <div class="option-title">In person &middot; NYC, Palo Alto, SF</div>
-      </div>
+      <div class="option-card" onclick="selectFormat(this,'virtual')"><div class="option-title">Virtual &middot; video call</div></div>
+      <div class="option-card" onclick="selectFormat(this,'inperson')"><div class="option-title">In person &middot; NYC, Palo Alto, SF</div></div>
     </div>
-    <div class="sub-field" id="state-field">
-      <div class="field">
-        <div class="field-label">Which state are you in?</div>
-        <div class="select-wrap">
-          <select>
-            <option value="">Select state</option>
-            <option value="NY">New York</option>
-            <option value="CA">California</option>
-            <option value="NJ">New Jersey</option>
-            <option value="CT">Connecticut</option>
-            <option value="PA">Pennsylvania</option>
-            <option value="MA">Massachusetts</option>
-            <option value="FL">Florida</option>
-            <option value="TX">Texas</option>
-            <option value="IL">Illinois</option>
-            <option value="other">Other</option>
-          </select>
-        </div>
-      </div>
-      <div class="hint">We'll only show therapists licensed in your state.</div>
-    </div>
-    <div class="sub-field" id="location-field">
-      <div class="field">
-        <div class="field-label">Which office?</div>
-        <div class="chip-group" data-group="location">
-          <div class="chip" onclick="selectChip(this)">New York</div>
-          <div class="chip" onclick="selectChip(this)">Palo Alto</div>
-          <div class="chip" onclick="selectChip(this)">San Francisco</div>
-        </div>
-      </div>
-    </div>
+    <div class="sub-field" id="state-field"><div class="field"><div class="field-label">Which state are you in?</div><div class="select-wrap"><select><option value="">Select state</option><option>New York</option><option>California</option><option>New Jersey</option><option>Connecticut</option><option>Rhode Island</option><option>Hawaii</option><option>Other</option></select></div></div><div class="hint">We'll only show therapists licensed in your state.</div></div>
+    <div class="sub-field" id="location-field"><div class="field"><div class="field-label">Which office?</div><div class="chip-group" data-group="location"><div class="chip" onclick="selectChip(this)">New York</div><div class="chip" onclick="selectChip(this)">Palo Alto</div><div class="chip" onclick="selectChip(this)">San Francisco</div></div></div></div>
     <div class="spacer"></div>
-    <button class="cta gold" onclick="flow.next()">
-      <span>Continue</span>
-      <span class="arrow">&rarr;</span>
-    </button>
+    <button class="cta gold" onclick="flow.next()"><span>Continue</span><span class="arrow">&rarr;</span></button>
   </div>
 </div>
 
-<!-- ═══════════════ SCREEN 6: INSURANCE ═══════════════ -->
+<!-- ══ 6: INSURANCE ══ -->
 <div class="screen" data-screen="insurance">
-  <div class="nav">
-    <button class="nav-back" onclick="flow.prev()">&larr;</button>
-    <div class="nav-brand">A Good Place <span class="dot">&middot;</span></div>
-    <div class="progress">
-      <div class="progress-dot done"></div>
-      <div class="progress-dot done"></div>
-      <div class="progress-dot current"></div>
-      <div class="progress-dot"></div>
-    </div>
-  </div>
+  <div class="nav"><button class="nav-back" onclick="flow.prev()">&larr;</button><div class="nav-brand">A Good Place <span class="dot">&middot;</span></div><div class="progress"><div class="progress-dot done"></div><div class="progress-dot done"></div><div class="progress-dot current"></div><div class="progress-dot"></div></div></div>
   <div class="screen-body stagger">
     <div class="step-label">Step 3 of 4 &middot; Insurance</div>
     <div class="headline">Who's your <em>insurance?</em></div>
-    <div class="subtext">We'll check benefits later.</div>
     <div class="chip-group" data-group="insurance" data-single="true">
       <div class="chip" onclick="selectChip(this)">Aetna</div>
       <div class="chip" onclick="selectChip(this)">Lyra</div>
@@ -1563,31 +621,17 @@ html, body {
       <div class="chip" onclick="selectChip(this)">Other</div>
       <div class="chip" onclick="selectChip(this)">Out of pocket</div>
     </div>
-    <div class="hint" style="margin-top: 4px;">Cost estimate sent before your consult day.</div>
     <div class="spacer"></div>
-    <button class="cta gold" onclick="flow.next()">
-      <span>Continue</span>
-      <span class="arrow">&rarr;</span>
-    </button>
+    <button class="cta gold" onclick="flow.next()"><span>Continue</span><span class="arrow">&rarr;</span></button>
   </div>
 </div>
 
-<!-- ═══════════════ SCREEN 7: HOW DID YOU HEAR ═══════════════ -->
+<!-- ══ 7: REFERRAL ══ -->
 <div class="screen" data-screen="referral">
-  <div class="nav">
-    <button class="nav-back" onclick="flow.prev()">&larr;</button>
-    <div class="nav-brand">A Good Place <span class="dot">&middot;</span></div>
-    <div class="progress">
-      <div class="progress-dot done"></div>
-      <div class="progress-dot done"></div>
-      <div class="progress-dot current"></div>
-      <div class="progress-dot"></div>
-    </div>
-  </div>
+  <div class="nav"><button class="nav-back" onclick="flow.prev()">&larr;</button><div class="nav-brand">A Good Place <span class="dot">&middot;</span></div><div class="progress"><div class="progress-dot done"></div><div class="progress-dot done"></div><div class="progress-dot current"></div><div class="progress-dot"></div></div></div>
   <div class="screen-body stagger">
     <div class="step-label">Step 3 of 4 &middot; Last one</div>
     <div class="headline">How did you <em>hear about us?</em></div>
-    <div class="subtext">Just curious.</div>
     <div class="chip-group" data-group="referral" data-single="true">
       <div class="chip" onclick="selectChip(this)">Psychology Today</div>
       <div class="chip" onclick="selectChip(this)">Google search</div>
@@ -1598,558 +642,542 @@ html, body {
       <div class="chip" onclick="selectChip(this)">Other</div>
     </div>
     <div class="spacer"></div>
-    <button class="cta gold" onclick="flow.next()">
-      <span>Continue</span>
-      <span class="arrow">&rarr;</span>
-    </button>
+    <button class="cta gold" onclick="flow.next()"><span>Continue</span><span class="arrow">&rarr;</span></button>
   </div>
 </div>
 
-<!-- ═══════════════ SCREEN 8: FLEXIBILITY ═══════════════ -->
+<!-- ══ 8: FLEXIBILITY ══ -->
 <div class="screen" data-screen="flexibility">
-  <div class="nav">
-    <button class="nav-back" onclick="flow.prev()">&larr;</button>
-    <div class="nav-brand">A Good Place <span class="dot">&middot;</span></div>
-    <div class="progress">
-      <div class="progress-dot done"></div>
-      <div class="progress-dot done"></div>
-      <div class="progress-dot current"></div>
-      <div class="progress-dot"></div>
-    </div>
-  </div>
+  <div class="nav"><button class="nav-back" onclick="flow.prev()">&larr;</button><div class="nav-brand">A Good Place <span class="dot">&middot;</span></div><div class="progress"><div class="progress-dot done"></div><div class="progress-dot done"></div><div class="progress-dot current"></div><div class="progress-dot"></div></div></div>
   <div class="screen-body stagger">
     <div class="step-label">Step 3 of 4 &middot; Your schedule</div>
     <div class="headline">How <em>flexible</em> is your week?</div>
-    <div class="subtext">Changes how we show matches.</div>
     <div class="chip-group vertical" data-group="flexibility" data-single="true">
-      <div class="option-card" onclick="selectOption(this, 'flex')">
-        <div class="option-title">Pretty flexible</div>
-        <div class="option-desc">Show me best-fit therapists, I'll find a time</div>
-      </div>
-      <div class="option-card" onclick="selectOption(this, 'rigid')">
-        <div class="option-title">Pretty tight</div>
-        <div class="option-desc">Show me times that work, then who's available</div>
-      </div>
+      <div class="option-card" onclick="selectFlexibility(this,'flex')"><div class="option-title">Pretty flexible</div><div class="option-desc">Show me best-fit therapists, I'll find a time.</div></div>
+      <div class="option-card" onclick="selectFlexibility(this,'rigid')"><div class="option-title">Pretty tight</div><div class="option-desc">Show me times that work, then who's available.</div></div>
     </div>
     <div class="spacer"></div>
-    <button class="cta gold" onclick="findMatches()">
-      <span>See my matches</span>
-      <span class="arrow">&rarr;</span>
-    </button>
+    <button class="cta gold" id="flex-cta" onclick="handleFlexNext()"><span>See my matches</span><span class="arrow">&rarr;</span></button>
   </div>
-  <div class="finding-overlay" id="finding-overlay">
-    <div class="finding-spinner"></div>
-    <div class="finding-text">Finding your matches&hellip;</div>
-    <div class="finding-sub">Checking licensure, capacity, and fit</div>
-  </div>
+  <div class="loading-overlay" id="finding-overlay"><div class="loading-spinner"></div><div class="loading-text">Finding your matches&hellip;</div><div class="loading-sub">Checking licensure, capacity, and fit</div></div>
 </div>
 
-<!-- ═══════════════ SCREEN 9: MATCHES ═══════════════ -->
-<div class="screen" data-screen="matches">
-  <div class="nav">
-    <button class="nav-back" onclick="flow.prev()">&larr;</button>
-    <div class="nav-brand">A Good Place <span class="dot">&middot;</span></div>
-    <div class="progress">
-      <div class="progress-dot done"></div>
-      <div class="progress-dot done"></div>
-      <div class="progress-dot done"></div>
-      <div class="progress-dot current"></div>
-    </div>
+<!-- ══ 8b: SCHEDULE PICKER ══ -->
+<div class="screen" data-screen="schedule">
+  <div class="nav"><button class="nav-back" onclick="flow.prev()">&larr;</button><div class="nav-brand">A Good Place <span class="dot">&middot;</span></div><div class="progress"><div class="progress-dot done"></div><div class="progress-dot done"></div><div class="progress-dot current"></div><div class="progress-dot"></div></div></div>
+  <div class="screen-body stagger">
+    <div class="step-label">Step 3 of 4 &middot; Your availability</div>
+    <div class="headline">When works <em>for you?</em></div>
+    <div class="week-cal" id="week-cal"></div>
+    <div class="week-count" id="week-count"></div>
+    <div class="spacer"></div>
+    <button class="cta gold" onclick="findMatches()"><span>See my matches</span><span class="arrow">&rarr;</span></button>
   </div>
+  <div class="loading-overlay" id="schedule-finding-overlay"><div class="loading-spinner"></div><div class="loading-text">Finding your matches&hellip;</div><div class="loading-sub">Checking licensure, capacity, and fit</div></div>
+</div>
+
+<!-- ══ 9: MATCHES ══ -->
+<div class="screen" data-screen="matches">
+  <div class="nav"><button class="nav-back" onclick="flow.prev()">&larr;</button><div class="nav-brand">A Good Place <span class="dot">&middot;</span></div><div class="progress"><div class="progress-dot done"></div><div class="progress-dot done"></div><div class="progress-dot done"></div><div class="progress-dot current"></div></div></div>
   <div class="screen-body stagger">
     <div class="step-label">Step 4 of 4 &middot; Your matches</div>
     <div class="headline">Three therapists who <em>fit.</em></div>
     <div class="subtext">Tap to see consult times.</div>
-
-    <div class="match-card top" onclick="flow.goTo(10)">
+    <div class="match-card top" onclick="flow.goTo(SCREENS.indexOf('timeslots'))">
       <div class="match-head">
         <div class="match-avatar">A</div>
-        <div>
-          <div class="match-name">Alysha Tobin, LCSW</div>
-          <div class="match-creds">CBT &middot; Anxiety &middot; 12 yrs</div>
-        </div>
+        <div><div class="match-name">Alysha Ackley, LCSW</div><div class="match-creds">Anxiety &middot; Life transitions &middot; Couples</div></div>
         <div class="match-tag">Best fit</div>
       </div>
-      <div class="match-why">CBT-focused, lots of work-anxiety experience, Thursday + Friday consults open this week.</div>
+      <div class="match-why">Clinical Director. Specializes in anxiety and navigating life transitions. Columbia MSW. Thursday and Friday consults open this week.</div>
     </div>
-
-    <div class="match-card" onclick="flow.goTo(10)">
+    <div class="match-card" onclick="flow.goTo(SCREENS.indexOf('timeslots'))">
       <div class="match-head">
-        <div class="match-avatar">C</div>
-        <div>
-          <div class="match-name">Christina Ruiz, PsyD</div>
-          <div class="match-creds">CBT + ACT &middot; 8 yrs</div>
-        </div>
+        <div class="match-avatar">T</div>
+        <div><div class="match-name">Tiffany Kindred, LCSW</div><div class="match-creds">Career &middot; Identity &middot; Relationships</div></div>
       </div>
-      <div class="match-why">Strong CBT background, evening availability.</div>
+      <div class="match-why">Former management consultant turned therapist. Deep work on career transitions and self-esteem. Evening availability.</div>
     </div>
-
-    <div class="match-card" onclick="flow.goTo(10)">
+    <div class="match-card" onclick="flow.goTo(SCREENS.indexOf('timeslots'))">
       <div class="match-head">
         <div class="match-avatar">L</div>
-        <div>
-          <div class="match-name">Laura Kim, LMHC</div>
-          <div class="match-creds">Anxiety &middot; Mindfulness &middot; 6 yrs</div>
-        </div>
+        <div><div class="match-name">Laura Goldstein, LCSW</div><div class="match-creds">Anxiety &middot; Depression &middot; Stress</div></div>
       </div>
-      <div class="match-why">Lots of new-role &amp; burnout work.</div>
+      <div class="match-why">Nearly a decade of experience with work stress, relationship challenges, and life transitions.</div>
     </div>
   </div>
 </div>
 
-<!-- ═══════════════ SCREEN 10: TIME SLOTS ═══════════════ -->
+<!-- ══ 10: TIME SLOTS ══ -->
 <div class="screen" data-screen="timeslots">
-  <div class="nav">
-    <button class="nav-back" onclick="flow.prev()">&larr;</button>
-    <div class="nav-brand">A Good Place <span class="dot">&middot;</span></div>
-    <div class="progress">
-      <div class="progress-dot done"></div>
-      <div class="progress-dot done"></div>
-      <div class="progress-dot done"></div>
-      <div class="progress-dot current"></div>
-    </div>
-  </div>
+  <div class="nav"><button class="nav-back" onclick="flow.prev()">&larr;</button><div class="nav-brand">A Good Place <span class="dot">&middot;</span></div><div class="progress"><div class="progress-dot done"></div><div class="progress-dot done"></div><div class="progress-dot done"></div><div class="progress-dot current"></div></div></div>
   <div class="screen-body stagger">
-    <div class="step-label">Alysha Tobin &middot; 15-min consult</div>
-    <div style="display: flex; gap: 14px; align-items: center; margin-bottom: 18px;">
-      <div class="match-avatar" style="width: 52px; height: 52px; font-size: 21px;">A</div>
-      <div>
-        <div class="match-name" style="font-size: 19px;">Alysha Tobin, LCSW</div>
-        <div class="match-creds">Free 15-min call</div>
-      </div>
+    <div class="step-label">Alysha Ackley &middot; 15-min consult</div>
+    <div style="display:flex;gap:14px;align-items:center;margin-bottom:20px;">
+      <div class="match-avatar" style="width:54px;height:54px;font-size:22px;">A</div>
+      <div><div class="match-name" style="font-size:20px;">Alysha Ackley, LCSW</div><div class="match-creds">Free 15-min consultation</div></div>
     </div>
-
-    <div class="field-label" style="margin-bottom: 10px;">This week</div>
+    <div class="field-label" style="margin-bottom:10px;">This week</div>
     <div class="time-grid">
-      <div class="time-slot" onclick="selectSlot(this, 'Thu', '2:30')">Thu<b>2:30</b></div>
-      <div class="time-slot" onclick="selectSlot(this, 'Thu', '4:00')">Thu<b>4:00</b></div>
-      <div class="time-slot" onclick="selectSlot(this, 'Fri', '10:30')">Fri<b>10:30</b></div>
-      <div class="time-slot" onclick="selectSlot(this, 'Fri', '1:00')">Fri<b>1:00</b></div>
-      <div class="time-slot" onclick="selectSlot(this, 'Fri', '5:30')">Fri<b>5:30</b></div>
+      <div class="time-slot" onclick="selectSlot(this,'Thu','2:30')">Thu<b>2:30</b></div>
+      <div class="time-slot" onclick="selectSlot(this,'Thu','4:00')">Thu<b>4:00</b></div>
+      <div class="time-slot" onclick="selectSlot(this,'Fri','10:30')">Fri<b>10:30</b></div>
+      <div class="time-slot" onclick="selectSlot(this,'Fri','1:00')">Fri<b>1:00</b></div>
+      <div class="time-slot" onclick="selectSlot(this,'Fri','5:30')">Fri<b>5:30</b></div>
       <div class="time-slot empty">&mdash;</div>
     </div>
-
-    <div class="field-label" style="margin-bottom: 10px;">Next week</div>
+    <div class="field-label" style="margin-bottom:10px;">Next week</div>
     <div class="time-grid">
-      <div class="time-slot" onclick="selectSlot(this, 'Mon', '9:00')">Mon<b>9:00</b></div>
-      <div class="time-slot" onclick="selectSlot(this, 'Mon', '11:00')">Mon<b>11:00</b></div>
-      <div class="time-slot" onclick="selectSlot(this, 'Tue', '3:00')">Tue<b>3:00</b></div>
+      <div class="time-slot" onclick="selectSlot(this,'Mon','9:00')">Mon<b>9:00</b></div>
+      <div class="time-slot" onclick="selectSlot(this,'Mon','11:00')">Mon<b>11:00</b></div>
+      <div class="time-slot" onclick="selectSlot(this,'Tue','3:00')">Tue<b>3:00</b></div>
     </div>
     <div class="spacer"></div>
-    <button class="cta gold disabled" id="book-cta" onclick="flow.next()">
-      <span id="book-label">Select a time</span>
-      <span class="arrow">&rarr;</span>
-    </button>
+    <button class="cta gold disabled" id="book-cta" onclick="flow.next()"><span id="book-label">Select a time</span><span class="arrow">&rarr;</span></button>
   </div>
 </div>
 
-<!-- ═══════════════ SCREEN 11: CONFIRMED ═══════════════ -->
+<!-- ══ 11: CONFIRMED ══ -->
 <div class="screen" data-screen="confirmed">
-  <div class="nav">
-    <div class="nav-brand">A Good Place <span class="dot">&middot;</span></div>
-    <div class="nav-meta emerald">CONFIRMED</div>
-  </div>
-  <div class="screen-body" style="text-align: center; padding-top: 20px;">
+  <div class="nav"><div class="nav-brand">A Good Place <span class="dot">&middot;</span></div><div class="nav-meta emerald">CONFIRMED</div></div>
+  <div class="screen-body" style="text-align:center;padding-top:24px;">
     <div class="stagger">
       <div class="confirm-check">&check;</div>
-      <div class="headline" style="text-align: center; font-size: 28px; margin-bottom: 12px;">You're <em>on the calendar.</em></div>
-      <div class="subtext" style="text-align: center; margin-bottom: 24px; padding: 0 8px;" id="confirm-details">
-        Friday, May 1 at 10:30 AM with Alysha. Video link sent by email and text.
-      </div>
-      <div class="next-card" style="text-align: left;">
+      <div class="headline" style="text-align:center;font-size:30px;margin-bottom:14px;">You're <em>on the calendar.</em></div>
+      <div class="subtext" style="text-align:center;margin-bottom:24px;padding:0 8px;" id="confirm-details">Friday, May 2 at 10:30 AM with Alysha. Video link sent by email and text.</div>
+      <div class="next-card">
         <div class="next-card-label">Next</div>
-        <div class="next-card-title">A quick insurance card upload.</div>
-        <div class="next-card-note">So your cost estimate is ready before your call.</div>
+        <div class="next-card-title">Let's find out your cost.</div>
+        <div class="next-card-note">Enter your insurance details and we'll have an estimate ready before your call.</div>
       </div>
-      <button class="cta ink" onclick="flow.next()">
-        <span>Upload card now</span>
-        <span class="arrow">&rarr;</span>
-      </button>
-      <div class="footer-link" style="margin-top: 14px;">
-        or wait &mdash; we'll text you a link
-      </div>
+      <button class="cta gold" onclick="flow.next()"><span>Let's find out</span><span class="arrow">&rarr;</span></button>
     </div>
   </div>
 </div>
 
-<!-- ═══════════════ SCREEN 12: POST-BOOKING CHAT ═══════════════ -->
-<div class="screen" data-screen="chat">
-  <div class="nav">
-    <div class="nav-brand">A Good Place <span class="dot">&middot;</span></div>
-    <div class="nav-meta emerald">CONSULT BOOKED</div>
+<!-- ══ 12: INSURANCE DETAILS ══ -->
+<div class="screen" data-screen="insurance-details">
+  <div class="nav"><button class="nav-back" onclick="flow.prev()">&larr;</button><div class="nav-brand">A Good Place <span class="dot">&middot;</span></div><div class="nav-meta gold">COST</div></div>
+  <div class="screen-body stagger">
+    <div class="step-label">Insurance details</div>
+    <div class="headline">Your insurance <em>information.</em></div>
+    <div class="field"><div class="field-label">Insurance provider</div><input class="input" type="text" id="ins-provider" readonly style="background:var(--ink-cream);"></div>
+    <div class="field"><div class="field-label">Member ID</div><input class="input" type="text" id="ins-member" placeholder="Found on your insurance card"></div>
+    <div class="field"><div class="field-label">Group number <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--ink-ghost);">(optional)</span></div><input class="input" type="text" id="ins-group" placeholder="If listed on your card"></div>
+    <div class="field"><div class="field-label">Date of birth</div><input class="input" type="date" id="ins-dob"></div>
+    <div class="spacer"></div>
+    <button class="cta gold" onclick="checkBenefits()"><span>Check my benefits</span><span class="arrow">&rarr;</span></button>
   </div>
-  <div class="screen-body" style="padding-bottom: 16px;">
-    <div class="chat-scroll" id="chat-scroll">
-      <!-- Messages injected by JS -->
+  <div class="loading-overlay" id="benefits-overlay"><div class="loading-spinner"></div><div class="loading-text">Checking your benefits&hellip;</div><div class="loading-sub">This usually takes about a minute</div></div>
+</div>
+
+<!-- ══ 13: GOOD FAITH ESTIMATE ══ -->
+<div class="screen" data-screen="estimate">
+  <div class="nav"><div class="nav-brand">A Good Place <span class="dot">&middot;</span></div><div class="nav-meta emerald">VERIFIED</div></div>
+  <div class="screen-body" style="padding-top:20px;">
+    <div class="stagger">
+      <div class="step-label">Good faith estimate</div>
+      <div class="headline">Your estimated <em>session cost.</em></div>
+      <div class="estimate-card" id="gfe-card">
+        <div class="estimate-card-label">Good faith estimate</div>
+        <div class="estimate-row"><span>Session rate</span><b>$250</b></div>
+        <div class="estimate-row"><span id="gfe-ins-label">Insurance covers</span><b class="coverage" id="gfe-coverage">&minus; $200</b></div>
+        <div class="estimate-row total"><span>Your estimated cost</span><b id="gfe-total">$50</b></div>
+      </div>
+      <div class="subtext" style="margin-bottom:12px;">This is an estimate based on your plan. Final costs may vary slightly.</div>
+      <div style="padding:20px 22px;border:2px solid var(--gold);border-radius:16px;background:linear-gradient(180deg, #fffbe8 0%, #fff 100%);margin-bottom:20px;text-align:left;box-shadow:0 0 0 4px var(--gold-glow), 0 4px 16px rgba(201,162,39,0.12);">
+        <div style="font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin-bottom:7px;">Sliding scale</div>
+        <div style="font-family:var(--font-serif);font-style:italic;font-size:20px;color:var(--ink-black);margin-bottom:6px;">Therapy should be accessible.</div>
+        <div style="font-size:15px;color:var(--ink-muted);line-height:1.5;">If cost is a barrier, check if you're eligible for our sliding scale program.</div>
+      </div>
+      <button class="cta gold" onclick="flow.goTo(0)"><span id="gfe-done-label">Looks good</span><span class="arrow">&rarr;</span></button>
+      <div class="footer-link" onclick="flow.next()" style="margin-top:12px;">Check sliding scale eligibility &rarr;</div>
     </div>
-    <div class="chat-input-bar" id="chat-input" onclick="advanceChat()">
-      <span id="chat-input-text">Reply&hellip;</span>
-      <button class="send-btn">&uarr;</button>
+  </div>
+</div>
+
+<!-- ══ 14: SLIDING SCALE ══ -->
+<div class="screen" data-screen="sliding-scale">
+  <div class="nav"><button class="nav-back" onclick="flow.prev()">&larr;</button><div class="nav-brand">A Good Place <span class="dot">&middot;</span></div><div class="nav-meta gold">SLIDING SCALE</div></div>
+  <div class="screen-body stagger">
+    <div class="step-label">Sliding scale</div>
+    <div class="headline">Check your <em>eligibility.</em></div>
+    <div class="subtext">Reduced rates based on household income, starting around $140/session.</div>
+    <div class="field-label" style="margin-bottom:10px;">Household income before tax?</div>
+    <div class="chip-group" data-group="income" data-single="true" style="margin-bottom:22px;">
+      <div class="chip" onclick="selectChip(this)" data-val="40">Under $40k</div>
+      <div class="chip" onclick="selectChip(this)" data-val="70">$40 &ndash; 70k</div>
+      <div class="chip" onclick="selectChip(this)" data-val="100">$70 &ndash; 100k</div>
+      <div class="chip" onclick="selectChip(this)" data-val="150">$100 &ndash; 150k</div>
+      <div class="chip" onclick="selectChip(this)" data-val="999">$150k+</div>
+    </div>
+    <div class="field-label" style="margin-bottom:10px;">How many people does that support?</div>
+    <div class="chip-group" data-group="household" data-single="true">
+      <div class="chip" onclick="selectChip(this)" data-val="1">Just me</div>
+      <div class="chip" onclick="selectChip(this)" data-val="2">Two of us</div>
+      <div class="chip" onclick="selectChip(this)" data-val="3">Three</div>
+      <div class="chip" onclick="selectChip(this)" data-val="4">Four+</div>
+    </div>
+    <div class="spacer"></div>
+    <button class="cta gold" onclick="checkSlidingScale()"><span>Check eligibility</span><span class="arrow">&rarr;</span></button>
+  </div>
+</div>
+
+<!-- ══ 15: FINAL COST ══ -->
+<div class="screen" data-screen="final-cost">
+  <div class="nav"><div class="nav-brand">A Good Place <span class="dot">&middot;</span></div><div class="nav-meta gold" id="final-meta">SLIDING SCALE</div></div>
+  <div class="screen-body" style="padding-top:20px;">
+    <div class="stagger">
+      <div class="step-label" id="final-label">Sliding scale</div>
+      <div class="headline" id="final-headline">You may be <em>eligible.</em></div>
+      <div class="estimate-card" id="final-card">
+        <!-- populated by JS -->
+      </div>
+      <div class="subtext" id="final-note" style="margin-bottom:16px;"></div>
+      <button class="cta gold" onclick="flow.goTo(0)"><span>Done</span><span class="arrow">&rarr;</span></button>
     </div>
   </div>
 </div>
 
 </div><!-- screen-area -->
 
-<!-- Home indicator -->
-<div class="home-indicator" style="height: 22px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-  <div style="width: 134px; height: 5px; border-radius: 100px; background: var(--ink-black); opacity: 0.18;"></div>
-</div>
+<div class="home-indicator"><div></div></div>
 
 </div><!-- phone-screen -->
 </div><!-- phone-device -->
-
-<!-- Desktop branding -->
-<div class="desktop-branding" style="position: absolute; bottom: 28px; left: 0; right: 0; text-align: center; pointer-events: none;">
-  <span style="font-family: var(--font-serif); font-style: italic; font-size: 14px; color: rgba(255,255,255,0.12); letter-spacing: -0.01em;">
-    A Good Place Therapy &middot; Consultation Flow Prototype
-  </span>
-</div>
-
 </div><!-- viewport -->
 
 <script>
 const SCREENS = [
-  'welcome', 'contact', 'concerns', 'ai-followup', 'therapist-pref',
-  'format', 'insurance', 'referral', 'flexibility',
-  'matches', 'timeslots', 'confirmed', 'chat'
+  'contact','concerns','followup','therapist-pref',
+  'format','insurance','referral','flexibility','schedule',
+  'matches','timeslots','confirmed','insurance-details','estimate','sliding-scale','final-cost'
 ];
 
 const flow = {
   current: 0,
-  data: {},
-
   goTo(index) {
     if (index === this.current || index < 0 || index >= SCREENS.length) return;
     const screens = document.querySelectorAll('.screen');
     const dir = index > this.current ? 1 : -1;
-    const oldScreen = screens[this.current];
-    const newScreen = screens[index];
-
-    oldScreen.classList.remove('active');
-    oldScreen.classList.add(dir > 0 ? 'exit-left' : 'exit-right');
-
-    newScreen.style.transition = 'none';
-    newScreen.style.transform = `translateX(${dir * 40}px)`;
-    newScreen.style.opacity = '0';
-    newScreen.classList.remove('exit-left', 'exit-right');
-
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        newScreen.style.transition = '';
-        newScreen.classList.add('active');
-        newScreen.style.transform = '';
-        newScreen.style.opacity = '';
-      });
-    });
-
-    setTimeout(() => {
-      oldScreen.classList.remove('exit-left', 'exit-right');
-    }, 550);
-
+    const old = screens[this.current];
+    const next = screens[index];
+    old.classList.remove('active'); old.classList.add('exit-left');
+    next.style.transition = 'none'; next.style.transform = `translateX(${dir*40}px)`; next.style.opacity = '0';
+    next.classList.remove('exit-left');
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      next.style.transition = ''; next.classList.add('active'); next.style.transform = ''; next.style.opacity = '';
+    }));
+    setTimeout(() => old.classList.remove('exit-left'), 550);
     this.current = index;
-
-    if (SCREENS[index] === 'chat') {
-      setTimeout(() => startChat(), 400);
-    }
-    if (SCREENS[index] === 'ai-followup') {
-      extractPreferences();
-    }
+    document.getElementById('viewport').dataset.current = SCREENS[index];
+    updateDesktopPanel(index);
+    if (SCREENS[index] === 'insurance-details') prefillInsurance();
   },
-
-  next() {
-    this.goTo(this.current + 1);
-  },
-
-  prev() {
-    this.goTo(this.current - 1);
-  }
+  next() { this.goTo(this.current + 1); },
+  prev() { this.goTo(this.current - 1); }
 };
 
-function toggleCheck(el) {
-  el.classList.toggle('checked');
-}
+function toggleCheck(el) { el.classList.toggle('checked'); }
 
 function selectChip(chip) {
   const group = chip.closest('.chip-group');
-  const isSingle = group && group.dataset.single === 'true';
-  if (isSingle) {
-    group.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
-  }
+  if (group && group.dataset.single === 'true') group.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
   chip.classList.toggle('selected');
 }
 
-function selectOption(card, value) {
-  const group = card.closest('.chip-group');
-  group.querySelectorAll('.option-card').forEach(c => c.classList.remove('selected'));
+function selectOption(card, val) {
+  card.closest('.chip-group').querySelectorAll('.option-card').forEach(c => c.classList.remove('selected'));
   card.classList.add('selected');
 }
 
 function selectFormat(card, format) {
   selectOption(card, format);
-  const stateField = document.getElementById('state-field');
-  const locationField = document.getElementById('location-field');
-  if (format === 'virtual') {
-    stateField.classList.add('visible');
-    locationField.classList.remove('visible');
-  } else {
-    stateField.classList.remove('visible');
-    locationField.classList.add('visible');
-  }
+  document.getElementById('state-field').classList.toggle('visible', format === 'virtual');
+  document.getElementById('location-field').classList.toggle('visible', format === 'inperson');
 }
 
-let selectedSlot = null;
 function selectSlot(el, day, time) {
   document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
   el.classList.add('selected');
-  selectedSlot = { day, time };
-  const cta = document.getElementById('book-cta');
-  const label = document.getElementById('book-label');
-  cta.classList.remove('disabled');
-  label.textContent = `Book ${day} ${time}`;
-
-  const details = document.getElementById('confirm-details');
-  details.textContent = `${day}, May at ${time} AM with Alysha. Video link sent by email and text.`;
+  document.getElementById('book-cta').classList.remove('disabled');
+  document.getElementById('book-label').textContent = `Book ${day} ${time}`;
+  document.getElementById('confirm-details').textContent = `${day}, May at ${time} AM with Alysha. Video link sent by email and text.`;
 }
 
-function extractPreferences() {
-  const text = (document.getElementById('concerns-text').value || '').toLowerCase();
-  const prefs = [];
-
-  if (text.includes('couples') || text.includes('couple')) prefs.push('couples therapy');
-  else if (text.includes('family')) prefs.push('family therapy');
-  else prefs.push('individual therapy');
-
-  if (text.includes('anxiety') || text.includes('anxious')) prefs.push('anxiety');
-  if (text.includes('depress')) prefs.push('depression');
-  if (text.includes('cbt') || text.includes('cognitive')) prefs.push('CBT');
-  if (text.includes('trauma') || text.includes('ptsd')) prefs.push('trauma');
-  if (text.includes('work') || text.includes('burnout') || text.includes('stress')) prefs.push('work stress');
-  if (text.includes('relationship')) prefs.push('relationship issues');
-  if (text.includes('woman') || text.includes('female')) prefs.push('prefers a woman');
-  if (text.includes('man') || text.includes('male therapist')) prefs.push('prefers a man');
-  if (text.includes('sleep')) prefs.push('sleep issues');
-
-  if (prefs.length === 0 && text.length > 0) {
-    prefs.push('individual therapy', 'general concerns');
-  } else if (prefs.length === 0) {
-    prefs.push('individual therapy', 'anxiety', 'CBT', 'prefers a woman');
-  }
-
-  const el = document.getElementById('extracted-prefs');
-  el.textContent = prefs.join(' · ') + '.';
-}
-
-/* ── Chat Simulation ── */
-let chatPhase = 0;
-let chatStarted = false;
-let chatBusy = false;
-
-function startChat() {
-  if (chatStarted) return;
-  chatStarted = true;
-  chatPhase = 0;
-  chatBusy = true;
-  const scroll = document.getElementById('chat-scroll');
-  scroll.innerHTML = '';
-
-  const name = document.getElementById('fname').value || 'Sarah';
-  const insurance = getSelectedInsurance();
-
-  appendChat([
-    { type: 'day', text: 'Today · 9:49 AM' },
-    { type: 'sender', text: 'Cortexa' },
-    { type: 'ai', html: `Hi ${name} — nice to have you. I'll get your <b>cost estimate</b> ready before Friday so the call can be about what matters.`, delay: 300 },
-    { type: 'ai', html: `Your insurance is <b>${insurance}</b>. Snap a photo of your card, or type your member ID?`, delay: 600 },
-    { type: 'quick', buttons: ['📷  Take a photo', 'Type member ID', 'Not on me'], delay: 900 },
-  ]);
-  setTimeout(() => { chatBusy = false; }, 1000);
-}
-
-function getSelectedInsurance() {
-  const chips = document.querySelectorAll('[data-group="insurance"] .chip.selected');
-  return chips.length ? chips[0].textContent : 'Lyra';
-}
-
-function advanceChat() {
-  if (chatBusy || chatPhase >= 3) return;
-  chatBusy = true;
-  chatPhase++;
-  const scroll = document.getElementById('chat-scroll');
-  const name = document.getElementById('fname').value || 'Sarah';
-  const insurance = getSelectedInsurance();
-
-  removeQuickReplies();
-
-  if (chatPhase === 1) {
-    appendChat([
-      { type: 'sender-user', text: `${name} · 9:50` },
-      { type: 'user', text: '📷  Take a photo' },
-      { type: 'attach', delay: 400 },
-      { type: 'sender', text: 'Cortexa', delay: 700 },
-      { type: 'ai', html: `Got it. Reading: <b>${insurance} · ID ending 4471</b>. Looks right?`, delay: 1000 },
-      { type: 'quick', buttons: ['Looks right', 'Fix the ID'], delay: 1300 },
-    ]);
-    setTimeout(() => { chatBusy = false; }, 1400);
-  } else if (chatPhase === 2) {
-    appendChat([
-      { type: 'sender-user', text: `${name} · 9:51` },
-      { type: 'user', text: 'Looks right' },
-      { type: 'sender', text: 'Cortexa', delay: 400 },
-      { type: 'ai', html: `Checking your benefits with ${insurance} now. Usually about a minute.`, delay: 700 },
-      { type: 'typing', delay: 1000 },
-    ]);
-    setTimeout(() => {
-      removeTyping();
-      appendChat([
-        { type: 'sender', text: 'Cortexa · 9:52' },
-        { type: 'ai', html: `Good news — <b>${insurance} is in-network</b> with A Good Place, and your plan covers outpatient therapy.` },
-        { type: 'estimate', delay: 400 },
-        { type: 'ai', html: 'Your deductible is already met for the year, so this is what you\'ll see from session one. Alysha will see the same number on her side.', delay: 700 },
-      ]);
-      document.getElementById('chat-input-text').textContent = 'See you Friday →';
-      document.getElementById('chat-input').style.borderColor = 'var(--gold)';
-      chatPhase = 3;
-    }, 3500);
-  }
-}
-
-function appendChat(messages) {
-  const scroll = document.getElementById('chat-scroll');
-  messages.forEach((msg, i) => {
-    const delay = msg.delay || 0;
-    setTimeout(() => {
-      let el;
-      switch (msg.type) {
-        case 'day':
-          el = document.createElement('div');
-          el.className = 'chat-day';
-          el.textContent = msg.text;
-          break;
-        case 'sender':
-          el = document.createElement('div');
-          el.className = 'chat-sender';
-          el.textContent = msg.text;
-          break;
-        case 'sender-user':
-          el = document.createElement('div');
-          el.className = 'chat-sender user';
-          el.textContent = msg.text;
-          break;
-        case 'ai':
-          el = document.createElement('div');
-          el.className = 'chat-bubble ai';
-          el.innerHTML = msg.html;
-          break;
-        case 'user':
-          el = document.createElement('div');
-          el.className = 'chat-bubble user';
-          el.textContent = msg.text;
-          break;
-        case 'quick':
-          el = document.createElement('div');
-          el.className = 'chat-quick';
-          msg.buttons.forEach((label, idx) => {
-            const btn = document.createElement('button');
-            btn.className = 'chat-quick-btn';
-            btn.textContent = label;
-            btn.onclick = () => advanceChat();
-            el.appendChild(btn);
-          });
-          break;
-        case 'typing':
-          el = document.createElement('div');
-          el.className = 'chat-typing';
-          el.id = 'chat-typing';
-          el.innerHTML = '<div class="chat-typing-dot"></div><div class="chat-typing-dot"></div><div class="chat-typing-dot"></div>';
-          break;
-        case 'attach':
-          el = document.createElement('div');
-          el.className = 'chat-attach';
-          el.innerHTML = `
-            <div class="chat-attach-thumb">CARD</div>
-            <div class="chat-attach-meta">
-              <b>insurance-card.jpg</b>
-              <span>front · 1.2 MB</span>
-            </div>`;
-          break;
-        case 'estimate':
-          el = document.createElement('div');
-          el.className = 'chat-estimate';
-          el.innerHTML = `
-            <div class="chat-estimate-label">Your estimate per session</div>
-            <div class="chat-estimate-line"><span>Standard rate</span><b>$220</b></div>
-            <div class="chat-estimate-line"><span>${getSelectedInsurance()} coverage</span><span style="color:var(--emerald);">— $190</span></div>
-            <div class="chat-estimate-line total"><span>You pay</span><b>$30</b></div>`;
-          break;
-      }
-      if (el) {
-        scroll.appendChild(el);
-        scroll.scrollTop = scroll.scrollHeight;
-      }
-    }, delay);
-  });
-}
-
-function removeQuickReplies() {
-  document.querySelectorAll('#chat-scroll .chat-quick').forEach(el => el.remove());
-}
-
-function removeTyping() {
-  const t = document.getElementById('chat-typing');
-  if (t) t.remove();
-}
-
-/* ── Crisis Detection ── */
-const CRISIS_WORDS = ['suicide', 'suicidal', 'kill myself', 'end my life', 'self-harm', 'self harm', 'cutting myself', 'want to die', 'don\'t want to live', 'hurting myself'];
-
+/* Crisis */
+const CRISIS_WORDS = ['suicide','suicidal','kill myself','end my life','self-harm','self harm','want to die','hurting myself'];
 function handleConcernsNext() {
   const text = (document.getElementById('concerns-text').value || '').toLowerCase();
-  const hasCrisis = CRISIS_WORDS.some(w => text.includes(w));
-  if (hasCrisis) {
-    document.getElementById('crisis-overlay').classList.add('visible');
+  if (CRISIS_WORDS.some(w => text.includes(w))) showCrisis();
+  else flow.next();
+}
+function showCrisis() { document.getElementById('crisis-overlay').classList.add('visible'); }
+function hideCrisis() { document.getElementById('crisis-overlay').classList.remove('visible'); }
+
+/* Flexibility selection */
+let flexChoice = null;
+function selectFlexibility(card, val) {
+  selectOption(card, val);
+  flexChoice = val;
+}
+function handleFlexNext() {
+  if (flexChoice === 'rigid') {
+    flow.goTo(SCREENS.indexOf('schedule'));
+    if (!document.getElementById('week-cal').hasChildNodes()) buildWeekCalendar();
   } else {
-    flow.next();
+    findMatches();
   }
 }
 
-function closeCrisisOverlay() {
-  document.getElementById('crisis-overlay').classList.remove('visible');
-}
-
-/* ── Finding Matches ── */
+/* Finding matches */
 function findMatches() {
-  const overlay = document.getElementById('finding-overlay');
+  const onSchedule = SCREENS[flow.current] === 'schedule';
+  const overlay = document.getElementById(onSchedule ? 'schedule-finding-overlay' : 'finding-overlay');
   overlay.classList.add('visible');
-  setTimeout(() => {
-    overlay.classList.remove('visible');
-    flow.next();
-  }, 2000);
+  const matchesIdx = SCREENS.indexOf('matches');
+  setTimeout(() => { overlay.classList.remove('visible'); flow.goTo(matchesIdx); }, 2000);
 }
 
-/* ── View Toggle ── */
+/* Insurance */
+function getSelectedInsurance() {
+  const sel = document.querySelector('[data-group="insurance"] .chip.selected');
+  return sel ? sel.textContent : 'Lyra';
+}
+function prefillInsurance() {
+  document.getElementById('ins-provider').value = getSelectedInsurance();
+}
+
+/* Benefits check */
+function checkBenefits() {
+  document.getElementById('benefits-overlay').classList.add('visible');
+  setTimeout(() => {
+    document.getElementById('benefits-overlay').classList.remove('visible');
+    const ins = getSelectedInsurance();
+    const rates = { 'Aetna': 170, 'Lyra': 200, 'Modern Health': 190, 'Wellfleet': 160, 'United / Optum': 180, 'Cigna': 175, 'Other': 150, 'Out of pocket': 0 };
+    const coverage = rates[ins] || 150;
+    const copay = 250 - coverage;
+    document.getElementById('gfe-ins-label').textContent = ins === 'Out of pocket' ? 'Insurance' : `${ins} covers`;
+    document.getElementById('gfe-coverage').textContent = coverage > 0 ? `− $${coverage}` : '$0';
+    document.getElementById('gfe-total').textContent = `$${copay}`;
+    flow.next();
+  }, 2200);
+}
+
+/* Sliding scale */
+function checkSlidingScale() {
+  const incomeChip = document.querySelector('[data-group="income"] .chip.selected');
+  const householdChip = document.querySelector('[data-group="household"] .chip.selected');
+  const income = incomeChip ? parseInt(incomeChip.dataset.val) : 100;
+  const household = householdChip ? parseInt(householdChip.dataset.val) : 1;
+  const card = document.getElementById('final-card');
+  const note = document.getElementById('final-note');
+  const hl = document.getElementById('final-headline');
+  const label = document.getElementById('final-label');
+  const meta = document.getElementById('final-meta');
+  let eligible = false, rate = 250;
+  if (income <= 40) { eligible = true; rate = 140; }
+  else if (income <= 70) { eligible = true; rate = 155; }
+  else if (income <= 100) { eligible = true; rate = 175; }
+  else if (income <= 150 && household >= 2) { eligible = true; rate = 195; }
+  if (eligible) {
+    hl.innerHTML = 'You may be <em>eligible.</em>';
+    label.textContent = 'Sliding scale';
+    meta.textContent = 'ELIGIBLE';
+    meta.className = 'nav-meta emerald';
+    card.innerHTML = `<div class="estimate-card-label">Adjusted estimate</div><div class="estimate-row"><span>Standard rate</span><b>$250</b></div><div class="estimate-row total"><span>Sliding scale rate</span><b>$${rate}</b></div>`;
+    note.textContent = 'This is a preliminary estimate. Your therapist will confirm during your consultation, and we’ll ask for a recent paystub to finalize.';
+  } else {
+    hl.innerHTML = 'The standard rate <em>applies.</em>';
+    label.textContent = 'Sliding scale';
+    meta.textContent = 'STANDARD RATE';
+    meta.className = 'nav-meta gold';
+    const ins = getSelectedInsurance();
+    const rates = { 'Aetna': 170, 'Lyra': 200, 'Modern Health': 190, 'Wellfleet': 160, 'United / Optum': 180, 'Cigna': 175, 'Other': 150, 'Out of pocket': 0 };
+    const cov = rates[ins] || 150; const copay = 250 - cov;
+    card.innerHTML = `<div class="estimate-card-label">Your estimate</div><div class="estimate-row"><span>Session rate</span><b>$250</b></div><div class="estimate-row"><span>${ins === 'Out of pocket' ? 'Insurance' : ins + ' covers'}</span><b class="coverage">${cov > 0 ? '− $'+cov : '$0'}</b></div><div class="estimate-row total"><span>Your estimated cost</span><b>$${copay}</b></div>`;
+    note.textContent = 'Based on your household income, the sliding scale doesn’t apply. If cost is still a concern, your therapist can discuss options during your consultation.';
+  }
+  flow.next();
+}
+
+/* View toggle */
 function setView(mode) {
   const vp = document.getElementById('viewport');
-  if (mode === 'desktop') {
-    vp.classList.add('desktop');
-  } else {
-    vp.classList.remove('desktop');
-  }
-  document.querySelectorAll('.view-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.view === mode);
+  vp.classList.toggle('desktop', mode === 'desktop');
+  document.querySelectorAll('.view-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.view === mode));
+  if (mode === 'desktop') updateDesktopPanel(flow.current);
+}
+
+/* Desktop sidebar content */
+const PANEL_CONTENT = {
+  welcome: { quote: "Good things<br>start here.", note: "~ 5 minutes", step: 0 },
+  contact: { quote: "We’re glad<br>you’re here.", note: "Just a few basics.", step: 1 },
+  concerns: { quote: "You don’t have<br>to have it all<br>figured out.", note: "There’s no wrong way to say it.", step: 2 },
+  followup: { quote: "Everyone’s path<br>looks a little<br>different.", note: "There are no wrong answers.", step: 2 },
+  "therapist-pref": { quote: "The right connection<br>makes all the<br>difference.", note: "Either way, we’ll find your person.", step: 2 },
+  format: { quote: "Your comfort<br>comes first.", note: "Virtual or in-person — your call.", step: 3 },
+  insurance: { quote: "You focus on you.<br>We’ll handle<br>this part.", note: "Benefits verified before your first session.", step: 3 },
+  referral: { quote: "We love knowing<br>what brought<br>you here.", note: "Just curious — no wrong answer.", step: 3 },
+  flexibility: { quote: "Almost ready<br>to meet your<br>matches.", note: "One more and we’ll build your shortlist.", step: 3 },
+  schedule: { quote: "When works<br>for you?", note: "Tap the times you're free.", step: 3 },
+  matches: { quote: "People who<br>get it.", note: "Matched on specialty, style, and availability.", step: 4 },
+  timeslots: { quote: "One conversation<br>can change<br>a lot.", note: "No commitment. Just a conversation.", step: 4 },
+  confirmed: { quote: "Something good<br>is starting.", note: "Look for a confirmation in your inbox.", step: 5 },
+  "insurance-details": { quote: "Let us do<br>the math.", note: "So there are no surprises later.", step: 5 },
+  estimate: { quote: "No surprises.<br>That’s the goal.", note: "Based on your plan and our rates.", step: 5 },
+  "sliding-scale": { quote: "Good therapy<br>shouldn’t be<br>a luxury.", note: "Everyone deserves a good place.", step: 5 },
+  "final-cost": { quote: "Investing in<br>yourself is<br>never wasted.", note: "Your therapist can discuss options too.", step: 5 }
+};
+
+function updateDesktopPanel(screenIndex) {
+  const name = SCREENS[screenIndex];
+  const c = PANEL_CONTENT[name];
+  if (!c) return;
+  const q = document.getElementById('dp-quote');
+  const n = document.getElementById('dp-note');
+  if (!q) return;
+  q.style.opacity = '0'; q.style.transform = 'translateY(-6px)';
+  n.style.opacity = '0';
+  setTimeout(() => {
+    q.innerHTML = c.quote; n.textContent = c.note;
+    q.style.opacity = '1'; q.style.transform = 'translateY(0)';
+    n.style.opacity = '1';
+  }, 200);
+  document.querySelectorAll('.dp-step-item').forEach((el, i) => {
+    el.classList.remove('done', 'current');
+    if (c.step > i + 1) el.classList.add('done');
+    else if (c.step === i + 1) el.classList.add('current');
   });
 }
 
-/* ── Input field styling ── */
+/* Week calendar */
+const WEEK_AVAIL = {
+  Mon: [9, 10, 11, 14, 15, 17],
+  Tue: [10, 11, 16],
+  Wed: [9, 10, 13, 14, 17, 18],
+  Thu: [9, 11, 14, 15, 16, 17, 18],
+  Fri: [10, 14]
+};
+const HOUR_LABELS = {9:'9am',10:'10am',11:'11am',12:'12pm',13:'1pm',14:'2pm',15:'3pm',16:'4pm',17:'5pm',18:'6pm'};
+const selectedWeekSlots = new Set();
+
+function buildWeekCalendar() {
+  const cal = document.getElementById('week-cal');
+  const days = ['Mon','Tue','Wed','Thu','Fri'];
+  const hours = [9,10,11,12,13,14,15,16,17,18];
+  let html = '<div class="week-th"></div>';
+  days.forEach(d => { html += '<div class="week-th">' + d + '</div>'; });
+  hours.forEach(h => {
+    const hasAny = days.some(d => WEEK_AVAIL[d].includes(h));
+    if (!hasAny) return;
+    html += '<div class="week-tl">' + HOUR_LABELS[h] + '</div>';
+    days.forEach(d => {
+      if (WEEK_AVAIL[d].includes(h)) {
+        html += '<div class="week-cell"><div class="wslot" onclick="toggleWeekSlot(this)" data-day="' + d + '" data-time="' + HOUR_LABELS[h] + '">' + HOUR_LABELS[h] + '</div></div>';
+      } else {
+        html += '<div class="week-cell"></div>';
+      }
+    });
+  });
+  cal.innerHTML = html;
+}
+
+function toggleWeekSlot(el) {
+  el.classList.toggle('selected');
+  const key = el.dataset.day + ' ' + el.dataset.time;
+  if (el.classList.contains('selected')) selectedWeekSlots.add(key);
+  else selectedWeekSlots.delete(key);
+  const n = selectedWeekSlots.size;
+  document.getElementById('week-count').textContent = n > 0 ? n + ' time' + (n > 1 ? 's' : '') + ' selected' : '';
+}
+
+/* Clinician combobox */
+const CLINICIANS = [
+  { name: "Alysha Ackley", creds: "LCSW", specialties: "Anxiety · Life transitions · Couples" },
+  { name: "Tiffany Kindred", creds: "LCSW", specialties: "Career · Identity · Relationships" },
+  { name: "Laura Goldstein", creds: "LCSW", specialties: "Anxiety · Depression · Stress" },
+  { name: "Marcus Chen", creds: "LMFT", specialties: "Couples · Family · Communication" },
+  { name: "Priya Patel", creds: "PsyD", specialties: "Trauma · EMDR · Self-esteem" },
+  { name: "David Morales", creds: "LCSW", specialties: "Grief · Loss · Life transitions" },
+  { name: "Rachel Kim", creds: "LMHC", specialties: "OCD · Anxiety · Perfectionism" },
+  { name: "James Okafor", creds: "PhD", specialties: "Depression · Men's issues · Stress" },
+  { name: "Sofia Reyes", creds: "LCSW", specialties: "Bilingual · Immigration · Adjustment" },
+  { name: "Hannah Levy", creds: "LCSW", specialties: "Postpartum · Women's health · Anxiety" }
+];
+
+let comboHighlight = -1;
+
+function openCombobox() {
+  const combo = document.getElementById('therapist-combo');
+  const input = document.getElementById('therapist-search');
+  input.value = '';
+  combo.classList.add('open');
+  filterTherapists();
+  document.addEventListener('click', closeComboboxOutside);
+}
+
+function closeCombobox() {
+  const combo = document.getElementById('therapist-combo');
+  combo.classList.remove('open');
+  comboHighlight = -1;
+  document.removeEventListener('click', closeComboboxOutside);
+}
+
+function closeComboboxOutside(e) {
+  if (!document.getElementById('therapist-combo').contains(e.target)) closeCombobox();
+}
+
+function highlightMatch(name, query) {
+  if (!query) return name;
+  const i = name.toLowerCase().indexOf(query.toLowerCase());
+  if (i === -1) return name;
+  return name.slice(0, i) + '<mark>' + name.slice(i, i + query.length) + '</mark>' + name.slice(i + query.length);
+}
+
+function filterTherapists() {
+  const input = document.getElementById('therapist-search');
+  const list = document.getElementById('combo-list');
+  const q = input.value.trim();
+  const matches = q ? CLINICIANS.filter(c => c.name.toLowerCase().includes(q.toLowerCase())) : CLINICIANS;
+  comboHighlight = -1;
+
+  if (matches.length === 0) {
+    list.innerHTML = '<div class="combo-empty">No clinicians found</div>';
+    return;
+  }
+  list.innerHTML = matches.map((c, i) =>
+    '<div class="combo-item" onmousedown="selectTherapist(\'' + c.name + ', ' + c.creds + '\')">' +
+      '<div class="combo-avatar">' + c.name.charAt(0) + '</div>' +
+      '<div class="combo-info"><div class="combo-name">' + highlightMatch(c.name, q) + ', ' + c.creds + '</div>' +
+      '<div class="combo-creds">' + c.specialties + '</div></div></div>'
+  ).join('');
+}
+
+function selectTherapist(val) {
+  document.getElementById('therapist-search').value = val;
+  closeCombobox();
+}
+
+document.addEventListener('keydown', function(e) {
+  const combo = document.getElementById('therapist-combo');
+  if (!combo || !combo.classList.contains('open')) return;
+  const items = combo.querySelectorAll('.combo-item');
+  if (!items.length) return;
+  if (e.key === 'ArrowDown') { e.preventDefault(); comboHighlight = Math.min(comboHighlight + 1, items.length - 1); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); comboHighlight = Math.max(comboHighlight - 1, 0); }
+  else if (e.key === 'Enter' && comboHighlight >= 0) { e.preventDefault(); items[comboHighlight].onmousedown(); return; }
+  else if (e.key === 'Escape') { closeCombobox(); return; }
+  else return;
+  items.forEach((it, i) => it.classList.toggle('highlighted', i === comboHighlight));
+  if (items[comboHighlight]) items[comboHighlight].scrollIntoView({ block: 'nearest' });
+});
+
+/* Input styling */
 document.querySelectorAll('.input, .textarea').forEach(input => {
   input.addEventListener('focus', () => input.classList.add('focused'));
-  input.addEventListener('blur', () => {
-    input.classList.remove('focused');
-    if (input.value.trim()) input.classList.add('filled');
-    else input.classList.remove('filled');
-  });
+  input.addEventListener('blur', () => { input.classList.remove('focused'); input.value.trim() ? input.classList.add('filled') : input.classList.remove('filled'); });
 });
 </script>
-
 </body>
 </html>
