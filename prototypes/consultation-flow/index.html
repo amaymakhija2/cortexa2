@@ -13,7 +13,7 @@
   --font-sans: 'Suisse Intl', 'DM Sans', system-ui, sans-serif;
   --font-mono: 'Suisse Intl Mono', 'JetBrains Mono', 'SF Mono', monospace;
   --ink-black: #1a1815; --ink-dark: #2d2a26; --ink-body: #3d3a35;
-  --ink-muted: #4a4740; --ink-stone: #635d57; --ink-faded: #7a756e;
+  --ink-muted: #3d3a35; --ink-stone: #524e48; --ink-faded: #6b665f;
   --ink-ghost: #b5b0a6; --ink-rule: #e8e5df; --ink-cream: #f7f5f2; --ink-paper: #fdfcfa;
   --gold: #c9a227; --gold-muted: #d4b85c; --gold-glow: rgba(201,162,39,0.15);
   --emerald: #047857; --emerald-light: #d1fae5;
@@ -57,54 +57,54 @@ html, body { height: 100%; background: #1e1c19; font-family: var(--font-sans); c
 /* ── Content ── */
 .screen-body { flex: 1; padding: 12px 22px 22px; display: flex; flex-direction: column; min-height: 0; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
 .screen-body::-webkit-scrollbar { display: none; }
-.step-label { font-size: 13px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-stone); margin-bottom: 12px; }
-.headline { font-family: var(--font-serif); font-weight: 300; font-size: 32px; line-height: 1.1; letter-spacing: -0.02em; color: var(--ink-black); margin-bottom: 18px; }
+.step-label { font-size: 14px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-stone); margin-bottom: 12px; }
+.headline { font-family: var(--font-serif); font-weight: 300; font-size: 36px; line-height: 1.1; letter-spacing: -0.02em; color: var(--ink-black); margin-bottom: 18px; }
 .headline em { font-style: italic; color: var(--gold); }
-.subtext { font-size: 16px; line-height: 1.55; color: var(--ink-muted); margin-bottom: 20px; }
+.subtext { font-size: 18px; line-height: 1.55; color: var(--ink-muted); margin-bottom: 22px; }
 
 /* ── Forms ── */
-.field { margin-bottom: 14px; }
-.field-label { font-size: 13px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-stone); margin-bottom: 7px; }
-.input { width: 100%; padding: 13px 15px; border: 1.5px solid var(--ink-rule); border-radius: 12px; background: #fff; font-family: var(--font-sans); font-size: 16px; color: var(--ink-black); line-height: 1.4; outline: none; transition: border-color 0.25s, box-shadow 0.25s; -webkit-appearance: none; }
+.field { margin-bottom: 16px; }
+.field-label { font-size: 14px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-stone); margin-bottom: 8px; }
+.input { width: 100%; padding: 15px 16px; border: 1.5px solid var(--ink-rule); border-radius: 12px; background: #fff; font-family: var(--font-sans); font-size: 17px; color: var(--ink-black); line-height: 1.4; outline: none; transition: border-color 0.25s, box-shadow 0.25s; -webkit-appearance: none; }
 .input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-glow); }
 .input::placeholder { color: var(--ink-ghost); }
-.textarea { width: 100%; padding: 15px; border: 1.5px solid var(--ink-rule); border-radius: 12px; background: #fff; font-family: var(--font-sans); font-size: 16px; color: var(--ink-black); line-height: 1.55; outline: none; resize: none; min-height: 140px; transition: border-color 0.25s, box-shadow 0.25s; -webkit-appearance: none; }
+.textarea { width: 100%; padding: 16px; border: 1.5px solid var(--ink-rule); border-radius: 12px; background: #fff; font-family: var(--font-sans); font-size: 17px; color: var(--ink-black); line-height: 1.55; outline: none; resize: none; min-height: 140px; transition: border-color 0.25s, box-shadow 0.25s; -webkit-appearance: none; }
 .textarea:focus { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-glow); }
 .textarea::placeholder { color: var(--ink-ghost); }
-.check-row { display: flex; gap: 12px; padding: 15px 16px; border: 1.5px solid var(--ink-rule); border-radius: 12px; background: #fff; align-items: flex-start; cursor: pointer; transition: border-color 0.25s, background 0.25s; user-select: none; margin-top: 10px; }
+.check-row { display: flex; gap: 14px; padding: 16px 18px; border: 1.5px solid var(--ink-rule); border-radius: 12px; background: #fff; align-items: flex-start; cursor: pointer; transition: border-color 0.25s, background 0.25s; user-select: none; margin-top: 12px; }
 .check-row.checked { border-color: var(--ink-black); background: var(--ink-cream); }
-.check-box { width: 22px; height: 22px; border-radius: 5px; border: 1.5px solid var(--ink-stone); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; color: transparent; transition: all 0.2s; }
+.check-box { width: 24px; height: 24px; border-radius: 5px; border: 1.5px solid var(--ink-stone); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; color: transparent; transition: all 0.2s; }
 .check-row.checked .check-box { background: var(--ink-black); border-color: var(--ink-black); color: #fff; }
-.check-text { font-size: 15px; line-height: 1.45; color: var(--ink-body); }
+.check-text { font-size: 16px; line-height: 1.5; color: var(--ink-body); }
 
 /* ── Chips ── */
-.chip-group { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
+.chip-group { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
 .chip-group.vertical { flex-direction: column; }
-.chip { padding: 13px 18px; border: 1.5px solid var(--ink-rule); border-radius: 999px; font-size: 16px; color: var(--ink-body); background: #fff; cursor: pointer; transition: all 0.2s var(--ease); user-select: none; text-align: center; }
+.chip { padding: 15px 22px; border: 1.5px solid var(--ink-rule); border-radius: 999px; font-size: 18px; color: var(--ink-body); background: #fff; cursor: pointer; transition: all 0.2s var(--ease); user-select: none; text-align: center; }
 .chip:hover { border-color: var(--ink-stone); background: var(--ink-cream); }
 .chip.selected { background: var(--ink-black); color: #fff; border-color: var(--ink-black); }
-.option-card { width: 100%; padding: 18px 20px; border: 1.5px solid var(--ink-rule); border-radius: 14px; background: #fff; cursor: pointer; transition: all 0.25s var(--ease); user-select: none; text-align: left; }
+.option-card { width: 100%; padding: 22px 24px; border: 1.5px solid var(--ink-rule); border-radius: 14px; background: #fff; cursor: pointer; transition: all 0.25s var(--ease); user-select: none; text-align: left; }
 .option-card:hover { border-color: var(--ink-stone); background: var(--ink-cream); }
 .option-card.selected { border-color: var(--ink-black); background: var(--ink-cream); }
-.option-card .option-title { font-family: var(--font-serif); font-style: italic; font-weight: 400; font-size: 18px; color: var(--ink-black); }
-.option-card .option-desc { font-size: 15px; color: var(--ink-muted); margin-top: 4px; }
+.option-card .option-title { font-family: var(--font-serif); font-style: italic; font-weight: 400; font-size: 22px; color: var(--ink-black); }
+.option-card .option-desc { font-size: 16px; color: var(--ink-muted); margin-top: 5px; line-height: 1.45; }
 .select-wrap { position: relative; }
-.select-wrap select { width: 100%; padding: 13px 15px; padding-right: 36px; border: 1.5px solid var(--ink-rule); border-radius: 12px; background: #fff; font-family: var(--font-sans); font-size: 16px; color: var(--ink-black); outline: none; -webkit-appearance: none; appearance: none; cursor: pointer; transition: border-color 0.25s, box-shadow 0.25s; }
+.select-wrap select { width: 100%; padding: 15px 16px; padding-right: 36px; border: 1.5px solid var(--ink-rule); border-radius: 12px; background: #fff; font-family: var(--font-sans); font-size: 17px; color: var(--ink-black); outline: none; -webkit-appearance: none; appearance: none; cursor: pointer; transition: border-color 0.25s, box-shadow 0.25s; }
 .select-wrap select:focus { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-glow); }
-.select-wrap::after { content: "▾"; position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--ink-stone); font-size: 14px; pointer-events: none; }
+.select-wrap::after { content: "▾"; position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--ink-stone); font-size: 16px; pointer-events: none; }
 
 /* ── CTA ── */
-.cta { margin-top: auto; padding: 15px 22px; border-radius: 14px; font-family: var(--font-sans); font-weight: 500; font-size: 17px; text-align: center; cursor: pointer; transition: all 0.25s var(--ease); display: flex; justify-content: space-between; align-items: center; border: none; flex-shrink: 0; width: 100%; -webkit-appearance: none; }
+.cta { margin-top: auto; padding: 17px 22px; border-radius: 14px; font-family: var(--font-sans); font-weight: 600; font-size: 18px; text-align: center; cursor: pointer; transition: all 0.25s var(--ease); display: flex; justify-content: space-between; align-items: center; border: none; flex-shrink: 0; width: 100%; -webkit-appearance: none; }
 .cta.gold { background: var(--gold); color: var(--ink-black); }
 .cta.gold:hover { background: #b8921f; }
 .cta.gold:active { transform: scale(0.98); }
 .cta.ink { background: var(--ink-black); color: #fff; }
 .cta.ink:hover { background: #2d2a26; }
 .cta.disabled { opacity: 0.35; pointer-events: none; }
-.cta .arrow { font-size: 18px; }
-.hint { font-size: 15px; color: var(--ink-muted); margin-top: 8px; font-style: italic; font-family: var(--font-serif); line-height: 1.45; }
+.cta .arrow { font-size: 20px; }
+.hint { font-size: 16px; color: var(--ink-muted); margin-top: 10px; font-style: italic; font-family: var(--font-serif); line-height: 1.45; }
 .spacer { flex: 1; min-height: 8px; }
-.footer-link { text-align: center; font-size: 15px; color: var(--ink-muted); margin-top: 12px; font-family: var(--font-serif); font-style: italic; cursor: pointer; }
+.footer-link { text-align: center; font-size: 16px; color: var(--ink-muted); margin-top: 14px; font-family: var(--font-serif); font-style: italic; cursor: pointer; }
 .sub-field { overflow: hidden; max-height: 0; opacity: 0; transition: max-height 0.4s var(--ease), opacity 0.3s, margin 0.3s; margin-top: 0; }
 .sub-field.visible { max-height: 500px; opacity: 1; margin-top: 16px; }
 
@@ -169,9 +169,9 @@ html, body { height: 100%; background: #1e1c19; font-family: var(--font-sans); c
   color: var(--ink-black); flex-shrink: 0;
 }
 .combo-info { min-width: 0; }
-.combo-name { font-size: 15px; font-weight: 500; color: var(--ink-black); }
+.combo-name { font-size: 17px; font-weight: 500; color: var(--ink-black); }
 .combo-name mark { background: var(--gold-glow); color: var(--ink-black); border-radius: 2px; padding: 0 1px; }
-.combo-creds { font-size: 13px; color: var(--ink-muted); margin-top: 2px; font-family: var(--font-mono); letter-spacing: 0.02em; }
+.combo-creds { font-size: 14px; color: var(--ink-muted); margin-top: 2px; font-family: var(--font-sans); letter-spacing: 0.02em; }
 .combo-empty { padding: 16px; text-align: center; font-size: 14px; color: var(--ink-stone); font-style: italic; font-family: var(--font-serif); }
 .combo-list::-webkit-scrollbar { width: 5px; }
 .combo-list::-webkit-scrollbar-thumb { background: var(--ink-rule); border-radius: 3px; }
@@ -181,35 +181,145 @@ html, body { height: 100%; background: #1e1c19; font-family: var(--font-sans); c
 .match-card:hover { border-color: var(--ink-stone); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(26,24,21,0.06); }
 .match-card.top { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,162,39,0.1); background: linear-gradient(180deg, #fffbe8 0%, #fff 100%); }
 .match-head { display: flex; gap: 14px; align-items: center; }
-.match-avatar { width: 52px; height: 52px; border-radius: 50%; background: var(--ink-cream); border: 1px solid var(--ink-rule); display: flex; align-items: center; justify-content: center; font-family: var(--font-serif); font-style: italic; font-weight: 400; font-size: 21px; color: var(--ink-black); flex-shrink: 0; }
+.match-avatar { width: 56px; height: 56px; border-radius: 50%; background: var(--ink-cream); border: 1px solid var(--ink-rule); display: flex; align-items: center; justify-content: center; font-family: var(--font-serif); font-style: italic; font-weight: 400; font-size: 21px; color: var(--ink-black); flex-shrink: 0; overflow: hidden; }
+.match-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .match-card.top .match-avatar { border-color: var(--gold-muted); background: linear-gradient(135deg, #fef9e7, var(--ink-cream)); }
-.match-name { font-family: var(--font-serif); font-weight: 400; font-size: 19px; color: var(--ink-black); line-height: 1.15; }
-.match-creds { font-size: 13px; color: var(--ink-muted); margin-top: 3px; font-family: var(--font-mono); letter-spacing: 0.03em; text-transform: uppercase; }
-.match-tag { margin-left: auto; font-size: 10px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; padding: 6px 11px; border-radius: 999px; background: var(--gold); color: var(--ink-black); flex-shrink: 0; }
-.match-why { margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--ink-rule); font-size: 15px; line-height: 1.5; color: var(--ink-muted); font-style: italic; font-family: var(--font-serif); }
+.match-name { font-family: var(--font-serif); font-weight: 400; font-size: 22px; color: var(--ink-black); line-height: 1.15; }
+.match-creds { font-size: 15px; color: var(--ink-stone); margin-top: 4px; font-family: var(--font-sans); font-weight: 500; letter-spacing: 0.02em; }
+.match-why { margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--ink-rule); font-size: 16px; line-height: 1.55; color: var(--ink-body); font-family: var(--font-sans); }
 
-/* ── Time Slots ── */
-.time-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin-bottom: 18px; }
-.time-slot { padding: 12px 0; border: 1.5px solid var(--ink-rule); border-radius: 10px; text-align: center; font-size: 12px; color: var(--ink-stone); line-height: 1.2; background: #fff; cursor: pointer; transition: all 0.2s var(--ease); }
-.time-slot b { display: block; font-family: var(--font-serif); font-size: 16px; color: var(--ink-black); margin-top: 3px; font-weight: 400; }
-.time-slot:hover { border-color: var(--ink-stone); background: var(--ink-cream); }
-.time-slot.selected { background: var(--ink-black); color: rgba(255,255,255,0.7); border-color: var(--ink-black); }
-.time-slot.selected b { color: #fff; }
-.time-slot.empty { opacity: 0.3; pointer-events: none; border-style: dashed; }
+/* ── Learn More & Profile ── */
+.match-more {
+  margin-top: 10px; font-size: 15px; font-family: var(--font-sans);
+  font-weight: 500; color: var(--gold); cursor: pointer;
+  transition: color 0.2s;
+}
+.match-more:hover { color: #b8921f; }
+
+.profile-overlay {
+  position: absolute; inset: 0; z-index: 15;
+  background: var(--ink-paper);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.35s var(--ease);
+  overflow-y: auto; -webkit-overflow-scrolling: touch;
+}
+.profile-overlay.visible { opacity: 1; pointer-events: auto; }
+.profile-overlay::-webkit-scrollbar { display: none; }
+.profile-inner { padding: 20px 22px 32px; }
+
+.profile-back {
+  font-size: 22px; color: var(--ink-stone); cursor: pointer;
+  background: none; border: none; font-family: var(--font-sans);
+  padding: 4px 6px 4px 0; margin-bottom: 20px; transition: color 0.2s;
+}
+.profile-back:hover { color: var(--ink-black); }
+
+.profile-photo {
+  width: 96px; height: 96px; border-radius: 50%;
+  overflow: hidden; border: 2px solid var(--ink-rule); margin-bottom: 18px;
+}
+.profile-photo img { width: 100%; height: 100%; object-fit: cover; }
+
+.profile-name {
+  font-family: var(--font-serif); font-weight: 400;
+  font-size: 28px; color: var(--ink-black); line-height: 1.15; margin-bottom: 4px;
+}
+.profile-creds {
+  font-size: 15px; font-weight: 500; color: var(--ink-stone); margin-bottom: 22px;
+}
+
+.profile-section-label {
+  font-size: 13px; font-weight: 700; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--ink-stone); margin-bottom: 8px; margin-top: 24px;
+}
+.profile-text {
+  font-size: 17px; line-height: 1.6; color: var(--ink-body); margin-bottom: 6px;
+}
+.profile-tags {
+  display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 6px;
+}
+.profile-tag {
+  padding: 8px 16px; border: 1.5px solid var(--ink-rule);
+  border-radius: 999px; font-size: 15px; color: var(--ink-body); background: #fff;
+}
+.profile-cta {
+  margin-top: 28px; padding: 17px 22px; border-radius: 14px;
+  font-family: var(--font-sans); font-weight: 600; font-size: 18px;
+  text-align: center; cursor: pointer; background: var(--gold);
+  color: var(--ink-black); border: none; width: 100%;
+  display: flex; justify-content: space-between; align-items: center;
+  transition: background 0.25s var(--ease);
+}
+.profile-cta:hover { background: #b8921f; }
+
+/* ── Booking Calendar ── */
+.cal-month { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+.cal-month-label { font-family: var(--font-serif); font-weight: 400; font-size: 22px; color: var(--ink-black); }
+.cal-arrow {
+  width: 38px; height: 38px; border-radius: 50%; border: 1.5px solid var(--ink-rule);
+  background: #fff; font-size: 16px; color: var(--ink-body); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-sans); transition: all 0.2s var(--ease);
+}
+.cal-arrow:hover { border-color: var(--ink-stone); background: var(--ink-cream); }
+
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px 0; text-align: center; }
+.cal-head {
+  font-size: 13px; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--ink-stone); padding: 10px 0 14px;
+}
+.cal-day {
+  aspect-ratio: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; font-size: 18px; color: var(--ink-rule);
+  border-radius: 50%; position: relative; cursor: default; transition: all 0.2s var(--ease);
+}
+.cal-day.avail { color: var(--ink-black); font-weight: 600; cursor: pointer; }
+.cal-day.avail::after {
+  content: ''; width: 5px; height: 5px; border-radius: 50%;
+  background: var(--gold); position: absolute; bottom: 6px;
+}
+.cal-day.avail:hover { background: var(--gold-glow); }
+.cal-day.today { font-weight: 700; }
+.cal-day.today::before {
+  content: ''; position: absolute; inset: 3px; border-radius: 50%;
+  border: 1.5px solid var(--ink-rule);
+}
+
+/* Time slots after day selection */
+.cal-back {
+  background: none; border: none; font-family: var(--font-sans);
+  font-size: 16px; color: var(--ink-stone); cursor: pointer;
+  padding: 0; margin-bottom: 20px; display: flex; align-items: center; gap: 6px;
+  transition: color 0.2s;
+}
+.cal-back:hover { color: var(--ink-black); }
+.cal-day-header {
+  font-family: var(--font-serif); font-weight: 400;
+  font-size: 26px; color: var(--ink-black); margin-bottom: 4px; line-height: 1.2;
+}
+.cal-day-sub { font-size: 16px; color: var(--ink-stone); margin-bottom: 18px; }
+.cal-time {
+  padding: 18px 22px; border: 1.5px solid var(--ink-rule); border-radius: 12px;
+  background: #fff; margin-bottom: 10px; font-family: var(--font-serif);
+  font-size: 20px; font-weight: 400; color: var(--ink-black); cursor: pointer;
+  text-align: center; transition: all 0.2s var(--ease);
+}
+.cal-time:hover { border-color: var(--ink-stone); background: var(--ink-cream); }
+.cal-time.selected { background: var(--ink-black); color: #fff; border-color: var(--ink-black); }
 
 /* ── Confirmation ── */
 .confirm-check { width: 76px; height: 76px; border-radius: 50%; background: var(--emerald-light); color: var(--emerald); display: flex; align-items: center; justify-content: center; margin: 0 auto 22px; font-family: var(--font-serif); font-size: 38px; animation: checkPop 0.6s var(--ease) both 0.2s; }
 @keyframes checkPop { 0% { transform: scale(0); opacity: 0; } 60% { transform: scale(1.15); } 100% { transform: scale(1); opacity: 1; } }
 .next-card { border: 2px solid var(--gold); border-radius: 16px; padding: 22px 22px 20px; background: linear-gradient(180deg, #fffbe8 0%, #fff 100%); margin: 20px 0 16px; text-align: left; box-shadow: 0 0 0 4px var(--gold-glow), 0 4px 16px rgba(201,162,39,0.12); }
 .next-card-label { font-size: 11px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 7px; }
-.next-card-title { font-family: var(--font-serif); font-style: italic; font-size: 20px; color: var(--ink-black); margin-bottom: 6px; }
-.next-card-note { font-size: 15px; color: var(--ink-muted); line-height: 1.5; }
+.next-card-title { font-family: var(--font-serif); font-style: italic; font-size: 22px; color: var(--ink-black); margin-bottom: 6px; }
+.next-card-note { font-size: 17px; color: var(--ink-muted); line-height: 1.5; }
 
 /* ── Estimate Card ── */
 .estimate-card { border: 2px solid var(--ink-black); border-radius: 16px; padding: 22px 24px; background: #fff; margin: 16px 0 20px; }
 .estimate-card-label { font-size: 11px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-stone); margin-bottom: 10px; }
-.estimate-row { display: flex; justify-content: space-between; align-items: baseline; padding: 7px 0; font-size: 15px; color: var(--ink-body); }
-.estimate-row b { font-family: var(--font-serif); font-style: italic; font-weight: 400; color: var(--ink-black); font-size: 17px; }
+.estimate-row { display: flex; justify-content: space-between; align-items: baseline; padding: 8px 0; font-size: 17px; color: var(--ink-body); }
+.estimate-row b { font-family: var(--font-serif); font-style: italic; font-weight: 400; color: var(--ink-black); font-size: 19px; }
 .estimate-row.total { border-top: 1px solid var(--ink-rule); padding-top: 14px; margin-top: 6px; }
 .estimate-row.total b { font-size: 30px; color: var(--gold); font-style: normal; font-weight: 300; }
 .estimate-row .coverage { color: var(--emerald); }
@@ -220,7 +330,7 @@ html, body { height: 100%; background: #1e1c19; font-family: var(--font-sans); c
 .crisis-card { border: 1.5px solid var(--rose); border-radius: 14px; padding: 20px; background: var(--rose-light); margin-bottom: 18px; }
 .crisis-label { font-size: 11px; font-weight: 700; letter-spacing: 0.2em; color: var(--rose); margin-bottom: 10px; }
 .crisis-title { font-family: var(--font-serif); font-weight: 400; font-size: 22px; line-height: 1.3; color: var(--ink-black); margin-bottom: 14px; }
-.crisis-resource { padding: 13px 15px; background: #fff; border: 1px solid var(--ink-rule); border-radius: 10px; font-size: 15px; color: var(--ink-black); margin-bottom: 8px; }
+.crisis-resource { padding: 14px 16px; background: #fff; border: 1px solid var(--ink-rule); border-radius: 10px; font-size: 17px; color: var(--ink-black); margin-bottom: 8px; }
 .crisis-resource b { font-weight: 600; }
 
 /* ── Overlays ── */
@@ -385,10 +495,12 @@ html, body { height: 100%; background: #1e1c19; font-family: var(--font-sans); c
 .viewport.desktop .match-tag { margin-left: 0; margin-top: 6px; align-self: flex-start; font-size: 9px; padding: 5px 10px; }
 .viewport.desktop .match-why { font-size: 13px; margin-top: 12px; padding-top: 12px; line-height: 1.5; }
 
-/* ── Time slots ── */
-.viewport.desktop .time-grid { grid-template-columns: repeat(5, 1fr); gap: 10px; }
-.viewport.desktop .time-slot { padding: 14px 0; font-size: 13px; border-radius: 10px; }
-.viewport.desktop .time-slot b { font-size: 18px; margin-top: 3px; }
+/* ── Calendar ── */
+.viewport.desktop .cal-month-label { font-size: 24px; }
+.viewport.desktop .cal-day { font-size: 18px; }
+.viewport.desktop .cal-head { font-size: 13px; }
+.viewport.desktop .cal-day-header { font-size: 30px; }
+.viewport.desktop .cal-time { padding: 20px 24px; font-size: 22px; border-radius: 14px; max-width: 400px; }
 
 /* ── Confirmation ── */
 .viewport.desktop .confirm-check { width: 80px; height: 80px; font-size: 40px; margin-bottom: 22px; }
@@ -682,80 +794,83 @@ html, body { height: 100%; background: #1e1c19; font-family: var(--font-sans); c
   <div class="screen-body stagger">
     <div class="step-label">Step 4 of 4 &middot; Your matches</div>
     <div class="headline">Three therapists who <em>fit.</em></div>
-    <div class="subtext">Tap to see consult times.</div>
     <div class="match-card top" onclick="flow.goTo(SCREENS.indexOf('timeslots'))">
       <div class="match-head">
-        <div class="match-avatar">A</div>
+        <div class="match-avatar"><img src="https://images.squarespace-cdn.com/content/v1/608a13216513f0622986d806/1622213340398-APNA8T49HVW0VL88OWZE/Alysha+Perlman-.jpg?format=500w" alt="Alysha Ackley"></div>
         <div><div class="match-name">Alysha Ackley, LCSW</div><div class="match-creds">Anxiety &middot; Life transitions &middot; Couples</div></div>
-        <div class="match-tag">Best fit</div>
       </div>
-      <div class="match-why">Clinical Director. Specializes in anxiety and navigating life transitions. Columbia MSW. Thursday and Friday consults open this week.</div>
+      <div class="match-why">Alysha has helped many clients work through anxiety and depression together. Her style is warm and direct.</div>
+      <div class="match-more" onclick="event.stopPropagation();showProfile(0)">Learn more</div>
     </div>
     <div class="match-card" onclick="flow.goTo(SCREENS.indexOf('timeslots'))">
       <div class="match-head">
-        <div class="match-avatar">T</div>
+        <div class="match-avatar"><img src="https://images.squarespace-cdn.com/content/v1/608a13216513f0622986d806/57281736-7b7c-4d4e-9ccb-71b7cff1f1ff/Tiffany+Momoko+Kindred-+%281%29+%282%29.jpg?format=500w" alt="Tiffany Kindred"></div>
         <div><div class="match-name">Tiffany Kindred, LCSW</div><div class="match-creds">Career &middot; Identity &middot; Relationships</div></div>
       </div>
-      <div class="match-why">Former management consultant turned therapist. Deep work on career transitions and self-esteem. Evening availability.</div>
+      <div class="match-why">Tiffany specializes in the overlap between anxiety and low mood, especially when it affects work and identity.</div>
+      <div class="match-more" onclick="event.stopPropagation();showProfile(1)">Learn more</div>
     </div>
     <div class="match-card" onclick="flow.goTo(SCREENS.indexOf('timeslots'))">
       <div class="match-head">
-        <div class="match-avatar">L</div>
+        <div class="match-avatar"><img src="https://images.squarespace-cdn.com/content/v1/608a13216513f0622986d806/39442b6e-3635-418b-a1cd-897742330dad/Laura_cropped-+%281%29.jpg?format=500w" alt="Laura Goldstein"></div>
         <div><div class="match-name">Laura Goldstein, LCSW</div><div class="match-creds">Anxiety &middot; Depression &middot; Stress</div></div>
       </div>
-      <div class="match-why">Nearly a decade of experience with work stress, relationship challenges, and life transitions.</div>
+      <div class="match-why">Laura has nearly a decade of experience with anxiety and depression. Calm, structured approach.</div>
+      <div class="match-more" onclick="event.stopPropagation();showProfile(2)">Learn more</div>
     </div>
+  </div>
+  <!-- Profile overlay -->
+  <div class="profile-overlay" id="profile-overlay">
+    <div class="profile-inner" id="profile-inner"></div>
   </div>
 </div>
 
-<!-- ══ 10: TIME SLOTS ══ -->
+<!-- ══ 10: BOOKING CALENDAR ══ -->
 <div class="screen" data-screen="timeslots">
   <div class="nav"><button class="nav-back" onclick="flow.prev()">&larr;</button><div class="nav-brand">A Good Place <span class="dot">&middot;</span></div><div class="progress"><div class="progress-dot done"></div><div class="progress-dot done"></div><div class="progress-dot done"></div><div class="progress-dot current"></div></div></div>
-  <div class="screen-body stagger">
-    <div class="step-label">Alysha Ackley &middot; 15-min consult</div>
-    <div style="display:flex;gap:14px;align-items:center;margin-bottom:20px;">
-      <div class="match-avatar" style="width:54px;height:54px;font-size:22px;">A</div>
+  <div class="screen-body">
+    <div style="display:flex;gap:14px;align-items:center;margin-bottom:24px;">
+      <div class="match-avatar" style="width:54px;height:54px;"><img src="https://images.squarespace-cdn.com/content/v1/608a13216513f0622986d806/1622213340398-APNA8T49HVW0VL88OWZE/Alysha+Perlman-.jpg?format=500w" alt="Alysha Ackley"></div>
       <div><div class="match-name" style="font-size:20px;">Alysha Ackley, LCSW</div><div class="match-creds">Free 15-min consultation</div></div>
     </div>
-    <div class="field-label" style="margin-bottom:10px;">This week</div>
-    <div class="time-grid">
-      <div class="time-slot" onclick="selectSlot(this,'Thu','2:30')">Thu<b>2:30</b></div>
-      <div class="time-slot" onclick="selectSlot(this,'Thu','4:00')">Thu<b>4:00</b></div>
-      <div class="time-slot" onclick="selectSlot(this,'Fri','10:30')">Fri<b>10:30</b></div>
-      <div class="time-slot" onclick="selectSlot(this,'Fri','1:00')">Fri<b>1:00</b></div>
-      <div class="time-slot" onclick="selectSlot(this,'Fri','5:30')">Fri<b>5:30</b></div>
-      <div class="time-slot empty">&mdash;</div>
+
+    <!-- Calendar View -->
+    <div id="cal-view">
+      <div class="cal-month">
+        <button class="cal-arrow" onclick="calNav(-1)">&larr;</button>
+        <div class="cal-month-label" id="cal-month-label"></div>
+        <button class="cal-arrow" onclick="calNav(1)">&rarr;</button>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
     </div>
-    <div class="field-label" style="margin-bottom:10px;">Next week</div>
-    <div class="time-grid">
-      <div class="time-slot" onclick="selectSlot(this,'Mon','9:00')">Mon<b>9:00</b></div>
-      <div class="time-slot" onclick="selectSlot(this,'Mon','11:00')">Mon<b>11:00</b></div>
-      <div class="time-slot" onclick="selectSlot(this,'Tue','3:00')">Tue<b>3:00</b></div>
+
+    <!-- Time View (hidden initially) -->
+    <div id="time-view" style="display:none;">
+      <button class="cal-back" onclick="showCalView()">&larr; Back to calendar</button>
+      <div class="cal-day-header" id="cal-day-header"></div>
+      <div class="cal-day-sub">Available times</div>
+      <div id="time-list"></div>
     </div>
-    <div class="spacer"></div>
-    <button class="cta gold disabled" id="book-cta" onclick="flow.next()"><span id="book-label">Select a time</span><span class="arrow">&rarr;</span></button>
+
+    <button class="cta gold disabled" id="book-cta" onclick="flow.next()" style="margin-top:24px;"><span id="book-label">Select a time</span><span class="arrow">&rarr;</span></button>
   </div>
 </div>
 
 <!-- ══ 11: CONFIRMED ══ -->
 <div class="screen" data-screen="confirmed">
   <div class="nav"><div class="nav-brand">A Good Place <span class="dot">&middot;</span></div><div class="nav-meta emerald">CONFIRMED</div></div>
-  <div class="screen-body" style="text-align:center;padding-top:24px;">
+  <div class="screen-body" style="text-align:center;justify-content:center;">
     <div class="stagger">
       <div class="confirm-check">&check;</div>
       <div class="headline" style="text-align:center;font-size:30px;margin-bottom:14px;">You're <em>on the calendar.</em></div>
       <div class="subtext" style="text-align:center;margin-bottom:24px;padding:0 8px;" id="confirm-details">Friday, May 2 at 10:30 AM with Alysha. Video link sent by email and text.</div>
-      <div class="next-card">
-        <div class="next-card-label">Next</div>
-        <div class="next-card-title">Let's find out your cost.</div>
-        <div class="next-card-note">Enter your insurance details and we'll have an estimate ready before your call.</div>
-      </div>
-      <button class="cta gold" onclick="flow.next()"><span>Let's find out</span><span class="arrow">&rarr;</span></button>
     </div>
   </div>
 </div>
 
-<!-- ══ 12: INSURANCE DETAILS ══ -->
+<!--
+══ POST-CONFIRMATION FLOW (commented out) ══
+
 <div class="screen" data-screen="insurance-details">
   <div class="nav"><button class="nav-back" onclick="flow.prev()">&larr;</button><div class="nav-brand">A Good Place <span class="dot">&middot;</span></div><div class="nav-meta gold">COST</div></div>
   <div class="screen-body stagger">
@@ -771,7 +886,6 @@ html, body { height: 100%; background: #1e1c19; font-family: var(--font-sans); c
   <div class="loading-overlay" id="benefits-overlay"><div class="loading-spinner"></div><div class="loading-text">Checking your benefits&hellip;</div><div class="loading-sub">This usually takes about a minute</div></div>
 </div>
 
-<!-- ══ 13: GOOD FAITH ESTIMATE ══ -->
 <div class="screen" data-screen="estimate">
   <div class="nav"><div class="nav-brand">A Good Place <span class="dot">&middot;</span></div><div class="nav-meta emerald">VERIFIED</div></div>
   <div class="screen-body" style="padding-top:20px;">
@@ -785,59 +899,37 @@ html, body { height: 100%; background: #1e1c19; font-family: var(--font-sans); c
         <div class="estimate-row total"><span>Your estimated cost</span><b id="gfe-total">$50</b></div>
       </div>
       <div class="subtext" style="margin-bottom:12px;">This is an estimate based on your plan. Final costs may vary slightly.</div>
-      <div style="padding:20px 22px;border:2px solid var(--gold);border-radius:16px;background:linear-gradient(180deg, #fffbe8 0%, #fff 100%);margin-bottom:20px;text-align:left;box-shadow:0 0 0 4px var(--gold-glow), 0 4px 16px rgba(201,162,39,0.12);">
-        <div style="font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin-bottom:7px;">Sliding scale</div>
-        <div style="font-family:var(--font-serif);font-style:italic;font-size:20px;color:var(--ink-black);margin-bottom:6px;">Therapy should be accessible.</div>
-        <div style="font-size:15px;color:var(--ink-muted);line-height:1.5;">If cost is a barrier, check if you're eligible for our sliding scale program.</div>
-      </div>
       <button class="cta gold" onclick="flow.goTo(0)"><span id="gfe-done-label">Looks good</span><span class="arrow">&rarr;</span></button>
-      <div class="footer-link" onclick="flow.next()" style="margin-top:12px;">Check sliding scale eligibility &rarr;</div>
     </div>
   </div>
 </div>
 
-<!-- ══ 14: SLIDING SCALE ══ -->
 <div class="screen" data-screen="sliding-scale">
   <div class="nav"><button class="nav-back" onclick="flow.prev()">&larr;</button><div class="nav-brand">A Good Place <span class="dot">&middot;</span></div><div class="nav-meta gold">SLIDING SCALE</div></div>
   <div class="screen-body stagger">
     <div class="step-label">Sliding scale</div>
     <div class="headline">Check your <em>eligibility.</em></div>
     <div class="subtext">Reduced rates based on household income, starting around $140/session.</div>
-    <div class="field-label" style="margin-bottom:10px;">Household income before tax?</div>
-    <div class="chip-group" data-group="income" data-single="true" style="margin-bottom:22px;">
-      <div class="chip" onclick="selectChip(this)" data-val="40">Under $40k</div>
-      <div class="chip" onclick="selectChip(this)" data-val="70">$40 &ndash; 70k</div>
-      <div class="chip" onclick="selectChip(this)" data-val="100">$70 &ndash; 100k</div>
-      <div class="chip" onclick="selectChip(this)" data-val="150">$100 &ndash; 150k</div>
-      <div class="chip" onclick="selectChip(this)" data-val="999">$150k+</div>
-    </div>
-    <div class="field-label" style="margin-bottom:10px;">How many people does that support?</div>
-    <div class="chip-group" data-group="household" data-single="true">
-      <div class="chip" onclick="selectChip(this)" data-val="1">Just me</div>
-      <div class="chip" onclick="selectChip(this)" data-val="2">Two of us</div>
-      <div class="chip" onclick="selectChip(this)" data-val="3">Three</div>
-      <div class="chip" onclick="selectChip(this)" data-val="4">Four+</div>
-    </div>
     <div class="spacer"></div>
     <button class="cta gold" onclick="checkSlidingScale()"><span>Check eligibility</span><span class="arrow">&rarr;</span></button>
   </div>
 </div>
 
-<!-- ══ 15: FINAL COST ══ -->
 <div class="screen" data-screen="final-cost">
   <div class="nav"><div class="nav-brand">A Good Place <span class="dot">&middot;</span></div><div class="nav-meta gold" id="final-meta">SLIDING SCALE</div></div>
   <div class="screen-body" style="padding-top:20px;">
     <div class="stagger">
       <div class="step-label" id="final-label">Sliding scale</div>
       <div class="headline" id="final-headline">You may be <em>eligible.</em></div>
-      <div class="estimate-card" id="final-card">
-        <!-- populated by JS -->
-      </div>
+      <div class="estimate-card" id="final-card"></div>
       <div class="subtext" id="final-note" style="margin-bottom:16px;"></div>
       <button class="cta gold" onclick="flow.goTo(0)"><span>Done</span><span class="arrow">&rarr;</span></button>
     </div>
   </div>
 </div>
+
+══ END POST-CONFIRMATION FLOW ══
+-->
 
 </div><!-- screen-area -->
 
@@ -851,7 +943,7 @@ html, body { height: 100%; background: #1e1c19; font-family: var(--font-sans); c
 const SCREENS = [
   'contact','concerns','followup','therapist-pref',
   'format','insurance','referral','flexibility','schedule',
-  'matches','timeslots','confirmed','insurance-details','estimate','sliding-scale','final-cost'
+  'matches','timeslots','confirmed'
 ];
 
 const flow = {
@@ -897,13 +989,88 @@ function selectFormat(card, format) {
   document.getElementById('location-field').classList.toggle('visible', format === 'inperson');
 }
 
-function selectSlot(el, day, time) {
-  document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
-  el.classList.add('selected');
-  document.getElementById('book-cta').classList.remove('disabled');
-  document.getElementById('book-label').textContent = `Book ${day} ${time}`;
-  document.getElementById('confirm-details').textContent = `${day}, May at ${time} AM with Alysha. Video link sent by email and text.`;
+/* Booking calendar */
+const CAL_AVAIL = {
+  2026: {
+    3: { 29: ['3:00pm','5:30pm'], 30: ['10:00am','2:00pm'] },
+    4: {
+      1: ['2:30pm','4:00pm'], 2: ['10:30am','1:00pm','5:30pm'],
+      5: ['9:00am','11:00am'], 6: ['3:00pm','5:00pm'],
+      8: ['9:30am','2:00pm','4:30pm'], 9: ['10:00am','1:30pm'],
+      12: ['11:00am','3:00pm'], 13: ['9:00am','2:30pm','5:00pm'],
+      15: ['10:00am','4:00pm'], 16: ['1:00pm'],
+      19: ['9:00am','11:30am'], 20: ['1:00pm','3:30pm'],
+      22: ['10:00am','2:00pm','5:00pm'], 23: ['9:30am'],
+      26: ['11:00am','3:00pm'], 29: ['9:00am','2:00pm','4:30pm']
+    }
+  }
+};
+const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+let calM = 4, calY = 2026;
+
+function renderCal() {
+  document.getElementById('cal-month-label').textContent = MONTH_NAMES[calM] + ' ' + calY;
+  const grid = document.getElementById('cal-grid');
+  const heads = ['S','M','T','W','T','F','S'];
+  let html = heads.map(function(h) { return '<div class="cal-head">' + h + '</div>'; }).join('');
+  const firstDay = new Date(calY, calM, 1).getDay();
+  const daysInMonth = new Date(calY, calM + 1, 0).getDate();
+  const today = new Date();
+  const avail = (CAL_AVAIL[calY] && CAL_AVAIL[calY][calM]) || {};
+  for (let i = 0; i < firstDay; i++) html += '<div class="cal-day"></div>';
+  for (let d = 1; d <= daysInMonth; d++) {
+    const isPast = new Date(calY, calM, d) < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const isToday = calY === today.getFullYear() && calM === today.getMonth() && d === today.getDate();
+    const hasSlots = avail[d] && !isPast;
+    let cls = 'cal-day';
+    if (hasSlots) cls += ' avail';
+    if (isPast) cls += ' past';
+    if (isToday) cls += ' today';
+    const click = hasSlots ? ' onclick="selectCalDay(' + d + ')"' : '';
+    html += '<div class="' + cls + '"' + click + '>' + d + '</div>';
+  }
+  grid.innerHTML = html;
 }
+
+function calNav(dir) {
+  calM += dir;
+  if (calM > 11) { calM = 0; calY++; }
+  if (calM < 0) { calM = 11; calY--; }
+  renderCal();
+}
+
+function selectCalDay(day) {
+  const avail = CAL_AVAIL[calY][calM][day];
+  if (!avail) return;
+  const date = new Date(calY, calM, day);
+  document.getElementById('cal-day-header').textContent = DAY_NAMES[date.getDay()] + ', ' + MONTH_NAMES[calM] + ' ' + day;
+  const list = document.getElementById('time-list');
+  list.innerHTML = avail.map(function(t) {
+    return '<div class="cal-time" onclick="selectCalTime(this,\'' + t + '\',' + day + ')">' + t + '</div>';
+  }).join('');
+  document.getElementById('cal-view').style.display = 'none';
+  document.getElementById('time-view').style.display = 'block';
+  document.getElementById('book-cta').classList.add('disabled');
+  document.getElementById('book-label').textContent = 'Select a time';
+}
+
+function selectCalTime(el, time, day) {
+  document.querySelectorAll('.cal-time').forEach(function(t) { t.classList.remove('selected'); });
+  el.classList.add('selected');
+  const date = new Date(calY, calM, day);
+  const dayName = DAY_NAMES[date.getDay()];
+  document.getElementById('book-cta').classList.remove('disabled');
+  document.getElementById('book-label').textContent = 'Book ' + dayName + ' at ' + time;
+  document.getElementById('confirm-details').textContent = dayName + ', ' + MONTH_NAMES[calM] + ' ' + day + ' at ' + time + ' with Alysha. Video link sent by email and text.';
+}
+
+function showCalView() {
+  document.getElementById('cal-view').style.display = 'block';
+  document.getElementById('time-view').style.display = 'none';
+}
+
+document.addEventListener('DOMContentLoaded', function() { renderCal(); });
 
 /* Crisis */
 const CRISIS_WORDS = ['suicide','suicidal','kill myself','end my life','self-harm','self harm','want to die','hurting myself'];
@@ -914,6 +1081,64 @@ function handleConcernsNext() {
 }
 function showCrisis() { document.getElementById('crisis-overlay').classList.add('visible'); }
 function hideCrisis() { document.getElementById('crisis-overlay').classList.remove('visible'); }
+
+/* Clinician profiles */
+const PROFILES = [
+  {
+    name: 'Alysha Ackley, LCSW',
+    photo: 'https://images.squarespace-cdn.com/content/v1/608a13216513f0622986d806/1622213340398-APNA8T49HVW0VL88OWZE/Alysha+Perlman-.jpg?format=500w',
+    creds: 'Anxiety · Life transitions · Couples',
+    why: "Alysha has helped many clients work through anxiety and depression together. As Clinical Director, she brings both clinical depth and a warm, direct style that her clients consistently describe as grounding.",
+    approach: 'Psychodynamic, CBT, and relational therapy. Alysha believes in understanding the root of anxiety — not just managing symptoms.',
+    education: 'Columbia University, MSW',
+    experience: '12+ years',
+    tags: ['Anxiety', 'Depression', 'Life transitions', 'Couples', 'Self-esteem']
+  },
+  {
+    name: 'Tiffany Kindred, LCSW',
+    photo: 'https://images.squarespace-cdn.com/content/v1/608a13216513f0622986d806/57281736-7b7c-4d4e-9ccb-71b7cff1f1ff/Tiffany+Momoko+Kindred-+%281%29+%282%29.jpg?format=500w',
+    creds: 'Career · Identity · Relationships',
+    why: "Tiffany specializes in the overlap between anxiety and low mood, especially when it shows up at work or in relationships. A former management consultant, she gets the pressures high-achievers face.",
+    approach: 'Integrative and insight-oriented. Tiffany blends talk therapy with practical strategies to help you feel unstuck.',
+    education: 'NYU Silver School of Social Work',
+    experience: '8+ years',
+    tags: ['Anxiety', 'Depression', 'Career', 'Identity', 'Relationships', 'High-achievers']
+  },
+  {
+    name: 'Laura Goldstein, LCSW',
+    photo: 'https://images.squarespace-cdn.com/content/v1/608a13216513f0622986d806/39442b6e-3635-418b-a1cd-897742330dad/Laura_cropped-+%281%29.jpg?format=500w',
+    creds: 'Anxiety · Depression · Stress',
+    why: "Laura has nearly a decade of experience helping clients with anxiety and depression specifically. Her style is calm and structured — she creates a space where you can slow down and make sense of what you're feeling.",
+    approach: 'CBT and mindfulness-based therapy. Laura focuses on building tangible coping tools while exploring underlying patterns.',
+    education: 'University of Pennsylvania, MSW',
+    experience: '9+ years',
+    tags: ['Anxiety', 'Depression', 'Stress', 'OCD', 'Mindfulness']
+  }
+];
+
+function showProfile(index) {
+  const p = PROFILES[index];
+  const inner = document.getElementById('profile-inner');
+  inner.innerHTML =
+    '<button class="profile-back" onclick="hideProfile()">&larr;</button>' +
+    '<div class="profile-photo"><img src="' + p.photo + '" alt="' + p.name + '"></div>' +
+    '<div class="profile-name">' + p.name + '</div>' +
+    '<div class="profile-creds">' + p.creds + '</div>' +
+    '<div class="profile-section-label">Why we matched you</div>' +
+    '<div class="profile-text">' + p.why + '</div>' +
+    '<div class="profile-section-label">Approach</div>' +
+    '<div class="profile-text">' + p.approach + '</div>' +
+    '<div class="profile-section-label">Background</div>' +
+    '<div class="profile-text">' + p.education + ' · ' + p.experience + '</div>' +
+    '<div class="profile-section-label">Works with</div>' +
+    '<div class="profile-tags">' + p.tags.map(function(t) { return '<div class="profile-tag">' + t + '</div>'; }).join('') + '</div>' +
+    '<button class="profile-cta" onclick="hideProfile();flow.goTo(SCREENS.indexOf(\'timeslots\'))"><span>Book a consult</span><span class="arrow">&rarr;</span></button>';
+  document.getElementById('profile-overlay').classList.add('visible');
+}
+
+function hideProfile() {
+  document.getElementById('profile-overlay').classList.remove('visible');
+}
 
 /* Flexibility selection */
 let flexChoice = null;
